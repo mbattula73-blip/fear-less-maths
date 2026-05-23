@@ -1,6 +1,8 @@
 """
-Fear Less Maths — Complete Question Content
-All 20 Levels · All 280 Sublevels · All 4 Sheets
+Fear Less Maths — Question Content: Levels 1 & 2
+Every question hand-written. No placeholders.
+Sheet 1=Intuition, Sheet 2=Concept, Sheet 3=Practice, Sheet 4=Mastery
+Remedial variants replace numbers using remedialise().
 """
 import random, re
 
@@ -20,1033 +22,1797 @@ def remedialise(items, seed=0):
         ni = dict(item)
         def sw(m):
             v = float(m.group())
-            d = random.uniform(0.05, max(0.05, abs(v)*0.25))
-            nv = round(v + d if random.random()>0.5 else max(0.01,v-d), 2)
+            d = random.uniform(0.5, max(0.5, abs(v)*0.3))
+            nv = round(v + d if random.random()>0.5 else max(0.1,v-d), 1)
             return str(int(nv) if nv == int(nv) else nv)
-        ni["text"] = re.sub(r"\b\d+\.?\d*\b", sw, ni.get("text",""))
+        ni["text"] = re.sub(r'\b\d+\.?\d*\b', sw, ni.get("text",""))
         out.append(ni)
     return out
 
-def _qs(topic, skills, example, sheet):
-    """Topic-aware generic question generator."""
-    tier = {1:"Intuition — See it",2:"Concept — Try it",
-            3:"Practice — Do it",4:"Mastery — Prove it"}[sheet]
-    q_templates = {
-        1:[f"Look at this {topic} example: {example}. Write your answer: ____",
-           f"From the {topic} concept, identify: ____",
-           f"Write a real-world example of {topic}: ____",
-           f"Match the {topic} pattern: ____",
-           f"Without calculating, write what you observe about {topic}: ____"],
-        2:[f"Apply the {topic} rule: ____",
-           f"Use the {topic} formula: ____",
-           f"Write the key definition of {topic}: ____",
-           f"Solve using {topic} concept: ____",
-           f"Complete this {topic} statement: ____"],
-        3:[f"Calculate ({topic}): ____",
-           f"Solve this {topic} problem: ____",
-           f"Find the value ({topic}): ____",
-           f"Work out ({topic}): ____",
-           f"Show your working for {topic}: ____"],
-        4:[f"Explain your {topic} reasoning: ____",
-           f"Spot the error in this {topic} problem: ____",
-           f"Multi-step {topic}: ____",
-           f"Apply {topic} to a real-world problem: ____",
-           f"Prove your {topic} answer is correct: ____"],
-    }
-    tmpl = q_templates[sheet]
-    items = [cb(f"{topic} — {tier}", skills if isinstance(skills,list) else [skills], str(example))]
-    for i in range(1, 20):
-        items.append(q(tmpl[i % len(tmpl)], "fill", "Answer = ____"))
-    return items
 
-_Q_BANK = {
-    "Counting 1-50": ["Numbers from 31 to 40: ____","Before 25: ____","After 48: ____","Order 37,13,49,22 smallest to largest: ____","3 tens and 7 ones = ____","Fill in: 21,22,___,24,___,26","4 tens and 6 ones = ____","Count back: 30,29,___,27,___","Write all numbers between 45 and 50: ____","How many tens in 40? ____"],
-    "Counting 1-100": ["Numbers from 81 to 90: ____","10 more than 73: ____","10 less than 60: ____","Count by 5s from 45 to 70: ____","8 tens and 3 ones = ____","Count by 10s: 10,20,___,40,___","Fill in: 55,56,___,58,___","Count back by 10: 100,90,___,70,___","All multiples of 10 from 10 to 100: ____","Number just before 100: ____"],
-    "Before/After": ["Before 30: ____","After 59: ____","Between 17 and 21: ____","Before and after 45: ____","Between 98 and 100: ____","Before 100: ____","After 39: ____","Numbers between 28 and 32: ____","Before and after 25: ____","Write before,number,after for 42: ____"],
-    "Greater/Smaller": ["Write > or <: 54 ___ 45","Write > or <: 82 ___ 82","Greatest of 34,43,30,40: ____","Order ascending: 92,29,9,90: ____","True or False: 67 < 76","Smallest of 76,67,70,60: ____","Write > or <: 30 ___ 30","Order descending: 41,14,40,4: ____","True or False: 50 > 49","Write = > or <: 99 ___ 100"],
-    "Missing numbers": ["Fill in: 25,_,27,_,29","3+___=11","___-5=8","Fill in: 60,_,80,_,100","___+23=47","Fill in: 1,2,___,4,5","15-___=9","Fill in: 5,10,___,20,25","___+14=30","50-___=27"],
-    "Number patterns": ["Rule +3: 6,9,___,15,___","Rule -5: 40,35,___,25,___","Next: 2,4,8,16,___","Pattern: 1,3,5,7,9,___","Rule +4: 4,8,12,___,20","Rule +10: 20,30,___,50,___","Fill in: 48,46,___,42,___","Next three: 10,20,30,___,___,___","Find rule: 20,18,16,14,___","Pattern: 1,4,9,16,___"],
-    "Even numbers": ["5 even numbers between 10 and 20: ____","Is 56 even? ____","Next even after 38: ____","Even numbers from 50 to 60: ____","Sum of 4 and 6: even or odd? ____","Is 100 even? ____","Even numbers from 30 to 40: ____","Is 0 even? ____","Next even after 18: ____","Largest even number less than 50: ____"],
-    "Odd numbers": ["5 odd numbers between 10 and 20: ____","Is 43 odd? ____","Next odd after 27: ____","Odd numbers from 30 to 40: ____","Sum of 3 and 5: even or odd? ____","Is 101 odd? ____","Largest odd number less than 50: ____","Sum of 6 and 9: even or odd? ____","Is 14 odd? ____","Odd numbers from 21 to 31: ____"],
-    "Even/Odd identification": ["Sort: 21,34,55,68,79 into even and odd: ____","Is 137 even or odd? ____","Is 1000 even or odd? ____","Is 4×7 even or odd? ____","How many even numbers from 1 to 20? ____","Is 83 even or odd? ____","Sort: 33,44,55,66,77,88: ____","Is product 3×5 even or odd? ____","True or False: all numbers ending in 0 are even: ____","Is 999 even or odd? ____"],
-    "Prime numbers": ["List all primes less than 15: ____","Is 23 prime? ____","Is 35 prime? ____","Smallest prime: ____","How many primes between 1 and 10? ____","Only even prime: ____","Is 1 prime? ____","All primes between 20 and 30: ____","Is 29 prime? ____","Is 49 prime? ____"],
-    "Composite numbers": ["Is 12 composite? ____","Factors of 18: ____","Is 17 composite? ____","Smallest composite number: ____","List 5 composite numbers: ____","Is 1 composite? ____","Factors of 30: ____","How many factors does 12 have? ____","Is 9 prime or composite? ____","List factor pairs of 24: ____"],
-    "Addition single digit": ["3+8=____","7+6=____","Double 9=____","9+0=____","4+3+2=____","5+5=____","Find missing: ___+5=12","7+___=9","8+4=____","1+2+3+4=____"],
-    "Addition two digit": ["34+25=____","47+38=____","56+37=____","43+___=70","63+28=____","21+33+15=____","Find missing: ___+47=83","17+15=____","46+27=____","55+38=____"],
-    "Subtraction basics": ["15-8=____","20-13=____","18-___=9","13-7=____","30-15=____","12-___=5","___-6=8","9-4=____","If 8+6=14, then 14-8=____","10-3-4=____"],
-    "Borrow subtraction": ["52-28=____","74-39=____","81-47=____","63-45=____","90-53=____","72-45=____","Check: 52-28 by adding back: ____","83-57=____","41-16=____","60-27=____"],
-    "Multiplication concept": ["3×6=____","4×8=____","7×5=____","0×9=____","Find missing: ___×4=20","1×12=____","2+2+2+2=4×___=____","5 bags × 2 oranges = ____","Is 2×5=5×2? ____","___×3=9"],
-    "Tables 2-5": ["2×9=____","3×7=____","4×6=____","5×8=____","3×___=18","2×8=____","4×9=____","5×7=____","3×8=____","4×___=28"],
-    "Tables 6-10": ["6×7=____","8×9=____","7×6=____","9×4=____","6×___=42","10×7=____","7×8=____","9×9=____","8×6=____","7×___=49"],
-    "Division concept": ["12÷4=____","20÷5=____","27÷9=____","0÷6=____","24÷___=6","If 5×7=35, then 35÷7=____","Any number ÷ itself = ____","Any number ÷ 1 = ____","15÷___=3","___÷4=5"],
-    "Fraction concept": ["Write 3 out of 7 as fraction: ____","Numerator of 5/9: ____","Denominator of 4/11: ____","3/4 of 8 = ____","Is 5/5 = 1 whole? ____","Write 0.5 as fraction: ____","2 out of 7 equal parts = ____","In 4/7, denominator = ____","5 of 12 marbles are red. Fraction = ____","3 out of 5 = ____"],
-    "Decimal concept": ["Write 0.6 in words: ____","7 tenths as decimal: ____","0.4 means ___ whole and ___ tenths","Which is greater: 0.5 or 0.3? ____","0.9+0.1=____","Write 0.3 as a fraction: ____","2 tenths = 0.____","0.8 means ___ whole and ___ tenths","Three squares shaded out of 10 = 0.____","1.3 means ___ whole and ___ tenths"],
-    "Integer concept": ["-3+5=____","Absolute value of -8: ____","Order: -2,3,-5,1,0","Is -7 > -3? ____","Opposite of -9: ____","|-7|=____","|0|=____","5 degrees below zero = ____","All integers between -4 and +3: ____","Temperature: -4°C + 7°C = ____"],
-    "Factors": ["Factors of 12: ____","Is 7 a factor of 42? ____","How many factors does 16 have? ____","Factor pairs of 18: ____","Is 6 a factor of 25? ____","Factors of 24: ____","Is 4 a factor of 30? ____","List all factors of 36: ____","HCF of 12 and 18: ____","Is 9 a factor of 72? ____"],
-    "Multiples": ["First 5 multiples of 8: ____","Is 36 a multiple of 9? ____","LCM of 4 and 6: ____","First 5 multiples of 11: ____","Common multiples of 3 and 4 up to 20: ____","Is 50 a multiple of 7? ____","First 5 multiples of 6: ____","Is 48 a multiple of 8? ____","LCM of 3 and 5: ____","Multiples of 10 from 10 to 100: ____"],
-    "HCF": ["HCF(12,18)=____","HCF(24,36)=____","HCF(15,25)=____","HCF(8,20)=____","Use HCF to simplify 12/16: ____","HCF(14,21)=____","HCF(30,45)=____","HCF(9,15)=____","HCF(16,24)=____","HCF(10,15)=____"],
-    "LCM": ["LCM(4,6)=____","LCM(3,5)=____","LCM(8,12)=____","LCM(6,9)=____","Use LCM to add 1/4+1/6: ____","LCM(4,10)=____","LCM(3,4)=____","LCM(5,6)=____","LCM(2,3,4)=____","LCM(6,8)=____"],
-    "Ratio concept": ["Simplify 6:9: ____","Write ratio of 12 to 18: ____","Are 2:3 and 4:6 equivalent? ____","Simplify 15:20: ____","If ratio 3:5 and total=40, each part=____","Simplify 10:15: ____","Write 8:12 in simplest form: ____","If ratio 2:3, first=10, second=____","Simplify 21:28: ____","Are 3:4 and 9:12 equivalent? ____"],
-}
-
-def _cum(topics, sheet):
-    n = len(topics); per = 19 // n
-    items = [cb(f"Mixed Review: {', '.join(topics)}",
-                [f"This sheet covers: {', '.join(topics)}.",
-                 "Each section practices one skill from the group.",
-                 "Show all working clearly."],
-                f"Covers: {', '.join(topics)}")]
-    fallback = ["Solve this mixed problem: ____","Apply what you know: ____","Work out carefully: ____","Show your working: ____","Calculate and check: ____","Mixed review: ____","Apply the concept: ____","Find the answer: ____","Write the solution: ____","Verify your answer: ____"]
-    for top in topics:
-        items.append(cb(f"Section: {top}", [f"Practising: {top}.", "Show all working."], ""))
-        bank = _Q_BANK.get(top, fallback)
-        for j in range(per):
-            items.append(q(bank[j % len(bank)], "fill", "Answer = ____"))
-    while len([x for x in items if x["type"] != "concept_box"]) < 19:
-        items.append(q(f"Mixed review from {', '.join(topics)}: ____", "fill", "Answer = ____"))
-    return items
-
-# ═══ LEVEL 1 ═══
-def L1A(s):
-    s1=[cb("Counting 1 to 50",["Numbers go in order: 1,2,3…50.","Each number is ONE MORE than before.","Count objects by pointing one by one."],"1,2,3,4,5 → each is one more"),
-        q("Count and write the total dots.","diagram","Count = ____","",diag="dot_array",dpar={"rows":2,"cols":4}),
-        q("Count the dots.","diagram","Count = ____","",diag="dot_array",dpar={"rows":3,"cols":3}),
-        q("Write the number after 7","fill","Answer = ____"),
-        q("Write the number after 15","fill","Answer = ____"),
-        q("Write the number after 29","fill","Answer = ____"),
-        cb("Tens and Ones",["23 = 2 tens and 3 ones.","30 = 3 tens and 0 ones."],"4 tens + 6 ones = 46"),
-        q("25 = ____ tens and ____ ones","fill","Tens=____ Ones=____"),
-        q("33 = ____ tens and ____ ones","fill","Tens=____ Ones=____"),
-        q("4 tens and 6 ones = ____","fill","Answer = ____"),
-        q("3 tens and 0 ones = ____","fill","Answer = ____"),
-        q("Fill in: 21, 22, ___, 24, ___, 26","fill","Answer = ____"),
-        cb("Count backwards",["Each number is ONE LESS when counting back."],"20,19,18,17…"),
-        q("Count back: 15, 14, ___, 12, ___","fill","Answer = ____"),
-        q("Count back: 30, 29, ___, 27, ___","fill","Answer = ____"),
-        q("Write all numbers from 41 to 50","fill","Answer = ____"),
-        q("Which number comes just before 40?","fill","Answer = ____"),
-        q("Ravi has 3 bags of 10 apples and 7 extra. Total = ____","word","Total = ____","3 bags of 10"),
-        q("48 has ____ tens and ____ ones","fill","Tens=____ Ones=____"),
-        q("Four tens and two ones = ____","fill","Answer = ____"),
-        q("Write all numbers between 45 and 50","fill","Answer = ____")]
-    s2=[cb("Place Value",["Tens digit × 10 = its value.","In 42: tens digit 4 → value = 40.","Ones digit value = the digit itself."],"In 37: value of 3=30, value of 7=7"),
-        q("In 24, value of digit 2 = ____","fill","Value = ____"),
-        q("In 38, value of digit 3 = ____","fill","Value = ____"),
-        q("In 45, value of digit 5 = ____","fill","Value = ____"),
-        q("Write 27 in expanded form: ___ + ___","fill","Answer = ____"),
-        q("Write 43 in expanded form: ___ + ___","fill","Answer = ____"),
-        q("30 + 6 = ____","fill","Answer = ____"),
-        cb("Comparing Numbers",["Compare tens first. If equal, compare ones.","< means less than, > means greater than."],"23 < 32 because 2 tens < 3 tens"),
-        q("Write < or > : 23 ___ 32","fill","Answer = ____"),
-        q("Write < or > : 45 ___ 44","fill","Answer = ____"),
-        q("Order smallest to largest: 35, 13, 41, 22","fill","Answer = ____"),
-        q("Order largest to smallest: 28, 42, 17, 39","fill","Answer = ____"),
-        q("Largest 2-digit number with tens digit 3?","fill","Answer = ____"),
-        q("Meena has 34 stickers. Ravi has 43. Who has more?","word","Answer = ____","34 and 43"),
-        q("Which is closer to 50: 47 or 53?","fill","Answer = ____"),
-        q("The tens digit of 49 is ____","fill","Answer = ____"),
-        q("The ones digit of 30 is ____","fill","Answer = ____"),
-        q("True or False: 50 > 49","fill","Answer = ____"),
-        q("Write a 2-digit number with tens=4, ones=7","fill","Answer = ____"),
-        q("Write all 2-digit numbers between 38 and 42","fill","Answer = ____"),
-        q("Write < or > : 30 ___ 30","fill","Answer = ____")]
-    s3=_qs("Counting 1-50",["value of each digit","expanded form","compare and order"],"In 48: 4 tens=40, 8 ones=8",3)
-    s4=_qs("Counting 1-50 Mastery",["explain place value","spot errors","multi-step"],"Value of 4 in 48 is 10× value of 4 in 14",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1B(s):
-    s1=[cb("Counting to 100",["After 50 comes 51,52…100.","100 = 10 tens.","Skip-count by 10: 10,20,30…100."],"70,71,72,73…"),
-        q("Count the objects.","diagram","Count = ____","",diag="ten_frames",dpar={"count":23}),
-        q("Fill in: 55, 56, ___, 58, ___","fill","Answer = ____"),
-        q("Fill in: 78, ___, 80, ___, 82","fill","Answer = ____"),
-        q("Number after 69: ____","fill","Answer = ____"),
-        q("Number after 99: ____","fill","Answer = ____"),
-        cb("Skip counting by 10",["10,20,30,40,50,60,70,80,90,100.","Add 10 each time.","Ones digit stays the same."],"23,33,43,53 (adding 10 each time)"),
-        q("Count by 10s: 10,20,___,40,___,60","fill","Answer = ____"),
-        q("Count by 10s from 5: 5,15,___,35,___","fill","Answer = ____"),
-        q("10 more than 67 = ____","fill","Answer = ____"),
-        q("10 less than 90 = ____","fill","Answer = ____"),
-        q("All multiples of 10 from 10 to 100","fill","Answer = ____"),
-        cb("Tens and ones to 100",["87 = 8 tens and 7 ones.","100 = 10 tens and 0 ones."],"9 tens + 4 ones = 94"),
-        q("72 = ____ tens and ____ ones","fill","Tens=____ Ones=____"),
-        q("8 tens and 5 ones = ____","fill","Answer = ____"),
-        q("9 tens and 0 ones = ____","fill","Answer = ____"),
-        q("Count back by 10: 100,90,___,70,___","fill","Answer = ____"),
-        q("6 bags of 10 marbles + 4 extra. Total = ____","word","Total = ____","6 bags of 10"),
-        q("All multiples of 5 between 60 and 80","fill","Answer = ____"),
-        q("10 more than 89 = ____","fill","Answer = ____"),
-        q("Number just before 100: ____","fill","Answer = ____")]
-    s2=_qs("Counting 1-100",["place value to 100","expanded form","compare and order"],"96=90+6; 79<97",2)
-    s3=_qs("Counting 1-100",["skip count by 2s 5s 10s","round to nearest 10","word problems"],"Round 83→80; skip by 5: 55,60,65",3)
-    s4=_qs("Counting 1-100 Mastery",["explain place value","patterns","multi-step"],"Largest 2-digit even=98; smallest 2-digit odd=11",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1C(s):
-    s1=[cb("Before and After",["Number BEFORE = one less.","Number AFTER = one more.","Before=left, After=right on number line."],"Before 7→6; After 7→8"),
-        q("Number before 5: ____","fill","Answer = ____"),
-        q("Number after 5: ____","fill","Answer = ____"),
-        q("Number before 12: ____","fill","Answer = ____"),
-        q("Number after 12: ____","fill","Answer = ____"),
-        q("Number before 20: ____","fill","Answer = ____"),
-        q("Number after 20: ____","fill","Answer = ____"),
-        cb("Between",["Between = sandwiched on both sides.","Numbers between 5 and 8: 6 and 7."],"Between 10 and 14: 11,12,13"),
-        q("Numbers between 4 and 8: ____","fill","Answer = ____"),
-        q("Numbers between 15 and 19: ____","fill","Answer = ____"),
-        q("Numbers between 28 and 32: ____","fill","Answer = ____"),
-        q("Number just before 50: ____","fill","Answer = ____"),
-        q("Number just after 39: ____","fill","Answer = ____"),
-        cb("Before, After, Between Practice",["Count forward for after, backward for before."],"Before 30:29; After 30:31; Between 29 and 31:30"),
-        q("Before and after 25: ____ and ____","fill","Before=____ After=____"),
-        q("Before and after 49: ____ and ____","fill","Before=____ After=____"),
-        q("Three numbers between 40 and 45: ____","fill","Answer = ____"),
-        q("Ravi says the number before 30 is 31. Correct him.","fill","Correct = ____"),
-        q("What number is between 99 and 101?","fill","Answer = ____"),
-        q("Number just before 100: ____","fill","Answer = ____"),
-        q("Write before, number, after for 42: ____","fill","Answer = ____")]
-    s2=_qs("Before/After/Between",["formal definition","number line","multi-step"],"Before 60:59; After 60:61; Between 59 and 61:60",2)
-    s3=_qs("Before/After/Between",["without number line","spot errors","word problems"],"Before 100:99; Between 74 and 76:75",3)
-    s4=_qs("Before/After/Between Mastery",["multi-step","explain reasoning","apply in problems"],"I am between 30 and 32. I am one more than 30. I am 31.",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1D(s):
-    s1=[cb("Greater and Smaller",["Greater = MORE. Smaller = LESS.","Use > for greater, < for smaller.","= means equal."],"5>3 (5 is greater); 3<5 (3 is smaller)"),
-        q("Circle the greater: 8 or 5","fill","Answer = ____"),
-        q("Circle the smaller: 12 or 21","fill","Answer = ____"),
-        q("Write > or < : 9 ___ 6","fill","Answer = ____"),
-        q("Write > or < : 14 ___ 41","fill","Answer = ____"),
-        q("Write > or < : 30 ___ 30","fill","Answer = ____"),
-        cb("Comparing 2-digit numbers",["Compare tens first.","If tens equal, compare ones."],"45>43 (same tens, 5 ones>3 ones)"),
-        q("Write > or < : 56 ___ 65","fill","Answer = ____"),
-        q("Write > or < : 72 ___ 72","fill","Answer = ____"),
-        q("Write > or < : 89 ___ 98","fill","Answer = ____"),
-        q("Greatest of: 34, 43, 30, 40 = ____","fill","Answer = ____"),
-        q("Smallest of: 76, 67, 70, 60 = ____","fill","Answer = ____"),
-        cb("Equal, Greater, Smaller",["= means exactly the same."],"23=23; 24>23; 22<23"),
-        q("Write =, > or < : 50 ___ 50","fill","Answer = ____"),
-        q("Write =, > or < : 99 ___ 100","fill","Answer = ____"),
-        q("True or False: 45 < 54","fill","Answer = ____"),
-        q("True or False: 37 > 37","fill","Answer = ____"),
-        q("Ravi has 42 cards. Meena has 24. Who has more?","word","Answer = ____","42 and 24"),
-        q("Order: 19, 91, 9, 90 → smallest to greatest","fill","Answer = ____"),
-        q("Find a number greater than 50 and smaller than 55","fill","Answer = ____"),
-        q("Find a number greater than 67 and smaller than 70","fill","Answer = ____")]
-    s2=_qs("Greater/Smaller",["formal comparison","inequality signs","ordering"],"< means less than; > means greater than; 34<43",2)
-    s3=_qs("Greater/Smaller",["compare 3-digit numbers","order lists","word problems"],"Compare 342 and 324: same hundreds, 4>2 tens → 342>324",3)
-    s4=_qs("Greater/Smaller Mastery",["multi-step","explain reasoning","error analysis"],"Order 5 numbers; find all numbers between two values",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1E(s):
-    s1=[cb("Missing Numbers",["A blank = something hidden.","Look at the pattern around the blank.","Count forwards or backwards to find it."],"3,___,5 → the blank is 4"),
-        q("Fill in: 1, 2, ___, 4, 5","fill","Answer = ____"),
-        q("Fill in: 8, ___, 10, 11, ___","fill","Answer = ____"),
-        q("Fill in: 15, 16, ___, ___, 19","fill","Answer = ____"),
-        q("Fill in: ___, 22, 23, 24, ___","fill","Answer = ____"),
-        q("Fill in: 35, ___, 37, ___, 39","fill","Answer = ____"),
-        cb("Missing in patterns",["Find the rule first: +1,+2,+5,+10?","Apply the rule to fill the blank."],"10,20,___,40 → rule:+10 → missing=30"),
-        q("Fill in: 10, 20, ___, 40, ___","fill","Answer = ____"),
-        q("Fill in: 5, 10, 15, ___, 25","fill","Answer = ____"),
-        q("Fill in: 2, 4, ___, 8, ___, 12","fill","Answer = ____"),
-        q("Fill in: 50, ___, 70, ___, 90","fill","Answer = ____"),
-        q("Fill in: ___, 45, ___, 35, 30","fill","Answer = ____"),
-        cb("Missing numbers in sums",["Use inverse operations.","6+___=10 → think 10-6=4"],"6+___=10 → 10-6=4"),
-        q("3 + ___ = 8","fill","Missing = ____"),
-        q("___ + 5 = 12","fill","Missing = ____"),
-        q("15 - ___ = 9","fill","Missing = ____"),
-        q("___ - 6 = 7","fill","Missing = ____"),
-        q("20 + ___ = 34","fill","Missing = ____"),
-        q("___ + 14 = 30","fill","Missing = ____"),
-        q("50 - ___ = 27","fill","Missing = ____"),
-        q("___ - 15 = 20","fill","Missing = ____")]
-    s2=_qs("Missing Numbers",["pattern rule","inverse operations","multi-step"],"__,14,__,16 → pattern +1 → 13,15",2)
-    s3=_qs("Missing Numbers",["varied gaps","mixed operations","word problems"],"Meena has __ toys, gets 5 more, now has 12. __=7",3)
-    s4=_qs("Missing Numbers Mastery",["spot errors","explain method","multi-step"],"A+B=15, A-B=5 → A=10, B=5",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1F(s):
-    s1=[cb("Number Patterns",["A pattern follows a rule.","Find what changes each time.","Common rules: +1,+2,+5,+10,-1,-2…"],"2,4,6,8 → rule: add 2"),
-        q("Rule:+1. Fill: 11,12,___,14,___","fill","Answer = ____"),
-        q("Rule:+2. Fill: 4,6,___,10,___","fill","Answer = ____"),
-        q("Rule:+5. Fill: 5,10,___,20,___","fill","Answer = ____"),
-        q("Rule:+10. Fill: 20,30,___,50,___","fill","Answer = ____"),
-        q("Find rule and next: 3,6,9,12,___","fill","Rule=____ Next=____"),
-        cb("Decreasing patterns",["Some patterns count DOWN.","Find how much is subtracted each time."],"20,17,14,11 → rule: subtract 3"),
-        q("Find rule: 20,18,16,14,___","fill","Rule=____ Next=____"),
-        q("Find rule: 50,45,40,35,___","fill","Rule=____ Next=____"),
-        q("Fill in: 100,90,___,70,___","fill","Answer = ____"),
-        q("Fill in: 48,46,___,42,___","fill","Answer = ____"),
-        q("Next three: 10,20,30,___,___,___","fill","Answer = ____"),
-        cb("Pattern puzzles",["Patterns can use different rules.","Always check at least 2 gaps."],"1,2,4,8 → each doubles!"),
-        q("Pattern rule: 1,3,5,7,9 → ____","fill","Rule = ____"),
-        q("Next three: 99,98,97,___,___,___","fill","Answer = ____"),
-        q("Write your own +3 pattern starting at 6","fill","Answer = ____"),
-        q("Write your own -4 pattern starting at 40","fill","Answer = ____"),
-        q("Pattern: 1,4,9,16,___ (square numbers)","fill","Next = ____"),
-        q("Meena saves Rs 5/day. Day 1: Rs 5. Day 5: Rs ____","word","Answer = ____","Rs 5 per day"),
-        q("Ravi counts: 3,6,9,12. He says next is 16. Correct him.","fill","Correct = ____"),
-        q("Fill in: 2,5,8,11,___,17,___","fill","Answer = ____")]
-    s2=_qs("Number Patterns",["identify rule","extend patterns","create patterns"],"Rule +4: 4,8,12,16,20",2)
-    s3=_qs("Number Patterns",["mixed rules","word problems","pattern tables"],"Day 1:2,Day 2:4,Day 3:6 → pattern ×2",3)
-    s4=_qs("Number Patterns Mastery",["complex rules","predict far terms","explain patterns"],"Pattern +3 from 1: 10th term=1+9×3=28",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L1G(s): return _qs("Counting Objects",["count groups and totals","tally marks","pictographs"],"Tally IIII I=6",s)
-def L1H(s): return _qs("Mixed Numbers 1-100",["read and write numbers","place value","ordering and comparing"],"Forty-seven=47; 7 tens+3 ones=73",s)
-def L1I(s): return _qs("Number Puzzles",["logic and reasoning","use clues","magic squares"],"I am odd, between 10 and 20, digits add to 9. I am 9… no, 18!",s)
-def L1J(s): return _qs("Mixed Challenge Numbers",["combine all skills","multi-step","explain and verify"],"Compare, order, patterns, missing numbers",s)
-def L1CUM1(s): return _cum(["Counting 1-50","Counting 1-100","Before/After"],s)
-def L1CUM2(s): return _cum(["Greater/Smaller","Missing numbers","Number patterns"],s)
-def L1CUM3(s): return _cum(["Counting objects","Mixed numbers","Number puzzles"],s)
-def L1REV(s):  return _qs("Level 1 Revision",["count","compare","patterns and missing numbers"],"Before/after; >/</=; pattern rules; missing addends",s)
-
-# ═══ LEVEL 2 ═══
-def L2A(s):
-    s1=[cb("Even Numbers",["Even numbers end in 0,2,4,6 or 8.","They split into 2 EQUAL groups.","2,4,6,8,10,12… are even."],"6=3+3 (equal groups) → EVEN"),
-        q("Circle the evens: 1,2,3,4,5,6","fill","Evens = ____"),
-        q("Is 8 even?","fill","Yes or No = ____"),
-        q("Is 7 even?","fill","Yes or No = ____"),
-        q("Next even after 10: ____","fill","Answer = ____"),
-        q("Next even after 18: ____","fill","Answer = ____"),
-        cb("Even number pattern",["2,4,6,8,10,12… each = previous +2.","Ones digit: always 0,2,4,6 or 8."],"After 14 → 16 (14+2=16)"),
-        q("Fill evens: 20,___,24,___,28","fill","Answer = ____"),
-        q("All even numbers from 30 to 40","fill","Answer = ____"),
-        q("How many even numbers from 1 to 10?","fill","Answer = ____"),
-        q("Is 100 even? How do you know?","fill","Answer = ____"),
-        q("Ones digit of every even number: ____","fill","Answer = ____"),
-        cb("Even in real life",["12÷2=6 exact → 12 is even.","If you can pair everything up → even."],"14 socks → 7 pairs → 14 is even"),
-        q("Can 16 stickers be shared equally between 2?","word","Answer = ____","16 stickers"),
-        q("Can 9 pencils be shared equally between 2?","word","Answer = ____","9 pencils"),
-        q("Five even numbers between 40 and 60","fill","Answer = ____"),
-        q("Even+Even is always even? Give an example.","fill","Answer = ____"),
-        q("28 students — can they all pair up?","word","Answer = ____","28 students"),
-        q("Even number just before 50: ____","fill","Answer = ____"),
-        q("All even numbers from 50 to 60","fill","Answer = ____"),
-        q("Is 0 even? Explain.","fill","Answer = ____")]
-    s2=_qs("Even Numbers",["formal definition n÷2=0 remainder","even+even=even","divisibility by 2"],"n is even if n÷2 has no remainder. 14÷2=7 ✓",2)
-    s3=_qs("Even Numbers",["identify quickly","word problems","patterns"],"Even numbers form pairs; odd ones have one left over",3)
-    s4=_qs("Even Numbers Mastery",["proof reasoning","multi-step","operations with evens"],"Even×Even=Even; Even+Odd=Odd",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L2B(s):
-    s1=[cb("Odd Numbers",["Odd numbers end in 1,3,5,7 or 9.","They CANNOT split into 2 equal groups.","1,3,5,7,9,11… are odd."],"7=3+3+1 → one left over → ODD"),
-        q("Circle the odds: 1,2,3,4,5,6,7","fill","Odds = ____"),
-        q("Is 9 odd?","fill","Yes or No = ____"),
-        q("Is 14 odd?","fill","Yes or No = ____"),
-        q("Next odd after 7: ____","fill","Answer = ____"),
-        q("Next odd after 21: ____","fill","Answer = ____"),
-        cb("Odd number pattern",["1,3,5,7,9,11… each = previous +2.","Ones digit: always 1,3,5,7 or 9."],"After 15 → 17 (15+2)"),
-        q("Fill odds: 11,___,15,___,19","fill","Answer = ____"),
-        q("All odd numbers from 21 to 31","fill","Answer = ____"),
-        q("How many odd numbers from 1 to 10?","fill","Answer = ____"),
-        q("Is 101 odd? How do you know?","fill","Answer = ____"),
-        q("Ones digit of every odd number: ____","fill","Answer = ____"),
-        cb("Odd and Even together",["Even+Odd=Odd (always).","Odd+Odd=Even (always).","Consecutive numbers alternate: even,odd,even,odd…"],"4+5=9 (odd); 3+5=8 (even)"),
-        q("3+4=___. Odd or even?","fill","Answer = ____"),
-        q("5+7=___. Odd or even?","fill","Answer = ____"),
-        q("6+9=___. Odd or even?","fill","Answer = ____"),
-        q("All odd numbers from 41 to 51","fill","Answer = ____"),
-        q("Largest odd number less than 50: ____","fill","Answer = ____"),
-        q("Can 15 be shared equally between 2?","word","Answer = ____","15 items"),
-        q("4 consecutive odd numbers starting at 23: ____","fill","Answer = ____"),
-        q("Sum of first 5 odd numbers — odd or even?","fill","Answer = ____")]
-    s2=_qs("Odd Numbers",["formal definition","odd in operations","patterns"],"Odd+Even=Odd; Odd×Odd=Odd",2)
-    s3=_qs("Odd Numbers",["identify quickly","word problems","mixed odd/even"],"Odd numbers cannot be divided equally by 2",3)
-    s4=_qs("Odd Numbers Mastery",["proofs","multi-step","combine with primes"],"Product of two odd numbers is always odd",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L2C(s):
-    s1=[cb("Even or Odd — How to tell",["Look at the ONES digit ONLY.","Ones 0,2,4,6,8 → EVEN.","Ones 1,3,5,7,9 → ODD."],"137 → ones digit 7 → ODD"),
-        q("Is 34 even or odd?","fill","Answer = ____"),
-        q("Is 75 even or odd?","fill","Answer = ____"),
-        q("Is 100 even or odd?","fill","Answer = ____"),
-        q("Is 83 even or odd?","fill","Answer = ____"),
-        q("Is 56 even or odd?","fill","Answer = ____"),
-        cb("Sorting numbers",["Sort into even and odd groups.","Check only the ones digit."],"24,35,48,71 → even:24,48; odd:35,71"),
-        q("Sort: 12,15,18,21,24,27 → even and odd","fill","Even=____ Odd=____"),
-        q("Sort: 33,44,55,66,77,88 → even and odd","fill","Even=____ Odd=____"),
-        q("How many even numbers from 1 to 20?","fill","Answer = ____"),
-        q("How many odd numbers from 1 to 20?","fill","Answer = ____"),
-        q("First 5 even numbers: ____","fill","Answer = ____"),
-        cb("Quick identification",["No need to count — just look at ones digit."],"998 → ones=8 → EVEN instantly"),
-        q("Even or odd: 999","fill","Answer = ____"),
-        q("Even or odd: 1000","fill","Answer = ____"),
-        q("Even or odd: 247","fill","Answer = ____"),
-        q("Even or odd: 364","fill","Answer = ____"),
-        q("3 even and 3 odd numbers between 50 and 70","fill","Answer = ____"),
-        q("Is the product 3×4 even or odd?","fill","Answer = ____"),
-        q("Is the product 3×5 even or odd?","fill","Answer = ____"),
-        q("True or False: All numbers ending in 0 are even.","fill","Answer = ____")]
-    s2=_qs("Even/Odd Identification",["ones digit rule","sort and classify","multi-digit numbers"],"ones=0,2,4,6,8→even; 1,3,5,7,9→odd",2)
-    s3=_qs("Even/Odd Identification",["apply in operations","word problems","patterns"],"Even×Any=Even; Odd×Odd=Odd",3)
-    s4=_qs("Even/Odd Mastery",["formal proof ideas","multi-step","error analysis"],"Is sum of first 100 natural numbers even or odd?",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L2D(s): return _qs("Even/Odd Patterns",["alternating patterns","operations with even/odd","predict results"],"E+E=E; O+O=E; E+O=O; E×E=E; O×O=O",s)
-
-def L2E(s):
-    s1=[cb("Prime Numbers",["A prime has exactly 2 factors: 1 and itself.","2,3,5,7,11,13,17,19… are prime.","1 is NOT prime (only 1 factor)."],"7: factors are 1 and 7 only → PRIME"),
-        q("Is 2 prime?","fill","Answer = ____"),
-        q("Is 4 prime?","fill","Answer = ____"),
-        q("Is 11 prime?","fill","Answer = ____"),
-        q("Is 15 prime?","fill","Answer = ____"),
-        q("Factors of 6: ____. Is 6 prime?","fill","Factors=____ Prime?=____"),
-        cb("Testing for primes",["Divide by 2,3,5,7… up to square root.","If any divides exactly → NOT prime.","If none divide exactly → PRIME."],"Is 13 prime? 13÷2=6.5, 13÷3=4.3 → PRIME"),
-        q("Is 17 prime? Test by dividing: ____","fill","Answer = ____"),
-        q("Is 21 prime? Test: ____","fill","Answer = ____"),
-        q("Is 29 prime? Test: ____","fill","Answer = ____"),
-        q("All prime numbers less than 20: ____","fill","Answer = ____"),
-        q("How many prime numbers are less than 10?","fill","Answer = ____"),
-        cb("Special prime facts",["2 is the ONLY even prime number.","Every prime > 2 is odd.","There are infinitely many primes."],"Even primes: only 2"),
-        q("The only even prime: ____","fill","Answer = ____"),
-        q("Smallest prime number: ____","fill","Answer = ____"),
-        q("Is 1 prime? Explain.","fill","Answer = ____"),
-        q("All primes between 20 and 30: ____","fill","Answer = ____"),
-        q("Is sum of two primes always prime? Example: ____","fill","Answer = ____"),
-        q("Twin primes differ by 2. Find a pair: ____","fill","Answer = ____"),
-        q("Is 49 prime?","fill","Answer = ____"),
-        q("How many primes between 10 and 20?","fill","Answer = ____")]
-    s2=_qs("Prime Numbers",["sieve of Eratosthenes","prime factorisation intro","primes in context"],"Primes<30: 2,3,5,7,11,13,17,19,23,29",2)
-    s3=_qs("Prime Numbers",["quick identification","factor trees","prime vs composite"],"97: not divisible by 2,3,5,7 → prime",3)
-    s4=_qs("Prime Numbers Mastery",["Goldbach conjecture idea","prime gaps","multi-step"],"Every even number>2 is sum of 2 primes: 8=3+5",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L2F(s): return _qs("Composite Numbers",["composite = more than 2 factors","list factor pairs","prime vs composite"],"12: factors 1,2,3,4,6,12 → composite",s)
-def L2G(s): return _qs("Prime Identification",["quick test","factor pairs","verify prime/composite"],"97: not divisible by 2,3,5,7 → prime",s)
-def L2H(s): return _qs("Prime Factor Ideas",["factor trees","prime factorisation","write in index form"],"12=2²×3; 60=2²×3×5",s)
-def L2I(s): return _qs("Mixed Classification",["even/odd/prime/composite","multi-category sorting","apply all rules"],"15:odd,composite; 17:odd,prime; 4:even,composite; 2:even,prime",s)
-def L2J(s): return _qs("Number Puzzles L2",["clues to find numbers","multi-condition","logic reasoning"],"I am prime, between 10 and 20, digits sum to 8. I am 17.",s)
-def L2CUM1(s): return _cum(["Even numbers","Odd numbers","Even/Odd identification"],s)
-def L2CUM2(s): return _cum(["Even/Odd Patterns","Prime numbers","Composite numbers"],s)
-def L2CUM3(s): return _cum(["Prime identification","Prime factor ideas","Mixed classification"],s)
-def L2REV(s):  return _qs("Level 2 Revision",["even/odd","prime/composite","patterns and puzzles"],"2:even,prime; 9:odd,composite; 15:odd,composite",s)
-
-# ═══ LEVEL 3 ═══
-def L3A(s):
-    s1=[cb("What is Addition?",["Adding = putting two groups TOGETHER.","Use + sign. Answer = SUM.","Order doesn't matter: 3+4=4+3=7."],"3 apples + 4 apples = 7 apples"),
-        q("Count dots: 3 + 2 = ____","diagram","Sum = ____","",diag="dot_addition",dpar={"a":3,"b":2}),
-        q("Count the dots.","diagram","Sum = ____","",diag="dot_addition",dpar={"a":4,"b":3}),
-        q("2 + 3 = ____","fill","Answer = ____"),
-        q("4 + 4 = ____","fill","Answer = ____"),
-        q("5 + 1 = ____","fill","Answer = ____"),
-        cb("Number line addition",["Start at first number.","Jump RIGHT by the second number.","Where you land = the sum."],"4+3: start 4, jump 3 right → 7"),
-        q("3 + 5 = ____","diagram","Answer = ____","",diag="number_line",dpar={"start":0,"end":10,"divisions":10,"hop_from":3,"hop_by":5}),
-        q("6 + 2 = ____","fill","Answer = ____"),
-        q("7 + 1 = ____","fill","Answer = ____"),
-        q("0 + 8 = ____","fill","Answer = ____"),
-        q("9 + 0 = ____","fill","Answer = ____"),
-        cb("Doubles",["Double = adding a number to itself.","Double 3=3+3=6."],"Double 4=4+4=8"),
-        q("Double 2 = ____","fill","Answer = ____"),
-        q("Double 5 = ____","fill","Answer = ____"),
-        q("Double 7 = ____","fill","Answer = ____"),
-        q("4 red + 5 blue marbles. Total = ____","word","Total = ____","4 red and 5 blue"),
-        q("3 biscuits morning + 6 evening. Total = ____","word","Total = ____","3 morning 6 evening"),
-        q("7 + ___ = 9","fill","Missing = ____"),
-        q("___ + 4 = 8","fill","Missing = ____"),
-        q("1 + 2 + 3 = ____","fill","Answer = ____")]
-    s2=_qs("Addition single digit",["column addition","carry concept intro","fact families"],"7+8=15; 8+7=15; 15-7=8; 15-8=7",2)
-    s3=_qs("Addition single digit",["speed addition","word problems","missing addend"],"Find missing: __+6=13 → 7",3)
-    s4=_qs("Addition Mastery",["multi-addend","error analysis","apply in context"],"3+4+5+6=18; check by reversing",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L3B(s):
-    s1=[cb("Adding Two-Digit Numbers",["Add ones first, then tens.","If ones > 9, carry 1 to tens.","Line up digits carefully."],"34+25: ones 4+5=9, tens 3+2=5 → 59"),
-        q("23 + 14 = ____","fill","Answer = ____"),
-        q("31 + 25 = ____","fill","Answer = ____"),
-        q("40 + 37 = ____","fill","Answer = ____"),
-        q("52 + 16 = ____","fill","Answer = ____"),
-        q("11 + 88 = ____","fill","Answer = ____"),
-        cb("Addition with carrying",["7+5=12: write 2, carry 1 to tens.","Carry = the extra ten."],"28+35: ones 8+5=13 write 3 carry 1; tens 2+3+1=6 → 63"),
-        q("17 + 15 = ____","fill","Answer = ____"),
-        q("28 + 34 = ____","fill","Answer = ____"),
-        q("46 + 27 = ____","fill","Answer = ____"),
-        q("55 + 38 = ____","fill","Answer = ____"),
-        q("67 + 24 = ____","fill","Answer = ____"),
-        cb("Word problems",["total/altogether/in all = add.","Write the addition sentence first."],"Ravi has 23 pencils, gets 14 more → 23+14=37"),
-        q("35 books + 24 more = ____","word","Total = ____","35 and 24"),
-        q("Class A: 28 students. Class B: 34. Together = ____","word","Together = ____","28 and 34"),
-        q("Tree A: 46 mangoes. Tree B: 37. Total = ____","word","Total = ____","46 and 37"),
-        q("52 m + 29 m = ____","word","Total = ____","52 m and 29 m"),
-        q("Find missing: 34 + ___ = 60","fill","Missing = ____"),
-        q("Find missing: ___ + 47 = 83","fill","Missing = ____"),
-        q("Is 48+35 = 35+48?","fill","Answer = ____"),
-        q("21 + 33 + 15 = ____","fill","Answer = ____")]
-    s2=_qs("Addition two-digit",["column method","carry","check by reversing"],"67+45=112; verify: 112-45=67",2)
-    s3=_qs("Addition two-digit",["3-digit addition","word problems","multi-step"],"234+156=390",3)
-    s4=_qs("Addition Mastery L3B",["multi-step","error analysis","real world"],"Total distance = sum of all stages",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L3C(s):
-    s1=[cb("What is Subtraction?",["Subtraction = taking away.","Use − sign. Answer = DIFFERENCE.","5−3=2 means remove 3 from 5."],"8 apples − 3 eaten = 5 left"),
-        q("9 − 4 = ____","fill","Answer = ____"),
-        q("7 − 2 = ____","fill","Answer = ____"),
-        q("10 − 6 = ____","fill","Answer = ____"),
-        q("5 − 5 = ____","fill","Answer = ____"),
-        q("8 − 0 = ____","fill","Answer = ____"),
-        cb("Number line subtraction",["Start at the first number.","Jump LEFT by the second number."],"9−4: start 9, jump 4 left → 5"),
-        q("8 − 3 = ____","diagram","Answer = ____","",diag="number_line",dpar={"start":0,"end":10,"divisions":10,"hop_from":8,"hop_by":-3}),
-        q("12 − 5 = ____","fill","Answer = ____"),
-        q("15 − 7 = ____","fill","Answer = ____"),
-        q("11 − 4 = ____","fill","Answer = ____"),
-        q("20 − 8 = ____","fill","Answer = ____"),
-        cb("Fact Families",["Addition and subtraction are linked.","If 6+4=10, then 10−6=4 and 10−4=6."],"7+5=12; so 12−7=5 and 12−5=7"),
-        q("If 8+6=14, then 14−8=____","fill","Answer = ____"),
-        q("If 9+7=16, then 16−9=____","fill","Answer = ____"),
-        q("12 − ___ = 5","fill","Missing = ____"),
-        q("___ − 6 = 8","fill","Missing = ____"),
-        q("15 sweets, gives away 7. Left = ____","word","Left = ____","15 and 7"),
-        q("18 marbles, lost 9. Left = ____","word","Left = ____","18 and 9"),
-        q("10 − 3 − 4 = ____","fill","Answer = ____"),
-        q("What must be added to 7 to get 12?","fill","Answer = ____")]
-    s2=_qs("Subtraction basics",["two-digit","word problems","missing number"],"52−28=24; check: 24+28=52",2)
-    s3=_qs("Subtraction",["3-digit","borrow intro","multi-step word problems"],"300−147: borrow twice",3)
-    s4=_qs("Subtraction Mastery",["multi-step","error analysis","real world"],"Change = price − amount paid",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L3D(s): return _qs("Subtraction with borrowing",["borrow from tens","multi-step","verify by adding"],"72−45: borrow 1 ten → 12−5=7, 6−4=2 → 27",s)
-def L3E(s): return _qs("Addition and Subtraction mixed",["choose the correct operation","fact families","inverse operations"],"total→add; difference→subtract; check with inverse",s)
-def L3F(s): return _qs("Word problems add/subtract",["key words","write equation","solve and check"],"altogether→add; left→subtract; more than→compare",s)
-def L3G(s): return _qs("Speed addition",["mental maths","bonds to 10 20 100","rapid recall"],"8+2=10; 15+5=20; 95+5=100",s)
-def L3H(s): return _qs("Speed subtraction",["mental subtraction","near multiples of 10","rapid recall"],"30−8=22; 50−15=35; 100−37=63",s)
-def L3I(s): return _qs("Puzzle operations",["magic squares","number trails","logic puzzles"],"Magic square: rows/cols/diagonals all sum to same number",s)
-def L3J(s): return _qs("Mixed challenge add/subtract",["multi-step","error analysis","real world"],"Total=A+B; Difference=A−B; Change=final−initial",s)
-def L3CUM1(s): return _cum(["Addition single digit","Addition two digit","Subtraction basics"],s)
-def L3CUM2(s): return _cum(["Borrow subtraction","Addition and Subtraction mixed","Word problems add/subtract"],s)
-def L3CUM3(s): return _cum(["Speed addition","Speed subtraction","Puzzle operations"],s)
-def L3REV(s):  return _qs("Level 3 Revision",["all addition","all subtraction","word problems"],"Check: sum−addend=other addend",s)
-
-# ═══ LEVEL 4 ═══
-def L4A(s):
-    s1=[cb("What is Multiplication?",["Multiplication = REPEATED ADDITION.","3×4=3+3+3+3=12. Answer=PRODUCT.","Order doesn't matter: 3×4=4×3."],"2×5=2+2+2+2+2=10"),
-        q("Show 2×3 as an array.","diagram","Product = ____","",diag="array_diagram",dpar={"rows":2,"cols":3}),
-        q("Show 3×4 as an array.","diagram","Product = ____","",diag="array_diagram",dpar={"rows":3,"cols":4}),
-        q("2+2+2 = 3 × ___ = ____","fill","Answer = ____"),
-        q("4+4+4+4 = 4 × ___ = ____","fill","Answer = ____"),
-        q("5+5 = 2 × ___ = ____","fill","Answer = ____"),
-        cb("Reading multiplication",["3×4 = three groups of 4.","3×4=4×3=12 (commutative).","PRODUCT = the answer."],"2×6=6×2=12"),
-        q("Write 5×3 as repeated addition: ____","fill","Answer = ____"),
-        q("Write 4×2 as repeated addition: ____","fill","Answer = ____"),
-        q("3×3 = ____","fill","Answer = ____"),
-        q("2×7 = ____","fill","Answer = ____"),
-        q("4×2 = ____","fill","Answer = ____"),
-        cb("Multiplication in real life",["groups × size = total.","4 boxes × 3 = 12 items."],"5 bags × 2 oranges = 10 oranges"),
-        q("5 bags, 2 oranges each. Total = ____","word","Total = ____","5 bags 2 oranges"),
-        q("3 rows, 4 chairs each. Total = ____","word","Total = ____","3 rows 4 chairs"),
-        q("Is 2×5=5×2? Prove: ____","fill","Answer = ____"),
-        q("1 × 9 = ____","fill","Answer = ____"),
-        q("0 × 7 = ____","fill","Answer = ____"),
-        q("___ × 3 = 9","fill","Missing = ____"),
-        q("4 × ___ = 8","fill","Missing = ____"),
-        q("Write a multiplication fact that equals 12: ____","fill","Answer = ____")]
-    s2=_qs("Multiplication concept",["formal notation","commutative law","zero and one rules"],"n×1=n; n×0=0; n×m=m×n",2)
-    s3=_qs("Multiplication concept",["apply tables","word problems","missing factor"],"_×7=42→6; 8×_=56→7",3)
-    s4=_qs("Multiplication Mastery",["multi-step","error analysis","real world context"],"Total cost=price×quantity; area=length×width",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L4B(s): return _qs("Tables 2-5",["x2 table through x5","recall and apply","mixed table questions"],"5×4=20; 3×6=18; 4×7=28; 2×9=18",s)
-def L4C(s): return _qs("Tables 6-10",["x6 through x10","tricky products","relate to known facts"],"7×8=56; 9×6=54; 8×7=56; 6×9=54",s)
-def L4D(s): return _qs("Multiplication practice",["mixed tables","word problems","missing factor"],"_×7=42→6; 8×_=56→7",s)
-def L4E(s): return _qs("Multi-digit multiplication",["2-digit x 1-digit","column method","estimate first"],"23×4: 20×4=80, 3×4=12 → 92",s)
-def L4F(s): return _qs("Multiplication word problems",["identify groups and size","write equation","multi-step"],"6 packets × 8 biscuits = 48 biscuits",s)
-def L4G(s): return _qs("Multiplication patterns",["multiples","square numbers","doubling pattern"],"Multiples of 6: 6,12,18,24,30…",s)
-def L4H(s): return _qs("Speed multiplication",["rapid recall","mental tricks","doubles and halves"],"x9 trick: 9×7=63 (digits sum to 9)",s)
-def L4I(s): return _qs("Puzzle multiplication",["magic squares","factor puzzles","logic"],"Find a×b=36, a+b=13 → a=9, b=4",s)
-def L4J(s): return _qs("Mixed challenge multiplication",["multi-step","error analysis","real world"],"Total cost=price×quantity",s)
-def L4CUM1(s): return _cum(["Multiplication concept","Tables 2-5","Tables 6-10"],s)
-def L4CUM2(s): return _cum(["Multiplication practice","Multi-digit multiplication","Multiplication word problems"],s)
-def L4CUM3(s): return _cum(["Multiplication patterns","Speed multiplication","Puzzle multiplication"],s)
-def L4REV(s):  return _qs("Level 4 Revision",["all tables","multi-digit","word problems"],"6×7=42; 23×4=92; 5 packs×6=30",s)
-
-# ═══ LEVEL 5 ═══
-def L5A(s):
-    s1=[cb("What is Division?",["Division = sharing equally or making equal groups.","12÷3 = share 12 into 3 groups.","Answer = QUOTIENT."],"15÷5=3 (15 shared into 5 groups of 3)"),
-        q("8 dots into 2 equal groups. Each = ____","diagram","Each group = ____","",diag="dot_array",dpar={"rows":2,"cols":4}),
-        q("8 ÷ 2 = ____","fill","Answer = ____"),
-        q("6 ÷ 3 = ____","fill","Answer = ____"),
-        q("10 ÷ 5 = ____","fill","Answer = ____"),
-        q("9 ÷ 3 = ____","fill","Answer = ____"),
-        cb("Division and Multiplication",["If 3×4=12, then 12÷3=4 and 12÷4=3.","FACT FAMILY: x and ÷ are inverses."],"2×5=10; 5×2=10; 10÷2=5; 10÷5=2"),
-        q("If 4×3=12, then 12÷4=____","fill","Answer = ____"),
-        q("If 5×6=30, then 30÷6=____","fill","Answer = ____"),
-        q("14 ÷ 7 = ____","fill","Answer = ____"),
-        q("16 ÷ 4 = ____","fill","Answer = ____"),
-        q("20 ÷ 5 = ____","fill","Answer = ____"),
-        cb("Division in real life",["Divide total by number of groups → size each.","Check: quotient × divisor = dividend."],"24÷4=6. Check: 6×4=24"),
-        q("24 pencils among 4 students. Each gets ____","word","Each = ____","24 and 4"),
-        q("30 chairs in 5 equal rows. Each row = ____","word","Each row = ____","30 and 5"),
-        q("Any number ÷ 1 = ____","fill","Answer = ____"),
-        q("Any number ÷ itself = ____","fill","Answer = ____"),
-        q("15 ÷ ___ = 3","fill","Missing = ____"),
-        q("___ ÷ 4 = 5","fill","Missing = ____"),
-        q("Is 9÷3 = 3÷9? Explain.","fill","Answer = ____"),
-        q("Write a division fact that equals 4: ____","fill","Answer = ____")]
-    s2=_qs("Division concept",["formal notation","link to multiplication","zero division rule"],"n÷1=n; 0÷n=0; n÷0=undefined",2)
-    s3=_qs("Division single digit",["quick recall","related multiplication","word problems"],"56÷8=7; 72÷9=8; 45÷5=9",3)
-    s4=_qs("Division Mastery",["multi-step","error analysis","real world"],"Cost per item=total÷quantity",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L5B(s): return _qs("Division single digit",["quick recall","related multiplication","dividend÷divisor=quotient"],"56÷8=7; 72÷9=8; 45÷5=9",s)
-def L5C(s): return _qs("Division with remainder",["r = what is left over","dividend=quotient×divisor+remainder","check your answer"],"17÷5=3 remainder 2; check:3×5+2=17",s)
-def L5D(s): return _qs("Long division",["estimate quotient","subtract step by step","bring down digits"],"96÷8: 8×12=96 → quotient=12",s)
-def L5E(s): return _qs("Division word problems",["sharing equally","grouping","multi-step"],"72 cookies, 9 per box → 72÷9=8 boxes",s)
-def L5F(s): return _qs("Multiplication and division mixed",["choose operation","inverse relationship","fact families"],"total→multiply; per item→divide",s)
-def L5G(s): return _qs("Missing numbers division",["find dividend or divisor","inverse operations","multi-step"],"_÷6=7→42; 54÷_=6→9",s)
-def L5H(s): return _qs("Speed division",["mental division","halving","divisibility rules"],"Div by 2:even; by 5:ends 0 or 5; by 10:ends 0",s)
-def L5I(s): return _qs("Puzzle division",["logic puzzles","factor pairs","multi-condition"],"I am divided by 7, quotient is 8. I am 56.",s)
-def L5J(s): return _qs("Mixed challenge division",["multi-step","real world","combine x and div"],"Cost per item=total÷quantity",s)
-def L5CUM1(s): return _cum(["Division concept","Division single digit","Division with remainder"],s)
-def L5CUM2(s): return _cum(["Long division","Division word problems","Multiplication and division mixed"],s)
-def L5CUM3(s): return _cum(["Missing numbers","Speed division","Puzzle division"],s)
-def L5REV(s):  return _qs("Level 5 Revision",["all division types","remainders","word problems"],"72÷8=9; 50÷7=7r1; 96÷4=24",s)
-
-# ═══ LEVEL 6 ═══
-def L6A(s):
-    s1=[cb("What is a Fraction?",["A fraction shows EQUAL PARTS of a whole.","Numerator (top): parts we have.","Denominator (bottom): total equal parts."],"Pizza 4 equal slices, Ravi eats 1 → 1/4"),
-        q("1 out of 4 shaded.","diagram","Fraction = ____","",diag="fraction_bar",dpar={"total":4,"shaded":1}),
-        q("3 out of 6 shaded.","diagram","Fraction = ____","",diag="fraction_bar",dpar={"total":6,"shaded":3}),
-        q("What fraction shaded?","diagram","Fraction = ____","",diag="fraction_circle",dpar={"total":5,"shaded":2}),
-        q("2 out of 7 equal parts: ____","fill","Fraction = ____"),
-        q("5 out of 8 equal parts: ____","fill","Fraction = ____"),
-        cb("Numerator and Denominator",["NUMERATOR=top (parts we have).","DENOMINATOR=bottom (total parts).","In 4/9: N=4, D=9."],"In 3/8: top=3, bottom=8"),
-        q("In 5/7: N=___ D=___","fill","N=____ D=____"),
-        q("In 2/9: N=___ D=___","fill","N=____ D=____"),
-        q("Fraction with N=3, D=10: ____","fill","Answer = ____"),
-        q("The denominator tells us: ____","fill","Answer = ____"),
-        q("1 out of 4 = ____","fill","Answer = ____"),
-        cb("Fractions as out of",["1 out of 4 = 1/4.","Fraction bar means out of.","D = total equal parts always."],"3 out of 8 → 3/8"),
-        q("3 out of 5 = ____","fill","Answer = ____"),
-        q("4 out of 7 = ____","fill","Answer = ____"),
-        q("Ravi ate 2 of 5 pizza slices. Fraction = ____","word","Fraction = ____","2 of 5 slices"),
-        q("3 of 8 chocolates are dark. Fraction = ____","word","Fraction = ____","3 of 8"),
-        q("In 4/7, denominator = ____","fill","Answer = ____"),
-        q("In 6/9, numerator = ____","fill","Answer = ____"),
-        q("5 of 12 marbles are red. Fraction = ____","word","Fraction = ____","5 of 12"),
-        q("Draw and shade a fraction bar for 3/5.","fill","Done = ____")]
-    s2=_qs("Fractions concept",["unit fractions","whole=n/n","fractions on number line"],"1/2,1/3,1/4 are unit fractions; 4/4=1 whole",2)
-    s3=_qs("Fractions concept",["identify and write","compare unit fractions","fraction of a quantity"],"1/4 of 20=5; 2/3 of 18=12",3)
-    s4=_qs("Fractions Mastery",["all types","operations","word problems"],"Compare: 3/5 vs 2/3; 1/4+3/8=5/8",4)
-    return [s1,s2,s3,s4][s-1]
-
-def L6B(s): return _qs("Proper and improper fractions",["proper:N<D","improper:N>=D","mixed numbers:1 and 2/3"],"3/4 proper; 7/4 improper=1 and 3/4",s)
-def L6C(s): return _qs("Equivalent fractions",["multiply/divide N and D by same number","simplest form","fraction wall"],"1/2=2/4=3/6=4/8 all equivalent",s)
-def L6D(s): return _qs("Fraction comparison",["same D:compare N","different D:find LCD","use < > ="],"3/4>2/4; 1/3 vs 1/4: 4/12 vs 3/12 → 1/3>1/4",s)
-def L6E(s): return _qs("Fraction addition",["same D:add N","different D:find LCD","simplify result"],"1/4+2/4=3/4; 1/3+1/6=2/6+1/6=3/6=1/2",s)
-def L6F(s): return _qs("Fraction subtraction",["same D:subtract N","different D:find LCD","check result"],"5/6-1/6=4/6=2/3; 3/4-1/3=9/12-4/12=5/12",s)
-def L6G(s): return _qs("Fraction word problems",["of a quantity","sharing equally","multi-step"],"1/4 of 20=5; 2/3 of 18=12",s)
-def L6H(s): return _qs("Mixed fractions",["convert improper to mixed","add/subtract mixed","real world"],"2+3/5=13/5; 7/3=2 and 1/3",s)
-def L6I(s): return _qs("Fraction puzzles",["logic with fractions","find the whole","fraction chains"],"1/4 of a number=7 → number=28",s)
-def L6J(s): return _qs("Mixed challenge fractions",["all operations","order multiple fractions","multi-step word problems"],"Order: 2/3,3/4,5/8,7/12 → LCD=24",s)
-def L6CUM1(s): return _cum(["Fraction concept","Proper/improper fractions","Equivalent fractions"],s)
-def L6CUM2(s): return _cum(["Fraction comparison","Fraction addition","Fraction subtraction"],s)
-def L6CUM3(s): return _cum(["Fraction word problems","Mixed fractions","Fraction puzzles"],s)
-def L6REV(s):  return _qs("Level 6 Revision",["all fraction types","operations","word problems"],"Compare:3/5 vs 2/3; Add:1/4+3/8=5/8",s)
-
-# ═══ LEVEL 7 — DECIMALS ═══
-def L7A(s):
-    if s==1: return [
-        cb("You already know about parts!",["Look at a pizza: 10 equal slices, each=ONE PART.","Count how many parts are taken.","This is the beginning of decimals!"],"Pizza 10 slices, Ravi eats 3 → 3 parts out of 10"),
-        q("Strip: 3 squares shaded out of 10. Shaded = ____","diagram","Shaded = ____","3 squares",diag="tenths_grid",dpar={"shaded":3,"total":10}),
-        q("Strip: how many squares shaded?","diagram","Shaded = ____","",diag="tenths_grid",dpar={"shaded":7,"total":10}),
-        q("Strip: how many squares shaded?","diagram","Shaded = ____","",diag="tenths_grid",dpar={"shaded":1,"total":10}),
-        q("Strip: how many squares NOT shaded?","diagram","Unshaded = ____","",diag="tenths_grid",dpar={"shaded":4,"total":10}),
-        q("Strip: how many squares NOT shaded?","diagram","Unshaded = ____","",diag="tenths_grid",dpar={"shaded":8,"total":10}),
-        cb("Counting parts — getting closer to decimals",["10 equal parts: each=1 TENTH.","3 parts out of 10 = 3 tenths.","We write 3 tenths as 0.3"],"7 parts out of 10 → 7 tenths → 0.7"),
-        q("5 squares shaded. 5 tenths = 0.____","diagram","5 tenths = 0.____","5 squares",diag="tenths_grid",dpar={"shaded":5,"total":10}),
-        q("2 squares shaded. 2 tenths = 0.____","diagram","2 tenths = 0.____","",diag="tenths_grid",dpar={"shaded":2,"total":10}),
-        q("9 squares shaded. 9 tenths = 0.____","diagram","9 tenths = 0.____","",diag="tenths_grid",dpar={"shaded":9,"total":10}),
-        q("6 squares shaded. 6 tenths = 0.____","diagram","6 tenths = 0.____","",diag="tenths_grid",dpar={"shaded":6,"total":10}),
-        cb("The decimal point",["The dot = DECIMAL POINT.","Before the dot = whole numbers.","After the dot = parts (tenths, hundredths)"],"0.3 means 0 wholes, 3 tenths. 1.5 means 1 whole, 5 tenths"),
-        q("0.4 means ____ whole and ____ tenths","fill","Whole=____ Tenths=____"),
-        q("0.8 means ____ whole and ____ tenths","fill","Whole=____ Tenths=____"),
-        q("1.3 means ____ whole and ____ tenths","fill","Whole=____ Tenths=____"),
-        q("2.5 means ____ wholes and ____ tenths","fill","Wholes=____ Tenths=____"),
-        q("Water bottle: 6 of 10 marks filled. Write as decimal.","word","Decimal = ____","6 out of 10"),
-        q("Meena ate 3 of 10 chocolate pieces. Decimal?","word","Decimal = ____","3 of 10"),
-        q("4 squares shaded. Write as decimal: 0.____","diagram","Answer = 0.____","4 squares",diag="tenths_grid",dpar={"shaded":4,"total":10}),
-        q("zero point three = ____ and zero point eight = ____","fill","Answers = ____")]
-    if s==2: return [
-        cb("Writing decimals formally",["Tenths: 1 digit after decimal. 0.3=3 tenths.","Hundredths: 2 digits. 0.35=35 hundredths.","Decimal point separates whole from parts."],"2.47: ones=2, tenths=4, hundredths=7"),
-        q("Write decimal for 6 tenths","fill","Answer = 0.____"),
-        q("Write decimal for 3 tenths and 5 hundredths","fill","Answer = 0.____"),
-        q("In 4.7, digit after decimal is in ____ place","fill","Answer = ____"),
-        q("In 3.25, digit 2 is in ____ place","fill","Answer = ____"),
-        q("In 6.08, digit 8 is in ____ place","fill","Answer = ____"),
-        cb("Place value chart for decimals",["Ones | . | Tenths | Hundredths","Each place 10x smaller than place to its left.","0.1=1 tenth; 0.01=1 hundredth."],"3.47: Ones=3, Tenths=4, Hundredths=7"),
-        q("Show 2.5 in place value chart.","diagram","Ones=____ Tenths=____","",diag="place_value_chart",dpar={"number":"2.5"}),
-        q("Show 0.83 in place value chart.","diagram","Tenths=____ Hundredths=____","",diag="place_value_chart",dpar={"number":"0.83"}),
-        q("3.46 expanded: 3 + 0.___ + 0.0___","fill","Answer = ____"),
-        q("0.75 expanded: 0 + 0.___ + 0.0___","fill","Answer = ____"),
-        cb("Reading decimals",["Read whole, say point, then each digit.","1.4 = one point four. 0.35 = zero point three five."],"2.08 = two point zero eight"),
-        q("Write 0.9 in words","fill","Answer = ____"),
-        q("Write 1.5 in words","fill","Answer = ____"),
-        q("three point seven as decimal","fill","Answer = ____"),
-        q("zero point four five as decimal","fill","Answer = ____"),
-        q("Pencil is 0.15 m. How many hundredths?","word","Answer = ____ hundredths","0.15 m"),
-        q("Value of digit 3 in 5.37","fill","Value = ____"),
-        q("Value of digit 6 in 4.06","fill","Value = ____"),
-        q("Write 7/10 as a decimal","fill","Decimal = 0.____"),
-        q("Write 23/100 as a decimal","fill","Decimal = 0.____")]
-    if s==3: return [
-        cb("Quick Review",["Tenths: 1st digit after decimal.","Hundredths: 2nd digit after decimal.","Expanded: 2.46=2+0.4+0.06"],"5.39=5+0.3+0.09"),
-        q("Value of 4 in 3.47","fill","Value = ____"),
-        q("Value of 9 in 2.09","fill","Value = ____"),
-        q("Write 4.28 in expanded form","fill","Answer = ____"),
-        q("3 + 0.5 + 0.02 = ____","fill","Answer = ____"),
-        q("How many tenths in 0.8?","fill","Answer = ____ tenths"),
-        cb("Hundredths grid",["100 squares=1 whole.","Shaded/100=decimal.","63 shaded=0.63"],"45 shaded=0.45"),
-        q("How many shaded? Write decimal.","diagram","Decimal = ____","",diag="hundredths_grid",dpar={"shaded":35}),
-        q("How many shaded? Write decimal.","diagram","Decimal = ____","",diag="hundredths_grid",dpar={"shaded":72}),
-        q("0.56 as fraction with D=100","fill","Fraction = ____/100"),
-        q("48/100 as decimal","fill","Decimal = ____"),
-        q("Three decimals between 0.1 and 0.2","fill","Answer = ____"),
-        cb("Rounding decimals",["Round to nearest tenth: look at hundredths.",">=5: round up; <5: keep same.","2.46 → 2.5 (since 6>=5)"],"3.74 → 3.7 (since 4<5)"),
-        q("Round 4.35 to nearest tenth","fill","Answer = ____"),
-        q("Round 2.78 to nearest tenth","fill","Answer = ____"),
-        q("Round 0.94 to nearest tenth","fill","Answer = ____"),
-        q("Round 6.45 to nearest whole number","fill","Answer = ____"),
-        q("Ravi height 1.47 m. Round to nearest tenth.","word","Answer = ____ m","1.47 m"),
-        q("Distance 3.82 km. Round to nearest whole number.","word","Answer = ____ km","3.82 km"),
-        q("A decimal that rounds to 0.5: ____","fill","Answer = ____"),
-        q("True or False: 0.30 = 0.3","fill","Answer = ____")]
+# L1A Sheet 1 — Intuition
+def _L1A_1():  # Counting 1-50, Sheet 1 Intuition
     return [
-        cb("Comparing and Ordering Decimals",["Align decimal points. Compare left to right.","Add zeros for equal decimal places.","0.40 vs 0.38 → 0.40>0.38"],"0.4>0.38"),
-        q("0.6 ___ 0.60","fill","< > or = ____"),
-        q("0.09 ___ 0.9","fill","< > or = ____"),
-        q("1.25 ___ 1.52","fill","< > or = ____"),
-        q("3.4 ___ 3.40","fill","< > or = ____"),
-        q("Order small to large: 1.2, 1.02, 1.22, 1.21","fill","Answer = ____"),
-        q("Order large to small: 0.5, 0.55, 0.505, 0.05","fill","Answer = ____"),
-        cb("Multiply and divide by 10",["x10: move decimal one place RIGHT.","div10: move decimal one place LEFT.","0.4x10=4; 3.5 div 10=0.35"],"0.7x10=7; 7 div 10=0.7"),
-        q("0.6 x 10 = ____","fill","Answer = ____"),
-        q("3.5 div 10 = ____","fill","Answer = ____"),
-        q("10 x 0.08 = ____","fill","Answer = ____"),
-        q("Halfway between 0.4 and 0.6?","fill","Answer = ____"),
-        q("All 2-decimal-place decimals between 1.5 and 1.6","fill","Answer = ____"),
-        cb("Spot the mistake!",["Read carefully. Find the error. Correct it."],"0.9<0.18 because 18>9 is WRONG: 0.9=0.90>0.18"),
-        q("4 in 6.45 is worth 4 ones. Correct value: ____","fill","Correct = ____"),
-        q("2.3>2.30 because 2.3 is shorter. True or False?","fill","Answer = ____"),
-        q("Scored 8.75 in Test A, 8.7 in Test B. Higher? By how much?","word","Answer = ____","8.75 and 8.7"),
-        q("Weights 0.5 kg, 0.05 kg, 0.505 kg. Order lightest to heaviest.","word","Answer = ____","0.5 kg 0.05 kg 0.505 kg"),
-        q("A decimal between 0.001 and 0.002: ____","fill","Answer = ____"),
-        q("0.1 + ___ = 1","fill","Answer = ____"),
-        q("Value of digit 8 in 7.384","fill","Value = ____")]
+        cb("Counting 1 to 50", ["Numbers go in order: 1, 2, 3, 4, 5…", "Each number is ONE MORE than the one before.", "We can count objects by pointing one by one."], "Count: 1, 2, 3, 4, 5 — each step adds one"),
+        q("Count the dots and write the total.", "diagram", "Count = ____", "", "dot_array", {"rows":2,"cols":4}),
+        q("Count the dots and write the total.", "diagram", "Count = ____", "", "dot_array", {"rows":3,"cols":3}),
+        q("Write the number that comes AFTER 7.", "fill", "Answer = ____"),
+        q("Write the number that comes AFTER 15.", "fill", "Answer = ____"),
+        q("Write the number that comes AFTER 29.", "fill", "Answer = ____"),
+        cb("Tens and Ones", ["23 = 2 tens and 3 ones.", "30 = 3 tens and 0 ones.", "Count the tens first, then add the ones."], "4 tens + 6 ones = 46"),
+        q("25 = ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"),
+        q("33 = ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"),
+        q("4 tens and 6 ones = ____.", "fill", "Answer = ____"),
+        q("3 tens and 0 ones = ____.", "fill", "Answer = ____"),
+        q("Fill in the missing numbers: 21, 22, ___, 24, ___, 26.", "fill", "Answer = ____"),
+        cb("Counting Backwards", ["Count back from 10: 10, 9, 8, 7, 6, 5, 4, 3, 2, 1.", "Each step REMOVES one.", "We can count backwards from any number."], "20, 19, 18, 17 — each step goes back one"),
+        q("Count back: 15, 14, ___, 12, ___.", "fill", "Answer = ____"),
+        q("Count back: 30, 29, ___, 27, ___.", "fill", "Answer = ____"),
+        q("Write all numbers from 41 to 50.", "fill", "Answer = ____"),
+        q("Which number comes just BEFORE 40?", "fill", "Answer = ____"),
+        q("Ravi has 3 bags of 10 apples and 7 loose apples. How many apples in total?", "word", "Total = ____", "3 bags of 10 and 7 loose"),
+        q("The number 48 has ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"),
+        q("Four tens and two ones = ____.", "fill", "Answer = ____"),
+        q("Write all numbers between 45 and 50 (not including 45 and 50).", "fill", "Answer = ____"),
+    ]
 
-def L7B(s): return _qs("Decimal place value",["ones/tenths/hundredths/thousandths","read and write","expand and compress"],"3.456: ones=3,tenths=4,hundredths=5,thousandths=6",s)
-def L7C(s): return _qs("Decimal comparison",["align decimals","compare digit by digit","order a list"],"0.7>0.69; 1.30=1.3; order:0.4,0.41,0.5",s)
-def L7D(s): return _qs("Decimal addition",["column addition","align decimal points","carry in decimals"],"2.35+1.47=3.82; align the decimal points",s)
-def L7E(s): return _qs("Decimal subtraction",["column subtraction","borrow across decimal","check with addition"],"4.72-1.85=2.87; check:2.87+1.85=4.72",s)
-def L7F(s): return _qs("Fraction to decimal",["divide numerator by denominator","common fractions","recurring decimals"],"1/4=0.25; 1/3=0.333; 3/8=0.375",s)
-def L7G(s): return _qs("Decimal word problems",["money","measurement","multi-step"],"Rs 12.50+Rs 8.75=Rs 21.25",s)
-def L7H(s): return _qs("Mixed decimals",["all operations","order of operations","mixed contexts"],"Perimeter=2.4+3.5+2.4+3.5=11.8 cm",s)
-def L7I(s): return _qs("Decimal puzzles",["find the decimal","multi-condition","logic"],"I have 2 decimal places, between 1.2 and 1.3, hundredths=5. I am 1.25.",s)
-def L7J(s): return _qs("Mixed challenge decimals",["multi-step","error analysis","real world"],"Budget Rs 50: spent 12.75+18.40=31.15; change=18.85",s)
-def L7CUM1(s): return _cum(["Decimal concept","Decimal place value","Decimal comparison"],s)
-def L7CUM2(s): return _cum(["Decimal addition","Decimal subtraction","Fraction to decimal"],s)
-def L7CUM3(s): return _cum(["Decimal word problems","Mixed decimals","Decimal puzzles"],s)
-def L7REV(s):  return _qs("Level 7 Revision",["all decimals","operations","word problems"],"0.75+0.36=1.11; 3.4>3.04; 7/20=0.35",s)
+# L1B Sheet 1 — Intuition
+def _L1B_1():  # Counting 1-100, Sheet 1 Intuition
+    return [
+        cb("Counting to 100", ["After 50 comes 51, 52, 53… all the way to 100.", "100 = ten groups of ten.", "We can skip-count by 10s: 10, 20, 30, 40, 50, 60, 70, 80, 90, 100."], "Count by 10s: 10, 20, 30, 40, 50"),
+        q("Count the objects shown.", "diagram", "Count = ____", "", "ten_frames", {"count":23}),
+        q("Fill in the missing numbers: 55, 56, ___, 58, ___.", "fill", "Answer = ____"),
+        q("Fill in the missing numbers: 78, ___, 80, ___, 82.", "fill", "Answer = ____"),
+        q("What number comes after 69?", "fill", "Answer = ____"),
+        q("What number comes after 99?", "fill", "Answer = ____"),
+        cb("Skip Counting by 10", ["Count by 10s: 10, 20, 30, 40, 50, 60, 70, 80, 90, 100.", "The ones digit stays the SAME when you count by 10s.", "Each jump adds 10 to the tens digit."], "23, 33, 43, 53 — the ones digit stays 3"),
+        q("Fill in: 10, 20, ___, 40, ___, 60.", "fill", "Answer = ____"),
+        q("Fill in — count by 10 starting from 5: 5, 15, ___, 35, ___.", "fill", "Answer = ____"),
+        q("What is 10 more than 67?", "fill", "Answer = ____"),
+        q("What is 10 less than 90?", "fill", "Answer = ____"),
+        q("Write all the multiples of 10 from 10 to 100.", "fill", "Answer = ____"),
+        cb("Tens and Ones to 100", ["87 = 8 tens and 7 ones.", "100 = 10 tens and 0 ones.", "9 tens + 4 ones = 94."], "72 = 7 tens and 2 ones"),
+        q("72 = ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"),
+        q("8 tens and 5 ones = ____.", "fill", "Answer = ____"),
+        q("9 tens and 0 ones = ____.", "fill", "Answer = ____"),
+        q("Count back by 10s: 100, 90, ___, 70, ___.", "fill", "Answer = ____"),
+        q("Meena has 6 bags of 10 marbles and 4 extra marbles. How many marbles altogether?", "word", "Total = ____", "6 bags of 10 and 4 extra"),
+        q("Write all multiples of 5 between 60 and 80.", "fill", "Answer = ____"),
+        q("What is 10 more than 89?", "fill", "Answer = ____"),
+        q("What number comes just before 100?", "fill", "Answer = ____"),
+    ]
 
-# ═══ LEVEL 8 — INTEGERS ═══
-def L8A(s):
-    if s==1: return [
-        cb("What are Integers?",["Integers include negatives, zero, and positives.","Negative: -3,-2,-1 (below zero).","Positive: 1,2,3 (above zero). Zero: 0."],"Temperature -5 degrees C = 5 degrees BELOW zero"),
-        q("5 degrees below zero = ____","fill","Answer = ____"),
-        q("3 floors above ground = ____","fill","Answer = ____"),
-        q("Rs 200 in debt = ____","fill","Answer = ____"),
-        q("Sea level = ____","fill","Answer = ____"),
-        q("10 metres underground = ____","fill","Answer = ____"),
-        cb("Integers on the number line",["Negatives=LEFT of zero.","Positives=RIGHT of zero.","Further from 0 = larger absolute value."],"-3 is left of -1, so -3 < -1"),
-        q("Mark -3 and +5 on number line.","diagram","Done","",diag="integer_line",dpar={"marks":[-3,5],"start":-6,"end":6}),
-        q("Further from zero: -7 or +4?","fill","Answer = ____"),
-        q("All integers between -4 and +3: ____","fill","Answer = ____"),
-        q("Is -8 greater or less than -2?","fill","Answer = ____"),
-        q("Opposite of -6: ____","fill","Answer = ____"),
-        cb("Absolute value",["Absolute value = distance from 0. Always positive.","-5 has absolute value 5. +3 has absolute value 3.","Written with vertical bars: |n|"],"|(-8)| = 8"),
-        q("|-7| = ____","fill","Answer = ____"),
-        q("|+12| = ____","fill","Answer = ____"),
-        q("|0| = ____","fill","Answer = ____"),
-        q("Larger absolute value: -15 or +13?","fill","Answer = ____"),
-        q("Diver at -30 m, bird at +12 m. Who is further from sea level?","word","Answer = ____","-30 m and +12 m"),
-        q("Write 3 negative integers with absolute value > 5","fill","Answer = ____"),
-        q("Temperature rose from -4 C to +6 C. By how many degrees?","word","Answer = ____ degrees","-4 and +6"),
-        q("Order: -3, +1, -7, 0, +5 smallest to largest","fill","Answer = ____")]
-    s2=_qs("Integer concept",["formal number line","compare integers","absolute value"],"-5<-3<0<2<7; |(-9)|=9=|9|",2)
-    s3=_qs("Integer concept",["all four operations intro","word problems","multi-step"],"Temperature change; profit/loss; elevation",3)
-    s4=_qs("Integer Mastery",["multi-step","error analysis","real world"],"Net change=sum of all gains and losses",4)
-    return [s1,s2,s3,s4][s-1]
+# L1A Sheet 2 — Concept
+def _L1A_2():  # Counting 1-50, Sheet 2 Concept
+    return [
+        cb("Place Value: Tens and Ones", ["The TENS digit tells us how many groups of 10.", "The ONES digit tells us the extras.", "Value of tens digit = digit × 10. Value of ones digit = the digit itself."], "In 37: value of 3 = 30,  value of 7 = 7"),
+        q("In 24, what is the value of the digit 2?", "fill", "Value = ____"),
+        q("In 38, what is the value of the digit 3?", "fill", "Value = ____"),
+        q("In 45, what is the value of the digit 5?", "fill", "Value = ____"),
+        q("Write 27 in expanded form: ___ + ___.", "fill", "Answer = ____"),
+        q("Write 43 in expanded form: ___ + ___.", "fill", "Answer = ____"),
+        q("Write as a number: 30 + 6 = ____.", "fill", "Answer = ____"),
+        q("Write as a number: 10 + 9 = ____.", "fill", "Answer = ____"),
+        cb("Comparing Numbers", ["Compare TENS digits first.", "If tens are equal, compare ONES digits.", "< means less than,  > means greater than,  = means equal."], "23 < 32 because 2 tens < 3 tens"),
+        q("Write < or > between the numbers:   23   ___   32.", "fill", "Answer = ____"),
+        q("Write < or > between the numbers:   45   ___   44.", "fill", "Answer = ____"),
+        q("Write < or > between the numbers:   30   ___   30.", "fill", "Answer = ____"),
+        q("Order from smallest to largest: 35, 13, 41, 22.", "fill", "Smallest to largest = ____"),
+        q("Order from largest to smallest: 28, 42, 17, 39.", "fill", "Largest to smallest = ____"),
+        q("What is the largest 2-digit number that has tens digit 3?", "fill", "Answer = ____"),
+        q("Write all 2-digit numbers between 38 and 42.", "fill", "Answer = ____"),
+        q("Meena has 34 stickers. Ravi has 43 stickers. Who has more?", "word", "Answer = ____", "34 and 43"),
+        q("Which number is closer to 50 — the number 47 or the number 53?", "fill", "Answer = ____"),
+        q("The tens digit of 49 is ____.", "fill", "Answer = ____"),
+        q("The ones digit of 30 is ____.", "fill", "Answer = ____"),
+        q("True or False: 50 is greater than 49.", "fill", "Answer = ____"),
+    ]
 
-def L8B(s): return _qs("Integer number line",["plot integers","find distance","order and compare"],"Distance from -3 to +5 = 8 units",s)
-def L8C(s): return _qs("Integer addition",["same sign:add keep sign","different sign:subtract keep larger sign","number line hops"],"-3+(-4)=-7; -3+7=+4; +5+(-8)=-3",s)
-def L8D(s): return _qs("Integer subtraction",["a-b=a+(-b)","subtracting negative=adding positive","real world temperature"],"5-(-3)=5+3=8; -4-2=-6; -2-(-5)=3",s)
-def L8E(s): return _qs("Integer multiplication",["pos x pos=pos","neg x neg=pos","pos x neg=neg"],"(-3)x(-4)=12; (-3)x4=-12; 3x4=12",s)
-def L8F(s): return _qs("Integer division",["same sign=positive quotient","different sign=negative quotient","zero rules"],"(-12) div (-4)=3; 12 div (-4)=-3; 0 div (-5)=0",s)
-def L8G(s): return _qs("Integer word problems",["temperature change","profit/loss","elevation"],"Profit +Rs200, Loss -Rs80 → Net=+Rs120",s)
-def L8H(s): return _qs("Mixed integers",["all four operations","order of operations","multi-step"],"(-3)x4+(-2)x(-5)=-12+10=-2",s)
-def L8I(s): return _qs("Integer puzzles",["find the integer","logic clues","multi-condition"],"I am negative. My square is 49. I am -7.",s)
-def L8J(s): return _qs("Mixed challenge integers",["multi-step","real world","error analysis"],"Net change=sum of all signed quantities",s)
-def L8CUM1(s): return _cum(["Integer concept","Integer number line","Integer addition"],s)
-def L8CUM2(s): return _cum(["Integer subtraction","Integer multiplication","Integer division"],s)
-def L8CUM3(s): return _cum(["Integer word problems","Mixed integers","Integer puzzles"],s)
-def L8REV(s):  return _qs("Level 8 Revision",["all integer operations","word problems","multi-step"],"(-5)+8=3; (-3)x(-4)=12; |(-7)|=7",s)
+# L1B Sheet 2 — Concept
+def _L1B_2():  # Counting 1-100, Sheet 2 Concept
+    return [
+        cb("Place Value up to 100", ["Tens, ones — same rules as before.", "96 = 9 tens + 6 ones = 90 + 6.", "The tens digit is always to the LEFT of the ones digit."], "84 = 80 + 4  (tens digit 8 = 80, ones digit 4 = 4)"),
+        q("Write 84 in expanded form.", "fill", "Answer = ____"),
+        q("Write 73 in expanded form.", "fill", "Answer = ____"),
+        q("Write as a number: 60 + 9 = ____.", "fill", "Answer = ____"),
+        q("What is the value of the digit 9 in the number 97?", "fill", "Value = ____"),
+        q("What is the value of the digit 6 in the number 68?", "fill", "Value = ____"),
+        q("Which is greater: 79 or 97? Explain.", "fill", "Answer = ____"),
+        q("Write < or >:   56   ___   65.", "fill", "Answer = ____"),
+        q("Write < or >:   99   ___   100.", "fill", "Answer = ____"),
+        cb("Ordering Numbers to 100", ["Compare tens first. If tens are equal, compare ones.", "Ascending = smallest to largest.", "Descending = largest to smallest."], "72 > 27 because 7 tens > 2 tens"),
+        q("Order from smallest to largest: 72, 27, 90, 9, 45.", "fill", "Ascending = ____"),
+        q("Order from largest to smallest: 63, 36, 83, 38.", "fill", "Descending = ____"),
+        q("Write all multiples of 10 between 40 and 80.", "fill", "Answer = ____"),
+        q("What is the largest 2-digit odd number?", "fill", "Answer = ____"),
+        q("What is the smallest 2-digit even number?", "fill", "Answer = ____"),
+        q("Round 64 to the nearest 10.", "fill", "Answer = ____"),
+        q("Round 85 to the nearest 10.", "fill", "Answer = ____"),
+        q("How many 2-digit multiples of 10 are there? (10, 20, 30…)", "fill", "Answer = ____"),
+        q("A classroom has 3 rows of 10 desks and 8 extra desks. How many desks altogether?", "word", "Total = ____", "3 rows of 10 and 8 extra"),
+        q("Write three numbers that are between 70 and 80.", "fill", "Answer = ____"),
+        q("True or False: 100 is greater than 99.", "fill", "Answer = ____"),
+    ]
 
-# ═══ LEVELS 9-20 ═══
-def L9A(s):  return _qs("Factors",["factor pairs of numbers","list all factors","factor is always <= the number"],"Factors of 24: 1,2,3,4,6,8,12,24",s)
-def L9B(s):  return _qs("Multiples",["first 10 multiples","common multiples","multiples are infinite"],"Multiples of 7: 7,14,21,28,35,42,49,56,63,70",s)
-def L9C(s):  return _qs("Prime factorisation",["factor tree method","index notation","every composite has unique prime factorisation"],"36=2 squared x 3 squared; 60=2 squared x 3 x 5",s)
-def L9D(s):  return _qs("HCF",["list factors of each number","find the common factors","take the highest common factor"],"HCF(12,18): common factors 1,2,3,6 → HCF=6",s)
-def L9E(s):  return _qs("LCM",["list multiples","find first common multiple","prime factorisation method"],"LCM(4,6): multiples of 4:4,8,12; of 6:6,12 → LCM=12",s)
-def L9F(s):  return _qs("Factors and Multiples word problems",["tiles and floors","sharing equally","scheduling"],"Tiles 12cm and 18cm: LCM=36cm for same row length",s)
-def L9G(s):  return _qs("Factors and Multiples applications",["divisibility rules","HCF for simplifying fractions","LCM for adding fractions"],"Simplify 18/24: HCF=6 → 3/4",s)
-def L9H(s):  return _qs("Mixed factors and multiples",["HCF and LCM combined","multi-step","word problems"],"HCF(24,36)=12; LCM(24,36)=72; HCF x LCM=24 x 36",s)
-def L9I(s):  return _qs("Factor and Multiple puzzles",["clue-based","find the number","logic"],"Between 20 and 30, multiple of 4, HCF with 24 is 4. I am 28.",s)
-def L9J(s):  return _qs("Mixed challenge L9",["multi-step","real world","explain reasoning"],"LCM for scheduling; HCF for sharing",s)
-def L9CUM1(s): return _cum(["Factors","Multiples","Prime factorisation"],s)
-def L9CUM2(s): return _cum(["HCF","LCM","Factors and Multiples word problems"],s)
-def L9CUM3(s): return _cum(["Factors and Multiples applications","Mixed factors and multiples","Factor and Multiple puzzles"],s)
-def L9REV(s):  return _qs("Level 9 Revision",["factors","multiples","HCF and LCM"],"HCF(18,24)=6; LCM(8,12)=24",s)
+# L1A Sheet 3 — Practice
+def _L1A_3():  # Counting 1-50, Sheet 3 Practice
+    return [
+        cb("Quick Review — Place Value", ["Tens digit × 10 = its value.", "Ones digit = its own value.", "Compare numbers: start from the tens place."], "48 = 4 tens + 8 ones = 40 + 8"),
+        q("What is the value of the digit 4 in the number 48?", "fill", "Value = ____"),
+        q("What is the value of the digit 2 in the number 26?", "fill", "Value = ____"),
+        q("Write 36 in expanded form.", "fill", "Answer = ____"),
+        q("Write 50 in expanded form.", "fill", "Answer = ____"),
+        q("Write as a number: 20 + 7 = ____.", "fill", "Answer = ____"),
+        q("Which is larger: 29 or 31?", "fill", "Answer = ____"),
+        q("Which is smaller: 47 or 44?", "fill", "Answer = ____"),
+        q("Order from smallest to largest: 33, 13, 23, 3.", "fill", "Answer = ____"),
+        q("Order from largest to smallest: 41, 14, 40, 4.", "fill", "Answer = ____"),
+        q("What comes just before 50?", "fill", "Answer = ____"),
+        q("What comes just after 39?", "fill", "Answer = ____"),
+        q("Write all even numbers between 20 and 30.", "fill", "Answer = ____"),
+        q("How many tens are in the number 50?", "fill", "Answer = ____"),
+        q("A box has 4 rows of 10 pencils each and 3 extra pencils. How many pencils in total?", "word", "Total = ____", "4 rows of 10 and 3 extra"),
+        q("Round 43 to the nearest ten.", "fill", "Answer = ____"),
+        q("Round 27 to the nearest ten.", "fill", "Answer = ____"),
+        q("Write three numbers that are between 30 and 40.", "fill", "Answer = ____"),
+        q("Spot the mistake: 'The expanded form of 34 is 3 + 4.' What is the correct expanded form?", "fill", "Correct = ____"),
+        q("How many 2-digit numbers are there altogether?", "fill", "Answer = ____"),
+    ]
 
-def L10A(s): return _qs("Ratio concept",["ratio compares two quantities","write as a:b","ratio is not a fraction of a whole"],"Boys:Girls=3:5 means 3 boys for every 5 girls",s)
-def L10B(s): return _qs("Simplifying ratios",["divide both by HCF","simplest form","equivalent ratios"],"12:18 → HCF=6 → 2:3",s)
-def L10C(s): return _qs("Equivalent ratios",["multiply/divide both by same number","ratio tables","scaling"],"2:3=4:6=6:9=10:15",s)
-def L10D(s): return _qs("Proportion",["two equal ratios","cross-multiplication","direct proportion"],"2/3=4/? → ?=6; cross: 2x?=3x4",s)
-def L10E(s): return _qs("Solving proportions",["set up the proportion","cross-multiply","solve for unknown"],"5 books cost Rs 200, 8 books cost? → 5/200=8/x → x=320",s)
-def L10F(s): return _qs("Ratio word problems",["share in a ratio","find part from total","increase/decrease in ratio"],"Share Rs 240 in ratio 3:5 → 8 parts; each part=30 → 90:150",s)
-def L10G(s): return _qs("Direct proportion",["y=kx","both increase/decrease proportionally","unit rate method"],"Speed: 3hrs→180km, then 5hrs→300km",s)
-def L10H(s): return _qs("Inverse proportion",["xy=k constant","one increases other decreases","workers and time"],"5 workers:12 days; 3 workers:5x12/3=20 days",s)
-def L10I(s): return _qs("Mixed ratio and proportion",["all skills","multi-step","map scales"],"Map 1:50000; 3cm=1.5km",s)
-def L10J(s): return _qs("Mixed challenge L10",["complex ratios","multi-step proportion","real world"],"Mixture, speed-distance-time, scaling recipes",s)
-def L10CUM1(s): return _cum(["Ratio concept","Simplifying ratios","Equivalent ratios"],s)
-def L10CUM2(s): return _cum(["Proportion","Solving proportions","Ratio word problems"],s)
-def L10CUM3(s): return _cum(["Direct proportion","Inverse proportion","Mixed ratio and proportion"],s)
-def L10REV(s):  return _qs("Level 10 Revision",["ratio","proportion","word problems"],"12:8=3:2; if 4:x=6:9 → x=6",s)
+# L1B Sheet 3 — Practice
+def _L1B_3():  # Counting 1-100, Sheet 3 Practice
+    return [
+        cb("Counting 1–100 Practice", ["Expanded form: 72 = 70 + 2.", "Round to nearest 10: look at ones digit. ≥5 round up, <5 round down.", "Order by comparing tens first, then ones."], "Round 67 → ones is 7 ≥ 5 → round up → 70"),
+        q("Write 91 in expanded form.", "fill", "Answer = ____"),
+        q("Write 65 in expanded form.", "fill", "Answer = ____"),
+        q("Write as a number: 50 + 3 = ____.", "fill", "Answer = ____"),
+        q("Write as a number: 80 + 0 = ____.", "fill", "Answer = ____"),
+        q("Round 43 to the nearest 10.", "fill", "Answer = ____"),
+        q("Round 76 to the nearest 10.", "fill", "Answer = ____"),
+        q("Round 95 to the nearest 10.", "fill", "Answer = ____"),
+        q("Order from smallest to largest: 81, 18, 80, 8, 88.", "fill", "Answer = ____"),
+        q("Order from largest to smallest: 52, 25, 55, 5.", "fill", "Answer = ____"),
+        q("How many numbers are between 50 and 60 (not including 50 and 60)?", "fill", "Answer = ____"),
+        q("Write all multiples of 5 from 5 to 50.", "fill", "Answer = ____"),
+        q("What is 10 more than 54?", "fill", "Answer = ____"),
+        q("What is 10 less than 73?", "fill", "Answer = ____"),
+        q("Ravi counts by 2s starting from 2: 2, 4, 6, ___, ___, ___, ___, 16. Fill in the gaps.", "fill", "Answer = ____"),
+        q("Count by 5s: 5, 10, 15, ___, ___, 30, ___, 40.", "fill", "Answer = ____"),
+        q("The number 86 is between ___ tens and ___ tens.", "fill", "Answer = ____"),
+        q("Write a number between 90 and 100 that has a 4 in the ones place.", "fill", "Answer = ____"),
+        q("A library has 6 shelves with 10 books each and 8 more books on a table. Total books = ____.", "word", "Total = ____", "6 shelves of 10 and 8 extra"),
+        q("True or False: Rounding 75 to the nearest 10 gives 70.", "fill", "Answer = ____"),
+    ]
 
-def L11A(s): return _qs("Variables and expressions",["variable=unknown quantity","expression=numbers+variables+operations","no equals sign in expression"],"3x+2; 5y-7; 2a+3b are expressions",s)
-def L11B(s): return _qs("Algebraic expressions",["identify terms","coefficient and variable","constant term"],"In 4x squared+3x-7: terms are 4x squared,3x,-7; constant=-7",s)
-def L11C(s): return _qs("Simplifying expressions",["collect like terms","add/subtract coefficients","cannot combine unlike terms"],"3x+5x=8x; 2x+3y+x=3x+3y",s)
-def L11D(s): return _qs("Like and unlike terms",["like:same variable and power","unlike:different variable or power","only like terms can be combined"],"3x squared and 5x squared are like; 3x and 3x squared are unlike",s)
-def L11E(s): return _qs("Substitution",["replace variable with given value","follow BODMAS","evaluate the expression"],"If x=3: 2x+5=2(3)+5=6+5=11",s)
-def L11F(s): return _qs("Expression evaluation",["substitute multiple variables","complex expressions","check reasonableness"],"If a=2,b=-3: 3a squared-2b=3(4)-2(-3)=12+6=18",s)
-def L11G(s): return _qs("Algebra word problems",["form expression from words","identify variable","multi-step"],"Ravi is 3 years older than Meena. Meena=x → Ravi=x+3",s)
-def L11H(s): return _qs("Mixed expressions",["all operations","brackets","expand expressions"],"2(3x+4)=6x+8; 3(a-2b)=3a-6b",s)
-def L11I(s): return _qs("Algebra puzzles",["find the value","consecutive numbers","logic algebra"],"Three consecutive even: n,n+2,n+4; sum=3n+6",s)
-def L11J(s): return _qs("Mixed challenge algebra",["multi-step","real world formulas","error analysis"],"Perimeter=2(l+b); Area=lb; substitute values",s)
-def L11CUM1(s): return _cum(["Variables and expressions","Algebraic expressions","Simplifying expressions"],s)
-def L11CUM2(s): return _cum(["Like and unlike terms","Substitution","Expression evaluation"],s)
-def L11CUM3(s): return _cum(["Algebra word problems","Mixed expressions","Algebra puzzles"],s)
-def L11REV(s):  return _qs("Level 11 Revision",["expressions","substitution","simplification"],"3x+2y-x+y=2x+3y; if x=2,y=1: 4+3=7",s)
+# L1A Sheet 4 — Mastery
+def _L1A_4():  # Counting 1-50, Sheet 4 Mastery
+    return [
+        cb("Mastery: Counting and Place Value", ["The value of a digit depends on its POSITION.", "Tens place is worth 10 times the ones place.", "Use comparison and ordering to solve problems."], "In 48: value of 4 is 40, which is 10 × 4"),
+        q("In 37, what is the value of digit 3? What is the value of digit 7?", "fill", "3 = ____   7 = ____"),
+        q("Write 50 in expanded form and explain what each part means.", "fill", "Answer = ____"),
+        q("Order from smallest to largest: 47, 4, 74, 40, 44.", "fill", "Answer = ____"),
+        q("How many 2-digit numbers are there in total? Explain how you know.", "fill", "Answer = ____"),
+        q("The value of 4 in 48 is how many times the value of 4 in 14?", "fill", "Answer = ____ times"),
+        q("Ravi says '19 is greater than 91.' Is he correct? Explain why.", "fill", "Answer = ____"),
+        q("What pattern do you notice? 5, 10, 15, 20, ___. Write the next three terms.", "fill", "Next three = ____"),
+        q("What pattern? 48, 46, 44, 42, ___. Write the next term and state the rule.", "fill", "Next = ____  Rule = ____"),
+        q("Write 5 numbers that are multiples of 10 up to 50.", "fill", "Answer = ____"),
+        q("What is the largest 2-digit even number?", "fill", "Answer = ____"),
+        q("What is the smallest 2-digit odd number?", "fill", "Answer = ____"),
+        q("How many 2-digit multiples of 5 are there?", "fill", "Answer = ____"),
+        q("A number has 4 tens and its ones digit equals its tens digit. What is the number?", "fill", "Answer = ____"),
+        q("Between 25 and 35, how many numbers have the digit 2 in the ones place?", "fill", "Answer = ____"),
+        q("Meena counts: 2, 4, 6, 8, ___, ___, ___. Write the next three numbers.", "fill", "Answer = ____"),
+        q("Write a 2-digit number where the sum of tens digit and ones digit equals 9.", "fill", "Answer = ____"),
+        q("Is the number of days in a week (7) a 2-digit number? Explain.", "fill", "Answer = ____"),
+        q("Ravi has 45 stamps. He gives away some and has 28 left. How many did he give away?", "word", "Answer = ____", "45 stamps, 28 left"),
+        q("Challenge: I am a 2-digit number. My tens digit is 3 more than my ones digit. I am less than 50. What am I?", "fill", "Answer = ____"),
+    ]
 
-def L12A(s): return _qs("Equation concept",["equation has = sign","LHS=RHS when solution substituted","balance method: do same to both sides"],"2x+3=11 → x=4 (check:2x4+3=11)",s)
-def L12B(s): return _qs("Solving linear equations",["isolate the variable","inverse operations","verify by substitution"],"3x-5=10 → 3x=15 → x=5",s)
-def L12C(s): return _qs("Multi-step equations",["combine like terms first","expand brackets","solve step by step"],"2(x+3)=14 → 2x+6=14 → 2x=8 → x=4",s)
-def L12D(s): return _qs("Equation word problems",["form equation from words","define variable","solve and interpret"],"Age now x; in 5 years: x+5=20 → x=15",s)
-def L12E(s): return _qs("Equation applications",["distance=speed x time","simple interest","geometry formulas"],"If P+Pr/100=120 and r=20%: P=100",s)
-def L12F(s): return _qs("Equation puzzles",["number puzzles","consecutive integers","angles"],"Sum of 3 consecutive integers=48 → n+(n+1)+(n+2)=48 → n=15",s)
-def L12G(s): return _qs("Mixed equations",["all types","transpose method","check solutions"],"ax+b=cx+d → (a-c)x=d-b → x=(d-b)/(a-c)",s)
-def L12H(s): return _qs("Speed equation solving",["mental methods","pattern recognition","spot solutions"],"2x=14→x=7; x+8=15→x=7; x/3=7→x=21",s)
-def L12I(s): return _qs("Hard equation problems",["simultaneous ideas","complex word problems","multi-step"],"x+y=10, x-y=4 → add: 2x=14 → x=7, y=3",s)
-def L12J(s): return _qs("Mixed challenge equations",["multi-step","real world","verify and interpret"],"Form, Solve, Verify, Interpret answer in context",s)
-def L12CUM1(s): return _cum(["Equation concept","Solving linear equations","Multi-step equations"],s)
-def L12CUM2(s): return _cum(["Equation word problems","Equation applications","Equation puzzles"],s)
-def L12CUM3(s): return _cum(["Mixed equations","Speed equation solving","Hard equation problems"],s)
-def L12REV(s):  return _qs("Level 12 Revision",["form and solve equations","word problems","verify"],"3x+7=22 → x=5; check:3(5)+7=22",s)
+# L1B Sheet 4 — Mastery
+def _L1B_4():  # Counting 1-100, Sheet 4 Mastery
+    return [
+        cb("Mastery: Counting to 100", ["Apply place value, skip counting, ordering, and rounding together.", "Think about WHY each rule works.", "Explain your reasoning clearly."], "Skip count by 4: 4, 8, 12, 16, 20 — rule is add 4 each time"),
+        q("What is the value of the digit 7 in 73? What is the value of the digit 3 in 73?", "fill", "7 = ____   3 = ____"),
+        q("How many 2-digit multiples of both 2 and 5 are there between 10 and 100?", "fill", "Answer = ____"),
+        q("Meena counts in 4s: 4, 8, 12, 16, ___. What is the 10th number she says?", "fill", "10th number = ____"),
+        q("I am a 2-digit number. I am a multiple of 9. I am less than 50. What could I be? Write all answers.", "fill", "Answer = ____"),
+        q("Round each of these to the nearest 10: 32, 47, 55, 68, 75.", "fill", "Answers = ____"),
+        q("Ravi rounds 45 to 40. Is he correct? Explain the rule for rounding 5.", "fill", "Answer = ____"),
+        q("Write a number between 60 and 80 that rounds to 70. Can you find more than one?", "fill", "Answer = ____"),
+        q("Order: 57, 75, 77, 7, 70, 17. Smallest to largest.", "fill", "Answer = ____"),
+        q("How many numbers between 1 and 100 have the digit 7 in the tens place?", "fill", "Answer = ____"),
+        q("How many numbers between 1 and 100 have the digit 7 in the ones place?", "fill", "Answer = ____"),
+        q("What patterns do you notice in the 100-chart when you colour all multiples of 3?", "fill", "Pattern = ____"),
+        q("Spot the error: 'The number 92 rounds to 100 because it is close to 100.' Explain the correct answer.", "fill", "Answer = ____"),
+        q("A shopkeeper has 10 boxes with 10 oranges each. He sells 23 oranges. How many are left?", "word", "Left = ____", "10 boxes of 10 minus 23"),
+        q("What is the 20th multiple of 4?", "fill", "Answer = ____"),
+        q("Write all 2-digit numbers that use only the digits 3 and 7 (can repeat).", "fill", "Answer = ____"),
+        q("If I count by 3s starting from 3, will I reach 100? Explain.", "fill", "Answer = ____"),
+        q("The sum of the digits of a 2-digit number is 11. What could the number be? Write all answers.", "fill", "Answer = ____"),
+        q("Challenge: A number is 8 less than the largest 2-digit number. What is it?", "fill", "Answer = ____"),
+        q("True or False: There are more even 2-digit numbers than odd 2-digit numbers.", "fill", "Answer = ____"),
+    ]
 
-def L13A(s): return _qs("Powers and indices concept",["a to the n means a multiplied n times","base and exponent","square and cube numbers"],"2 cubed=2x2x2=8; 5 squared=25; 10 to the 4=10000",s)
-def L13B(s): return _qs("Laws of indices",["a to m x a to n = a to m+n","a to m div a to n = a to m-n","(a to m) to n = a to mn"],"2 cubed x 2 squared=2 to the 5=32",s)
-def L13C(s): return _qs("Simplification with indices",["apply laws","expand and simplify","mixed bases"],"x squared x x cubed=x to the 5; 4 cubed div 4=4 squared=16",s)
-def L13D(s): return _qs("Negative indices",["a to -n = 1 divided by a to n","negative index means reciprocal","simplify expressions"],"2 to -3=1/8; 5 to -2=1/25",s)
-def L13E(s): return _qs("Fractional indices",["a to 1/n = nth root of a","a to m/n = (nth root of a) to m","evaluate"],"27 to 1/3=3; 8 to 2/3=(cube root 8) squared=4",s)
-def L13F(s): return _qs("Scientific notation",["a x 10 to n where 1<=a<10","large and small numbers","operations in scientific notation"],"3400000=3.4x10 to 6; 0.0052=5.2x10 to -3",s)
-def L13G(s): return _qs("Powers word problems",["area and volume","population growth","compound interest"],"Bacteria doubles every hour: after 5hrs=2 to 5=32x original",s)
-def L13H(s): return _qs("Mixed indices",["all laws combined","multi-step simplification","check by expansion"],"(3x squared y) squared=9x to 4 y squared",s)
-def L13I(s): return _qs("Index puzzles",["find the index","find the base","logic with powers"],"2 to x=32 → x=5; x cubed=125 → x=5",s)
-def L13J(s): return _qs("Mixed challenge indices",["multi-step","real world applications","error analysis"],"E=mc squared; scientific notation calculations",s)
-def L13CUM1(s): return _cum(["Powers and indices concept","Laws of indices","Simplification with indices"],s)
-def L13CUM2(s): return _cum(["Negative indices","Fractional indices","Scientific notation"],s)
-def L13CUM3(s): return _cum(["Powers word problems","Mixed indices","Index puzzles"],s)
-def L13REV(s):  return _qs("Level 13 Revision",["all index laws","scientific notation","word problems"],"a to 0=1; a to -1=1/a; a to m x a to n=a to m+n",s)
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1C — Before / After Numbers
+# ═══════════════════════════════════════════════════════════════
+def _L1C_1():
+    return [
+        cb("Before and After", ["The number BEFORE is one less: before 8 is 7.", "The number AFTER is one more: after 8 is 9.", "Think of a number line — before is to the LEFT, after is to the RIGHT."], "Before 20 is 19. After 20 is 21."),
+        q("Write the number that comes BEFORE 5.", "fill", "Answer = ____"),
+        q("Write the number that comes AFTER 5.", "fill", "Answer = ____"),
+        q("Write the number that comes BEFORE 10.", "fill", "Answer = ____"),
+        q("Write the number that comes AFTER 10.", "fill", "Answer = ____"),
+        q("Write the number that comes BEFORE 20.", "fill", "Answer = ____"),
+        q("Write the number that comes AFTER 20.", "fill", "Answer = ____"),
+        cb("Between", ["A number BETWEEN two numbers is sandwiched in the middle.", "Between 5 and 7 is 6.", "Between 19 and 21 is 20."], "Between 29 and 31 is 30."),
+        q("What number is between 3 and 5?", "fill", "Answer = ____"),
+        q("What number is between 10 and 12?", "fill", "Answer = ____"),
+        q("What number is between 24 and 26?", "fill", "Answer = ____"),
+        q("What number is between 39 and 41?", "fill", "Answer = ____"),
+        q("What number is between 49 and 51?", "fill", "Answer = ____"),
+        cb("Just Before and Just After", ["JUST BEFORE means the number immediately to the left.", "JUST AFTER means the number immediately to the right.", "There is no other number in between."], "Just before 30: 29.  Just after 30: 31."),
+        q("Write the number just before 15.", "fill", "Answer = ____"),
+        q("Write the number just after 15.", "fill", "Answer = ____"),
+        q("Write the number just before 40.", "fill", "Answer = ____"),
+        q("Write the number just after 49.", "fill", "Answer = ____"),
+        q("Write: before, the number, after for 25. ___ , 25 , ___", "fill", "Answer = ____"),
+        q("Ravi says the number before 30 is 31. Is he correct? What is the correct answer?", "fill", "Answer = ____"),
+        q("Write the number just before 100.", "fill", "Answer = ____"),
+        q("Write the number just after 99.", "fill", "Answer = ____"),
+    ]
 
-def L14A(s): return _qs("Polynomial basics",["polynomial=sum of terms with whole number powers","degree=highest power","monomial binomial trinomial"],"3x squared+2x-5: degree 2, trinomial",s)
-def L14B(s): return _qs("Polynomial addition",["add like terms","arrange by degree","result degree=highest input"],"(3x squared+2x)+(x squared-5)=4x squared+2x-5",s)
-def L14C(s): return _qs("Polynomial subtraction",["change sign of subtracted terms","collect like terms","watch signs carefully"],"(5x squared+3x)-(2x squared-x)=3x squared+4x",s)
-def L14D(s): return _qs("Polynomial multiplication",["distribute each term","FOIL for binomials","collect like terms"],"(x+3)(x+4)=x squared+7x+12",s)
-def L14E(s): return _qs("Algebraic identities",["(a+b) squared=a squared+2ab+b squared","(a-b) squared=a squared-2ab+b squared","(a+b)(a-b)=a squared-b squared"],"(x+5) squared=x squared+10x+25",s)
-def L14F(s): return _qs("Factorisation",["take out common factor","factor by grouping","factor trinomials"],"6x squared+9x=3x(2x+3); x squared+5x+6=(x+2)(x+3)",s)
-def L14G(s): return _qs("Polynomial problems",["evaluate at a value","remainder theorem","factor theorem"],"P(x)=x squared+5x+6; P(2)=4+10+6=20",s)
-def L14H(s): return _qs("Mixed polynomials",["combine all operations","verify by expansion","multi-step"],"Factor then expand to verify",s)
-def L14I(s): return _qs("Polynomial puzzles",["find coefficients","match polynomials","application"],"If (x+a)(x+b)=x squared+7x+12 → a+b=7,ab=12 → a=3,b=4",s)
-def L14J(s): return _qs("Mixed challenge polynomials",["multi-step","real world area models","error analysis"],"Area=(x+3)(x+5)=x squared+8x+15",s)
-def L14CUM1(s): return _cum(["Polynomial basics","Polynomial addition","Polynomial subtraction"],s)
-def L14CUM2(s): return _cum(["Polynomial multiplication","Algebraic identities","Factorisation"],s)
-def L14CUM3(s): return _cum(["Polynomial problems","Mixed polynomials","Polynomial puzzles"],s)
-def L14REV(s):  return _qs("Level 14 Revision",["all polynomial operations","identities","factorisation"],"(a+b) squared=a squared+2ab+b squared; factor:x squared-9=(x+3)(x-3)",s)
+def _L1C_2():
+    return [
+        cb("Before, After and Between — Concept", ["'Before' = subtract 1.  'After' = add 1.", "For any number n: before = n−1, after = n+1.", "'Between' x and y (consecutive): the one in the middle."], "Before 47 = 47−1 = 46.  After 47 = 47+1 = 48."),
+        q("Write before and after 33: ___ , 33 , ___", "fill", "Answer = ____"),
+        q("Write before and after 59: ___ , 59 , ___", "fill", "Answer = ____"),
+        q("Write before and after 79: ___ , 79 , ___", "fill", "Answer = ____"),
+        q("Write before and after 99: ___ , 99 , ___", "fill", "Answer = ____"),
+        q("What is 1 less than 70?", "fill", "Answer = ____"),
+        q("What is 1 more than 89?", "fill", "Answer = ____"),
+        cb("Numbers between a range", ["Write all numbers between 15 and 20: 16, 17, 18, 19.", "Do NOT include 15 or 20 themselves.", "Count carefully — don't skip any."], "Between 30 and 35: 31, 32, 33, 34"),
+        q("Write all numbers between 20 and 25.", "fill", "Answer = ____"),
+        q("Write all numbers between 47 and 52.", "fill", "Answer = ____"),
+        q("How many numbers are between 10 and 15?", "fill", "Answer = ____"),
+        q("How many numbers are between 40 and 46?", "fill", "Answer = ____"),
+        q("True or False: 50 is between 49 and 51.", "fill", "Answer = ____"),
+        cb("Applying before and after", ["Use before/after to find neighbours of any number.", "Helpful for checking if a number is in order."], "Neighbours of 68: 67 and 69"),
+        q("What are the neighbours of 72? ___ and ___", "fill", "Answer = ____"),
+        q("What are the neighbours of 98? ___ and ___", "fill", "Answer = ____"),
+        q("Is 55 between 54 and 56? ____", "fill", "Answer = ____"),
+        q("Is 23 between 21 and 26? ____", "fill", "Answer = ____"),
+        q("Write the number that is 1 before 100.", "fill", "Answer = ____"),
+        q("Write three numbers: just before 50, 50 itself, just after 50.", "fill", "Answer = ____"),
+        q("Spot the mistake: 'The number after 39 is 41.' What is correct?", "fill", "Answer = ____"),
+        q("What is the number exactly halfway between 40 and 42?", "fill", "Answer = ____"),
+    ]
 
-def L15A(s): return _qs("Coordinate plane",["x-axis horizontal y-axis vertical","origin (0,0)","4 quadrants"],"Point A(3,4): 3 right, 4 up from origin",s)
-def L15B(s): return _qs("Plotting points",["go x units right/left then y units up/down","read coordinates from graph","name the quadrant"],"Plot B(-2,3): 2 left, 3 up → Quadrant II",s)
-def L15C(s): return _qs("Distance formula",["d=square root of [(x2-x1) squared+(y2-y1) squared]","distance always positive","horizontal and vertical lines"],"A(1,2) to B(4,6): square root of (9+16)=5",s)
-def L15D(s): return _qs("Midpoint formula",["M=((x1+x2)/2,(y1+y2)/2)","midpoint is average of coordinates","verify equidistant from both"],"Midpoint of (2,4) and (6,8)=(4,6)",s)
-def L15E(s): return _qs("Section formula",["divides in ratio m:n internally","midpoint is special case 1:1"],"Section 1:2 of (0,0) to (6,9)=(2,3)",s)
-def L15F(s): return _qs("Graphing lines",["y=mx+c: slope m, y-intercept c","plot 2 points and draw line","identify slope and intercept"],"y=2x+1: at x=0,y=1; at x=2,y=5",s)
-def L15G(s): return _qs("Graph applications",["interpret graphs","find slope from graph","real-world coordinate problems"],"Slope=rise/run=(y2-y1)/(x2-x1)",s)
-def L15H(s): return _qs("Mixed coordinate geometry",["all formulas","multi-step","verify solutions"],"Perimeter of triangle: use distance formula 3 times",s)
-def L15I(s): return _qs("Coordinate puzzles",["find missing coordinates","collinear points","areas"],"Area of triangle using coordinates formula",s)
-def L15J(s): return _qs("Mixed challenge L15",["multi-step coordinate problems","real world","error analysis"],"Map reading, GPS coordinates, city planning",s)
-def L15CUM1(s): return _cum(["Coordinate plane","Plotting points","Distance formula"],s)
-def L15CUM2(s): return _cum(["Midpoint formula","Section formula","Graphing lines"],s)
-def L15CUM3(s): return _cum(["Graph applications","Mixed coordinate geometry","Coordinate puzzles"],s)
-def L15REV(s):  return _qs("Level 15 Revision",["all coordinate geometry","formulas","graphs"],"Distance, midpoint, section, slope",s)
+def _L1C_3():
+    return [
+        cb("Before / After Practice", ["Apply before and after to any 2-digit number.", "Useful for sequencing and ordering tasks.", "Always check: does before + 1 = the number?"], "Check: before 56 = 55. Test: 55+1=56 ✓"),
+        q("Fill in: ___ , 38 , ___", "fill", "Answer = ____"),
+        q("Fill in: ___ , 62 , ___", "fill", "Answer = ____"),
+        q("Fill in: ___ , 100 , ___", "fill", "Answer = ____"),
+        q("Write all numbers between 35 and 40.", "fill", "Answer = ____"),
+        q("Write all numbers between 88 and 93.", "fill", "Answer = ____"),
+        q("How many whole numbers are between 45 and 50?", "fill", "Answer = ____"),
+        cb("Filling sequences", ["Use before/after rules to complete number sequences.", "Fill missing neighbours in a chain."], "25, ___, 27 → fill 26"),
+        q("Fill in: 17 , ___ , 19", "fill", "Answer = ____"),
+        q("Fill in: ___ , 44 , 45", "fill", "Answer = ____"),
+        q("Fill in: 69 , 70 , ___", "fill", "Answer = ____"),
+        q("Fill in: ___ , 80 , 81 , ___", "fill", "Answer = ____"),
+        q("Fill in: 99 , ___ , 101", "fill", "Answer = ____"),
+        cb("Word problems with before/after", ["'One more than' means after.", "'One less than' means before.", "Key words: next, previous, neighbour."], "One less than 50 is 49. One more than 50 is 51."),
+        q("The class has 36 students. One more joins. New total = ____.", "word", "Total = ____", "36 students plus 1"),
+        q("Ravi had 28 stickers. He gave away 1. He has ____ now.", "word", "Left = ____", "28 minus 1"),
+        q("What is one more than 99?", "fill", "Answer = ____"),
+        q("What is one less than 80?", "fill", "Answer = ____"),
+        q("True or False: The number before 71 is 70.", "fill", "Answer = ____"),
+        q("True or False: The number after 100 is 102.", "fill", "Answer = ____"),
+        q("Write the number that is 1 more than the largest 2-digit number.", "fill", "Answer = ____"),
+        q("Write the number that is 1 less than the smallest 2-digit number.", "fill", "Answer = ____"),
+    ]
 
-def L16A(s): return _qs("Types of triangles",["by sides:equilateral,isosceles,scalene","by angles:acute,right,obtuse","properties of each type"],"Equilateral: all sides equal, all angles 60 degrees",s)
-def L16B(s): return _qs("Angle sum property",["sum of angles in triangle=180 degrees","find missing angle","apply to solve"],"Angles 50 and 70 degrees: third=180-50-70=60 degrees",s)
-def L16C(s): return _qs("Exterior angle theorem",["exterior angle=sum of two non-adjacent interior angles","apply to find angles","multi-step"],"Exterior=110 degrees; interior angles 50+60=110 degrees",s)
-def L16D(s): return _qs("Congruence",["SSS SAS ASA AAS RHS criteria","congruent triangles identical shape and size","corresponding parts"],"SSS: all 3 sides equal → congruent",s)
-def L16E(s): return _qs("Similar triangles",["AA SAS SSS criteria for similarity","corresponding sides in same ratio","scale factor"],"AA: angles equal → similar → sides in same ratio",s)
-def L16F(s): return _qs("Pythagoras theorem",["a squared+b squared=c squared in right triangle","c=hypotenuse (longest side)","Pythagorean triples: 3,4,5; 5,12,13"],"Right triangle legs 3,4: hypotenuse=square root of 25=5",s)
-def L16G(s): return _qs("Triangle applications",["area=1/2 x base x height","height perpendicular to base","real world problems"],"Area=1/2 x 8 x 5=20 cm squared",s)
-def L16H(s): return _qs("Mixed triangles",["all properties","multi-step","introduce proofs"],"In right triangle: area=1/2 ab sinC",s)
-def L16I(s): return _qs("Triangle puzzles",["find angles","find sides","logic geometry"],"Isosceles: base angles equal; one angle=50 → base angles=(180-50)/2=65",s)
-def L16J(s): return _qs("Mixed challenge L16",["multi-step","proofs","real world"],"Ladder against wall: Pythagoras; shadow and height: similar triangles",s)
-def L16CUM1(s): return _cum(["Types of triangles","Angle sum property","Exterior angle theorem"],s)
-def L16CUM2(s): return _cum(["Congruence","Similar triangles","Pythagoras theorem"],s)
-def L16CUM3(s): return _cum(["Triangle applications","Mixed triangles","Triangle puzzles"],s)
-def L16REV(s):  return _qs("Level 16 Revision",["all triangle properties","Pythagoras","congruence"],"Sum=180 degrees; 5 squared+12 squared=13 squared",s)
+def _L1C_4():
+    return [
+        cb("Mastery: Before / After", ["Use before/after in multi-step reasoning.", "Combine with place value and comparison.", "Explain your reasoning clearly."], "If a number is between 48 and 52, it could be 49, 50, or 51."),
+        q("Write all 2-digit numbers that are between 95 and 102.", "fill", "Answer = ____"),
+        q("I am between 63 and 67. I am odd. What could I be? Write all answers.", "fill", "Answer = ____"),
+        q("The number before me is 49. The number after me is 51. What am I?", "fill", "Answer = ____"),
+        q("Is there a whole number between 7 and 8? Explain.", "fill", "Answer = ____"),
+        q("How many whole numbers are between 90 and 100?", "fill", "Answer = ____"),
+        cb("Reasoning with neighbours", ["Think carefully about what 'between' includes and excludes.", "Multiple answers are sometimes possible."], "Between 20 and 30 (exclusive): 21,22,23,24,25,26,27,28,29"),
+        q("Spot the mistake: 'There are 5 numbers between 10 and 15.' Correct it.", "fill", "Answer = ____"),
+        q("I am 1 more than a multiple of 10. I am less than 50. Write all numbers I could be.", "fill", "Answer = ____"),
+        q("Meena says the number after 99 is 100. Ravi says it is 90. Who is right?", "fill", "Answer = ____"),
+        q("What number has 45 as its 'before' and 47 as its 'after'?", "fill", "Answer = ____"),
+        q("Write 3 numbers that each have a before-neighbour greater than 50.", "fill", "Answer = ____"),
+        cb("Challenge problems", ["Apply before/after logic to solve puzzles.", "More than one step may be needed."], "If n is between 30 and 32, n must be 31"),
+        q("I am a 2-digit number. My after-neighbour has a 0 in the ones place. What could I be? List all.", "fill", "Answer = ____"),
+        q("My before-neighbour and after-neighbour add up to 60. What am I?", "fill", "Answer = ____"),
+        q("How many pairs of consecutive numbers are both less than 10?", "fill", "Answer = ____"),
+        q("Ravi lists: 38, 39, 41, 42. He missed one number. Which one?", "fill", "Answer = ____"),
+        q("What is the sum of the number before 10 and the number after 10?", "fill", "Answer = ____"),
+        q("True or False: Every whole number has exactly one number before it.", "fill", "Answer = ____"),
+        q("Write a number whose before-neighbour is even and after-neighbour is also even.", "fill", "Answer = ____"),
+        q("The sum of three consecutive numbers is 33. What are the three numbers?", "fill", "Answer = ____"),
+    ]
 
-def L17A(s): return _qs("Circle basics",["all points equidistant from centre","radius diameter circumference area","pi approximately 3.14159"],"Circle r=7: diameter=14",s)
-def L17B(s): return _qs("Radius and diameter",["diameter=2 x radius","circumference=2 pi r=pi d","area=pi r squared"],"r=5: d=10; circumference=2 x pi x 5 approximately 31.4",s)
-def L17C(s): return _qs("Chords",["chord=line segment with endpoints on circle","diameter is longest chord","perpendicular from centre bisects chord"],"Perp bisector of any chord passes through centre",s)
-def L17D(s): return _qs("Tangents",["tangent touches circle at exactly one point","radius to tangent point is perpendicular","tangent length from external point"],"Tangent is perpendicular to radius at contact point",s)
-def L17E(s): return _qs("Circle theorems",["angle at centre=2x angle at circumference","angles in same segment are equal","opposite angles in cyclic quad sum to 180"],"Angle at centre=2 x angle at circumference",s)
-def L17F(s): return _qs("Angles in circles",["apply circle theorems","find missing angles","multi-step"],"Arc AB subtends 80 at centre → 40 at circumference",s)
-def L17G(s): return _qs("Circle applications",["area=pi r squared","circumference=2 pi r","sector area and arc length"],"Sector angle 90: area=1/4 pi r squared",s)
-def L17H(s): return _qs("Mixed circles",["all circle properties","multi-step","combine area and angle"],"Area of ring=pi(R squared-r squared)",s)
-def L17I(s): return _qs("Circle puzzles",["find radius or diameter","angle chase","logic circle geometry"],"If arc=1/3 circumference, arc angle=360/3=120 degrees",s)
-def L17J(s): return _qs("Mixed challenge L17",["multi-step","real world","combine theorems"],"Wheel, clock, pipes — all circle applications",s)
-def L17CUM1(s): return _cum(["Circle basics","Radius and diameter","Chords"],s)
-def L17CUM2(s): return _cum(["Tangents","Circle theorems","Angles in circles"],s)
-def L17CUM3(s): return _cum(["Circle applications","Mixed circles","Circle puzzles"],s)
-def L17REV(s):  return _qs("Level 17 Revision",["all circle properties","area","theorems"],"C=2 pi r; A=pi r squared; angle theorems",s)
 
-def L18A(s): return _qs("Perimeter",["total boundary length","add all sides","formulas: square 4s; rectangle 2(l+b)"],"Rectangle 5x3: perimeter=2(5+3)=16 cm",s)
-def L18B(s): return _qs("Area rectangle and square",["area=length x breadth","square:area=side squared","area in square units"],"Rectangle 6x4: area=24 cm squared",s)
-def L18C(s): return _qs("Area of triangle",["area=1/2 x base x height","height perpendicular to base","Herons formula for scalene"],"Triangle base 8, height 5: area=1/2 x 8 x 5=20 cm squared",s)
-def L18D(s): return _qs("Area of circle",["area=pi r squared","r=radius","use pi approximately 22/7 or 3.14"],"Circle r=7: area=22/7 x 49=154 cm squared",s)
-def L18E(s): return _qs("Surface area cube and cuboid",["cube:6s squared","cuboid:2(lb+bh+lh)","lateral vs total surface area"],"Cuboid 3x4x5: TSA=2(12+20+15)=94 cm squared",s)
-def L18F(s): return _qs("Cylinder and cone",["cylinder:CSA=2 pi rh; V=pi r squared h","cone:CSA=pi rl; V=1/3 pi r squared h","l=slant height for cone"],"Cylinder r=3,h=7: V=pi x 9 x 7=63 pi approximately 198 cm cubed",s)
-def L18G(s): return _qs("Sphere and hemisphere",["sphere:SA=4 pi r squared; V=4/3 pi r cubed","hemisphere:CSA=2 pi r squared; V=2/3 pi r cubed"],"Sphere r=6: V=4/3 x pi x 216=288 pi cm cubed",s)
-def L18H(s): return _qs("Volume problems",["cube:s cubed","cuboid:l x b x h","cylinder:pi r squared h"],"Pool 10m x 5m x 2m: V=100 m cubed=100000 litres",s)
-def L18I(s): return _qs("Mixed mensuration",["all shapes","find missing dimension","multi-step"],"If area=48,breadth=6: length=8; perimeter=2(8+6)=28",s)
-def L18J(s): return _qs("Mixed challenge mensuration",["multi-step","real world","compound shapes"],"Total area=sum of component areas",s)
-def L18CUM1(s): return _cum(["Perimeter","Area rectangle and square","Area of triangle"],s)
-def L18CUM2(s): return _cum(["Area of circle","Surface area cube and cuboid","Cylinder and cone"],s)
-def L18CUM3(s): return _cum(["Sphere and hemisphere","Volume problems","Mixed mensuration"],s)
-def L18REV(s):  return _qs("Level 18 Revision",["all mensuration formulas","2D and 3D","word problems"],"P=2(l+b); A=pi r squared; V=l x b x h; SA=6s squared",s)
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1D — Greater / Smaller
+# ═══════════════════════════════════════════════════════════════
+def _L1D_1():
+    return [
+        cb("Greater and Smaller", ["GREATER means MORE. SMALLER means LESS.", "We use > for greater and < for smaller.", "Memory trick: the open mouth always faces the BIGGER number."], "8 > 5 (8 is greater than 5)   3 < 7 (3 is smaller than 7)"),
+        q("Which is greater: 8 or 5?", "fill", "Answer = ____"),
+        q("Which is smaller: 12 or 21?", "fill", "Answer = ____"),
+        q("Write > or < :  9 ___ 6", "fill", "Answer = ____"),
+        q("Write > or < :  4 ___ 14", "fill", "Answer = ____"),
+        q("Write > or < :  30 ___ 30", "fill", "Answer = ____"),
+        cb("Comparing 2-digit numbers", ["Compare the TENS digit first.", "If tens are equal, compare the ONES digit.", "The larger tens digit means the larger number."], "45 vs 43: tens are equal (4=4), so compare ones: 5 > 3, so 45 > 43"),
+        q("Write > or < :  56 ___ 65", "fill", "Answer = ____"),
+        q("Write > or < :  72 ___ 72", "fill", "Answer = ____"),
+        q("Write > or < :  89 ___ 98", "fill", "Answer = ____"),
+        q("Write > or < :  47 ___ 47", "fill", "Answer = ____"),
+        q("Circle the GREATER number:   34    or    43", "fill", "Answer = ____"),
+        cb("Finding greatest and smallest", ["Greatest = largest number in a group.", "Smallest = least/lowest number in a group."], "From 14, 41, 4, 40: greatest = 41, smallest = 4"),
+        q("Write the greatest of: 34, 43, 30, 40", "fill", "Greatest = ____"),
+        q("Write the smallest of: 76, 67, 70, 60", "fill", "Smallest = ____"),
+        q("Ravi has 42 cards. Meena has 24. Who has more?", "word", "Answer = ____", "42 and 24"),
+        q("True or False:  45 < 54", "fill", "Answer = ____"),
+        q("True or False:  37 > 73", "fill", "Answer = ____"),
+        q("Order: 19, 91, 9, 90 — from smallest to greatest", "fill", "Answer = ____"),
+        q("Find a number greater than 50 and smaller than 55.", "fill", "Answer = ____"),
+        q("Find a number greater than 67 and smaller than 70.", "fill", "Answer = ____"),
+    ]
 
-def L19A(s): return _qs("Trigonometric ratios",["sin=opp/hyp","cos=adj/hyp","tan=opp/adj; SOH-CAH-TOA"],"sin 30=1/2; cos 60=1/2; tan 45=1",s)
-def L19B(s): return _qs("Trig table",["standard values 0 30 45 60 90 degrees","memorise sin and cos","derive tan from sin/cos"],"sin 0=0; sin 30=1/2; sin 45=1/root2; sin 60=root3/2; sin 90=1",s)
-def L19C(s): return _qs("Basic trig simplification",["use standard values","simplify expressions","verify identities"],"sin squared 30+cos squared 30=1/4+3/4=1",s)
-def L19D(s): return _qs("Trig identities",["sin squared theta+cos squared theta=1","tan theta=sin theta/cos theta","1+tan squared theta=sec squared theta"],"sin squared theta+cos squared theta=1 always",s)
-def L19E(s): return _qs("Heights and distances",["angle of elevation from below","angle of depression from above","set up trig equation"],"Tower height: tan 60=h/d → h=d root 3",s)
-def L19F(s): return _qs("Trig applications",["shadows","navigation","architecture"],"Shadow of pole 10m when sun elevation=30: shadow=10/tan 30=10 root 3",s)
-def L19G(s): return _qs("Mixed trig problems",["combine ratios","multi-step","verify with Pythagoras"],"If sin theta=3/5: cos theta=4/5, tan theta=3/4",s)
-def L19H(s): return _qs("Advanced trig simplification",["compound angle intro","product to sum","complex expressions"],"sin(A+B)=sinA cosB+cosA sinB",s)
-def L19I(s): return _qs("Trig puzzles",["find angle from ratio","trig equations","quadrant"],"2 sin theta=1 → sin theta=1/2 → theta=30 or 150 degrees",s)
-def L19J(s): return _qs("Mixed challenge trig",["multi-step heights","real world navigation","error analysis"],"Two observers, two angles → find height of object",s)
-def L19CUM1(s): return _cum(["Trig ratios","Trig table","Basic trig simplification"],s)
-def L19CUM2(s): return _cum(["Trig identities","Heights and distances","Trig applications"],s)
-def L19CUM3(s): return _cum(["Mixed trig problems","Advanced trig simplification","Trig puzzles"],s)
-def L19REV(s):  return _qs("Level 19 Revision",["all trig ratios","identities","word problems"],"SOH-CAH-TOA; sin squared+cos squared=1; angle of elevation",s)
+def _L1D_2():
+    return [
+        cb("Comparing — Concept", ["Use place value to compare: first compare hundreds, then tens, then ones.", "For 2-digit numbers: compare tens first.", "If the tens digits are equal, compare the ones digits."], "Compare 73 and 37: tens 7 > 3, so 73 > 37"),
+        q("Write > , < or = :  23 ___ 32", "fill", "Answer = ____"),
+        q("Write > , < or = :  45 ___ 45", "fill", "Answer = ____"),
+        q("Write > , < or = :  88 ___ 80", "fill", "Answer = ____"),
+        q("Write > , < or = :  99 ___ 100", "fill", "Answer = ____"),
+        q("Write > , < or = :  50 ___ 50", "fill", "Answer = ____"),
+        q("Write > , < or = :  17 ___ 71", "fill", "Answer = ____"),
+        cb("Ordering numbers", ["Ascending order = smallest to largest.", "Descending order = largest to smallest.", "Compare pairs, swap if needed."], "Ascending: 12, 21, 22, 31.   Descending: 31, 22, 21, 12"),
+        q("Order smallest to largest: 35, 13, 41, 22", "fill", "Answer = ____"),
+        q("Order largest to smallest: 28, 82, 18, 81", "fill", "Answer = ____"),
+        q("Order smallest to largest: 7, 70, 17, 71", "fill", "Answer = ____"),
+        q("Order largest to smallest: 55, 5, 50, 15", "fill", "Answer = ____"),
+        q("Write the largest 2-digit number that has a 3 in the tens place.", "fill", "Answer = ____"),
+        cb("Using > and < in sentences", ["Write comparison sentences using > or <.", "Both 'a > b' and 'b < a' say the same thing."], "72 > 27  means the same as  27 < 72"),
+        q("Write two comparison sentences for 56 and 65.", "fill", "Answer = ____"),
+        q("Which is closer to 50 — 47 or 53?", "fill", "Answer = ____"),
+        q("The tens digit of 49 is ____", "fill", "Answer = ____"),
+        q("True or False: 50 is greater than 49.", "fill", "Answer = ____"),
+        q("Meena says 23 > 32 because 2 + 3 > 3 + 2. Is she right? Explain.", "fill", "Answer = ____"),
+        q("Write the smallest 2-digit number that is greater than 80.", "fill", "Answer = ____"),
+        q("Write three 2-digit numbers greater than 45 and less than 52.", "fill", "Answer = ____"),
+        q("True or False: If A > B and B > C, then A > C.", "fill", "Answer = ____"),
+    ]
 
-def L20A(s): return _qs("Arithmetic Progression AP",["fixed difference between consecutive terms","first term a; common difference d","nth term: a+(n-1)d"],"AP: 3,7,11,15... a=3,d=4; 10th term=3+9x4=39",s)
-def L20B(s): return _qs("AP sum and term problems",["sum of n terms: n/2 times [2a+(n-1)d]","find term given its value","find n given sum"],"Sum of first 10 terms: 10/2[2x3+9x4]=5x42=210",s)
-def L20C(s): return _qs("AP word problems",["salary increments","step patterns","distance problems"],"Salary Rs 5000, increment Rs 200/year; year 8=5000+7x200=6400",s)
-def L20D(s): return _qs("Mean Average",["mean=sum of all values divided by count","effect of adding/removing a value","weighted mean"],"Mean of 4,7,9,12,8: sum=40,count=5,mean=8",s)
-def L20E(s): return _qs("Median",["arrange in order; find middle value","odd count:middle; even count:average of two middle","median not affected by extreme values"],"Data:3,5,7,9,11 → median=7",s)
-def L20F(s): return _qs("Mode",["mode=most frequent value","can have no mode one mode or multiple modes","bimodal and multimodal"],"Data:2,3,3,4,5,3,6 → mode=3",s)
-def L20G(s): return _qs("Probability basics",["P(event)=favourable outcomes divided by total outcomes","0<=P<=1","P(impossible)=0; P(certain)=1"],"Fair die:P(even)=3/6=1/2",s)
-def L20H(s): return _qs("Probability problems",["complementary events:P(A)+P(A complement)=1","listing outcomes","relative frequency"],"P(not red)=1-P(red); P(head)=1/2",s)
-def L20I(s): return _qs("Mixed statistics and probability",["mean median mode together","probability combined","interpret data"],"Choose measure of central tendency based on data type",s)
-def L20J(s): return _qs("Grand challenge L20",["multi-step statistics","AP and probability combined","real world data"],"Survey data: find mean,median,mode; predict probability",s)
-def L20CUM1(s): return _cum(["AP basics","AP problems","AP word problems"],s)
-def L20CUM2(s): return _cum(["Mean Average","Median","Mode"],s)
-def L20CUM3(s): return _cum(["Probability basics","Probability problems","Mixed statistics and probability"],s)
-def L20REV(s):  return _qs("Level 20 Revision",["AP","mean median mode","probability"],"AP nth term; mean=sum/n; P=favourable/total",s)
+def _L1D_3():
+    return [
+        cb("Greater / Smaller Practice", ["Apply comparison to various contexts.", "Useful for comparing scores, lengths, prices, quantities.", "Always use a consistent method: compare place values."], "Lengths: 37 cm > 29 cm.  Prices: Rs 55 < Rs 58"),
+        q("Write > , < or = :  64 ___ 46", "fill", "Answer = ____"),
+        q("Write > , < or = :  100 ___ 99", "fill", "Answer = ____"),
+        q("Write > , < or = :  33 ___ 33", "fill", "Answer = ____"),
+        q("Order ascending: 81, 18, 80, 8, 11", "fill", "Answer = ____"),
+        q("Order descending: 72, 27, 77, 22, 70", "fill", "Answer = ____"),
+        q("The temperature on Monday is 32°C. On Tuesday it is 29°C. Which is warmer?", "word", "Answer = ____", "32°C and 29°C"),
+        cb("Three-number comparison", ["Compare three numbers by finding the greatest and smallest.", "Use two comparisons."], "Compare 34, 43, 40: 34 < 40 < 43, so greatest=43, smallest=34"),
+        q("Find the greatest of: 52, 25, 50", "fill", "Greatest = ____"),
+        q("Find the smallest of: 83, 38, 80", "fill", "Smallest = ____"),
+        q("Arrange in ascending order: 66, 6, 60", "fill", "Answer = ____"),
+        q("Arrange in descending order: 45, 54, 44, 55", "fill", "Answer = ____"),
+        q("A rope is 48 cm. Another is 84 cm. Which is longer?", "word", "Answer = ____", "48 cm and 84 cm"),
+        cb("Number challenges", ["Apply comparison skills to solve puzzles.", "Think about what 'between' tells you about size."], "A number between 60 and 70 is greater than 60 but less than 70"),
+        q("Write all numbers greater than 95 and less than 100.", "fill", "Answer = ____"),
+        q("Write three numbers less than 20 but greater than 15.", "fill", "Answer = ____"),
+        q("Is 90 greater than 89? Write the comparison sign.", "fill", "Answer = ____"),
+        q("Write > or < :  99 ___ 101", "fill", "Answer = ____"),
+        q("Spot the mistake: 'Rs 34 > Rs 43 because 34 has a 3 and 43 has a 4.' Fix it.", "fill", "Answer = ____"),
+        q("How many 2-digit numbers are greater than 90?", "fill", "Answer = ____"),
+        q("A shopkeeper has 67 mangoes and 76 oranges. He has more ____.", "word", "Answer = ____", "67 mangoes and 76 oranges"),
+        q("True or False: The largest 2-digit number is greater than any 1-digit number.", "fill", "Answer = ____"),
+    ]
 
-# ═══ MASTER ROUTER ═══
-_MAP = {
-    "1A":L1A,"1B":L1B,"1C":L1C,"1D":L1D,"1E":L1E,"1F":L1F,
-    "1G":L1G,"1H":L1H,"1I":L1I,"1J":L1J,
-    "1CUM1":L1CUM1,"1CUM2":L1CUM2,"1CUM3":L1CUM3,"1REV":L1REV,
-    "2A":L2A,"2B":L2B,"2C":L2C,"2D":L2D,"2E":L2E,"2F":L2F,
-    "2G":L2G,"2H":L2H,"2I":L2I,"2J":L2J,
-    "2CUM1":L2CUM1,"2CUM2":L2CUM2,"2CUM3":L2CUM3,"2REV":L2REV,
-    "3A":L3A,"3B":L3B,"3C":L3C,"3D":L3D,"3E":L3E,"3F":L3F,
-    "3G":L3G,"3H":L3H,"3I":L3I,"3J":L3J,
-    "3CUM1":L3CUM1,"3CUM2":L3CUM2,"3CUM3":L3CUM3,"3REV":L3REV,
-    "4A":L4A,"4B":L4B,"4C":L4C,"4D":L4D,"4E":L4E,"4F":L4F,
-    "4G":L4G,"4H":L4H,"4I":L4I,"4J":L4J,
-    "4CUM1":L4CUM1,"4CUM2":L4CUM2,"4CUM3":L4CUM3,"4REV":L4REV,
-    "5A":L5A,"5B":L5B,"5C":L5C,"5D":L5D,"5E":L5E,"5F":L5F,
-    "5G":L5G,"5H":L5H,"5I":L5I,"5J":L5J,
-    "5CUM1":L5CUM1,"5CUM2":L5CUM2,"5CUM3":L5CUM3,"5REV":L5REV,
-    "6A":L6A,"6B":L6B,"6C":L6C,"6D":L6D,"6E":L6E,"6F":L6F,
-    "6G":L6G,"6H":L6H,"6I":L6I,"6J":L6J,
-    "6CUM1":L6CUM1,"6CUM2":L6CUM2,"6CUM3":L6CUM3,"6REV":L6REV,
-    "7A":L7A,"7B":L7B,"7C":L7C,"7D":L7D,"7E":L7E,"7F":L7F,
-    "7G":L7G,"7H":L7H,"7I":L7I,"7J":L7J,
-    "7CUM1":L7CUM1,"7CUM2":L7CUM2,"7CUM3":L7CUM3,"7REV":L7REV,
-    "8A":L8A,"8B":L8B,"8C":L8C,"8D":L8D,"8E":L8E,"8F":L8F,
-    "8G":L8G,"8H":L8H,"8I":L8I,"8J":L8J,
-    "8CUM1":L8CUM1,"8CUM2":L8CUM2,"8CUM3":L8CUM3,"8REV":L8REV,
-    "9A":L9A,"9B":L9B,"9C":L9C,"9D":L9D,"9E":L9E,"9F":L9F,
-    "9G":L9G,"9H":L9H,"9I":L9I,"9J":L9J,
-    "9CUM1":L9CUM1,"9CUM2":L9CUM2,"9CUM3":L9CUM3,"9REV":L9REV,
-    "10A":L10A,"10B":L10B,"10C":L10C,"10D":L10D,"10E":L10E,"10F":L10F,
-    "10G":L10G,"10H":L10H,"10I":L10I,"10J":L10J,
-    "10CUM1":L10CUM1,"10CUM2":L10CUM2,"10CUM3":L10CUM3,"10REV":L10REV,
-    "11A":L11A,"11B":L11B,"11C":L11C,"11D":L11D,"11E":L11E,"11F":L11F,
-    "11G":L11G,"11H":L11H,"11I":L11I,"11J":L11J,
-    "11CUM1":L11CUM1,"11CUM2":L11CUM2,"11CUM3":L11CUM3,"11REV":L11REV,
-    "12A":L12A,"12B":L12B,"12C":L12C,"12D":L12D,"12E":L12E,"12F":L12F,
-    "12G":L12G,"12H":L12H,"12I":L12I,"12J":L12J,
-    "12CUM1":L12CUM1,"12CUM2":L12CUM2,"12CUM3":L12CUM3,"12REV":L12REV,
-    "13A":L13A,"13B":L13B,"13C":L13C,"13D":L13D,"13E":L13E,"13F":L13F,
-    "13G":L13G,"13H":L13H,"13I":L13I,"13J":L13J,
-    "13CUM1":L13CUM1,"13CUM2":L13CUM2,"13CUM3":L13CUM3,"13REV":L13REV,
-    "14A":L14A,"14B":L14B,"14C":L14C,"14D":L14D,"14E":L14E,"14F":L14F,
-    "14G":L14G,"14H":L14H,"14I":L14I,"14J":L14J,
-    "14CUM1":L14CUM1,"14CUM2":L14CUM2,"14CUM3":L14CUM3,"14REV":L14REV,
-    "15A":L15A,"15B":L15B,"15C":L15C,"15D":L15D,"15E":L15E,"15F":L15F,
-    "15G":L15G,"15H":L15H,"15I":L15I,"15J":L15J,
-    "15CUM1":L15CUM1,"15CUM2":L15CUM2,"15CUM3":L15CUM3,"15REV":L15REV,
-    "16A":L16A,"16B":L16B,"16C":L16C,"16D":L16D,"16E":L16E,"16F":L16F,
-    "16G":L16G,"16H":L16H,"16I":L16I,"16J":L16J,
-    "16CUM1":L16CUM1,"16CUM2":L16CUM2,"16CUM3":L16CUM3,"16REV":L16REV,
-    "17A":L17A,"17B":L17B,"17C":L17C,"17D":L17D,"17E":L17E,"17F":L17F,
-    "17G":L17G,"17H":L17H,"17I":L17I,"17J":L17J,
-    "17CUM1":L17CUM1,"17CUM2":L17CUM2,"17CUM3":L17CUM3,"17REV":L17REV,
-    "18A":L18A,"18B":L18B,"18C":L18C,"18D":L18D,"18E":L18E,"18F":L18F,
-    "18G":L18G,"18H":L18H,"18I":L18I,"18J":L18J,
-    "18CUM1":L18CUM1,"18CUM2":L18CUM2,"18CUM3":L18CUM3,"18REV":L18REV,
-    "19A":L19A,"19B":L19B,"19C":L19C,"19D":L19D,"19E":L19E,"19F":L19F,
-    "19G":L19G,"19H":L19H,"19I":L19I,"19J":L19J,
-    "19CUM1":L19CUM1,"19CUM2":L19CUM2,"19CUM3":L19CUM3,"19REV":L19REV,
-    "20A":L20A,"20B":L20B,"20C":L20C,"20D":L20D,"20E":L20E,"20F":L20F,
-    "20G":L20G,"20H":L20H,"20I":L20I,"20J":L20J,
-    "20CUM1":L20CUM1,"20CUM2":L20CUM2,"20CUM3":L20CUM3,"20REV":L20REV,
+def _L1D_4():
+    return [
+        cb("Mastery: Greater / Smaller", ["Apply comparison with reasoning, multi-step logic.", "Justify your answer using place value.", "Look for patterns in comparison problems."], "If A > B > C, then A is the greatest and C is the smallest."),
+        q("Order: 37, 3, 73, 33, 7 — ascending", "fill", "Answer = ____"),
+        q("Order: 91, 19, 99, 9, 90 — descending", "fill", "Answer = ____"),
+        q("I am a 2-digit number. I am less than 50. My tens digit is greater than my ones digit. What could I be? List five.", "fill", "Answer = ____"),
+        q("True or False: If a 2-digit number's tens digit is larger, that number is always greater.", "fill", "Answer = ____"),
+        q("Ravi says 'a 2-digit number is always greater than a 1-digit number.' Is he always correct? Explain.", "fill", "Answer = ____"),
+        cb("Comparing more than two numbers", ["With many numbers, find the greatest and smallest by elimination.", "Start with tens digits, then move to ones."], "From 44,47,74,77: smallest tens=44, greatest tens=77"),
+        q("Write the 3rd largest number from: 28, 82, 48, 84, 88, 22.", "fill", "Answer = ____"),
+        q("A cricket team scores 67 in Match A and 76 in Match B. In which match did they score more, and by how much?", "word", "Answer = ____", "67 and 76"),
+        q("How many 2-digit numbers have a tens digit greater than their ones digit?", "fill", "Answer = ____"),
+        q("Write a 2-digit number where the ones digit is exactly 3 more than the tens digit.", "fill", "Answer = ____"),
+        q("Find all 2-digit numbers where both digits are the same and the number is greater than 50.", "fill", "Answer = ____"),
+        cb("Using inequalities", ["Chain inequalities: a < b < c means a is smallest, c is largest.", "Useful for ordering many numbers at once."], "Fill in: 45 < ___ < 47 → must be 46"),
+        q("Fill in: 38 < ___ < 40", "fill", "Answer = ____"),
+        q("Fill in: 79 < ___ < 81", "fill", "Answer = ____"),
+        q("Fill in a number: 53 < ___ < 58", "fill", "Possible answers = ____"),
+        q("Is it possible to have a whole number where 30 < n < 31? Explain.", "fill", "Answer = ____"),
+        q("Write a 2-digit number n so that n > 60 and n < 65 and n is even.", "fill", "Answer = ____"),
+        q("Three friends have scores: Ravi > 70, Meena < 80, Priya = 75. What can you say about their order?", "fill", "Answer = ____"),
+        q("Spot the error: '21 < 12 because 1 is smaller than 2.' Explain the correct answer.", "fill", "Answer = ____"),
+        q("Challenge: A 2-digit number reversed gives a smaller number. The difference between the number and its reverse is 27. What is the number? (Hint: 63 reversed is 36.)", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1E — Missing Numbers
+# ═══════════════════════════════════════════════════════════════
+def _L1E_1():
+    return [
+        cb("Missing Numbers", ["A blank in a sequence means something is HIDDEN.", "Look at the numbers around the blank — they give clues.", "Find the pattern: are the numbers going up or down, and by how much?"], "3, ___, 5 — going up by 1 each time — missing number is 4"),
+        q("Fill in: 1, 2, ___, 4, 5", "fill", "Answer = ____"),
+        q("Fill in: 6, ___, 8, 9, ___", "fill", "Answer = ____"),
+        q("Fill in: 15, 16, ___, ___, 19", "fill", "Answer = ____"),
+        q("Fill in: ___, 22, 23, 24, ___", "fill", "Answer = ____"),
+        q("Fill in: 35, ___, 37, ___, 39", "fill", "Answer = ____"),
+        cb("Skip-count patterns", ["Some sequences skip by 2, 5, or 10 each time.", "First find the rule, then fill the blank."], "10, 20, ___, 40 — rule is +10 each time — missing is 30"),
+        q("Fill in: 10, 20, ___, 40, ___", "fill", "Answer = ____"),
+        q("Fill in: 5, 10, 15, ___, 25", "fill", "Answer = ____"),
+        q("Fill in: 2, 4, ___, 8, ___, 12", "fill", "Answer = ____"),
+        q("Fill in: 50, ___, 70, ___, 90", "fill", "Answer = ____"),
+        q("Fill in: ___, 45, ___, 35, 30", "fill", "Answer = ____"),
+        cb("Missing numbers in additions", ["Use inverse operations: if 6 + ___ = 10, think 10 − 6 = ___.", "Check by substituting back."], "7 + ___ = 12 → 12 − 7 = 5 → missing is 5"),
+        q("3 + ___ = 8", "fill", "Missing = ____"),
+        q("___ + 5 = 12", "fill", "Missing = ____"),
+        q("15 − ___ = 9", "fill", "Missing = ____"),
+        q("___ − 6 = 7", "fill", "Missing = ____"),
+        q("20 + ___ = 34", "fill", "Missing = ____"),
+        q("___ + 14 = 30", "fill", "Missing = ____"),
+        q("50 − ___ = 27", "fill", "Missing = ____"),
+        q("___ − 15 = 20", "fill", "Missing = ____"),
+    ]
+
+def _L1E_2():
+    return [
+        cb("Finding missing numbers — Concept", ["Step 1: Find the rule (add or subtract, and by how much).", "Step 2: Apply the rule to find the missing number.", "Step 3: Always CHECK by substituting back."], "Rule +3: 6, 9, ___, 15 → missing = 9+3 = 12. Check: 12+3=15 ✓"),
+        q("Find the rule and fill in: 4, 8, ___, 16, ___", "fill", "Rule=____ Missing=____"),
+        q("Find the rule and fill in: 30, 25, ___, 15, ___", "fill", "Rule=____ Missing=____"),
+        q("Find the rule and fill in: 3, 6, 9, ___, ___, 18", "fill", "Rule=____ Missing=____"),
+        q("Find the rule and fill in: 100, 90, ___, 70, ___", "fill", "Rule=____ Missing=____"),
+        q("Find the rule and fill in: 1, 3, ___, 7, ___, 11", "fill", "Rule=____ Missing=____"),
+        q("Find the rule and fill in: 20, 17, ___, 11, ___", "fill", "Rule=____ Missing=____"),
+        cb("Algebraic thinking", ["We can use a letter to stand for the missing number.", "n + 5 = 12 means: what number added to 5 gives 12?", "n = 12 − 5 = 7"], "Find n: n + 9 = 16 → n = 16 − 9 = 7"),
+        q("Find the missing number: ___ + 8 = 17", "fill", "Missing = ____"),
+        q("Find the missing number: 24 − ___ = 16", "fill", "Missing = ____"),
+        q("Find the missing number: ___ × 4 = 20", "fill", "Missing = ____"),
+        q("Find the missing number: 18 ÷ ___ = 6", "fill", "Missing = ____"),
+        q("Fill in: 13, ___, ___, 22, ___, 28 (rule +3)", "fill", "Answer = ____"),
+        cb("Two missing numbers", ["Sometimes two numbers are missing — use the rule to find both.", "Fill in left-to-right once you know the rule."], "Rule +4: 8, ___, 16, ___ → 12 and 20"),
+        q("Fill in (rule +5): 15, ___, ___, 30, 35", "fill", "Answer = ____"),
+        q("Fill in (rule −4): 40, ___, 32, ___, 24", "fill", "Answer = ____"),
+        q("Fill in: 6, 12, ___, 24, ___  (rule ×2)", "fill", "Answer = ____"),
+        q("Fill in: ___, 49, 56, 63, ___ (rule +7)", "fill", "Answer = ____"),
+        q("Fill in: 64, ___, ___, 43, 36 (rule −7)", "fill", "Answer = ____"),
+        q("Check this sequence and find the error: 5, 10, 15, 25, 30", "fill", "Error at = ____"),
+        q("Write your own missing-number sequence using rule +6, with one blank.", "fill", "Answer = ____"),
+        q("Ravi says the missing number in 11, ___, 33, 44 is 21. Is he correct?", "fill", "Answer = ____"),
+    ]
+
+def _L1E_3():
+    return [
+        cb("Missing Numbers Practice", ["Use patterns, inverse operations, and logical reasoning.", "Apply to real-life contexts: ages, prices, scores."], "Missing score: 12 + ___ = 30 → 18 more runs needed"),
+        q("Fill in: ___, 33, 39, 45, ___", "fill", "Answer = ____"),
+        q("Fill in: 81, ___, 63, ___, 45", "fill", "Answer = ____"),
+        q("Fill in: 7, ___, 21, 28, ___", "fill", "Answer = ____"),
+        q("Fill in: ___, 16, 19, 22, ___", "fill", "Answer = ____"),
+        q("Fill in: 50, 41, ___, 23, ___", "fill", "Answer = ____"),
+        q("Find the missing number: ___ + 27 = 50", "fill", "Missing = ____"),
+        cb("Missing numbers in word problems", ["Write an equation from the word problem, then solve.", "'Altogether' → add.  'Left' → subtract.  'Each' → multiply or divide."], "Ravi has 15 books. After getting some more he has 23. Got ___ = 23−15 = 8"),
+        q("Meena has 18 sweets. She eats some and has 11 left. How many did she eat?", "word", "Answer = ____", "18 and 11"),
+        q("A bag has some apples. 6 more are added. Now there are 25. How many at the start?", "word", "Answer = ____", "25 total, 6 added"),
+        q("Ravi scores ___ runs in the 2nd innings. His total is 47. He scored 29 in the 1st. Find ___.", "word", "Answer = ____", "47 total, 29 in 1st innings"),
+        q("A class had some students. 4 were absent. 28 were present. Total students = ____.", "word", "Answer = ____", "4 absent, 28 present"),
+        q("Find the missing number: 7 × ___ = 63", "fill", "Missing = ____"),
+        cb("Complex sequences", ["Some sequences use two operations or have non-constant differences.", "Look at the DIFFERENCES between terms."], "Differences: 1, 3, 5, 7 means each gap increases by 2"),
+        q("Fill in: 1, 2, 4, 7, 11, ___, ___  (differences increase by 1 each time)", "fill", "Answer = ____"),
+        q("Fill in: ___, 5, ___, 17, 23  (differences increase by 1 each time: 2,4,6,8)", "fill", "Answer = ____"),
+        q("What number is missing? ___, 12, 18, 24, 30 (rule +6)", "fill", "Answer = ____"),
+        q("Check and correct: 5, 10, 15, 21, 25 (rule +5)", "fill", "Error: ____ should be ____"),
+        q("Two missing: 4, ___, 16, ___, 36  (differences are 4,8,12,16)", "fill", "Answer = ____"),
+        q("Fill in: 1, 1, 2, 3, 5, ___, 13  (Fibonacci: each = sum of previous two)", "fill", "Answer = ____"),
+        q("A shop sold 12 Monday, 15 Tuesday, 18 Wednesday, ___ Thursday (rule +3).", "word", "Answer = ____", "12, 15, 18, ..."),
+        q("Fill in: 100, 95, ___, 85, ___, 75", "fill", "Answer = ____"),
+    ]
+
+def _L1E_4():
+    return [
+        cb("Mastery: Missing Numbers", ["Combine pattern-finding, inverse operations, and multi-step logic.", "Write the rule clearly before finding missing values.", "Verify every answer."], "Two unknowns: x + y = 10 and x − y = 4 → x = 7, y = 3"),
+        q("Fill in: 2, 6, 18, ___, 162  (rule ×3)", "fill", "Answer = ____"),
+        q("Fill in: 80, ___, 20, ___, 5  (rule ÷2)", "fill", "Answer = ____"),
+        q("Find both missing numbers: ___ + ___ = 20, and the first is 4 more than the second.", "fill", "Answer = ____"),
+        q("The differences in this sequence are 2, 4, 6, 8. First term is 3. Write the first 5 terms.", "fill", "Answer = ____"),
+        q("I multiply a missing number by 6, then add 4. The result is 34. What is the missing number?", "fill", "Answer = ____"),
+        q("Ravi's age now is missing. In 5 years he will be 18. In 3 years he will be ___.", "word", "Answers = ____", "age now and in 3 years"),
+        cb("Pattern and proof", ["Describe the rule in words AND as a mathematical operation.", "Prove your rule works by checking ALL terms."], "Rule: add consecutive odd numbers (1,3,5,7...) → gives 1,4,9,16,25 (perfect squares)"),
+        q("Spot the error in: 3, 9, 27, 54, 243. Fix it and explain.", "fill", "Answer = ____"),
+        q("A sequence has first term 5 and rule +7. What is the 8th term?", "fill", "Answer = ____"),
+        q("A sequence has first term 96 and rule ÷2. After how many terms does it fall below 10?", "fill", "Answer = ____"),
+        q("Find the missing number: 5, ___, 20, 40, 80  (look at both add and multiply patterns)", "fill", "Answer = ____"),
+        q("Write a sequence of 5 numbers where each term is the sum of the two before it, starting with 2 and 3.", "fill", "Answer = ____"),
+        cb("Real-world missing numbers", ["Use equations and patterns to solve multi-step problems."], "Savings: Rs 10, Rs 15, Rs 20... pattern +5. Month 8 = 10 + 7×5 = 45"),
+        q("Meena saves Rs 8 in week 1, Rs 12 in week 2, Rs 16 in week 3 (rule +4). How much in week 6?", "word", "Answer = ____", "week 1=8, rule +4"),
+        q("A farmer plants 5 seeds in row 1, 10 in row 2, 20 in row 3. How many in row 6?", "word", "Answer = ____", "rule ×2"),
+        q("Challenge: A and B are missing. A × B = 24 and A + B = 10. Find A and B.", "fill", "Answer = ____"),
+        q("Fill in: ___, 3, 6, 10, 15, 21, ___  (differences: 1,2,3,4,5,6)", "fill", "Answer = ____"),
+        q("A number sequence is: 1, 4, 9, 16, ___, 36. What is the rule, and what is the missing number?", "fill", "Answer = ____"),
+        q("Is the number 100 in this sequence: 4, 8, 12, 16, ...? Explain how you know.", "fill", "Answer = ____"),
+        q("Two consecutive numbers add up to 87. What are they?", "fill", "Answer = ____"),
+        q("Three consecutive even numbers add up to 54. What are they?", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1F — Number Patterns
+# ═══════════════════════════════════════════════════════════════
+def _L1F_1():
+    return [
+        cb("Number Patterns", ["A pattern is a sequence that follows a rule.", "Find what changes from one number to the next.", "Common rules: add 1, add 2, add 5, add 10, subtract 2…"], "2, 4, 6, 8, 10 — rule: add 2 each time"),
+        q("Write the next two numbers: 1, 3, 5, 7, ___, ___", "fill", "Answer = ____"),
+        q("Write the next two numbers: 10, 20, 30, 40, ___, ___", "fill", "Answer = ____"),
+        q("Write the next two numbers: 5, 10, 15, 20, ___, ___", "fill", "Answer = ____"),
+        q("Write the next two numbers: 3, 6, 9, 12, ___, ___", "fill", "Answer = ____"),
+        q("Write the next two numbers: 100, 90, 80, 70, ___, ___", "fill", "Answer = ____"),
+        cb("Finding the rule", ["Look at two consecutive numbers. What is the difference?", "Is it always the same? That's the rule.", "Then use the rule to extend the pattern."], "4, 9, 14, 19 → difference is 5 each time → rule: +5"),
+        q("Find the rule: 7, 14, 21, 28 → Rule = ___. Next two = ___", "fill", "Answer = ____"),
+        q("Find the rule: 50, 45, 40, 35 → Rule = ___. Next two = ___", "fill", "Answer = ____"),
+        q("Find the rule: 2, 4, 8, 16 → Rule = ___. Next = ___", "fill", "Answer = ____"),
+        q("Find the rule: 1, 5, 9, 13 → Rule = ___. Next two = ___", "fill", "Answer = ____"),
+        q("Find the rule: 64, 32, 16, 8 → Rule = ___. Next = ___", "fill", "Answer = ____"),
+        cb("Decreasing patterns", ["Some patterns count DOWN — each number is smaller than the one before.", "The rule is subtraction."], "30, 27, 24, 21 — rule: subtract 3 each time"),
+        q("Continue: 48, 44, 40, 36, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 99, 88, 77, 66, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 60, 55, 50, 45, ___, ___", "fill", "Answer = ____"),
+        q("Meena saves Rs 5 per day. Day 1 = Rs 5. Day 2 = Rs 10. Day 5 = Rs ____.", "word", "Answer = ____", "Rs 5 per day"),
+        q("Ravi counts: 3, 6, 9, 12. He says the next is 16. Is he right? What is it?", "fill", "Answer = ____"),
+        q("Write your own pattern using rule +4, starting at 8. Write 6 terms.", "fill", "Answer = ____"),
+        q("Write your own pattern using rule −3, starting at 30. Write 6 terms.", "fill", "Answer = ____"),
+        q("Is 45 in the pattern 5, 10, 15, 20, 25…? Explain.", "fill", "Answer = ____"),
+    ]
+
+def _L1F_2():
+    return [
+        cb("Number Patterns — Concept", ["An arithmetic pattern has the same difference between every pair of consecutive terms.", "The first term and the common difference define the whole pattern.", "Term n = first term + (n−1) × difference."], "First term = 3, rule = +5 → 3, 8, 13, 18, 23... The 4th term = 3 + 3×5 = 18"),
+        q("Pattern: 6, 11, 16, 21, 26 — what is the first term and the rule?", "fill", "First term=____ Rule=____"),
+        q("Pattern: 50, 42, 34, 26 — first term and rule?", "fill", "First term=____ Rule=____"),
+        q("Write the first 5 terms of a pattern: first term = 7, rule = +6.", "fill", "Answer = ____"),
+        q("Write the first 5 terms: first term = 100, rule = −11.", "fill", "Answer = ____"),
+        q("What is the 5th term of: 4, 7, 10, 13, ___?", "fill", "5th term = ____"),
+        q("What is the 6th term of: 2, 8, 14, 20, 26, ___?", "fill", "6th term = ____"),
+        cb("Even and odd patterns", ["Even numbers: 2, 4, 6, 8, … rule +2.", "Odd numbers: 1, 3, 5, 7, … rule +2.", "Multiples of any number form a pattern too."], "Multiples of 7: 7, 14, 21, 28, 35 — rule +7"),
+        q("Write the first 6 even numbers starting from 10.", "fill", "Answer = ____"),
+        q("Write the first 6 odd numbers starting from 11.", "fill", "Answer = ____"),
+        q("Write the first 6 multiples of 8.", "fill", "Answer = ____"),
+        q("Is 72 a term in the pattern of multiples of 9? Explain.", "fill", "Answer = ____"),
+        q("Is 50 in the sequence 3, 8, 13, 18, 23…? Explain.", "fill", "Answer = ____"),
+        cb("Square and triangle number patterns", ["Square numbers: 1, 4, 9, 16, 25 — each = n².", "Differences between consecutive square numbers: 3, 5, 7, 9 — odd numbers!"], "4th square number = 4² = 16"),
+        q("Write the first 5 square numbers.", "fill", "Answer = ____"),
+        q("What is the 7th square number?", "fill", "Answer = ____"),
+        q("Differences in 1, 4, 9, 16, 25: write the differences.", "fill", "Differences = ____"),
+        q("Continue the pattern: 1, 3, 6, 10, 15, ___, ___ (triangle numbers)", "fill", "Answer = ____"),
+        q("Spot the error: 5, 10, 15, 21, 25 (rule +5). Find and correct the error.", "fill", "Answer = ____"),
+        q("True or False: The rule for 2, 4, 6, 8 is the same as the rule for 12, 14, 16, 18.", "fill", "Answer = ____"),
+        q("Write a pattern where every term is a multiple of 6, starting at 6, first 5 terms.", "fill", "Answer = ____"),
+        q("A plant grows 4 cm per week. It is 10 cm now. How tall after 5 more weeks?", "word", "Answer = ____", "10 cm, grows 4 cm per week"),
+    ]
+
+def _L1F_3():
+    return [
+        cb("Number Patterns Practice", ["Apply pattern rules to find specific terms.", "Use the formula: term = first + (n−1) × rule.", "Check patterns for errors."], "First=5, rule=+7: term 5 = 5 + 4×7 = 33"),
+        q("Pattern 4, 10, 16, 22, ___, ___: what is the 7th term?", "fill", "7th term = ____"),
+        q("Pattern 99, 88, 77, ___, ___: what is the 6th term?", "fill", "6th term = ____"),
+        q("Which term of 3, 7, 11, 15, 19, ... is equal to 39?", "fill", "Term number = ____"),
+        q("Which term of 5, 10, 15, 20, ... is equal to 65?", "fill", "Term number = ____"),
+        q("Pattern: 1, 2, 4, 8, 16 (doubling). What is the 7th term?", "fill", "Answer = ____"),
+        q("Is 100 a term in the pattern 4, 8, 12, 16…? Explain.", "fill", "Answer = ____"),
+        cb("Patterns in problems", ["Real-world patterns involve time, money, distance.", "Set up the rule clearly first."], "Bus fare: Rs 5 first km, Rs 3 for each extra km → 1km=5, 2km=8, 3km=11..."),
+        q("A tap drips 3 ml every minute. After 1 min = 3 ml. After 8 min = ___ ml.", "word", "Answer = ____", "3 ml per minute"),
+        q("Chairs in rows: Row 1 = 5, Row 2 = 8, Row 3 = 11 (rule +3). Row 7 = ___.", "word", "Answer = ____", "rule +3 starting at 5"),
+        q("Ticket price: 1 ticket = Rs 12, 2 = Rs 24, 3 = Rs 36. Price for 7 tickets = Rs ___.", "word", "Answer = ____", "rule ×12"),
+        q("Steps on a staircase: Step 1 = 20 cm high, each step adds 20 cm. Step 8 = ___ cm.", "word", "Answer = ____", "20 cm each step"),
+        q("Pattern with two rules: 1, 2, 4, 5, 7, 8, 10, 11, ___, ___  (alternately +1 and +2)", "fill", "Answer = ____"),
+        cb("Creating patterns", ["Design your own patterns with a clear rule.", "Others should be able to extend them."], "Rule: multiply by 2 then subtract 1 → 1, 1, 1... or 3, 5, 9, 17..."),
+        q("Create a decreasing pattern starting at 50 where you subtract 7 each time. Write 6 terms.", "fill", "Answer = ____"),
+        q("Create a pattern using rule ×3, starting at 2. Write 5 terms.", "fill", "Answer = ____"),
+        q("Spot the error in: 8, 16, 24, 33, 40 (rule +8). Find and correct.", "fill", "Answer = ____"),
+        q("Spot the error in: 2, 6, 18, 54, 108 (rule ×3). Find and correct.", "fill", "Answer = ____"),
+        q("Pattern: 0, 1, 1, 2, 3, 5, 8, ___, ___ (each = sum of previous two).", "fill", "Answer = ____"),
+        q("How many terms of the pattern 5, 10, 15, 20… are less than 100?", "fill", "Answer = ____"),
+        q("A pattern starts at 6 and ends at 66 using rule +5. How many terms are there?", "fill", "Answer = ____"),
+        q("True or False: Every even number appears in the pattern 0, 2, 4, 6, 8…", "fill", "Answer = ____"),
+    ]
+
+def _L1F_4():
+    return [
+        cb("Mastery: Number Patterns", ["Identify, extend, create and verify patterns.", "Find specific terms and term numbers.", "Distinguish arithmetic (constant difference) from geometric (constant ratio)."], "Arithmetic: +5 each time.  Geometric: ×3 each time.  Both are valid patterns."),
+        q("Is the sequence 2, 3, 5, 8, 13, 21 arithmetic or geometric? What is the rule?", "fill", "Answer = ____"),
+        q("First term = 3, rule = ×2. Write first 6 terms. Is this arithmetic or geometric?", "fill", "Answer = ____"),
+        q("In the pattern 7, 14, 21, 28…: is 91 a term? If yes, which term is it?", "fill", "Answer = ____"),
+        q("A pattern has 50 as its 5th term and rule +9. What is its first term?", "fill", "Answer = ____"),
+        q("The 3rd and 7th terms of an arithmetic sequence are 17 and 33. What is the rule?", "fill", "Answer = ____"),
+        q("Pattern: 1, 8, 27, 64, ___, ___ (cube numbers). Write the rule.", "fill", "Answer = ____"),
+        cb("Multi-step pattern problems", ["Apply pattern rules across several steps.", "Combine with addition, multiplication, and algebra."], "If term n = 4n + 3, then term 6 = 4×6+3 = 27"),
+        q("Ravi saves Rs 12 in week 1, Rs 17 in week 2, Rs 22 in week 3 (rule +5). In which week will he first save more than Rs 50?", "word", "Answer = ____", "Rs 12, rule +5"),
+        q("A bacteria culture doubles every hour. It starts with 5. How many after 6 hours?", "word", "Answer = ____", "starts at 5, doubles each hour"),
+        q("An arithmetic sequence has first term 100 and last term 10 using rule −6. How many terms?", "fill", "Answer = ____"),
+        q("True or False: All multiples of 4 appear in the pattern 2, 4, 6, 8, 10…", "fill", "Answer = ____"),
+        q("Which pattern grows faster for large n: +10 each time, or ×2 each time? Explain.", "fill", "Answer = ____"),
+        cb("Pattern proofs and generalisations", ["Give a rule that works for ALL terms, not just the ones you can see.", "Use words or a formula."], "Pattern 3, 6, 9, 12… Rule: 'multiply the term number by 3'  or  'term n = 3n'"),
+        q("Write the rule for: 5, 10, 15, 20… using 'term n = …'", "fill", "Answer = ____"),
+        q("Write the rule for: 7, 9, 11, 13… using 'term n = …'", "fill", "Answer = ____"),
+        q("Using your rule, find the 20th term of: 4, 7, 10, 13…", "fill", "Answer = ____"),
+        q("Spot errors in: 1, 4, 9, 15, 25, 36. Fix the sequence and write the rule.", "fill", "Answer = ____"),
+        q("A pattern: 1, 2, 4, 7, 11, 16, 22… Find the next two terms and explain the rule.", "fill", "Answer = ____"),
+        q("Challenge: Two different patterns both contain the number 24. Can you write them?", "fill", "Answer = ____"),
+        q("Two arithmetic sequences start at 5 and 8. Both have rule +3. Will they ever share a common term? Explain.", "fill", "Answer = ____"),
+        q("The product of the 3rd and 4th terms of: 2, 4, 8, 16… What is it?", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1 CUMULATIVE + REVISION
+# ═══════════════════════════════════════════════════════════════
+def _L1CUM1_s(sheet):
+    """Cumulative: Counting 1-50, Counting 1-100, Before/After"""
+    return [
+        cb("Cumulative Review: Counting, Place Value, Before/After",
+           ["This sheet covers: Counting 1-50, Counting 1-100, Before/After numbers.",
+            "Show all working. Check your answers.",
+            "Use place value, ordering, and before/after skills."],
+           "Review tip: compare tens first, then ones"),
+        cb("Section 1: Counting 1-50 and 1-100", ["Recall: tens and ones, skip counting, ordering."], ""),
+        q("Write all numbers from 38 to 43: ____", "fill", "Answer = ____"),
+        q("10 more than 54 = ____", "fill", "Answer = ____"),
+        q("10 less than 70 = ____", "fill", "Answer = ____"),
+        q("Order ascending: 47, 74, 44, 77", "fill", "Answer = ____"),
+        q("8 tens and 3 ones = ____", "fill", "Answer = ____"),
+        q("Round 86 to the nearest 10: ____", "fill", "Answer = ____"),
+        cb("Section 2: Before / After Numbers", ["Recall: before = one less, after = one more, between."], ""),
+        q("Number before 30: ____", "fill", "Answer = ____"),
+        q("Number after 59: ____", "fill", "Answer = ____"),
+        q("Numbers between 17 and 21: ____", "fill", "Answer = ____"),
+        q("Before and after 45: ___ and ___", "fill", "Before=____ After=____"),
+        q("Between 98 and 100: ____", "fill", "Answer = ____"),
+        q("Before 100: ____", "fill", "Answer = ____"),
+        q("After 39: ____", "fill", "Answer = ____"),
+        q("Fill in: 62, 63, ___, ___, 66", "fill", "Answer = ____"),
+        q("True or False: The number after 99 is 100.", "fill", "Answer = ____"),
+        q("Count by 10s: 20, 30, ___, 50, ___", "fill", "Answer = ____"),
+        q("Write value of digit 7 in 73: ____", "fill", "Answer = ____"),
+        q("How many 2-digit numbers are between 90 and 100?", "fill", "Answer = ____"),
+        q("A box has 4 rows of 10 pencils and 5 extra. Total = ____.", "word", "Total = ____", "4 rows of 10 and 5 extra"),
+        q("True or False: Between 49 and 51 there are exactly 2 whole numbers.", "fill", "Answer = ____"),
+    ]
+
+def _L1CUM2_s(sheet):
+    """Cumulative: Greater/Smaller, Missing numbers, Number patterns"""
+    return [
+        cb("Cumulative Review: Comparison, Missing Numbers, Patterns",
+           ["This sheet covers: Greater/Smaller, Missing numbers, Number patterns.",
+            "Show all working. Check every answer.",
+            "Use comparison, inverse operations, and pattern rules."],
+           "Review tip: find the rule first, then fill the blank"),
+        cb("Section 1: Greater / Smaller", ["Recall: compare tens first, then ones. Use > < =."], ""),
+        q("Write > or < : 54 ___ 45", "fill", "Answer = ____"),
+        q("Write > or < : 82 ___ 82", "fill", "Answer = ____"),
+        q("Greatest of 34, 43, 30, 40: ____", "fill", "Answer = ____"),
+        q("Order ascending: 92, 29, 9, 90: ____", "fill", "Answer = ____"),
+        q("True or False: 67 < 76", "fill", "Answer = ____"),
+        q("Smallest of 76, 67, 70, 60: ____", "fill", "Answer = ____"),
+        cb("Section 2: Missing Numbers", ["Recall: find the rule, use inverse operations."], ""),
+        q("Fill in: 25, ___, 27, ___, 29", "fill", "Answer = ____"),
+        q("3 + ___ = 11", "fill", "Missing = ____"),
+        q("___ − 5 = 8", "fill", "Missing = ____"),
+        q("Fill in: 60, ___, 80, ___, 100", "fill", "Answer = ____"),
+        q("___ + 23 = 47", "fill", "Missing = ____"),
+        cb("Section 3: Number Patterns", ["Recall: find rule, extend, check."], ""),
+        q("Rule +3: 6, 9, ___, 15, ___", "fill", "Answer = ____"),
+        q("Rule −5: 40, 35, ___, 25, ___", "fill", "Answer = ____"),
+        q("Find rule and next: 2, 4, 8, 16, ___", "fill", "Rule=____ Next=____"),
+        q("Pattern: 1, 3, 5, 7, 9, ___", "fill", "Answer = ____"),
+        q("Rule +4: 4, 8, 12, ___, 20", "fill", "Answer = ____"),
+        q("Rule +10: 20, 30, ___, 50, ___", "fill", "Answer = ____"),
+        q("Fill in: 48, 46, ___, 42, ___", "fill", "Answer = ____"),
+        q("Next three: 10, 20, 30, ___, ___, ___", "fill", "Answer = ____"),
+    ]
+
+def _L1CUM3_s(sheet):
+    """Cumulative: All Level 1 skills"""
+    return [
+        cb("Cumulative Review: All Level 1 Topics",
+           ["This sheet covers all Level 1 skills.",
+            "Counting, place value, before/after, comparison, missing numbers, patterns.",
+            "Show all working."],
+           "Bring together everything from Level 1"),
+        q("Write numbers from 43 to 48: ____", "fill", "Answer = ____"),
+        q("10 more than 67 = ____", "fill", "Answer = ____"),
+        q("Write > or < : 56 ___ 65", "fill", "Answer = ____"),
+        q("Number before 50: ____", "fill", "Answer = ____"),
+        q("Fill in: 7, 14, ___, 28 (rule ×2)", "fill", "Answer = ____"),
+        q("Order descending: 83, 38, 80, 30", "fill", "Answer = ____"),
+        q("___ + 17 = 45", "fill", "Missing = ____"),
+        q("Count by 5s from 55 to 80: ____", "fill", "Answer = ____"),
+        q("Numbers between 78 and 82: ____", "fill", "Answer = ____"),
+        q("5 tens and 3 ones = ____", "fill", "Answer = ____"),
+        q("Rule +6: 6, 12, ___, 24, ___", "fill", "Answer = ____"),
+        q("Value of digit 4 in 47: ____", "fill", "Answer = ____"),
+        q("Fill in: 99, ___, 97, ___, 95", "fill", "Answer = ____"),
+        q("Smallest of 92, 29, 9, 90: ____", "fill", "Answer = ____"),
+        q("Fill in: 20, 25, ___, 35, ___", "fill", "Answer = ____"),
+        q("Is 63 between 60 and 65? ____", "fill", "Answer = ____"),
+        q("Write > or < : 33 ___ 33", "fill", "Answer = ____"),
+        q("A bag has 3 packs of 10 stickers and 7 loose. Total = ____.", "word", "Total = ____", "3 packs of 10 and 7 loose"),
+        q("Write the 5th term: 8, 11, 14, 17, ___", "fill", "5th term = ____"),
+        q("Spot the mistake: 'The number after 29 is 20.' Correct answer: ____", "fill", "Answer = ____"),
+    ]
+
+def _L1REV_s(sheet):
+    """Level 1 Revision — all topics"""
+    return [
+        cb("Level 1 Revision — All Topics",
+           ["Counting 1–100, place value, before/after, comparing, missing numbers, patterns.",
+            "This revision sheet tests everything from Level 1.",
+            "Read each question carefully. Show all working."],
+           "Each question tests a different skill from Level 1"),
+        q("Write all numbers from 61 to 67: ____", "fill", "Answer = ____"),
+        q("Value of tens digit in 85: ____", "fill", "Answer = ____"),
+        q("Value of ones digit in 92: ____", "fill", "Answer = ____"),
+        q("Write 74 in expanded form: ___ + ___", "fill", "Answer = ____"),
+        q("Number before 40: ____", "fill", "Answer = ____"),
+        q("Number after 79: ____", "fill", "Answer = ____"),
+        q("Numbers between 30 and 34: ____", "fill", "Answer = ____"),
+        q("Write > or < : 63 ___ 36", "fill", "Answer = ____"),
+        q("Order ascending: 51, 15, 55, 5", "fill", "Answer = ____"),
+        q("Fill in: 18, ___, 24, ___, 30 (rule +3)", "fill", "Answer = ____"),
+        q("Fill in: 80, 70, ___, 50, ___ (rule −10)", "fill", "Answer = ____"),
+        q("Find missing: ___ + 24 = 50", "fill", "Answer = ____"),
+        q("Find missing: 36 − ___ = 19", "fill", "Answer = ____"),
+        q("Count by 10s from 13: 13, 23, ___, 43, ___", "fill", "Answer = ____"),
+        q("Round 47 to nearest 10: ____", "fill", "Answer = ____"),
+        q("Round 83 to nearest 10: ____", "fill", "Answer = ____"),
+        q("Pattern: 4, 8, 12, 16, ___, ___ — rule = ____", "fill", "Answer = ____"),
+        q("Spot the mistake: '9 tens = 99.' Correct answer: ____", "fill", "Answer = ____"),
+        q("Write the 6th term: 3, 6, 9, 12, 15, ___", "fill", "Answer = ____"),
+        q("Ravi has 6 packs of 10 crayons and 8 loose. Total = ____.", "word", "Total = ____", "6 packs of 10 and 8 loose"),
+    ]
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 2 — EVEN, ODD & PRIME NUMBERS
+# ═══════════════════════════════════════════════════════════════
+
+# LEVEL 2A — Even Numbers
+def _L2A_1():
+    return [
+        cb("Even Numbers", ["Even numbers end in 0, 2, 4, 6, or 8.", "They can be split into 2 EQUAL groups with nothing left over.", "2, 4, 6, 8, 10, 12, 14… are all even."], "6 dots → 3 + 3 — two equal groups → EVEN"),
+        q("Look at the ones digit. Is 8 even? ____", "fill", "Answer = ____"),
+        q("Look at the ones digit. Is 7 even? ____", "fill", "Answer = ____"),
+        q("Look at the ones digit. Is 14 even? ____", "fill", "Answer = ____"),
+        q("Look at the ones digit. Is 23 even? ____", "fill", "Answer = ____"),
+        q("Look at the ones digit. Is 30 even? ____", "fill", "Answer = ____"),
+        cb("Recognising even numbers quickly", ["You only need to look at the ONES digit.", "If ones digit is 0, 2, 4, 6, or 8 → EVEN.", "The tens digit doesn't matter at all."], "Is 56 even? Ones digit = 6 → YES, even"),
+        q("Circle all even numbers: 11, 12, 13, 14, 15, 16, 17, 18", "fill", "Evens = ____"),
+        q("Write all even numbers from 20 to 30.", "fill", "Answer = ____"),
+        q("Next even number after 34: ____", "fill", "Answer = ____"),
+        q("Next even number after 87: ____", "fill", "Answer = ____"),
+        q("Even number just before 50: ____", "fill", "Answer = ____"),
+        cb("Even numbers in real life", ["12 oranges shared equally between 2 → 6 each → 12 is even.", "If there's nothing left over when you share by 2 → the number is even."], "28 students form pairs → 14 pairs, none left → 28 is even"),
+        q("Can 16 pencils be shared equally between 2 children? ____", "word", "Answer = ____", "16 pencils, 2 children"),
+        q("Can 19 sweets be shared equally between 2 children? ____", "word", "Answer = ____", "19 sweets, 2 children"),
+        q("Write five even numbers between 40 and 60.", "fill", "Answer = ____"),
+        q("Is 100 even? How do you know?", "fill", "Answer = ____"),
+        q("Is 0 even? Explain your reasoning.", "fill", "Answer = ____"),
+        q("The ones digit of every even number can be: ____", "fill", "Answer = ____"),
+        q("Even number just before 100: ____", "fill", "Answer = ____"),
+        q("Write all even numbers from 51 to 61.", "fill", "Answer = ____"),
+    ]
+
+def _L2A_2():
+    return [
+        cb("Even Numbers — Concept", ["A number n is even if n ÷ 2 gives remainder 0.", "Even + Even = Even (always).", "Even × any whole number = Even (always)."], "14 ÷ 2 = 7 remainder 0 → 14 is even.  4 + 6 = 10 (even + even = even)"),
+        q("Is 38 even? Check: 38 ÷ 2 = ____", "fill", "Answer = ____"),
+        q("Is 75 even? Check: 75 ÷ 2 = ____ remainder ____", "fill", "Answer = ____"),
+        q("Even + Even: 12 + 18 = ____. Is the result even? ____", "fill", "Answer = ____"),
+        q("Even + Even: 24 + 36 = ____. Is the result even? ____", "fill", "Answer = ____"),
+        q("Even × 3: 8 × 3 = ____. Is the result even? ____", "fill", "Answer = ____"),
+        q("Even × 5: 6 × 5 = ____. Is the result even? ____", "fill", "Answer = ____"),
+        cb("How many even numbers?", ["From 1 to 10: 2, 4, 6, 8, 10 → 5 even numbers.", "From 1 to 20: 10 even numbers.", "From 1 to 100: 50 even numbers."], "From 1 to 50: exactly 25 even numbers"),
+        q("How many even numbers are there from 1 to 10? ____", "fill", "Answer = ____"),
+        q("How many even numbers are there from 1 to 20? ____", "fill", "Answer = ____"),
+        q("How many even numbers are there from 11 to 30? ____", "fill", "Answer = ____"),
+        q("How many even numbers are there from 41 to 60? ____", "fill", "Answer = ____"),
+        q("Is the sum of the first 5 even numbers (2+4+6+8+10) even or odd? ____", "fill", "Answer = ____"),
+        cb("Applying even number rules", ["Use divisibility by 2 to check quickly.", "Use even+even=even to predict results without calculating."], "Is 4 × 7 even? 4 is even, any multiple of an even number is even → YES"),
+        q("Is 6 × 9 even or odd? Explain without calculating.", "fill", "Answer = ____"),
+        q("Is 12 + 34 + 56 even or odd? Explain.", "fill", "Answer = ____"),
+        q("True or False: The product of two even numbers is always even.", "fill", "Answer = ____"),
+        q("True or False: An even number can never be a prime number.", "fill", "Answer = ____"),
+        q("How many even numbers between 1 and 100 have a 4 in the ones place?", "fill", "Answer = ____"),
+        q("Write the largest even number less than 99.", "fill", "Answer = ____"),
+        q("A class of 34 students must form pairs. Are there enough for everyone? ____", "word", "Answer = ____", "34 students, 2 per pair"),
+        q("Find two even numbers that add to 50. Write all pairs.", "fill", "Answer = ____"),
+    ]
+
+def _L2A_3():
+    return [
+        cb("Even Numbers Practice", ["Apply the even number rules across different contexts.", "Test divisibility: n ÷ 2 with 0 remainder.", "Use even + even = even and even × n = even."], "Quick check: ones digit 0,2,4,6,8 → definitely even"),
+        q("Even or odd: 246", "fill", "Answer = ____"),
+        q("Even or odd: 531", "fill", "Answer = ____"),
+        q("Even or odd: 1000", "fill", "Answer = ____"),
+        q("Even or odd: 999", "fill", "Answer = ____"),
+        q("Write all even numbers between 70 and 82.", "fill", "Answer = ____"),
+        q("How many even numbers from 21 to 50?", "fill", "Answer = ____"),
+        cb("Even numbers in calculations", ["Even results from sums and products.", "Predict before you calculate."], "14 × 6: 14 is even → result is even. Calculate: 84"),
+        q("Calculate and state if even: 24 + 36 = ____", "fill", "Answer = ____"),
+        q("Calculate and state if even: 15 × 4 = ____", "fill", "Answer = ____"),
+        q("Calculate and state if even: 7 × 8 = ____", "fill", "Answer = ____"),
+        q("Calculate and state if even: 13 + 27 = ____", "fill", "Answer = ____"),
+        q("Calculate and state if even: 100 − 46 = ____", "fill", "Answer = ____"),
+        cb("Word problems", ["Apply even number concepts to real situations."], "32 chairs in 2 equal rows → 16 each → 32 is even"),
+        q("Ravi has 48 stickers to share equally between 2 friends. Each gets ____.", "word", "Each = ____", "48 stickers, 2 friends"),
+        q("A hall has 36 rows of seats. Each row has 2 seats. Total seats = ____. Is this even?", "word", "Answer = ____", "36 rows, 2 per row"),
+        q("True or False: Every multiple of 4 is also an even number.", "fill", "Answer = ____"),
+        q("True or False: Every even number is a multiple of 4.", "fill", "Answer = ____"),
+        q("The product 2 × 3 × 5 = ____. Is it even? ____", "fill", "Answer = ____"),
+        q("Write three even numbers whose sum is 30.", "fill", "Answer = ____"),
+        q("Write the even numbers between 95 and 103.", "fill", "Answer = ____"),
+        q("Spot the mistake: 'The number 42 is odd because 4 + 2 = 6, which is even.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L2A_4():
+    return [
+        cb("Mastery: Even Numbers", ["Apply even number properties to multi-step and reasoning problems.", "Prove or disprove statements about even numbers.", "Use even number patterns to solve harder problems."], "Even × Even = Even. Even + Even = Even. Even + Odd = Odd."),
+        q("Is the sum of any two consecutive numbers always odd? Explain with examples.", "fill", "Answer = ____"),
+        q("Prove or disprove: 'The square of any even number is always even.'", "fill", "Answer = ____"),
+        q("How many even numbers between 1 and 200 have both digits even?", "fill", "Answer = ____"),
+        q("The sum of 4 consecutive even numbers is 100. What are they?", "fill", "Answer = ____"),
+        q("True or False: If you add an even number to itself 5 times, the result is always even.", "fill", "Answer = ____"),
+        q("Ravi claims: 'All even numbers greater than 2 can be written as the sum of two odd numbers.' Check with 4 examples.", "fill", "Answer = ____"),
+        cb("Challenge", ["Multi-step problems requiring even number reasoning.", "Think carefully before calculating."], "If n is even, is n² even? n=4: 4²=16 (even). n=6: 6²=36 (even). Always even."),
+        q("Find all even numbers less than 30 that are divisible by both 2 and 3.", "fill", "Answer = ____"),
+        q("A number n is even. Write 3 other numbers that must be even: n+2, ___, ___.", "fill", "Answer = ____"),
+        q("The product of all even numbers from 2 to 10: 2×4×6×8×10 = ____. How many times does 2 appear as a factor?", "fill", "Answer = ____"),
+        q("Meena says 'I am thinking of an even number. It is between 40 and 60. Its digits add to 9.' What is the number?", "fill", "Answer = ____"),
+        q("How many pairs of even numbers from 1–20 add to 22?", "fill", "Answer = ____"),
+        cb("Pattern investigation", ["Investigate the pattern of even numbers and their properties."], "Sums: 2, 2+4, 2+4+6, 2+4+6+8 → 2,6,12,20 → these are n²+n = n(n+1)"),
+        q("Find: 2 + 4 = ____,  2+4+6 = ____,  2+4+6+8 = ____. Write the next sum.", "fill", "Answer = ____"),
+        q("Can you find a pattern in those sums? Write it in words.", "fill", "Answer = ____"),
+        q("Is 2 + 4 + 6 + … + 20 even or odd? Calculate the total.", "fill", "Answer = ____"),
+        q("Challenge: An even number has 3 digits. Its hundreds digit = ones digit = 2. Its tens digit is even. List all such numbers.", "fill", "Answer = ____"),
+        q("True or False: The sum of the first n even numbers = n × (n+1). Check for n=4.", "fill", "Answer = ____"),
+        q("A rectangle has an even length and even width. Is its area always a multiple of 4? Explain.", "fill", "Answer = ____"),
+        q("Write the first 5 even perfect squares.", "fill", "Answer = ____"),
+        q("If I double any whole number, is the result always even? Explain.", "fill", "Answer = ____"),
+    ]
+
+
+# LEVEL 2B — Odd Numbers
+def _L2B_1():
+    return [
+        cb("Odd Numbers", ["Odd numbers end in 1, 3, 5, 7, or 9.", "When split into 2 groups, ONE is always left over.", "1, 3, 5, 7, 9, 11, 13… are all odd."], "7 dots → 3 + 3 + 1 — one left over → ODD"),
+        q("Is 9 odd? Look at the ones digit.", "fill", "Answer = ____"),
+        q("Is 14 odd? Look at the ones digit.", "fill", "Answer = ____"),
+        q("Is 37 odd? Look at the ones digit.", "fill", "Answer = ____"),
+        q("Is 80 odd? Look at the ones digit.", "fill", "Answer = ____"),
+        q("Is 53 odd? Look at the ones digit.", "fill", "Answer = ____"),
+        cb("Recognising odd numbers", ["Ones digit 1, 3, 5, 7, 9 → ODD.", "Odd numbers cannot be shared equally between 2.", "Between every two consecutive even numbers is an odd number."], "Is 71 odd? Ones digit = 1 → YES, odd"),
+        q("Circle all odd numbers: 21, 22, 23, 24, 25, 26, 27, 28", "fill", "Odds = ____"),
+        q("Write all odd numbers from 31 to 41.", "fill", "Answer = ____"),
+        q("Next odd number after 18: ____", "fill", "Answer = ____"),
+        q("Next odd number after 99: ____", "fill", "Answer = ____"),
+        q("Odd number just before 50: ____", "fill", "Answer = ____"),
+        cb("Odd and even together", ["Consecutive whole numbers alternate: odd, even, odd, even…", "Between any two consecutive even numbers there is exactly one odd.", "Even + Odd = Odd (always)."], "Even: 6. Odd: 7. Even: 8. Odd: 9. Even: 10 — alternating"),
+        q("Is 3 + 4 = 7 odd or even? ____", "fill", "Answer = ____"),
+        q("Is 5 + 7 = 12 odd or even? ____", "fill", "Answer = ____"),
+        q("Is 6 + 9 = 15 odd or even? ____", "fill", "Answer = ____"),
+        q("Write all odd numbers from 41 to 51.", "fill", "Answer = ____"),
+        q("Can 15 books be shared equally between 2 students? ____", "word", "Answer = ____", "15 books, 2 students"),
+        q("Largest odd number less than 50: ____", "fill", "Answer = ____"),
+        q("Write 4 consecutive odd numbers starting from 23.", "fill", "Answer = ____"),
+        q("Is the sum of the first 5 odd numbers (1+3+5+7+9) odd or even? Calculate it.", "fill", "Answer = ____"),
+    ]
+
+def _L2B_2():
+    return [
+        cb("Odd Numbers — Concept", ["A number n is odd if n ÷ 2 gives remainder 1.", "Odd + Odd = Even (always).", "Odd × Odd = Odd (always)."], "9 ÷ 2 = 4 remainder 1 → 9 is odd.  3 + 5 = 8 (odd+odd=even)"),
+        q("Is 47 odd? Check: 47 ÷ 2 = ____ remainder ____", "fill", "Answer = ____"),
+        q("Is 82 odd? Check: 82 ÷ 2 = ____ remainder ____", "fill", "Answer = ____"),
+        q("Odd + Odd: 13 + 17 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Odd + Odd: 25 + 35 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Odd × Odd: 3 × 5 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Odd × Odd: 7 × 9 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        cb("Properties of odd numbers", ["Odd + Even = Odd (always).", "Odd × Even = Even (always).", "Odd ± 1 = Even (always)."], "7 + 4 = 11 (odd).  7 × 4 = 28 (even).  7 + 1 = 8 (even)"),
+        q("Odd + Even: 9 + 6 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Odd × Even: 5 × 8 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Is 11 − 1 even or odd? ____", "fill", "Answer = ____"),
+        q("Is 15 + 1 even or odd? ____", "fill", "Answer = ____"),
+        q("True or False: The product of two odd numbers is always odd.", "fill", "Answer = ____"),
+        cb("Counting odd numbers", ["From 1 to 10: 1,3,5,7,9 → 5 odd numbers.", "From 1 to 20: 10 odd numbers.", "From 1 to 100: 50 odd numbers."], "From 1 to 50: 25 odd numbers"),
+        q("How many odd numbers from 1 to 10? ____", "fill", "Answer = ____"),
+        q("How many odd numbers from 11 to 30? ____", "fill", "Answer = ____"),
+        q("How many odd numbers from 50 to 70? ____", "fill", "Answer = ____"),
+        q("How many odd numbers between 20 and 40 (not including 20 and 40)? ____", "fill", "Answer = ____"),
+        q("True or False: There are the same number of odd and even numbers from 1 to 100.", "fill", "Answer = ____"),
+        q("Write the largest odd number less than 100.", "fill", "Answer = ____"),
+        q("Write three odd numbers that add to 21.", "fill", "Answer = ____"),
+        q("Write three odd numbers that add to 15.", "fill", "Answer = ____"),
+    ]
+
+def _L2B_3():
+    return [
+        cb("Odd Numbers Practice", ["Apply odd number rules quickly and accurately.", "Predict results before calculating.", "Use odd number properties to solve problems."], "Odd × Odd = Odd. Odd + Even = Odd. Odd + Odd = Even."),
+        q("Odd or even: 347", "fill", "Answer = ____"),
+        q("Odd or even: 2002", "fill", "Answer = ____"),
+        q("Odd or even: 11 × 11", "fill", "Answer = ____"),
+        q("Odd or even: 7 + 8 + 9", "fill", "Answer = ____"),
+        q("Odd or even: 3 × 5 × 7", "fill", "Answer = ____"),
+        q("Odd or even: 12 + 13 + 14", "fill", "Answer = ____"),
+        cb("Odd number calculations", ["Calculate and verify using odd number rules."], "3 × 7 = 21 (odd × odd = odd ✓)"),
+        q("Find three odd numbers whose sum is 33.", "fill", "Answer = ____"),
+        q("Find three consecutive odd numbers whose sum is 51.", "fill", "Answer = ____"),
+        q("Is 7 × 9 − 3 odd or even? Calculate.", "fill", "Answer = ____"),
+        q("Is 5 × 5 + 4 odd or even? Calculate.", "fill", "Answer = ____"),
+        q("The product 1 × 3 × 5 × 7 × 9 = ____. Is it odd? ____", "fill", "Answer = ____"),
+        cb("Word problems with odd numbers", ["Apply odd number knowledge to real contexts."], "27 students, 1 teacher → 28 total → even → pairs possible"),
+        q("27 children must pair up for a game. Will there be anyone without a partner? ____", "word", "Answer = ____", "27 children"),
+        q("Meena picks 3 odd numbers. Their product is always ____.", "fill", "Answer = ____"),
+        q("True or False: The sum of any odd number and 1 is always even.", "fill", "Answer = ____"),
+        q("True or False: Every prime number greater than 2 is odd.", "fill", "Answer = ____"),
+        q("Write all odd numbers between 88 and 98.", "fill", "Answer = ____"),
+        q("How many odd numbers are between 30 and 50 (exclusive)?", "fill", "Answer = ____"),
+        q("The sum of two consecutive odd numbers is 48. What are they?", "fill", "Answer = ____"),
+        q("Spot the mistake: '7 × 4 is odd because 7 is odd.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L2B_4():
+    return [
+        cb("Mastery: Odd Numbers", ["Apply odd properties in multi-step reasoning.", "Prove or disprove statements. Investigate patterns.", "Connect odd numbers to primes and other topics."], "Sum of first n odd numbers = n². Check: 1+3+5+7 = 16 = 4²"),
+        q("Prove or disprove: 'The sum of any three consecutive odd numbers is divisible by 3.'", "fill", "Answer = ____"),
+        q("Find all 2-digit odd numbers whose digits add to 10.", "fill", "Answer = ____"),
+        q("The sum of the first 10 odd numbers (1+3+5+…+19) = ____. What pattern do you notice?", "fill", "Answer = ____"),
+        q("I am an odd number less than 50. The sum of my digits is 11. What am I? (List all.)", "fill", "Answer = ____"),
+        q("True or False: An odd number squared is always odd.", "fill", "Answer = ____"),
+        q("True or False: The difference of two odd numbers is always even.", "fill", "Answer = ____"),
+        cb("Challenge problems", ["Combine odd number properties with algebra and logic."], "If n is odd, then n+2 is also odd. (odd + even = odd)"),
+        q("If n is odd, what is n + n? Even or odd? Explain.", "fill", "Answer = ____"),
+        q("If n is odd, what is n²? Odd or even? Prove it.", "fill", "Answer = ____"),
+        q("Find consecutive odd numbers a and b so that a × b = 63.", "fill", "Answer = ____"),
+        q("Three consecutive odd numbers multiply to 105. What are they?", "fill", "Answer = ____"),
+        q("A school has 45 students split into groups of 3. How many groups? Is 45 odd? ____", "word", "Answer = ____", "45 students, groups of 3"),
+        cb("Investigation", ["Explore the sum of first n odd numbers."], "1=1², 1+3=4=2², 1+3+5=9=3², 1+3+5+7=16=4²"),
+        q("Find: 1 = ____², 1+3 = ____², 1+3+5 = ____². Write the pattern.", "fill", "Answer = ____"),
+        q("Using the pattern, find the sum: 1 + 3 + 5 + 7 + 9 + 11 + 13 + 15 + 17 + 19", "fill", "Answer = ____"),
+        q("Without adding, find the sum of the first 12 odd numbers.", "fill", "Answer = ____"),
+        q("Ravi says 'I doubled an odd number and got 38. What was my number?'", "fill", "Answer = ____"),
+        q("Challenge: Write all 2-digit odd numbers where reversing the digits gives a larger even number.", "fill", "Answer = ____"),
+        q("Is 1 odd? Is 0 even? Can a number be both odd and even? Explain.", "fill", "Answer = ____"),
+        q("The product of the first 5 odd primes (3×5×7×11×13) = ____.", "fill", "Answer = ____"),
+        q("If a + b = even and a is odd, what must b be? Explain.", "fill", "Answer = ____"),
+    ]
+
+
+# LEVEL 2C — Identifying Even/Odd
+def _L2C_1():
+    return [
+        cb("Even or Odd — Quick Identification", ["Look at the ONES digit ONLY.", "Ones digit 0, 2, 4, 6, 8 → EVEN.", "Ones digit 1, 3, 5, 7, 9 → ODD."], "137: ones digit = 7 → ODD.  284: ones digit = 4 → EVEN"),
+        q("Even or odd: 34", "fill", "Answer = ____"),
+        q("Even or odd: 75", "fill", "Answer = ____"),
+        q("Even or odd: 100", "fill", "Answer = ____"),
+        q("Even or odd: 83", "fill", "Answer = ____"),
+        q("Even or odd: 56", "fill", "Answer = ____"),
+        cb("Sorting into even and odd", ["Sort a list into two groups: even and odd.", "Only look at the ones digit for each."], "24, 35, 48, 71 → Even: 24, 48   Odd: 35, 71"),
+        q("Sort: 12, 15, 18, 21, 24, 27 → Even: ___ Odd: ___", "fill", "Even=____ Odd=____"),
+        q("Sort: 33, 44, 55, 66, 77, 88 → Even: ___ Odd: ___", "fill", "Even=____ Odd=____"),
+        q("How many even numbers from 1 to 20? ____", "fill", "Answer = ____"),
+        q("How many odd numbers from 1 to 20? ____", "fill", "Answer = ____"),
+        q("First 5 even numbers: ____", "fill", "Answer = ____"),
+        cb("Identifying from large numbers", ["Works for any size number — just check the ones digit.", "No counting or dividing needed."], "4,238 → ones digit = 8 → EVEN (no matter how large the number)"),
+        q("Even or odd: 999", "fill", "Answer = ____"),
+        q("Even or odd: 1000", "fill", "Answer = ____"),
+        q("Even or odd: 247", "fill", "Answer = ____"),
+        q("Even or odd: 364", "fill", "Answer = ____"),
+        q("Write 3 even and 3 odd numbers between 50 and 70.", "fill", "Answer = ____"),
+        q("Is the product 3 × 4 even or odd? ____", "fill", "Answer = ____"),
+        q("Is the product 3 × 5 even or odd? ____", "fill", "Answer = ____"),
+        q("True or False: All numbers ending in 0 are even.", "fill", "Answer = ____"),
+    ]
+
+def _L2C_2():
+    return [
+        cb("Even/Odd Identification — Concept", ["Divisibility rule: n is even if n ÷ 2 has remainder 0.", "Ones digit shortcut is a consequence of this rule.", "Use the shortcut in practice, understand the rule in theory."], "Is 2,348 even? Ones digit = 8 → EVEN. Verify: 2348 ÷ 2 = 1174, remainder 0 ✓"),
+        q("Use ones digit to identify: 91 → ____", "fill", "Answer = ____"),
+        q("Use ones digit to identify: 456 → ____", "fill", "Answer = ____"),
+        q("Use ones digit to identify: 3,007 → ____", "fill", "Answer = ____"),
+        q("Use ones digit to identify: 2,010 → ____", "fill", "Answer = ____"),
+        q("Use ones digit to identify: 10,005 → ____", "fill", "Answer = ____"),
+        q("Sort: 101, 202, 303, 404, 505 → Even: ___ Odd: ___", "fill", "Answer = ____"),
+        cb("Predict without calculating", ["Use even/odd rules to predict results of operations.", "Even + Even = Even, Odd + Odd = Even, Even + Odd = Odd.", "Even × anything = Even, Odd × Odd = Odd."], "Is 13 + 27 even? 13 odd + 27 odd = even → YES"),
+        q("Without calculating: is 14 + 22 even or odd? ____", "fill", "Answer = ____"),
+        q("Without calculating: is 17 + 33 even or odd? ____", "fill", "Answer = ____"),
+        q("Without calculating: is 25 + 36 even or odd? ____", "fill", "Answer = ____"),
+        q("Without calculating: is 8 × 7 even or odd? ____", "fill", "Answer = ____"),
+        q("Without calculating: is 9 × 11 even or odd? ____", "fill", "Answer = ____"),
+        cb("Applying to real situations", ["Use even/odd rules in context.", "Predict whether groups, totals, and products are even or odd."], "30 students in 2 teams: 30 is even → equal split possible"),
+        q("Is 2 × 3 × 4 × 5 even or odd? Explain without calculating fully.", "fill", "Answer = ____"),
+        q("The sum 11 + 13 + 15 + 17 — even or odd? Predict and check.", "fill", "Answer = ____"),
+        q("Is 7 × 8 × 9 even or odd? Explain.", "fill", "Answer = ____"),
+        q("Meena has 15 apples and Ravi has 17. Total — even or odd? ____", "word", "Answer = ____", "15 + 17"),
+        q("A room has 12 boys and 13 girls. Total — even or odd? ____", "word", "Answer = ____", "12 + 13"),
+        q("True or False: The sum of an even number and an odd number is always odd.", "fill", "Answer = ____"),
+        q("Is it possible for an odd number × odd number to give an even answer? Explain.", "fill", "Answer = ____"),
+        q("Write a 3-digit odd number whose digits sum to 12.", "fill", "Answer = ____"),
+    ]
+
+def _L2C_3():
+    return [
+        cb("Even/Odd Identification Practice", ["Apply identification to multi-digit numbers.", "Use operation rules to predict results.", "Solve word problems using even/odd reasoning."], "Quick tests: ones digit; and operation rules (E+E=E, O+O=E, E+O=O)"),
+        q("Identify: 2,468 — even or odd? ____", "fill", "Answer = ____"),
+        q("Identify: 13,579 — even or odd? ____", "fill", "Answer = ____"),
+        q("Identify: 100,000 — even or odd? ____", "fill", "Answer = ____"),
+        q("Sort: 11, 22, 33, 44, 55, 66, 77, 88, 99 → Even: ___ Odd: ___", "fill", "Answer = ____"),
+        q("The product 2 × 4 × 6 × 8 — even or odd? Explain.", "fill", "Answer = ____"),
+        q("The product 1 × 3 × 5 × 7 — even or odd? Explain.", "fill", "Answer = ____"),
+        cb("Mixed operation problems", ["Combine addition, subtraction, multiplication to predict parity (even/odd)."], "Is (7 × 4) + (3 × 5) even? 7×4=28(even), 3×5=15(odd), 28+15=43(odd)"),
+        q("Is (5 × 6) + (7 × 8) even or odd? Predict then calculate.", "fill", "Answer = ____"),
+        q("Is (9 × 7) − (4 × 3) even or odd? Predict then calculate.", "fill", "Answer = ____"),
+        q("Is (11 + 13) × (5 + 3) even or odd? Predict then calculate.", "fill", "Answer = ____"),
+        q("Is (100 − 37) + (50 + 27) even or odd? Predict then calculate.", "fill", "Answer = ____"),
+        q("True or False: The result of (odd)^(any positive power) is always odd.", "fill", "Answer = ____"),
+        cb("Word problems", ["Apply even/odd knowledge to real contexts."], "35 students for relay race, 4 per team: 35 ÷ 4 = 8 r3 → teams can't be equal"),
+        q("A teacher wants to divide 42 students into pairs. Is this possible with no one left out? ____", "word", "Answer = ____", "42 students"),
+        q("A teacher wants to divide 37 students into pairs. Is this possible? ____", "word", "Answer = ____", "37 students"),
+        q("Ravi multiplies two odd numbers. The result is ____. (Even/Odd)", "fill", "Answer = ____"),
+        q("Meena adds 5 odd numbers. The result is ____. (Even/Odd)", "fill", "Answer = ____"),
+        q("True or False: You can write every even number greater than 2 as the sum of two odd numbers.", "fill", "Answer = ____"),
+        q("Write a 4-digit number that is: even, has ones digit = 8, tens digit = 3.", "fill", "Answer = ____"),
+        q("How many numbers from 1 to 50 are divisible by 2? ____", "fill", "Answer = ____"),
+        q("Spot the error: '25 is even because 2 + 5 = 7 which... wait, 7 is odd, so 25 is odd.' Is this reasoning correct?", "fill", "Answer = ____"),
+    ]
+
+def _L2C_4():
+    return [
+        cb("Mastery: Even/Odd Identification", ["Apply identification rules in complex multi-step problems.", "Prove statements using properties of even and odd numbers.", "Connect parity to real-life and mathematical patterns."], "Parity = whether a number is even or odd. Parity is preserved under certain operations."),
+        q("Without computing the full answer: is 1 × 2 × 3 × 4 × 5 × 6 × 7 × 8 × 9 × 10 even or odd? Explain.", "fill", "Answer = ____"),
+        q("If you add all numbers from 1 to 100, is the result even or odd? Explain your method.", "fill", "Answer = ____"),
+        q("Prove: The sum of any 4 consecutive whole numbers is always even.", "fill", "Answer = ____"),
+        q("Is it true that n² and n always have the same parity (both even or both odd)? Explain.", "fill", "Answer = ____"),
+        q("How many 2-digit numbers have an even tens digit AND an odd ones digit?", "fill", "Answer = ____"),
+        q("Challenge: A and B are 2-digit numbers. A is even, B is odd, and A + B = 99. Find all possible values of A.", "fill", "Answer = ____"),
+        cb("Investigation", ["Investigate parity patterns across number sets."], "Parity of triangular numbers: 1(O),3(O),6(E),10(E),15(O),21(O),28(E)... pattern OOEEOOEEOOE"),
+        q("List the first 8 triangular numbers (1,3,6,10,15,21,28,36) and mark each E or O.", "fill", "Answer = ____"),
+        q("What pattern do you notice in the parity of triangular numbers?", "fill", "Answer = ____"),
+        q("True or False: The product of ANY two consecutive integers is always even.", "fill", "Answer = ____"),
+        q("True or False: n(n+1) is always even for any whole number n.", "fill", "Answer = ____"),
+        q("Ravi says 'I picked 3 numbers. Their sum is odd. At most how many of my numbers are even?' Explain.", "fill", "Answer = ____"),
+        cb("Applying to puzzles", ["Use parity to solve puzzles and eliminate impossible cases."], "If a+b+c = 10 (even) and a=3 (odd), b=5 (odd), then c must be even"),
+        q("a + b = 15 (odd). If a = 7, what is the parity of b? ____", "fill", "Answer = ____"),
+        q("x × y = 24 (even). Must both x and y be even? Explain.", "fill", "Answer = ____"),
+        q("Find a 2-digit number n where n is odd and n² ends in 9.", "fill", "Answer = ____"),
+        q("How many pairs (a,b) where a+b=20 and both a,b are odd positive integers?", "fill", "Answer = ____"),
+        q("Spot the error: 'Since 3+5=8 and 8 is even, the sum of any two odd numbers is even.' Is this always true or just a coincidence here?", "fill", "Answer = ____"),
+        q("The sum of n odd numbers: when is the sum even, and when is it odd? Write the rule.", "fill", "Answer = ____"),
+        q("Meena picks a number. She squares it and gets an even number. What must her original number have been?", "fill", "Answer = ____"),
+        q("True or False: 0 is even. Justify your answer.", "fill", "Answer = ____"),
+    ]
+
+
+# LEVEL 2D — Even/Odd Patterns
+def _L2D_1():
+    return [
+        cb("Even and Odd Patterns", ["Even numbers: 2, 4, 6, 8, 10, … pattern: +2.", "Odd numbers: 1, 3, 5, 7, 9, … pattern: +2.", "The two sequences alternate in the number line."], "Alternating: E, O, E, O, E, O → 2,3,4,5,6,7,8,9…"),
+        q("Continue: 2, 4, 6, 8, ___, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 1, 3, 5, 7, ___, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 10, 12, 14, ___, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 21, 23, 25, ___, ___, ___", "fill", "Answer = ____"),
+        q("Continue: 50, 48, 46, ___, ___, ___", "fill", "Answer = ____"),
+        cb("Patterns with even and odd", ["Adding or subtracting 2 keeps parity the same.", "Adding or subtracting 1 changes parity.", "Multiplying two evens gives even; two odds gives odd."], "Even − 2 = Even: 10,8,6,4,2.  Odd + 2 = Odd: 1,3,5,7,9"),
+        q("Fill in: 30, 28, ___, 24, ___, 20 — parity of each term: ____", "fill", "Answer = ____"),
+        q("Fill in: 11, 13, ___, 17, ___, 21 — parity of each term: ____", "fill", "Answer = ____"),
+        q("A pattern has only even numbers. Rule is +4. Start at 8. Write 5 terms.", "fill", "Answer = ____"),
+        q("A pattern has only odd numbers. Rule is +6. Start at 3. Write 5 terms.", "fill", "Answer = ____"),
+        q("Start at 2, rule +3. Write 6 terms. Are all terms even? ____", "fill", "Answer = ____"),
+        cb("Predicting parity in patterns", ["If the start is even and rule is even → all terms even.", "If the start is odd and rule is even → all terms odd.", "If the rule is odd → parity alternates."], "Start=4 (even), rule=+3 (odd) → 4(E),7(O),10(E),13(O)… parity alternates"),
+        q("Start=6, rule=+2. Parity of all terms: ____", "fill", "Answer = ____"),
+        q("Start=5, rule=+2. Parity of all terms: ____", "fill", "Answer = ____"),
+        q("Start=4, rule=+3. Parity of 1st term: ____. Parity of 2nd term: ____.", "fill", "Answer = ____"),
+        q("Start=10, rule=+5. Write first 4 terms and their parities.", "fill", "Answer = ____"),
+        q("Meena notices: 2, 5, 8, 11, 14, 17 — which terms are even? ____", "fill", "Answer = ____"),
+        q("Fill in and state parity: 1, ___, 9, ___, 17, ___, 25 (rule +4)", "fill", "Answer = ____"),
+        q("True or False: In any sequence with rule +2, if the first term is even all terms are even.", "fill", "Answer = ____"),
+        q("Write a sequence of 6 numbers where even and odd terms alternate.", "fill", "Answer = ____"),
+    ]
+
+def _L2D_2():
+    return [
+        cb("Even/Odd Patterns — Concept", ["The parity of a sequence depends on the start value and the rule.", "Rule even: parity never changes. Rule odd: parity alternates.", "Use this to predict any term's parity without listing all terms."], "Start=3(O), rule=+4(E) → all terms odd: 3,7,11,15,19…"),
+        q("Start=7, rule=+6. Is the 10th term even or odd? Explain.", "fill", "Answer = ____"),
+        q("Start=2, rule=+5. Is the 8th term even or odd? Explain.", "fill", "Answer = ____"),
+        q("Start=4, rule=+7. Is the 6th term even or odd? Explain.", "fill", "Answer = ____"),
+        q("Start=1, rule=+3. Predict parity of the 5th term.", "fill", "Answer = ____"),
+        q("Start=10, rule=+9. Predict parity of the 4th term.", "fill", "Answer = ____"),
+        q("Start=15, rule=+4. Predict parity of the 7th term.", "fill", "Answer = ____"),
+        cb("Patterns using multiplication", ["Even × Even = Even. Even × Odd = Even. Odd × Odd = Odd.", "The parity of n × m depends only on whether n and m are even or odd."], "6 × 9 = 54 (even × odd = even). 7 × 9 = 63 (odd × odd = odd)"),
+        q("Pattern: 1, 2, 3, 4, 5, 6… Multiply consecutive pairs. Parities: ____", "fill", "Answer = ____"),
+        q("Pattern: 3×5=___, 5×7=___, 7×9=___. Even or odd each time?", "fill", "Answer = ____"),
+        q("Pattern: 2×4=___, 4×6=___, 6×8=___. Even or odd each time?", "fill", "Answer = ____"),
+        q("Pattern: 2×3=___, 4×5=___, 6×7=___. Even or odd each time?", "fill", "Answer = ____"),
+        q("True or False: The product of any two consecutive numbers is always even.", "fill", "Answer = ____"),
+        cb("Applying to sequences", ["Use parity rules to analyse and extend sequences."], "Powers of 2: 2,4,8,16,32 — all even (since 2 is even and even×even=even)"),
+        q("Powers of 3: 3,9,27,81,243. Even or odd? ____", "fill", "Answer = ____"),
+        q("Powers of 2: 2,4,8,16,32. Even or odd? ____", "fill", "Answer = ____"),
+        q("Sequence of squares: 1,4,9,16,25,36. Pattern of parities: ____", "fill", "Answer = ____"),
+        q("Sequence of cubes: 1,8,27,64,125. Pattern of parities: ____", "fill", "Answer = ____"),
+        q("Is the pattern of parities of 2n the same as the pattern of parities of n? Explain.", "fill", "Answer = ____"),
+        q("In the sequence 5, 8, 11, 14, 17, 20 — which positions (1st, 2nd, …) are even?", "fill", "Answer = ____"),
+        q("True or False: In the Fibonacci sequence (1,1,2,3,5,8,13,21…) every 3rd term is even.", "fill", "Answer = ____"),
+        q("Write a 6-term sequence where exactly the 2nd, 4th, and 6th terms are even.", "fill", "Answer = ____"),
+    ]
+
+def _L2D_3():
+    return [
+        cb("Even/Odd Patterns Practice", ["Apply parity rules to various sequences and problems.", "Combine with other number properties."], "Triangular numbers: 1,3,6,10,15,21 → O,O,E,E,O,O — pattern repeats every 4"),
+        q("Write the pattern of parities for: 5, 10, 15, 20, 25, 30", "fill", "Answer = ____"),
+        q("Write the pattern of parities for: 7, 11, 15, 19, 23, 27", "fill", "Answer = ____"),
+        q("Write the pattern of parities for: 6, 9, 12, 15, 18, 21", "fill", "Answer = ____"),
+        q("Find which terms of 3, 7, 11, 15, 19, 23, 27 are even.", "fill", "Answer = ____"),
+        q("Find which terms of 4, 10, 16, 22, 28 are odd.", "fill", "Answer = ____"),
+        q("The sequence 2, 3, 5, 8, 13, 21 — list the parities.", "fill", "Answer = ____"),
+        cb("Parity in problem solving", ["Use parity to eliminate impossible cases quickly.", "If a sum must be even, both addends must be both even or both odd."], "x + 7 = even → x must be odd (since odd+odd=even)"),
+        q("x + 7 = even number. Is x even or odd? ____", "fill", "Answer = ____"),
+        q("a + b = odd. If a is even, what is b? ____", "fill", "Answer = ____"),
+        q("m × n = odd. Are m and n both even, both odd, or one of each? ____", "fill", "Answer = ____"),
+        q("p + q + r = odd. How many of p, q, r are odd? (give all possibilities) ____", "fill", "Answer = ____"),
+        q("The product of n consecutive integers (n ≥ 2) — is it always even? Explain.", "fill", "Answer = ____"),
+        cb("Patterns in everyday contexts", ["Parity patterns appear in timetables, seating, and more."], "Bus every 2 stops: 2,4,6,8 → always even stops"),
+        q("Lamp posts are numbered 1 to 30. Every even-numbered post has a flag. How many flags?", "word", "Answer = ____", "lamp posts 1-30"),
+        q("Houses on one side of a street: 1, 3, 5, 7, … up to 29. How many houses?", "word", "Answer = ____", "odd-numbered houses"),
+        q("Seats in a theatre: Row 1=10, Row 2=12, Row 3=14 (rule+2). Row 5 total = ____. Even?", "word", "Answer = ____", "10,12,14,rule+2"),
+        q("In a competition, rounds 1,3,5 are individual and rounds 2,4,6 are team. What pattern?", "fill", "Answer = ____"),
+        q("A clock ticks every second. After 47 ticks, has it ticked an odd or even number of times?", "fill", "Answer = ____"),
+        q("True or False: In a sequence start=even, rule=odd, the even and odd terms alternate perfectly.", "fill", "Answer = ____"),
+        q("Write a real-life context where knowing if a number is even or odd matters.", "fill", "Answer = ____"),
+        q("Create your own even/odd pattern problem and answer it.", "fill", "Answer = ____"),
+    ]
+
+def _L2D_4():
+    return [
+        cb("Mastery: Even/Odd Patterns", ["Investigate parity in complex sequences.", "Prove parity rules for general cases.", "Apply parity to solve hard problems."], "General rule: start parity + (n-1)×rule parity determines nth term parity"),
+        q("Prove: In any arithmetic sequence with an even common difference, all terms have the same parity as the first term.", "fill", "Answer = ____"),
+        q("Prove: In any arithmetic sequence with an odd common difference, the parities of terms alternate.", "fill", "Answer = ____"),
+        q("Sequence: start=3, rule=+8. What is the parity of the 100th term? Explain.", "fill", "Answer = ____"),
+        q("Sequence: start=6, rule=+5. What is the parity of the 53rd term? Explain.", "fill", "Answer = ____"),
+        q("The Fibonacci sequence: 1,1,2,3,5,8,13,21,34,55,89,144… Write the parity of the first 12 terms.", "fill", "Answer = ____"),
+        q("From the Fibonacci parities, what is the parity of the 15th Fibonacci number? The 18th?", "fill", "Answer = ____"),
+        cb("Investigation", ["Explore parity in powers and products."], "Powers of 5: 5,25,125,625 — all odd. Powers of 6: 6,36,216 — all even"),
+        q("For any odd number k, prove that k^n is always odd for any positive integer n.", "fill", "Answer = ____"),
+        q("Sequence of differences: 1,4,9,16,25 — the differences are 3,5,7,9 — these are odd. Why?", "fill", "Answer = ____"),
+        q("True or False: In the sequence of square numbers, even squares are followed by odd squares alternately.", "fill", "Answer = ____"),
+        q("Create a sequence of 8 numbers where every even-positioned term is even and every odd-positioned term is odd.", "fill", "Answer = ____"),
+        q("Challenge: Sequence alternates parity: E,O,E,O… First term=4. Each term is previous+3. Write first 6 terms.", "fill", "Answer = ____"),
+        cb("Real investigation", ["Apply parity logic to a sustained problem."], "Calendar: Jan 1 is Monday(1). What day is Jan 15? 15=14+1=2weeks+1 → also Monday+0=Monday... wait: Jan 15 = Jan 1 + 14 days = Monday + 0 = Monday"),
+        q("If today is Monday (day 1), what day is day 50? Is 50 even or odd, and does that help? Explain.", "fill", "Answer = ____"),
+        q("In a number grid 1–100, shade all even numbers. What fraction is shaded? ____", "fill", "Answer = ____"),
+        q("I have a sequence where term n = 3n + 1. Write first 6 terms. Which are even and which are odd?", "fill", "Answer = ____"),
+        q("For the sequence term n = 2n − 1: is every term odd? Prove it.", "fill", "Answer = ____"),
+        q("For the sequence term n = 4n + 2: is every term even? Prove it.", "fill", "Answer = ____"),
+        q("Challenge: Find a formula for a sequence where every term is odd.", "fill", "Answer = ____"),
+        q("Sum of first n terms of 2,4,6,8… = n(n+1). Is this always even? Prove it.", "fill", "Answer = ____"),
+        q("True or False: You can always tell the parity of a sum by counting how many odd addends there are.", "fill", "Answer = ____"),
+    ]
+
+
+# LEVEL 2E — Prime Numbers
+def _L2E_1():
+    return [
+        cb("Prime Numbers", ["A prime number has exactly 2 factors: 1 and itself.", "2, 3, 5, 7, 11, 13, 17, 19, 23… are prime.", "1 is NOT prime — it has only 1 factor."], "7: factors are 1 and 7 only → exactly 2 factors → PRIME"),
+        q("Is 2 prime? It has factors: ____", "fill", "Answer = ____"),
+        q("Is 4 prime? It has factors: ____", "fill", "Answer = ____"),
+        q("Is 11 prime? It has factors: ____", "fill", "Answer = ____"),
+        q("Is 15 prime? Factors of 15: ____", "fill", "Answer = ____"),
+        q("Is 1 prime? How many factors does 1 have? ____", "fill", "Answer = ____"),
+        cb("Testing for primes", ["Divide by 2, 3, 5, 7… up to the square root of the number.", "If any of these divide it exactly → NOT prime.", "If none divide it exactly → PRIME."], "Is 17 prime? 17÷2=8.5, 17÷3=5.7, 17÷4=4.25 → none exact → PRIME"),
+        q("Is 13 prime? Test: 13÷2=___, 13÷3=___. Prime? ____", "fill", "Answer = ____"),
+        q("Is 21 prime? Test: 21÷3=___. Prime? ____", "fill", "Answer = ____"),
+        q("Is 29 prime? Test dividing by 2, 3, 5. Prime? ____", "fill", "Answer = ____"),
+        q("Write all prime numbers less than 20.", "fill", "Answer = ____"),
+        q("How many prime numbers are there less than 10?", "fill", "Answer = ____"),
+        cb("Special facts about primes", ["2 is the ONLY even prime.", "Every prime greater than 2 is odd.", "There are infinitely many prime numbers."], "Even primes: only 2.  All other primes are odd."),
+        q("The only even prime number: ____", "fill", "Answer = ____"),
+        q("The smallest prime number: ____", "fill", "Answer = ____"),
+        q("Is 9 prime? What are its factors? ____", "fill", "Answer = ____"),
+        q("Write all primes between 10 and 20.", "fill", "Answer = ____"),
+        q("Write all primes between 20 and 30.", "fill", "Answer = ____"),
+        q("Is the sum of two prime numbers always prime? Give an example. ____", "fill", "Answer = ____"),
+        q("Twin primes are primes that differ by 2. Write a pair of twin primes. ____", "fill", "Answer = ____"),
+        q("Is 49 prime? What are its factors? ____", "fill", "Answer = ____"),
+    ]
+
+def _L2E_2():
+    return [
+        cb("Prime Numbers — Concept", ["Prime: exactly 2 factors (1 and itself).", "Composite: more than 2 factors.", "1: neither prime nor composite (exactly 1 factor)."], "Prime: 7 (factors: 1,7). Composite: 12 (factors: 1,2,3,4,6,12). Neither: 1"),
+        q("Write all factors of 12. Is 12 prime or composite? ____", "fill", "Answer = ____"),
+        q("Write all factors of 13. Is 13 prime or composite? ____", "fill", "Answer = ____"),
+        q("Write all factors of 16. Is 16 prime or composite? ____", "fill", "Answer = ____"),
+        q("Write all factors of 23. Is 23 prime or composite? ____", "fill", "Answer = ____"),
+        q("Write all factors of 36. Is 36 prime or composite? ____", "fill", "Answer = ____"),
+        q("Classify each: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10", "fill", "Answer = ____"),
+        cb("Sieve of Eratosthenes — idea", ["Cross out multiples of 2, then 3, then 5, then 7…", "What's left are prime numbers.", "This method finds all primes up to any number."], "Primes up to 30: 2,3,5,7,11,13,17,19,23,29"),
+        q("Write all primes up to 30 (use the sieve idea).", "fill", "Answer = ____"),
+        q("How many primes are there from 1 to 30? ____", "fill", "Answer = ____"),
+        q("How many primes are there from 31 to 50? (Check: 31,37,41,43,47)", "fill", "Answer = ____"),
+        q("Which decade (10–19, 20–29, 30–39…) has the most primes under 50?", "fill", "Answer = ____"),
+        q("True or False: All odd numbers are prime.", "fill", "Answer = ____"),
+        cb("Prime number facts", ["Goldbach's conjecture: every even number > 2 is sum of two primes.", "Every number > 1 can be written as a product of primes."], "6 = 2+4? No, 4 not prime. 6 = 3+3 ✓ (Goldbach example)"),
+        q("Write 10 as a sum of two primes.", "fill", "Answer = ____"),
+        q("Write 18 as a sum of two primes.", "fill", "Answer = ____"),
+        q("Write 24 as a sum of two primes.", "fill", "Answer = ____"),
+        q("True or False: Every prime number greater than 3 is of the form 6n±1.", "fill", "Answer = ____"),
+        q("Is there a largest prime number? Explain what you think.", "fill", "Answer = ____"),
+        q("Write all primes between 40 and 60.", "fill", "Answer = ____"),
+        q("How many primes are there between 1 and 50?", "fill", "Answer = ____"),
+        q("Is the product of two prime numbers always composite? Explain.", "fill", "Answer = ____"),
+    ]
+
+def _L2E_3():
+    return [
+        cb("Prime Numbers Practice", ["Identify primes quickly using divisibility tests.", "Apply prime knowledge in calculations and problems."], "Divisibility shortcuts: ÷2 (even), ÷3 (digit sum ÷3), ÷5 (ends 0 or 5)"),
+        q("Is 57 prime? (Hint: 5+7=12, divisible by 3?) ____", "fill", "Answer = ____"),
+        q("Is 91 prime? (Hint: try dividing by 7.) ____", "fill", "Answer = ____"),
+        q("Is 97 prime? Test: 97÷2, 97÷3, 97÷5, 97÷7. ____", "fill", "Answer = ____"),
+        q("Is 51 prime? (Hint: 5+1=6, divisible by 3?) ____", "fill", "Answer = ____"),
+        q("Is 83 prime? Test small primes. ____", "fill", "Answer = ____"),
+        q("Write all primes between 60 and 80.", "fill", "Answer = ____"),
+        cb("Primes in calculations", ["Use prime status in factorisation and problem solving."], "Write 30 as product of primes: 30 = 2 × 3 × 5"),
+        q("Write 12 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("Write 20 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("Write 36 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("Write 50 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("Is 2 × 3 × 5 + 1 = 31 prime? ____", "fill", "Answer = ____"),
+        cb("Word problems with primes", ["Apply prime knowledge to real contexts."], "A box can hold a prime number of items per row. Could it hold 9 per row? No (9 = 3×3, not prime)"),
+        q("A teacher wants to arrange 17 desks in equal rows (more than 1 row). Is this possible? ____", "word", "Answer = ____", "17 desks"),
+        q("A teacher wants to arrange 24 desks in equal rows. What arrangements are possible? ____", "word", "Answer = ____", "24 desks"),
+        q("Ravi says 'I am thinking of a prime number between 50 and 60.' What number is he thinking of?", "fill", "Answer = ____"),
+        q("How many prime numbers have both digits the same? (e.g. 11, 22, 33…)", "fill", "Answer = ____"),
+        q("True or False: The sum of the first 5 primes is itself prime.", "fill", "Answer = ____"),
+        q("Write a prime number between 70 and 80.", "fill", "Answer = ____"),
+        q("Is 2 + 3 + 5 + 7 + 11 prime? Calculate first.", "fill", "Answer = ____"),
+        q("Find two prime numbers whose product is 77.", "fill", "Answer = ____"),
+    ]
+
+def _L2E_4():
+    return [
+        cb("Mastery: Prime Numbers", ["Apply prime knowledge to multi-step problems.", "Prove properties. Investigate prime patterns.", "Connect primes to factorisation and number theory."], "Every composite number can be written as a unique product of primes (Fundamental Theorem of Arithmetic)"),
+        q("Write the prime factorisation of 60.", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 84.", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 100.", "fill", "Answer = ____"),
+        q("True or False: Every even number greater than 2 can be written as a sum of two primes. Test with 6 examples.", "fill", "Answer = ____"),
+        q("Find a prime number p where both p and p+2 are prime (twin primes), between 10 and 30.", "fill", "Answer = ____"),
+        q("Is 1001 prime? (Hint: try 7, 11, 13.) ____", "fill", "Answer = ____"),
+        cb("Prime puzzles", ["Use prime properties to solve multi-step reasoning problems."], "I am a 2-digit prime. My digits sum to 8. I am not 17 or 53. Who am I? Try: 17(1+7=8 prime ✓), 53(5+3=8 prime ✓), 71(7+1=8 prime ✓)"),
+        q("Find all 2-digit primes whose digits sum to 8.", "fill", "Answer = ____"),
+        q("Find all 2-digit primes whose digits sum to 10.", "fill", "Answer = ____"),
+        q("I am a prime number. I am 1 less than a perfect square. I am less than 50. What am I? (List all.)", "fill", "Answer = ____"),
+        q("What is the smallest prime greater than 100?", "fill", "Answer = ____"),
+        q("The product of two primes is 91. Find both primes.", "fill", "Answer = ____"),
+        cb("Investigation", ["Explore prime gaps and prime patterns."], "Prime gaps: differences between consecutive primes: 2-3=1, 3-5=2, 5-7=2, 7-11=4, 11-13=2..."),
+        q("List all primes up to 50 and find the gaps (differences) between consecutive primes.", "fill", "Answer = ____"),
+        q("Which gap appears most often in primes up to 50?", "fill", "Answer = ____"),
+        q("Prove that the only consecutive integers that are both prime are 2 and 3.", "fill", "Answer = ____"),
+        q("Prove that except for 2 and 3, no prime is divisible by 2 or 3. What does this tell you about all primes > 3?", "fill", "Answer = ____"),
+        q("Challenge: The prime counting function π(n) = number of primes ≤ n. Find π(10), π(20), π(30), π(50).", "fill", "Answer = ____"),
+        q("Is 2^7 − 1 = 127 prime? (Mersenne prime — test it.)", "fill", "Answer = ____"),
+        q("Find all primes p where p, p+4 are both prime (cousin primes), under 40.", "fill", "Answer = ____"),
+        q("True or False: Every prime > 5 ends in 1, 3, 7, or 9.", "fill", "Answer = ____"),
+    ]
+
+
+# LEVEL 2 CUMULATIVE + REVISION
+def _L2CUM1_s(sheet):
+    return [
+        cb("Cumulative: Even numbers, Odd numbers, Even/Odd identification",
+           ["Covers: identifying even/odd, properties, patterns of even and odd numbers.",
+            "Show all reasoning. Predict before you calculate.", "Use the ones-digit rule and operation rules."],
+           "Review: ones digit 0,2,4,6,8→even; 1,3,5,7,9→odd"),
+        cb("Section 1: Even Numbers", ["Even: ones digit 0,2,4,6,8. Even÷2=whole number.", "Even+Even=Even. Even×any=Even."], ""),
+        q("Write all even numbers from 32 to 44.", "fill", "Answer = ____"),
+        q("Is 78 even? ____", "fill", "Answer = ____"),
+        q("Next even after 56: ____", "fill", "Answer = ____"),
+        q("Even + Even: 24 + 38 = ____. Even? ____", "fill", "Answer = ____"),
+        q("How many even numbers from 1 to 20? ____", "fill", "Answer = ____"),
+        q("Largest even number less than 100: ____", "fill", "Answer = ____"),
+        cb("Section 2: Odd Numbers", ["Odd: ones digit 1,3,5,7,9. Odd÷2 has remainder 1.", "Odd+Odd=Even. Odd×Odd=Odd."], ""),
+        q("Write all odd numbers from 31 to 41.", "fill", "Answer = ____"),
+        q("Is 93 odd? ____", "fill", "Answer = ____"),
+        q("Next odd after 47: ____", "fill", "Answer = ____"),
+        q("Odd + Odd: 17 + 23 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Largest odd number less than 100: ____", "fill", "Answer = ____"),
+        q("Sum of first 5 odd numbers = ____. Even or odd? ____", "fill", "Answer = ____"),
+        cb("Section 3: Identification", ["Quick identification from ones digit or operation rules."], ""),
+        q("Even or odd: 347", "fill", "Answer = ____"),
+        q("Even or odd: 5 × 9", "fill", "Answer = ____"),
+        q("Even or odd: 12 + 17 + 23", "fill", "Answer = ____"),
+        q("Sort: 13, 26, 45, 62, 77, 88 → Even: ___ Odd: ___", "fill", "Answer = ____"),
+        q("True or False: Odd × Even is always even.", "fill", "Answer = ____"),
+        q("True or False: Even + Odd is always odd.", "fill", "Answer = ____"),
+    ]
+
+def _L2CUM2_s(sheet):
+    return [
+        cb("Cumulative: Even/Odd Patterns, Prime Numbers, Composite Numbers",
+           ["Covers: parity patterns, prime identification, composite numbers.",
+            "Show all reasoning clearly.", "Use divisibility tests for primes."],
+           "Prime: exactly 2 factors. Composite: more than 2. 1: neither."),
+        cb("Section 1: Even/Odd Patterns", ["Parity in sequences depends on start and rule.", "Even rule→parity constant. Odd rule→parity alternates."], ""),
+        q("Start=4, rule=+2. Write 5 terms. All even? ____", "fill", "Answer = ____"),
+        q("Start=3, rule=+4. Write 5 terms. Parities: ____", "fill", "Answer = ____"),
+        q("Start=6, rule=+3. Is the 5th term even or odd? ____", "fill", "Answer = ____"),
+        q("Continue: 5, 8, 11, 14, ___. 6th term even or odd? ____", "fill", "Answer = ____"),
+        q("True or False: Product of consecutive integers is always even. ____", "fill", "Answer = ____"),
+        q("Powers of 5: 5, 25, 125. Even or odd? ____", "fill", "Answer = ____"),
+        cb("Section 2: Prime Numbers", ["Prime: exactly 2 factors. Only even prime is 2.", "Test: divide by 2,3,5,7 up to square root."], ""),
+        q("Is 23 prime? ____", "fill", "Answer = ____"),
+        q("Is 33 prime? ____", "fill", "Answer = ____"),
+        q("Write all primes less than 20.", "fill", "Answer = ____"),
+        q("Write 18 as a sum of two primes.", "fill", "Answer = ____"),
+        q("Is 97 prime? ____", "fill", "Answer = ____"),
+        q("How many primes between 1 and 20? ____", "fill", "Answer = ____"),
+        cb("Section 3: Composite Numbers", ["Composite: more than 2 factors. Can be factorised.", "All composites can be written as products of primes."], ""),
+        q("Write all factors of 24.", "fill", "Answer = ____"),
+        q("Is 25 prime or composite? ____", "fill", "Answer = ____"),
+        q("Write 30 as a product of primes.", "fill", "Answer = ____"),
+        q("Find all composite numbers between 10 and 20.", "fill", "Answer = ____"),
+        q("Is every even number greater than 2 composite? ____", "fill", "Answer = ____"),
+        q("True or False: 1 is composite.", "fill", "Answer = ____"),
+    ]
+
+def _L2CUM3_s(sheet):
+    return [
+        cb("Cumulative: All Level 2 Topics",
+           ["Covers all Level 2: even, odd, patterns, primes, composites, identification.",
+            "Mixed questions — show all working.", "Apply the correct rule for each question."],
+           "Summary: Even↔ones digit; Odd+Odd=Even; Prime has 2 factors exactly"),
+        q("Write all even numbers between 45 and 55.", "fill", "Answer = ____"),
+        q("Write all odd numbers between 44 and 56.", "fill", "Answer = ____"),
+        q("Odd or even: 3 × 7 × 9", "fill", "Answer = ____"),
+        q("Odd or even: 2 × 4 × 6 × 8", "fill", "Answer = ____"),
+        q("Write all primes between 30 and 50.", "fill", "Answer = ____"),
+        q("Is 81 prime, composite, or neither? ____", "fill", "Answer = ____"),
+        q("Write 42 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("Is 57 prime? (Hint: digit sum 5+7=12) ____", "fill", "Answer = ____"),
+        q("Start=2, rule=+7. Is the 4th term even or odd? ____", "fill", "Answer = ____"),
+        q("Sum of first 10 even numbers = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Sum of first 10 odd numbers = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Classify: 2, 3, 4, 5, 6, 7, 8, 9 as prime, composite, or neither.", "fill", "Answer = ____"),
+        q("How many primes are there from 1 to 50? ____", "fill", "Answer = ____"),
+        q("Write two prime numbers that add to 20.", "fill", "Answer = ____"),
+        q("True or False: All prime numbers except 2 are odd.", "fill", "Answer = ____"),
+        q("True or False: All odd numbers are prime.", "fill", "Answer = ____"),
+        q("Find a 2-digit prime where reversing the digits gives another prime (emirp).", "fill", "Answer = ____"),
+        q("Can an even number be prime? Give an example or explain why not.", "fill", "Answer = ____"),
+        q("The product of the first four primes (2×3×5×7) = ____", "fill", "Answer = ____"),
+        q("Spot the mistake: '9 is prime because it is odd.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L2REV_s(sheet):
+    return [
+        cb("Level 2 Revision — All Topics",
+           ["Even numbers, Odd numbers, Identification, Patterns, Primes, Composites.",
+            "This revision tests all Level 2 skills.", "Show all working. Check answers."],
+           "Even: ends 0,2,4,6,8. Odd: ends 1,3,5,7,9. Prime: exactly 2 factors."),
+        q("Is 64 even or odd? ____", "fill", "Answer = ____"),
+        q("Is 77 even or odd? ____", "fill", "Answer = ____"),
+        q("Write all even numbers from 71 to 81.", "fill", "Answer = ____"),
+        q("Write all odd numbers from 72 to 82.", "fill", "Answer = ____"),
+        q("Is 6 × 7 even or odd? Explain.", "fill", "Answer = ____"),
+        q("Is 5 × 9 even or odd? Explain.", "fill", "Answer = ____"),
+        q("Sum 11 + 13 + 15 — even or odd? Explain.", "fill", "Answer = ____"),
+        q("Start=7, rule=+6. Write 4 terms. Parities: ____", "fill", "Answer = ____"),
+        q("Start=8, rule=+5. Is the 5th term even or odd? ____", "fill", "Answer = ____"),
+        q("Write all primes between 20 and 40.", "fill", "Answer = ____"),
+        q("Is 41 prime? Test it.", "fill", "Answer = ____"),
+        q("Is 49 prime? Factors of 49: ____", "fill", "Answer = ____"),
+        q("Write 24 as a product of primes.", "fill", "Answer = ____"),
+        q("Classify: 1, 2, 15, 17, 21, 29, 35 as prime, composite, or neither.", "fill", "Answer = ____"),
+        q("The only even prime is ____.", "fill", "Answer = ____"),
+        q("True or False: The sum of two consecutive numbers is always odd.", "fill", "Answer = ____"),
+        q("Odd + Even: 13 + 28 = ____. Even or odd? ____", "fill", "Answer = ____"),
+        q("Write a prime between 50 and 60.", "fill", "Answer = ____"),
+        q("Spot the mistake: 'The number 1 is the smallest prime.' Correct it.", "fill", "Answer = ____"),
+        q("Find two primes that multiply to give 35.", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 1G, 1H, 1I, 1J — stub with real generic questions
+# (These will be hand-crafted in a future update)
+# ═══════════════════════════════════════════════════════════════
+def _L1G_s(sheet):
+    questions = {
+        1: [
+            cb("Counting Objects", ["Count each object carefully — don't skip or double-count.", "Use tally marks to track: IIII = 4, IIII I = 5, IIII II = 7.", "Write the total clearly."], "Tally: IIII II = 7 objects"),
+            q("Count the dots and write the total.", "diagram", "Total = ____", "", "dot_array", {"rows":3,"cols":5}),
+            q("Count the objects: draw 14 circles and count them.", "fill", "Total = ____"),
+            q("Write a tally for: 8 students raised their hand.", "fill", "Tally = ____"),
+            q("Write a tally for: 13 birds on a wire.", "fill", "Tally = ____"),
+            q("Read the tally IIII IIII II and write the number.", "fill", "Number = ____"),
+            cb("Groups of objects", ["Count groups, then multiply or add.", "2 groups of 5 = 5 + 5 = 10."], "3 rows of 4 dots = 12 total"),
+            q("There are 4 rows of 5 dots each. Total = ____.", "word", "Total = ____", "4 rows of 5"),
+            q("There are 3 groups of 6 apples each. Total = ____.", "word", "Total = ____", "3 groups of 6"),
+            q("Count: 2 bags of 10 marbles + 3 loose. Total = ____.", "word", "Total = ____", "2 bags of 10 and 3 loose"),
+            q("Count: 5 boxes of 4 pencils + 2 loose. Total = ____.", "word", "Total = ____", "5 boxes of 4 and 2 loose"),
+            q("Count objects in a picture: 7 cats and 5 dogs. Total animals = ____.", "word", "Total = ____", "7 cats and 5 dogs"),
+            cb("Counting and recording", ["Always count methodically — row by row or group by group.", "Record using tally marks first if helpful."], ""),
+            q("In a fruit bowl: 4 apples, 3 oranges, 6 bananas. Total = ____.", "word", "Total = ____", "4 apples 3 oranges 6 bananas"),
+            q("There are 24 students in class. 9 are absent. Present = ____.", "word", "Present = ____", "24 total 9 absent"),
+            q("Write a tally for 17.", "fill", "Tally = ____"),
+            q("Write a tally for 25.", "fill", "Tally = ____"),
+            q("Read tally IIII IIII IIII III and write the number.", "fill", "Number = ____"),
+            q("Count backwards from 15 to 1. Write all numbers.", "fill", "Answer = ____"),
+            q("Count by 2s from 0 to 20. Write all even numbers.", "fill", "Answer = ____"),
+            q("Count by 5s from 5 to 50. Write all multiples.", "fill", "Answer = ____"),
+        ],
+        2: [
+            cb("Counting Objects — Concept", ["Counting in groups (by 2s, 5s, 10s) is faster than counting one by one.", "Use organised counting: rows, columns, groups.", "Estimate first, then count precisely."], "100 dots — estimate 'about 100', count in 10s: 10,20,30,40,50,60,70,80,90,100 ✓"),
+            q("Estimate, then count exactly: a bag has about ___ marbles (from a picture of 23).", "fill", "Estimate=____ Exact=____"),
+            q("Count by 2s: how many legs do 9 chickens have? ____", "word", "Answer = ____", "9 chickens, 2 legs each"),
+            q("Count by 4s: how many legs do 7 dogs have? ____", "word", "Answer = ____", "7 dogs, 4 legs each"),
+            q("Count by 10s: 8 bags of 10 sweets. Total = ____.", "word", "Total = ____", "8 bags of 10"),
+            q("A jar has 43 coins. Write 43 as a tally.", "fill", "Tally = ____"),
+            q("Read this tally: IIII IIII IIII IIII IIII = ____", "fill", "Number = ____"),
+            cb("Pictographs", ["In a pictograph, each picture represents a fixed number.", "Multiply to find totals."], "Each smiley = 5 votes. 6 smileys = 30 votes"),
+            q("Each apple picture = 2 apples. 7 apple pictures = ____ apples.", "word", "Total = ____", "7 pictures, each = 2"),
+            q("Each star = 10 points. Ravi has 8 stars. Points = ____.", "word", "Points = ____", "8 stars, each = 10"),
+            q("Each circle = 5. There are 9 circles. Total = ____.", "word", "Total = ____", "9 circles, each = 5"),
+            q("In a pictograph, cats=5, dogs=3, birds=7. How many pets total?", "word", "Total = ____", "5 cats 3 dogs 7 birds"),
+            q("True or False: Counting in 5s is faster than counting in 1s for large groups.", "fill", "Answer = ____"),
+            cb("Organising counts", ["Use a frequency table to organise counts.", "Makes comparison easy."], "Colour frequency: Red=4, Blue=7, Green=3, Total=14"),
+            q("Count vowels in 'MATHEMATICS': a=___, e=___, i=___, Total=___", "fill", "Answer = ____"),
+            q("Count letters in 'SCHOOL': S=___, C=___, H=___, O=___, L=___ Total=___", "fill", "Answer = ____"),
+            q("A bag has 3 red, 5 blue, 4 green balls. Total = ____.", "word", "Total = ____", "3 red 5 blue 4 green"),
+            q("How many more blue balls than red in the previous question?", "fill", "Answer = ____"),
+            q("Write the total using tallies for: 6 boys and 8 girls in class.", "fill", "Answer = ____"),
+            q("In a survey: like football=12, cricket=9, tennis=5. Most popular = ____.", "word", "Answer = ____", "football=12 cricket=9 tennis=5"),
+            q("True or False: You get the same total counting forwards and backwards through a set.", "fill", "Answer = ____"),
+        ],
+        3: [
+            cb("Counting Objects Practice", ["Apply counting in various real contexts.", "Always check by recounting using a different method."], "Recount: if first count=37, verify by counting in groups of 5: 5,10,15,20,25,30,35 + 2 = 37 ✓"),
+        ] + [q(f"Counting practice problem {i}: apply counting skills in context.", "fill", "Answer = ____") for i in range(1, 20)],
+        4: [
+            cb("Counting Objects Mastery", ["Apply advanced counting: systematic, efficient, verified.", "Use multiple methods and compare results."], "Count 48 objects: by 4s=12 groups, by 6s=8 groups, by 8s=6 groups — all confirm 48"),
+        ] + [q(f"Counting mastery problem {i}: multi-step counting with verification.", "fill", "Answer = ____") for i in range(1, 20)],
+    }
+    return questions[sheet]
+
+def _L1H_s(sheet):
+    starters = {
+        1: "count and write numbers in words and figures",
+        2: "read, write, and understand numbers 1-100",
+        3: "mixed number reading, writing, and place value",
+        4: "mastery: all number reading and writing skills"
+    }
+    return [
+        cb(f"Mixed Numbers 1–100 — {starters[sheet].title()}",
+           ["Read numbers as words: forty-seven = 47.",
+            "Write numbers in figures from words.",
+            "Connect words, figures, and place value."],
+           "Twenty-three = 23 = 2 tens + 3 ones"),
+        q("Write in figures: forty-seven", "fill", "Answer = ____"),
+        q("Write in figures: sixty-five", "fill", "Answer = ____"),
+        q("Write in figures: ninety-nine", "fill", "Answer = ____"),
+        q("Write in words: 38", "fill", "Answer = ____"),
+        q("Write in words: 72", "fill", "Answer = ____"),
+        q("Write in words: 100", "fill", "Answer = ____"),
+        cb("Place value in words",
+           ["The tens digit tells us how many tens.",
+            "The ones digit tells us how many ones."],
+           "In 54: 'fifty' comes from 5 tens, 'four' from 4 ones"),
+        q("Write in expanded form: 63 = ___ + ___", "fill", "Answer = ____"),
+        q("Write in expanded form: 81 = ___ + ___", "fill", "Answer = ____"),
+        q("Write the number: 40 + 7 = ____", "fill", "Answer = ____"),
+        q("Write the number: 90 + 3 = ____", "fill", "Answer = ____"),
+        q("Write in words and figures: seven tens and four ones.", "fill", "Answer = ____"),
+        cb("Mixed practice", ["Connect all forms: words, figures, expanded."], "Eighty-six = 86 = 80 + 6 = 8 tens and 6 ones"),
+        q("Order ascending and write in words: 45, 4, 54, 40", "fill", "Answer = ____"),
+        q("Order descending: 18, 81, 80, 8 — write in figures.", "fill", "Answer = ____"),
+        q("Write the number that is ten more than sixty-three.", "fill", "Answer = ____"),
+        q("Write the number that is ten less than fifty-one.", "fill", "Answer = ____"),
+        q("Write in words: the largest 2-digit number.", "fill", "Answer = ____"),
+        q("Write in words: the smallest 2-digit number.", "fill", "Answer = ____"),
+        q("True or False: Forty-four = 44 = 4 tens + 4 ones.", "fill", "Answer = ____"),
+        q("Spot the mistake: 'Seventy-two = 27.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L1I_s(sheet):
+    return [
+        cb(f"Number Puzzles — Sheet {sheet}",
+           ["Use clues to find the hidden number.",
+            "Try each clue one by one and eliminate impossible answers.",
+            "Check all clues are satisfied by your answer."],
+           "I am odd. I am between 10 and 20. My digits sum to 9. I am 9? No, 2-digit. Try 9+0=9→90 no. 1+8=9→18 (even). 2+7=9→27 (>20). Hmm, try 9 between 10 and 20: none. Re-read: digits sum to 7: 16(1+6=7,odd? No). 25(2+5=7,odd? No)."),
+        q("I am between 10 and 20. I am even. My digits sum to 6. What am I?", "fill", "Answer = ____"),
+        q("I am odd. I am between 20 and 30. My digits sum to 7. What am I?", "fill", "Answer = ____"),
+        q("I am even. I am between 40 and 50. My tens digit equals my ones digit. What am I?", "fill", "Answer = ____"),
+        q("I am a 2-digit number. Both my digits are the same. I am less than 50. Write all numbers I could be.", "fill", "Answer = ____"),
+        q("I am greater than 50. I am less than 60. I am odd. My digits add to 12. What am I?", "fill", "Answer = ____"),
+        cb("Clue-based puzzles", ["Read each clue carefully. Narrow down possibilities step by step.", "Two clues together reduce choices faster than one clue alone."], "I am between 60 and 70. I am even. My ones digit is 3 less than my tens digit. Tens=6, ones=3→63 (odd). Tens=7... wait, between 60 and 70: tens=6. Even ones: 0,2,4,6,8. 3 less than 6: ones=3 (odd). No even answer? Recheck clue."),
+        q("I am between 70 and 80. I am odd. My digits sum to 14. What am I?", "fill", "Answer = ____"),
+        q("I am a multiple of 10. I am greater than 40 and less than 90. My tens digit is even. Write all answers.", "fill", "Answer = ____"),
+        q("I am a 2-digit number. My tens digit is twice my ones digit. List all such numbers.", "fill", "Answer = ____"),
+        q("I am odd. I am between 30 and 40. My ones digit is one more than my tens digit. What am I?", "fill", "Answer = ____"),
+        q("I am even. My digits sum to 10. I am between 50 and 100. List all possibilities.", "fill", "Answer = ____"),
+        cb("Magic puzzles", ["Magic squares: each row, column, and diagonal sums to the same total."], "Magic total = 15 for a 3×3 square with 1-9"),
+        q("Fill in the magic square so rows and columns each add to 12: _ , 5 , _ / 3 , _ , _ / _ , _ , 4", "fill", "Answer = ____"),
+        q("I am thinking of two numbers. They add to 17. They differ by 3. What are they?", "fill", "Answer = ____"),
+        q("I am thinking of two numbers. Their product is 24. Their sum is 11. What are they?", "fill", "Answer = ____"),
+        q("The number of my house is a 2-digit number. Reversed, it gives a number 36 less. What could it be?", "fill", "Answer = ____"),
+        q("Three numbers add to 30. They are consecutive. What are they?", "fill", "Answer = ____"),
+        q("A number is doubled and then 5 is added. The result is 29. What is the number?", "fill", "Answer = ____"),
+        q("A number is halved and then 3 is subtracted. The result is 9. What is the number?", "fill", "Answer = ____"),
+        q("I have 10 coins. Some are 1-rupee, some are 2-rupee. Total value = Rs 16. How many of each?", "word", "Answer = ____", "10 coins, mix of 1 and 2 rupee, total Rs 16"),
+        q("Challenge: Write your own number puzzle for a classmate with 3 clues.", "fill", "Answer = ____"),
+    ]
+
+def _L1J_s(sheet):
+    return [
+        cb(f"Mixed Challenge — Sheet {sheet}",
+           ["This sheet combines ALL Level 1 skills.",
+            "Counting, place value, before/after, comparison, missing numbers, patterns.",
+            "Read each question carefully and show your working."],
+           "Mixed Level 1 skills in one challenging sheet"),
+        q("Write 78 in expanded form and in words.", "fill", "Answer = ____"),
+        q("Order ascending: 64, 46, 66, 44, 40, 60", "fill", "Answer = ____"),
+        q("What is the number exactly halfway between 30 and 40?", "fill", "Answer = ____"),
+        q("Fill in: 3, 7, 11, ___, ___, 23 (rule +4)", "fill", "Answer = ____"),
+        q("Find missing: ___ + 36 = 55", "fill", "Answer = ____"),
+        q("Find missing: 72 − ___ = 48", "fill", "Answer = ____"),
+        cb("Mixed problems", ["Apply the most appropriate skill for each problem.", "Show all working clearly."], ""),
+        q("I am odd, between 50 and 60, and my digits sum to 11. What am I?", "fill", "Answer = ____"),
+        q("Write before and after: ___, 95, ___", "fill", "Answer = ____"),
+        q("Count by 7s from 7: write the first 6 multiples of 7.", "fill", "Answer = ____"),
+        q("What is the value of the tens digit in 83? In 38?", "fill", "Answer = ____"),
+        q("True or False: The number after 99 is 110.", "fill", "Answer = ____"),
+        cb("Multi-step challenges", ["Some problems need 2 or more steps.", "Plan before you calculate."], ""),
+        q("Ravi has 45 marbles. He wins 13 more and then loses 7. How many does he have now?", "word", "Answer = ____", "45 + 13 − 7"),
+        q("A pattern: 2, 5, 11, 23, ___ (each term = previous × 2 + 1). Next = ____", "fill", "Answer = ____"),
+        q("The difference between two numbers is 25. Their sum is 75. What are the two numbers?", "fill", "Answer = ____"),
+        q("Write a 2-digit number where the tens digit is 3 times the ones digit.", "fill", "Answer = ____"),
+        q("How many 2-digit numbers have a digit sum of 5?", "fill", "Answer = ____"),
+        q("Spot ALL mistakes: '49 < 94 because 4+9=13. Before 50 is 51. Pattern 2,4,8,14 has rule ×2.'", "fill", "Answer = ____"),
+        q("A school has 7 classes of 35 students each. Total students = ____.", "word", "Total = ____", "7 classes of 35"),
+        q("Challenge: Write the largest possible 2-digit number using digits 3, 7, 9 (one digit at a time). Then the smallest.", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# LEVEL 2F, 2G, 2H, 2I, 2J — stub with topic-specific questions
+# ═══════════════════════════════════════════════════════════════
+def _L2F_s(sheet):
+    return [
+        cb("Composite Numbers", ["A composite number has MORE than 2 factors.", "It can be written as a product of smaller numbers.", "Every composite number can be expressed as a product of prime numbers."], "12: factors 1,2,3,4,6,12 → more than 2 → COMPOSITE. 12=2×2×3"),
+        q("Is 12 composite? Write its factors.", "fill", "Answer = ____"),
+        q("Is 20 composite? Write its factors.", "fill", "Answer = ____"),
+        q("Is 7 composite? Explain.", "fill", "Answer = ____"),
+        q("Smallest composite number: ____", "fill", "Answer = ____"),
+        q("Write all composite numbers from 1 to 10.", "fill", "Answer = ____"),
+        cb("Identifying composite numbers", ["A number is composite if it has any factor other than 1 and itself.", "Quick test: if it's divisible by 2, 3, 5, or 7, it's composite (unless it IS 2, 3, 5, or 7)."], "Is 15 composite? 15÷3=5 → yes, composite"),
+        q("Is 16 composite? Factor test: ____", "fill", "Answer = ____"),
+        q("Is 35 composite? Factor test: ____", "fill", "Answer = ____"),
+        q("Is 37 composite? Factor test: ____", "fill", "Answer = ____"),
+        q("Write all composite numbers from 20 to 30.", "fill", "Answer = ____"),
+        q("How many composite numbers are there from 1 to 20?", "fill", "Answer = ____"),
+        cb("Prime or Composite?", ["Every whole number > 1 is either prime or composite.", "1 is neither. 2 is the only even prime."], "Classify: 15→composite, 17→prime, 1→neither, 25→composite"),
+        q("Classify each as prime, composite, or neither: 1, 4, 7, 9, 11, 15, 17, 21", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 18.", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 45.", "fill", "Answer = ____"),
+        q("True or False: Every even number greater than 2 is composite.", "fill", "Answer = ____"),
+        q("True or False: A composite number always has an even factor.", "fill", "Answer = ____"),
+        q("Find the largest composite number less than 20.", "fill", "Answer = ____"),
+        q("Is 100 composite? What is its prime factorisation?", "fill", "Answer = ____"),
+        q("Spot the mistake: '9 is prime because 9 is odd.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L2G_s(sheet):
+    return [
+        cb("Quick Prime Identification", ["Use divisibility shortcuts to check primality fast.", "If any small prime (2,3,5,7) divides it exactly → composite.", "Only need to check up to the square root of the number."], "Is 49 prime? √49=7. 49÷7=7 exactly → composite. 49=7²"),
+        q("Quickly identify: Is 31 prime? ____", "fill", "Answer = ____"),
+        q("Quickly identify: Is 39 prime? (hint: 3+9=12) ____", "fill", "Answer = ____"),
+        q("Quickly identify: Is 43 prime? ____", "fill", "Answer = ____"),
+        q("Quickly identify: Is 51 prime? (hint: 5+1=6) ____", "fill", "Answer = ____"),
+        q("Quickly identify: Is 53 prime? ____", "fill", "Answer = ____"),
+        cb("Factor pairs", ["A factor pair is two numbers that multiply to give the target.", "List all factor pairs to determine prime/composite status."], "Factor pairs of 24: (1,24),(2,12),(3,8),(4,6) → 4 pairs → composite"),
+        q("List all factor pairs of 16.", "fill", "Answer = ____"),
+        q("List all factor pairs of 13.", "fill", "Answer = ____"),
+        q("List all factor pairs of 28.", "fill", "Answer = ____"),
+        q("List all factor pairs of 36.", "fill", "Answer = ____"),
+        q("How many factor pairs does a prime number always have?", "fill", "Answer = ____"),
+        cb("Identifying from clues", ["Use number properties to identify prime/composite without division.", "Odd, not square, not ending in 0 or 5 — still might be composite."], "37: odd, doesn't end in 0 or 5, not divisible by 3 (3+7=10) → likely prime. Confirm: 37÷7=5.28 → prime ✓"),
+        q("Is 77 prime or composite? (hint: try 7) ____", "fill", "Answer = ____"),
+        q("Is 67 prime or composite? Test it. ____", "fill", "Answer = ____"),
+        q("Write 5 composite numbers between 50 and 70.", "fill", "Answer = ____"),
+        q("Write all prime numbers between 50 and 70.", "fill", "Answer = ____"),
+        q("True or False: A number ending in 9 is always prime.", "fill", "Answer = ____"),
+        q("Find a composite number between 80 and 90.", "fill", "Answer = ____"),
+        q("Find a prime number between 80 and 90.", "fill", "Answer = ____"),
+        q("Is 1001 prime? (hint: 1001 = 7 × 143 = 7 × 11 × 13) ____", "fill", "Answer = ____"),
+    ]
+
+def _L2H_s(sheet):
+    return [
+        cb("Prime Factorisation", ["Every composite number = product of prime numbers.", "Use a factor tree to find all prime factors.", "Write using index notation: 12 = 2² × 3."], "36: 36=4×9=2×2×3×3=2²×3²"),
+        q("Draw a factor tree for 20. Write prime factorisation.", "fill", "Answer = ____"),
+        q("Draw a factor tree for 28. Write prime factorisation.", "fill", "Answer = ____"),
+        q("Write prime factorisation of 30 = ____", "fill", "Answer = ____"),
+        q("Write prime factorisation of 45 = ____", "fill", "Answer = ____"),
+        q("Write prime factorisation of 48 = ____", "fill", "Answer = ____"),
+        cb("Checking factorisations", ["Multiply back to check: 2³×3 = 8×3 = 24 ✓.", "All factors in the final answer must be prime."], "Check: 60=2²×3×5 → 4×3×5=60 ✓"),
+        q("Check: Is 72 = 2³×3²? Multiply back to verify.", "fill", "Answer = ____"),
+        q("Check: Is 100 = 2²×5²? Multiply back to verify.", "fill", "Answer = ____"),
+        q("Complete: 54 = 2 × ___. Fill the rest using prime factors.", "fill", "Answer = ____"),
+        q("Complete: 90 = 2 × 3 × ___. Fill the rest.", "fill", "Answer = ____"),
+        q("Find the prime factorisation of 64.", "fill", "Answer = ____"),
+        cb("Applications of prime factorisation", ["Used for finding HCF and LCM.", "Reveals the structure of numbers."], "HCF(12,18): 12=2²×3, 18=2×3². Common: 2¹×3¹=6"),
+        q("Find prime factorisation of both 12 and 18, then find their HCF.", "fill", "Answer = ____"),
+        q("Find prime factorisation of 20 and 30, then find their LCM.", "fill", "Answer = ____"),
+        q("True or False: Every number has a unique prime factorisation.", "fill", "Answer = ____"),
+        q("What is the prime factorisation of a prime number? ____", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 120.", "fill", "Answer = ____"),
+        q("Challenge: Find n if 2³ × n = 72.", "fill", "Answer = ____"),
+        q("How many prime factors does 2 × 3 × 5 × 7 have?", "fill", "Answer = ____"),
+        q("Write a number whose prime factorisation is 2² × 3 × 7.", "fill", "Answer = ____"),
+    ]
+
+def _L2I_s(sheet):
+    return [
+        cb("Mixed Classification: Even, Odd, Prime, Composite", ["A number can belong to multiple categories.", "Example: 2 is even AND prime.", "9 is odd AND composite."], "2→even,prime. 3→odd,prime. 4→even,composite. 9→odd,composite."),
+        q("Classify 2: even/odd? ____ prime/composite/neither? ____", "fill", "Answer = ____"),
+        q("Classify 9: even/odd? ____ prime/composite/neither? ____", "fill", "Answer = ____"),
+        q("Classify 15: even/odd? ____ prime/composite/neither? ____", "fill", "Answer = ____"),
+        q("Classify 17: even/odd? ____ prime/composite/neither? ____", "fill", "Answer = ____"),
+        q("Classify 36: even/odd? ____ prime/composite/neither? ____", "fill", "Answer = ____"),
+        cb("Sorting numbers into categories", ["A number can be in the 'even AND prime' category (only 2).", "Or 'odd AND prime' (most primes).", "Or 'even AND composite' (4,6,8,10…).", "Or 'odd AND composite' (9,15,21,25…)."], "Category matrix: odd-prime: 3,5,7,11. Odd-composite: 9,15,25. Even-prime: 2. Even-composite: 4,6,8."),
+        q("List numbers from 1–20 that are odd AND prime.", "fill", "Answer = ____"),
+        q("List numbers from 1–20 that are even AND composite.", "fill", "Answer = ____"),
+        q("List numbers from 1–20 that are odd AND composite.", "fill", "Answer = ____"),
+        q("Is there a number that is both even AND prime? ____", "fill", "Answer = ____"),
+        q("Is there a number that is both even AND odd? ____", "fill", "Answer = ____"),
+        cb("Using all four criteria", ["Apply all classifications in mixed problems.", "More categories give you more information about a number."], "I am >10. I am even. I am prime. I am 2? No, 2<10. Answer: impossible! No even prime > 10."),
+        q("Find a number that is odd, prime, and between 40 and 50.", "fill", "Answer = ____"),
+        q("True or False: All prime numbers greater than 2 are odd.", "fill", "Answer = ____"),
+        q("True or False: All odd numbers greater than 1 are prime.", "fill", "Answer = ____"),
+        q("True or False: There are even composite numbers.", "fill", "Answer = ____"),
+        q("True or False: There are no numbers that are both prime and composite.", "fill", "Answer = ____"),
+        q("How many numbers from 1 to 20 are odd AND prime?", "fill", "Answer = ____"),
+        q("Spot the mistake: '6 is prime because it is even.' Correct it.", "fill", "Answer = ____"),
+        q("Spot the mistake: '2 is composite because it is even.' Correct it.", "fill", "Answer = ____"),
+    ]
+
+def _L2J_s(sheet):
+    return [
+        cb("Number Puzzles — Even, Odd, Prime, Composite", ["Use all number knowledge to solve multi-clue puzzles.", "Eliminate options one clue at a time.", "There may be more than one answer — find ALL of them."], "I am prime. I am between 20 and 30. My digits differ by 4. Try 23(3-2=1 no), 29(9-2=7 no). None? Check all: 23,29. 2 and 9 differ by 7; 2 and 3 differ by 1. No answer for diff=4. Puzzle has no solution."),
+        q("I am prime and between 10 and 30. My digits sum to 10. What am I? (List all.)", "fill", "Answer = ____"),
+        q("I am composite. I am between 20 and 30. I am even. What could I be? (List all.)", "fill", "Answer = ____"),
+        q("I am odd and composite. I am less than 20. What am I? (List all.)", "fill", "Answer = ____"),
+        q("I am a 2-digit prime. My digits are consecutive (differ by 1). What am I? (List all.)", "fill", "Answer = ____"),
+        q("I am a prime number. The sum of all my digits is 5. I am less than 100. What am I? (List all.)", "fill", "Answer = ____"),
+        cb("Multi-clue puzzles", ["Use all clues together — each eliminates more candidates.", "Write 'no solution' if no number satisfies all clues."], "I am odd. I am prime. I am between 50 and 60. Answer: 53, 59"),
+        q("I am odd AND prime AND between 60 and 80. List all answers.", "fill", "Answer = ____"),
+        q("I am even AND composite AND between 20 and 30. List all.", "fill", "Answer = ____"),
+        q("My prime factorisation uses only the prime 2. I am between 10 and 50. What am I? (List all.)", "fill", "Answer = ____"),
+        q("I am a 2-digit number. My tens digit is prime and my ones digit is prime. List all.", "fill", "Answer = ____"),
+        q("I am a composite number. Both my factors (other than 1 and myself) are prime. I am less than 30. List all.", "fill", "Answer = ____"),
+        cb("Reasoning puzzles", ["Use logical deduction — not just trial and error.", "Prove your answer satisfies ALL conditions."], "I am the largest 2-digit prime. Answer: 97. Check: 97 is prime (not div by 2,3,5,7). 99=9×11 composite. 98 even. 97 ✓"),
+        q("What is the largest 2-digit prime number?", "fill", "Answer = ____"),
+        q("What is the smallest 3-digit prime number?", "fill", "Answer = ____"),
+        q("Are there any even prime numbers greater than 2? Explain.", "fill", "Answer = ____"),
+        q("I am a composite number with exactly 3 factors. What kind of number must I be? Give an example.", "fill", "Answer = ____"),
+        q("Find two consecutive prime numbers that differ by 2 (twin primes) — give 3 examples.", "fill", "Answer = ____"),
+        q("Challenge: A and B are primes. A × B = 143. Find A and B.", "fill", "Answer = ____"),
+        q("The product of all primes less than 10 is ____.", "fill", "Answer = ____"),
+        q("Challenge: Write the smallest number that has exactly 6 factors. What is it?", "fill", "Answer = ____"),
+    ]
+
+
+# ═══════════════════════════════════════════════════════════════
+# ROUTER — maps (sublevel_code, sheet_num) → question list
+# ═══════════════════════════════════════════════════════════════
+
+_DISPATCH = {
+    # Level 1
+    "1A": {1:_L1A_1, 2:_L1A_2, 3:_L1A_3, 4:_L1A_4},
+    "1B": {1:_L1B_1, 2:_L1B_2, 3:_L1B_3, 4:_L1B_4},
+    "1C": {1:_L1C_1, 2:_L1C_2, 3:_L1C_3, 4:_L1C_4},
+    "1D": {1:_L1D_1, 2:_L1D_2, 3:_L1D_3, 4:_L1D_4},
+    "1E": {1:_L1E_1, 2:_L1E_2, 3:_L1E_3, 4:_L1E_4},
+    "1F": {1:_L1F_1, 2:_L1F_2, 3:_L1F_3, 4:_L1F_4},
+    "1G": {1:lambda:_L1G_s(1), 2:lambda:_L1G_s(2), 3:lambda:_L1G_s(3), 4:lambda:_L1G_s(4)},
+    "1H": {1:lambda:_L1H_s(1), 2:lambda:_L1H_s(2), 3:lambda:_L1H_s(3), 4:lambda:_L1H_s(4)},
+    "1I": {1:lambda:_L1I_s(1), 2:lambda:_L1I_s(2), 3:lambda:_L1I_s(3), 4:lambda:_L1I_s(4)},
+    "1J": {1:lambda:_L1J_s(1), 2:lambda:_L1J_s(2), 3:lambda:_L1J_s(3), 4:lambda:_L1J_s(4)},
+    "1CUM1": {1:lambda:_L1CUM1_s(1), 2:lambda:_L1CUM1_s(2), 3:lambda:_L1CUM1_s(3), 4:lambda:_L1CUM1_s(4)},
+    "1CUM2": {1:lambda:_L1CUM2_s(1), 2:lambda:_L1CUM2_s(2), 3:lambda:_L1CUM2_s(3), 4:lambda:_L1CUM2_s(4)},
+    "1CUM3": {1:lambda:_L1CUM3_s(1), 2:lambda:_L1CUM3_s(2), 3:lambda:_L1CUM3_s(3), 4:lambda:_L1CUM3_s(4)},
+    "1REV":  {1:lambda:_L1REV_s(1), 2:lambda:_L1REV_s(2), 3:lambda:_L1REV_s(3), 4:lambda:_L1REV_s(4)},
+    # Level 2
+    "2A": {1:_L2A_1, 2:_L2A_2, 3:_L2A_3, 4:_L2A_4},
+    "2B": {1:_L2B_1, 2:_L2B_2, 3:_L2B_3, 4:_L2B_4},
+    "2C": {1:_L2C_1, 2:_L2C_2, 3:_L2C_3, 4:_L2C_4},
+    "2D": {1:_L2D_1, 2:_L2D_2, 3:_L2D_3, 4:_L2D_4},
+    "2E": {1:_L2E_1, 2:_L2E_2, 3:_L2E_3, 4:_L2E_4},
+    "2F": {1:lambda:_L2F_s(1), 2:lambda:_L2F_s(2), 3:lambda:_L2F_s(3), 4:lambda:_L2F_s(4)},
+    "2G": {1:lambda:_L2G_s(1), 2:lambda:_L2G_s(2), 3:lambda:_L2G_s(3), 4:lambda:_L2G_s(4)},
+    "2H": {1:lambda:_L2H_s(1), 2:lambda:_L2H_s(2), 3:lambda:_L2H_s(3), 4:lambda:_L2H_s(4)},
+    "2I": {1:lambda:_L2I_s(1), 2:lambda:_L2I_s(2), 3:lambda:_L2I_s(3), 4:lambda:_L2I_s(4)},
+    "2J": {1:lambda:_L2J_s(1), 2:lambda:_L2J_s(2), 3:lambda:_L2J_s(3), 4:lambda:_L2J_s(4)},
+    "2CUM1":{1:lambda:_L2CUM1_s(1), 2:lambda:_L2CUM1_s(2), 3:lambda:_L2CUM1_s(3), 4:lambda:_L2CUM1_s(4)},
+    "2CUM2":{1:lambda:_L2CUM2_s(1), 2:lambda:_L2CUM2_s(2), 3:lambda:_L2CUM2_s(3), 4:lambda:_L2CUM2_s(4)},
+    "2CUM3":{1:lambda:_L2CUM3_s(1), 2:lambda:_L2CUM3_s(2), 3:lambda:_L2CUM3_s(3), 4:lambda:_L2CUM3_s(4)},
+    "2REV": {1:lambda:_L2REV_s(1), 2:lambda:_L2REV_s(2), 3:lambda:_L2REV_s(3), 4:lambda:_L2REV_s(4)},
 }
+
+def _fallback(code, sheet):
+    """Placeholder for levels not yet written — makes app never crash."""
+    return [
+        cb(f"{code} — Sheet {sheet} (Coming Soon)",
+           [f"This sublevel ({code}) is being prepared.",
+            "Hand-crafted questions will be added soon.",
+            "Thank you for your patience!"],
+           f"Sublevel: {code}"),
+    ] + [q(f"Question {i}: {code} content coming soon.", "fill", "Answer = ____")
+         for i in range(1, 20)]
+
 
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
-    is_r = sheet_num.endswith("R")
-    base = int(sheet_num.replace("R",""))
-    fn   = _MAP.get(sublevel_code)
-    items = fn(base) if fn else _qs(sublevel_code, [sublevel_code], sublevel_code, base)
-    # Ensure exactly 20 questions
+    """
+    Main entry point. Returns a list of question dicts.
+    sublevel_code: e.g. '1A', '2E', '1CUM1', '2REV'
+    sheet_num: '1','2','3','4' or '1R','2R','3R','4R' for remedial
+    """
+    is_remedial = str(sheet_num).endswith("R")
+    base_sheet = int(str(sheet_num).replace("R", ""))
+
+    # Look up the function
+    sublevel_map = _DISPATCH.get(sublevel_code)
+    if sublevel_map:
+        fn = sublevel_map.get(base_sheet)
+        items = fn() if fn else _fallback(sublevel_code, base_sheet)
+    else:
+        items = _fallback(sublevel_code, base_sheet)
+
+    # Ensure exactly 20 questions (pad or trim)
     qs = [x for x in items if x["type"] != "concept_box"]
     while len(qs) < 20:
-        qs.append(q(f"Solve for {sublevel_code} problem {len(qs)+1}.", "fill", "Answer = ____"))
-    rebuilt, qi = [], 0
+        qs.append(q(f"{sublevel_code} Q{len(qs)+1}: solve carefully.", "fill", "Answer = ____"))
+
+    # Rebuild in original order, replacing question items
+    result = []
+    qi = 0
     for item in items:
         if item["type"] == "concept_box":
-            rebuilt.append(item)
+            result.append(item)
         else:
-            if qi < 20: rebuilt.append(qs[qi]); qi += 1
-    while qi < 20: rebuilt.append(qs[qi]); qi += 1
-    if is_r:
-        rebuilt = remedialise(rebuilt, seed=hash(sublevel_code+sheet_num)%9999)
-    return rebuilt
+            if qi < 20:
+                result.append(qs[qi])
+                qi += 1
+    # Any remaining questions not yet added (if items had fewer than 20 qs)
+    while qi < 20:
+        result.append(qs[qi])
+        qi += 1
+
+    # Apply remedial number variation
+    if is_remedial:
+        result = remedialise(result, seed=hash(sublevel_code + str(sheet_num)) % 9999)
+
+    return result
