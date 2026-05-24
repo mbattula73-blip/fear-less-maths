@@ -54,6 +54,8 @@ def _L1A_1():  # Counting 1-50, Sheet 1 Intuition
         q("The number 48 has ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"),
         q("Four tens and two ones = ____.", "fill", "Answer = ____"),
         q("Write all numbers between 45 and 50 (not including 45 and 50).", "fill", "Answer = ____"),
+        q("Write all even numbers from 2 to 20.", "fill", "Answer = ____"),
+        q("True or False: The number 50 has 5 tens and 0 ones.", "fill", "Answer = ____"),
     ]
 
 # L1B Sheet 1 — Intuition
@@ -80,6 +82,8 @@ def _L1B_1():  # Counting 1-100, Sheet 1 Intuition
         q("Write all multiples of 5 between 60 and 80.", "fill", "Answer = ____"),
         q("What is 10 more than 89?", "fill", "Answer = ____"),
         q("What number comes just before 100?", "fill", "Answer = ____"),
+        q("True or False: 10 tens make 100.", "fill", "Answer = ____"),
+        q("Write the number that comes just after 100.", "fill", "Answer = ____"),
     ]
 
 # L1A Sheet 2 — Concept
@@ -106,6 +110,7 @@ def _L1A_2():  # Counting 1-50, Sheet 2 Concept
         q("The tens digit of 49 is ____.", "fill", "Answer = ____"),
         q("The ones digit of 30 is ____.", "fill", "Answer = ____"),
         q("True or False: 50 is greater than 49.", "fill", "Answer = ____"),
+        q("Write the number that has 6 tens and 5 ones.", "fill", "Answer = ____"),
     ]
 
 # L1B Sheet 2 — Concept
@@ -132,6 +137,7 @@ def _L1B_2():  # Counting 1-100, Sheet 2 Concept
         q("A classroom has 3 rows of 10 desks and 8 extra desks. How many desks altogether?", "word", "Total = ____", "3 rows of 10 and 8 extra"),
         q("Write three numbers that are between 70 and 80.", "fill", "Answer = ____"),
         q("True or False: 100 is greater than 99.", "fill", "Answer = ____"),
+        q("Write 90 in expanded form: ___ + ___", "fill", "Answer = ____"),
     ]
 
 # L1A Sheet 3 — Practice
@@ -157,6 +163,7 @@ def _L1A_3():  # Counting 1-50, Sheet 3 Practice
         q("Write three numbers that are between 30 and 40.", "fill", "Answer = ____"),
         q("Spot the mistake: 'The expanded form of 34 is 3 + 4.' What is the correct expanded form?", "fill", "Correct = ____"),
         q("How many 2-digit numbers are there altogether?", "fill", "Answer = ____"),
+        q("Write all 2-digit numbers with tens digit 4 in ascending order.", "fill", "Answer = ____"),
     ]
 
 # L1B Sheet 3 — Practice
@@ -182,6 +189,7 @@ def _L1B_3():  # Counting 1-100, Sheet 3 Practice
         q("Write a number between 90 and 100 that has a 4 in the ones place.", "fill", "Answer = ____"),
         q("A library has 6 shelves with 10 books each and 8 more books on a table. Total books = ____.", "word", "Total = ____", "6 shelves of 10 and 8 extra"),
         q("True or False: Rounding 75 to the nearest 10 gives 70.", "fill", "Answer = ____"),
+        q("True or False: Rounding 95 to the nearest 10 gives 100.", "fill", "Answer = ____"),
     ]
 
 # L1A Sheet 4 — Mastery
@@ -207,6 +215,7 @@ def _L1A_4():  # Counting 1-50, Sheet 4 Mastery
         q("Is the number of days in a week (7) a 2-digit number? Explain.", "fill", "Answer = ____"),
         q("Ravi has 45 stamps. He gives away some and has 28 left. How many did he give away?", "word", "Answer = ____", "45 stamps, 28 left"),
         q("Challenge: I am a 2-digit number. My tens digit is 3 more than my ones digit. I am less than 50. What am I?", "fill", "Answer = ____"),
+        q("True or False: Every 2-digit number is greater than every 1-digit number.", "fill", "Answer = ____"),
     ]
 
 # L1B Sheet 4 — Mastery
@@ -232,6 +241,7 @@ def _L1B_4():  # Counting 1-100, Sheet 4 Mastery
         q("The sum of the digits of a 2-digit number is 11. What could the number be? Write all answers.", "fill", "Answer = ____"),
         q("Challenge: A number is 8 less than the largest 2-digit number. What is it?", "fill", "Answer = ____"),
         q("True or False: There are more even 2-digit numbers than odd 2-digit numbers.", "fill", "Answer = ____"),
+        q("Write the 2-digit multiple of 9 that is closest to 50.", "fill", "Answer = ____"),
     ]
 
 # ═══════════════════════════════════════════════════════════════
@@ -261,6 +271,7 @@ def _L1C_1():
         q("Ravi says the number before 30 is 31. Is he correct? What is the correct answer?", "fill", "Answer = ____"),
         q("Write the number just before 100.", "fill", "Answer = ____"),
         q("Write the number just after 99.", "fill", "Answer = ____"),
+        q("Write the number just before 1.", "fill", "Answer = ____"),
     ]
 
 def _L1C_2():
@@ -287,6 +298,7 @@ def _L1C_2():
         q("Write three numbers: just before 50, 50 itself, just after 50.", "fill", "Answer = ____"),
         q("Spot the mistake: 'The number after 39 is 41.' What is correct?", "fill", "Answer = ____"),
         q("What is the number exactly halfway between 40 and 42?", "fill", "Answer = ____"),
+        q("Write a 2-digit number that is between 55 and 60 and is odd.", "fill", "Answer = ____"),
     ]
 
 def _L1C_3():
@@ -313,6 +325,7 @@ def _L1C_3():
         q("True or False: The number after 100 is 102.", "fill", "Answer = ____"),
         q("Write the number that is 1 more than the largest 2-digit number.", "fill", "Answer = ____"),
         q("Write the number that is 1 less than the smallest 2-digit number.", "fill", "Answer = ____"),
+        q("True or False: Between any two consecutive whole numbers there are no other whole numbers.", "fill", "Answer = ____"),
     ]
 
 def _L1C_4():
@@ -338,6 +351,8 @@ def _L1C_4():
         q("True or False: Every whole number has exactly one number before it.", "fill", "Answer = ____"),
         q("Write a number whose before-neighbour is even and after-neighbour is also even.", "fill", "Answer = ____"),
         q("The sum of three consecutive numbers is 33. What are the three numbers?", "fill", "Answer = ____"),
+        q("The sum of a number and its before-neighbour is 49. What is the number?", "fill", "Answer = ____"),
+        q("How many whole numbers lie strictly between 1 and 100? ____", "fill", "Answer = ____"),
     ]
 
 
@@ -367,6 +382,8 @@ def _L1D_1():
         q("Order: 19, 91, 9, 90 — from smallest to greatest", "fill", "Answer = ____"),
         q("Find a number greater than 50 and smaller than 55.", "fill", "Answer = ____"),
         q("Find a number greater than 67 and smaller than 70.", "fill", "Answer = ____"),
+        q("Write a 2-digit number where the tens digit is double the ones digit.", "fill", "Answer = ____"),
+        q("True or False: 100 is greater than every 2-digit number.", "fill", "Answer = ____"),
     ]
 
 def _L1D_2():
@@ -393,6 +410,7 @@ def _L1D_2():
         q("Write the smallest 2-digit number that is greater than 80.", "fill", "Answer = ____"),
         q("Write three 2-digit numbers greater than 45 and less than 52.", "fill", "Answer = ____"),
         q("True or False: If A > B and B > C, then A > C.", "fill", "Answer = ____"),
+        q("Write three numbers where 40 < n < 45.", "fill", "Answer = ____"),
     ]
 
 def _L1D_3():
@@ -419,6 +437,7 @@ def _L1D_3():
         q("How many 2-digit numbers are greater than 90?", "fill", "Answer = ____"),
         q("A shopkeeper has 67 mangoes and 76 oranges. He has more ____.", "word", "Answer = ____", "67 mangoes and 76 oranges"),
         q("True or False: The largest 2-digit number is greater than any 1-digit number.", "fill", "Answer = ____"),
+        q("True or False: The smallest 2-digit number is 11.", "fill", "Answer = ____"),
     ]
 
 def _L1D_4():
@@ -444,6 +463,8 @@ def _L1D_4():
         q("Three friends have scores: Ravi > 70, Meena < 80, Priya = 75. What can you say about their order?", "fill", "Answer = ____"),
         q("Spot the error: '21 < 12 because 1 is smaller than 2.' Explain the correct answer.", "fill", "Answer = ____"),
         q("Challenge: A 2-digit number reversed gives a smaller number. The difference between the number and its reverse is 27. What is the number? (Hint: 63 reversed is 36.)", "fill", "Answer = ____"),
+        q("Find all 2-digit numbers where the ones digit is exactly 5 more than the tens digit.", "fill", "Answer = ____"),
+        q("True or False: If p > q, then p + 1 > q + 1.", "fill", "Answer = ____"),
     ]
 
 
@@ -473,6 +494,8 @@ def _L1E_1():
         q("___ + 14 = 30", "fill", "Missing = ____"),
         q("50 − ___ = 27", "fill", "Missing = ____"),
         q("___ − 15 = 20", "fill", "Missing = ____"),
+        q("Fill in: 100, ___, 98, ___, 96 (rule -1)", "fill", "Answer = ____"),
+        q("Write the missing addend: 45 + ___ = 60", "fill", "Answer = ____"),
     ]
 
 def _L1E_2():
@@ -499,6 +522,7 @@ def _L1E_2():
         q("Check this sequence and find the error: 5, 10, 15, 25, 30", "fill", "Error at = ____"),
         q("Write your own missing-number sequence using rule +6, with one blank.", "fill", "Answer = ____"),
         q("Ravi says the missing number in 11, ___, 33, 44 is 21. Is he correct?", "fill", "Answer = ____"),
+        q("Find the rule and fill: 90, 82, 74, ___, ___ (rule = ____)", "fill", "Answer = ____"),
     ]
 
 def _L1E_3():
@@ -525,6 +549,7 @@ def _L1E_3():
         q("Fill in: 1, 1, 2, 3, 5, ___, 13  (Fibonacci: each = sum of previous two)", "fill", "Answer = ____"),
         q("A shop sold 12 Monday, 15 Tuesday, 18 Wednesday, ___ Thursday (rule +3).", "word", "Answer = ____", "12, 15, 18, ..."),
         q("Fill in: 100, 95, ___, 85, ___, 75", "fill", "Answer = ____"),
+        q("A number added to 38 gives 61. What is the number?", "fill", "Answer = ____"),
     ]
 
 def _L1E_4():
@@ -551,6 +576,7 @@ def _L1E_4():
         q("Is the number 100 in this sequence: 4, 8, 12, 16, ...? Explain how you know.", "fill", "Answer = ____"),
         q("Two consecutive numbers add up to 87. What are they?", "fill", "Answer = ____"),
         q("Three consecutive even numbers add up to 54. What are they?", "fill", "Answer = ____"),
+        q("Write the 7th term of: 5, 9, 13, 17, 21... using a formula.", "fill", "Answer = ____"),
     ]
 
 
@@ -580,6 +606,8 @@ def _L1F_1():
         q("Write your own pattern using rule +4, starting at 8. Write 6 terms.", "fill", "Answer = ____"),
         q("Write your own pattern using rule −3, starting at 30. Write 6 terms.", "fill", "Answer = ____"),
         q("Is 45 in the pattern 5, 10, 15, 20, 25…? Explain.", "fill", "Answer = ____"),
+        q("Write the next two numbers in: 17, 22, 27, 32, ___, ___", "fill", "Answer = ____"),
+        q("What is the 8th term of the sequence: 3, 6, 9, 12, ...?", "fill", "Answer = ____"),
     ]
 
 def _L1F_2():
@@ -606,6 +634,7 @@ def _L1F_2():
         q("True or False: The rule for 2, 4, 6, 8 is the same as the rule for 12, 14, 16, 18.", "fill", "Answer = ____"),
         q("Write a pattern where every term is a multiple of 6, starting at 6, first 5 terms.", "fill", "Answer = ____"),
         q("A plant grows 4 cm per week. It is 10 cm now. How tall after 5 more weeks?", "word", "Answer = ____", "10 cm, grows 4 cm per week"),
+        q("Write the first 5 multiples of 9.", "fill", "Answer = ____"),
     ]
 
 def _L1F_3():
@@ -632,6 +661,7 @@ def _L1F_3():
         q("How many terms of the pattern 5, 10, 15, 20… are less than 100?", "fill", "Answer = ____"),
         q("A pattern starts at 6 and ends at 66 using rule +5. How many terms are there?", "fill", "Answer = ____"),
         q("True or False: Every even number appears in the pattern 0, 2, 4, 6, 8…", "fill", "Answer = ____"),
+        q("A pattern starts at 3, rule +8. What is the 6th term?", "fill", "Answer = ____"),
     ]
 
 def _L1F_4():
@@ -658,6 +688,7 @@ def _L1F_4():
         q("Challenge: Two different patterns both contain the number 24. Can you write them?", "fill", "Answer = ____"),
         q("Two arithmetic sequences start at 5 and 8. Both have rule +3. Will they ever share a common term? Explain.", "fill", "Answer = ____"),
         q("The product of the 3rd and 4th terms of: 2, 4, 8, 16… What is it?", "fill", "Answer = ____"),
+        q("For the sequence: term n = 5n - 2, find term 10.", "fill", "Answer = ____"),
     ]
 
 
@@ -699,34 +730,36 @@ def _L1CUM1_s(sheet):
 def _L1CUM2_s(sheet):
     """Cumulative: Greater/Smaller, Missing numbers, Number patterns"""
     return [
-        cb("Cumulative Review: Comparison, Missing Numbers, Patterns",
-           ["This sheet covers: Greater/Smaller, Missing numbers, Number patterns.",
-            "Show all working. Check every answer.",
-            "Use comparison, inverse operations, and pattern rules."],
-           "Review tip: find the rule first, then fill the blank"),
-        cb("Section 1: Greater / Smaller", ["Recall: compare tens first, then ones. Use > < =."], ""),
-        q("Write > or < : 54 ___ 45", "fill", "Answer = ____"),
-        q("Write > or < : 82 ___ 82", "fill", "Answer = ____"),
+        cb("Cumulative: Comparison, Missing Numbers, Patterns",
+           ["Covers: Greater/Smaller, Missing numbers, Number patterns.",
+            "Compare using place value. Use inverse operations for missing numbers.",
+            "Always find the rule before filling pattern gaps."],
+           "Compare tens first; find rule then fill gap; inverse ops for missing"),
+        cb("Section 1: Greater / Smaller", ["Compare tens first, then ones. Use >, <, =."], ""),
+        q("Write > or < :  54 ___ 45", "fill", "Answer = ____"),
+        q("Write > or < :  33 ___ 33", "fill", "Answer = ____"),
         q("Greatest of 34, 43, 30, 40: ____", "fill", "Answer = ____"),
-        q("Order ascending: 92, 29, 9, 90: ____", "fill", "Answer = ____"),
-        q("True or False: 67 < 76", "fill", "Answer = ____"),
+        q("Order ascending: 92, 29, 9, 90", "fill", "Answer = ____"),
         q("Smallest of 76, 67, 70, 60: ____", "fill", "Answer = ____"),
-        cb("Section 2: Missing Numbers", ["Recall: find the rule, use inverse operations."], ""),
+        q("True or False: 67 < 76", "fill", "Answer = ____"),
+        cb("Section 2: Missing Numbers", ["Find the rule, use inverse operations."], ""),
         q("Fill in: 25, ___, 27, ___, 29", "fill", "Answer = ____"),
-        q("3 + ___ = 11", "fill", "Missing = ____"),
-        q("___ − 5 = 8", "fill", "Missing = ____"),
+        q("3 + ___ = 11", "fill", "Answer = ____"),
+        q("___ − 5 = 8", "fill", "Answer = ____"),
         q("Fill in: 60, ___, 80, ___, 100", "fill", "Answer = ____"),
-        q("___ + 23 = 47", "fill", "Missing = ____"),
-        cb("Section 3: Number Patterns", ["Recall: find rule, extend, check."], ""),
+        q("___ + 23 = 47", "fill", "Answer = ____"),
+        q("36 − ___ = 19", "fill", "Answer = ____"),
+        cb("Section 3: Number Patterns", ["Find rule, extend, check."], ""),
         q("Rule +3: 6, 9, ___, 15, ___", "fill", "Answer = ____"),
         q("Rule −5: 40, 35, ___, 25, ___", "fill", "Answer = ____"),
         q("Find rule and next: 2, 4, 8, 16, ___", "fill", "Rule=____ Next=____"),
-        q("Pattern: 1, 3, 5, 7, 9, ___", "fill", "Answer = ____"),
         q("Rule +4: 4, 8, 12, ___, 20", "fill", "Answer = ____"),
-        q("Rule +10: 20, 30, ___, 50, ___", "fill", "Answer = ____"),
         q("Fill in: 48, 46, ___, 42, ___", "fill", "Answer = ____"),
-        q("Next three: 10, 20, 30, ___, ___, ___", "fill", "Answer = ____"),
+        q("Pattern: 1, 3, 5, 7, 9, ___", "fill", "Answer = ____"),
+        q("Fill in: 2, 5, ___, 11, ___, 17 (rule +3)", "fill", "Answer = ____"),
+        q("Find the rule: 60, 54, 48, 42, ___ — rule = ____, next = ____", "fill", "Answer = ____"),
     ]
+
 
 def _L1CUM3_s(sheet):
     """Cumulative: All Level 1 skills"""
@@ -818,6 +851,8 @@ def _L2A_1():
         q("The ones digit of every even number can be: ____", "fill", "Answer = ____"),
         q("Even number just before 100: ____", "fill", "Answer = ____"),
         q("Write all even numbers from 51 to 61.", "fill", "Answer = ____"),
+        q("Write all even numbers from 62 to 72.", "fill", "Answer = ____"),
+        q("How many even numbers are between 1 and 50?", "fill", "Answer = ____"),
     ]
 
 def _L2A_2():
@@ -844,6 +879,7 @@ def _L2A_2():
         q("Write the largest even number less than 99.", "fill", "Answer = ____"),
         q("A class of 34 students must form pairs. Are there enough for everyone? ____", "word", "Answer = ____", "34 students, 2 per pair"),
         q("Find two even numbers that add to 50. Write all pairs.", "fill", "Answer = ____"),
+        q("Is the sum 14 + 26 + 38 even or odd? Explain without adding.", "fill", "Answer = ____"),
     ]
 
 def _L2A_3():
@@ -870,6 +906,7 @@ def _L2A_3():
         q("Write three even numbers whose sum is 30.", "fill", "Answer = ____"),
         q("Write the even numbers between 95 and 103.", "fill", "Answer = ____"),
         q("Spot the mistake: 'The number 42 is odd because 4 + 2 = 6, which is even.' Correct it.", "fill", "Answer = ____"),
+        q("True or False: The sum of any two multiples of 4 is always even.", "fill", "Answer = ____"),
     ]
 
 def _L2A_4():
@@ -896,6 +933,7 @@ def _L2A_4():
         q("A rectangle has an even length and even width. Is its area always a multiple of 4? Explain.", "fill", "Answer = ____"),
         q("Write the first 5 even perfect squares.", "fill", "Answer = ____"),
         q("If I double any whole number, is the result always even? Explain.", "fill", "Answer = ____"),
+        q("Find the smallest even number greater than 98.", "fill", "Answer = ____"),
     ]
 
 
@@ -923,6 +961,8 @@ def _L2B_1():
         q("Largest odd number less than 50: ____", "fill", "Answer = ____"),
         q("Write 4 consecutive odd numbers starting from 23.", "fill", "Answer = ____"),
         q("Is the sum of the first 5 odd numbers (1+3+5+7+9) odd or even? Calculate it.", "fill", "Answer = ____"),
+        q("Write all odd numbers from 61 to 71.", "fill", "Answer = ____"),
+        q("How many odd numbers are between 1 and 50?", "fill", "Answer = ____"),
     ]
 
 def _L2B_2():
@@ -949,6 +989,7 @@ def _L2B_2():
         q("Write the largest odd number less than 100.", "fill", "Answer = ____"),
         q("Write three odd numbers that add to 21.", "fill", "Answer = ____"),
         q("Write three odd numbers that add to 15.", "fill", "Answer = ____"),
+        q("True or False: The sum of any two consecutive odd numbers is always even.", "fill", "Answer = ____"),
     ]
 
 def _L2B_3():
@@ -975,6 +1016,7 @@ def _L2B_3():
         q("How many odd numbers are between 30 and 50 (exclusive)?", "fill", "Answer = ____"),
         q("The sum of two consecutive odd numbers is 48. What are they?", "fill", "Answer = ____"),
         q("Spot the mistake: '7 × 4 is odd because 7 is odd.' Correct it.", "fill", "Answer = ____"),
+        q("Write all odd numbers between 90 and 100.", "fill", "Answer = ____"),
     ]
 
 def _L2B_4():
@@ -1001,6 +1043,7 @@ def _L2B_4():
         q("Is 1 odd? Is 0 even? Can a number be both odd and even? Explain.", "fill", "Answer = ____"),
         q("The product of the first 5 odd primes (3×5×7×11×13) = ____.", "fill", "Answer = ____"),
         q("If a + b = even and a is odd, what must b be? Explain.", "fill", "Answer = ____"),
+        q("Find the largest odd number less than 100.", "fill", "Answer = ____"),
     ]
 
 
@@ -1028,6 +1071,8 @@ def _L2C_1():
         q("Is the product 3 × 4 even or odd? ____", "fill", "Answer = ____"),
         q("Is the product 3 × 5 even or odd? ____", "fill", "Answer = ____"),
         q("True or False: All numbers ending in 0 are even.", "fill", "Answer = ____"),
+        q("Is the ones digit of any multiple of 10 always 0? ____", "fill", "Answer = ____"),
+        q("Write all numbers from 1 to 20 that are divisible by 2.", "fill", "Answer = ____"),
     ]
 
 def _L2C_2():
@@ -1054,6 +1099,7 @@ def _L2C_2():
         q("True or False: The sum of an even number and an odd number is always odd.", "fill", "Answer = ____"),
         q("Is it possible for an odd number × odd number to give an even answer? Explain.", "fill", "Answer = ____"),
         q("Write a 3-digit odd number whose digits sum to 12.", "fill", "Answer = ____"),
+        q("True or False: The product of any number and 0 is always even.", "fill", "Answer = ____"),
     ]
 
 def _L2C_3():
@@ -1080,6 +1126,7 @@ def _L2C_3():
         q("Write a 4-digit number that is: even, has ones digit = 8, tens digit = 3.", "fill", "Answer = ____"),
         q("How many numbers from 1 to 50 are divisible by 2? ____", "fill", "Answer = ____"),
         q("Spot the error: '25 is even because 2 + 5 = 7 which... wait, 7 is odd, so 25 is odd.' Is this reasoning correct?", "fill", "Answer = ____"),
+        q("True or False: A number ending in 5 is always odd.", "fill", "Answer = ____"),
     ]
 
 def _L2C_4():
@@ -1106,6 +1153,7 @@ def _L2C_4():
         q("The sum of n odd numbers: when is the sum even, and when is it odd? Write the rule.", "fill", "Answer = ____"),
         q("Meena picks a number. She squares it and gets an even number. What must her original number have been?", "fill", "Answer = ____"),
         q("True or False: 0 is even. Justify your answer.", "fill", "Answer = ____"),
+        q("Find all 2-digit even numbers where the tens digit equals the ones digit.", "fill", "Answer = ____"),
     ]
 
 
@@ -1133,6 +1181,8 @@ def _L2D_1():
         q("Fill in and state parity: 1, ___, 9, ___, 17, ___, 25 (rule +4)", "fill", "Answer = ____"),
         q("True or False: In any sequence with rule +2, if the first term is even all terms are even.", "fill", "Answer = ____"),
         q("Write a sequence of 6 numbers where even and odd terms alternate.", "fill", "Answer = ____"),
+        q("Start=3, rule=+6. Write 6 terms. Are all odd? ____", "fill", "Answer = ____"),
+        q("True or False: Multiplying two even numbers always gives an even result.", "fill", "Answer = ____"),
     ]
 
 def _L2D_2():
@@ -1159,6 +1209,7 @@ def _L2D_2():
         q("In the sequence 5, 8, 11, 14, 17, 20 — which positions (1st, 2nd, …) are even?", "fill", "Answer = ____"),
         q("True or False: In the Fibonacci sequence (1,1,2,3,5,8,13,21…) every 3rd term is even.", "fill", "Answer = ____"),
         q("Write a 6-term sequence where exactly the 2nd, 4th, and 6th terms are even.", "fill", "Answer = ____"),
+        q("Write a sequence of 6 terms where parity alternates, starting with 7.", "fill", "Answer = ____"),
     ]
 
 def _L2D_3():
@@ -1185,6 +1236,7 @@ def _L2D_3():
         q("True or False: In a sequence start=even, rule=odd, the even and odd terms alternate perfectly.", "fill", "Answer = ____"),
         q("Write a real-life context where knowing if a number is even or odd matters.", "fill", "Answer = ____"),
         q("Create your own even/odd pattern problem and answer it.", "fill", "Answer = ____"),
+        q("Find the 10th term of the sequence 4, 7, 10, 13, ... and state its parity.", "fill", "Answer = ____"),
     ]
 
 def _L2D_4():
@@ -1211,6 +1263,7 @@ def _L2D_4():
         q("Challenge: Find a formula for a sequence where every term is odd.", "fill", "Answer = ____"),
         q("Sum of first n terms of 2,4,6,8… = n(n+1). Is this always even? Prove it.", "fill", "Answer = ____"),
         q("True or False: You can always tell the parity of a sum by counting how many odd addends there are.", "fill", "Answer = ____"),
+        q("True or False: In the sequence term n = 2n, every term is even.", "fill", "Answer = ____"),
     ]
 
 
@@ -1238,6 +1291,8 @@ def _L2E_1():
         q("Is the sum of two prime numbers always prime? Give an example. ____", "fill", "Answer = ____"),
         q("Twin primes are primes that differ by 2. Write a pair of twin primes. ____", "fill", "Answer = ____"),
         q("Is 49 prime? What are its factors? ____", "fill", "Answer = ____"),
+        q("Write all prime numbers between 30 and 40.", "fill", "Answer = ____"),
+        q("Is the number 87 prime? (Hint: 8+7=15, divisible by 3?) ____", "fill", "Answer = ____"),
     ]
 
 def _L2E_2():
@@ -1264,6 +1319,7 @@ def _L2E_2():
         q("Write all primes between 40 and 60.", "fill", "Answer = ____"),
         q("How many primes are there between 1 and 50?", "fill", "Answer = ____"),
         q("Is the product of two prime numbers always composite? Explain.", "fill", "Answer = ____"),
+        q("True or False: The product of two prime numbers is always composite.", "fill", "Answer = ____"),
     ]
 
 def _L2E_3():
@@ -1290,6 +1346,7 @@ def _L2E_3():
         q("Write a prime number between 70 and 80.", "fill", "Answer = ____"),
         q("Is 2 + 3 + 5 + 7 + 11 prime? Calculate first.", "fill", "Answer = ____"),
         q("Find two prime numbers whose product is 77.", "fill", "Answer = ____"),
+        q("Is the sum 2 + 3 + 5 + 7 + 11 + 13 prime or composite? Calculate it.", "fill", "Answer = ____"),
     ]
 
 def _L2E_4():
@@ -1316,6 +1373,7 @@ def _L2E_4():
         q("Is 2^7 − 1 = 127 prime? (Mersenne prime — test it.)", "fill", "Answer = ____"),
         q("Find all primes p where p, p+4 are both prime (cousin primes), under 40.", "fill", "Answer = ____"),
         q("True or False: Every prime > 5 ends in 1, 3, 7, or 9.", "fill", "Answer = ____"),
+        q("Write the prime factorisation of 72.", "fill", "Answer = ____"),
     ]
 
 
@@ -1347,6 +1405,8 @@ def _L2CUM1_s(sheet):
         q("Sort: 13, 26, 45, 62, 77, 88 → Even: ___ Odd: ___", "fill", "Answer = ____"),
         q("True or False: Odd × Even is always even.", "fill", "Answer = ____"),
         q("True or False: Even + Odd is always odd.", "fill", "Answer = ____"),
+        q("Is 2 both prime AND even? ____", "fill", "Answer = ____"),
+        q("True or False: All odd numbers greater than 2 are prime.", "fill", "Answer = ____"),
     ]
 
 def _L2CUM2_s(sheet):
@@ -1376,6 +1436,8 @@ def _L2CUM2_s(sheet):
         q("Find all composite numbers between 10 and 20.", "fill", "Answer = ____"),
         q("Is every even number greater than 2 composite? ____", "fill", "Answer = ____"),
         q("True or False: 1 is composite.", "fill", "Answer = ____"),
+        q("Write 80 as a product of prime numbers.", "fill", "Answer = ____"),
+        q("True or False: Every composite number has at least one prime factor.", "fill", "Answer = ____"),
     ]
 
 def _L2CUM3_s(sheet):
@@ -1440,61 +1502,108 @@ def _L2REV_s(sheet):
 # (These will be hand-crafted in a future update)
 # ═══════════════════════════════════════════════════════════════
 def _L1G_s(sheet):
-    questions = {
-        1: [
-            cb("Counting Objects", ["Count each object carefully — don't skip or double-count.", "Use tally marks to track: IIII = 4, IIII I = 5, IIII II = 7.", "Write the total clearly."], "Tally: IIII II = 7 objects"),
-            q("Count the dots and write the total.", "diagram", "Total = ____", "", "dot_array", {"rows":3,"cols":5}),
-            q("Count the objects: draw 14 circles and count them.", "fill", "Total = ____"),
-            q("Write a tally for: 8 students raised their hand.", "fill", "Tally = ____"),
-            q("Write a tally for: 13 birds on a wire.", "fill", "Tally = ____"),
-            q("Read the tally IIII IIII II and write the number.", "fill", "Number = ____"),
-            cb("Groups of objects", ["Count groups, then multiply or add.", "2 groups of 5 = 5 + 5 = 10."], "3 rows of 4 dots = 12 total"),
-            q("There are 4 rows of 5 dots each. Total = ____.", "word", "Total = ____", "4 rows of 5"),
-            q("There are 3 groups of 6 apples each. Total = ____.", "word", "Total = ____", "3 groups of 6"),
-            q("Count: 2 bags of 10 marbles + 3 loose. Total = ____.", "word", "Total = ____", "2 bags of 10 and 3 loose"),
-            q("Count: 5 boxes of 4 pencils + 2 loose. Total = ____.", "word", "Total = ____", "5 boxes of 4 and 2 loose"),
-            q("Count objects in a picture: 7 cats and 5 dogs. Total animals = ____.", "word", "Total = ____", "7 cats and 5 dogs"),
-            cb("Counting and recording", ["Always count methodically — row by row or group by group.", "Record using tally marks first if helpful."], ""),
-            q("In a fruit bowl: 4 apples, 3 oranges, 6 bananas. Total = ____.", "word", "Total = ____", "4 apples 3 oranges 6 bananas"),
-            q("There are 24 students in class. 9 are absent. Present = ____.", "word", "Present = ____", "24 total 9 absent"),
-            q("Write a tally for 17.", "fill", "Tally = ____"),
-            q("Write a tally for 25.", "fill", "Tally = ____"),
-            q("Read tally IIII IIII IIII III and write the number.", "fill", "Number = ____"),
-            q("Count backwards from 15 to 1. Write all numbers.", "fill", "Answer = ____"),
-            q("Count by 2s from 0 to 20. Write all even numbers.", "fill", "Answer = ____"),
-            q("Count by 5s from 5 to 50. Write all multiples.", "fill", "Answer = ____"),
-        ],
-        2: [
-            cb("Counting Objects — Concept", ["Counting in groups (by 2s, 5s, 10s) is faster than counting one by one.", "Use organised counting: rows, columns, groups.", "Estimate first, then count precisely."], "100 dots — estimate 'about 100', count in 10s: 10,20,30,40,50,60,70,80,90,100 ✓"),
-            q("Estimate, then count exactly: a bag has about ___ marbles (from a picture of 23).", "fill", "Estimate=____ Exact=____"),
-            q("Count by 2s: how many legs do 9 chickens have? ____", "word", "Answer = ____", "9 chickens, 2 legs each"),
-            q("Count by 4s: how many legs do 7 dogs have? ____", "word", "Answer = ____", "7 dogs, 4 legs each"),
-            q("Count by 10s: 8 bags of 10 sweets. Total = ____.", "word", "Total = ____", "8 bags of 10"),
-            q("A jar has 43 coins. Write 43 as a tally.", "fill", "Tally = ____"),
-            q("Read this tally: IIII IIII IIII IIII IIII = ____", "fill", "Number = ____"),
-            cb("Pictographs", ["In a pictograph, each picture represents a fixed number.", "Multiply to find totals."], "Each smiley = 5 votes. 6 smileys = 30 votes"),
-            q("Each apple picture = 2 apples. 7 apple pictures = ____ apples.", "word", "Total = ____", "7 pictures, each = 2"),
-            q("Each star = 10 points. Ravi has 8 stars. Points = ____.", "word", "Points = ____", "8 stars, each = 10"),
-            q("Each circle = 5. There are 9 circles. Total = ____.", "word", "Total = ____", "9 circles, each = 5"),
-            q("In a pictograph, cats=5, dogs=3, birds=7. How many pets total?", "word", "Total = ____", "5 cats 3 dogs 7 birds"),
-            q("True or False: Counting in 5s is faster than counting in 1s for large groups.", "fill", "Answer = ____"),
-            cb("Organising counts", ["Use a frequency table to organise counts.", "Makes comparison easy."], "Colour frequency: Red=4, Blue=7, Green=3, Total=14"),
-            q("Count vowels in 'MATHEMATICS': a=___, e=___, i=___, Total=___", "fill", "Answer = ____"),
-            q("Count letters in 'SCHOOL': S=___, C=___, H=___, O=___, L=___ Total=___", "fill", "Answer = ____"),
-            q("A bag has 3 red, 5 blue, 4 green balls. Total = ____.", "word", "Total = ____", "3 red 5 blue 4 green"),
-            q("How many more blue balls than red in the previous question?", "fill", "Answer = ____"),
-            q("Write the total using tallies for: 6 boys and 8 girls in class.", "fill", "Answer = ____"),
-            q("In a survey: like football=12, cricket=9, tennis=5. Most popular = ____.", "word", "Answer = ____", "football=12 cricket=9 tennis=5"),
-            q("True or False: You get the same total counting forwards and backwards through a set.", "fill", "Answer = ____"),
-        ],
-        3: [
-            cb("Counting Objects Practice", ["Apply counting in various real contexts.", "Always check by recounting using a different method."], "Recount: if first count=37, verify by counting in groups of 5: 5,10,15,20,25,30,35 + 2 = 37 ✓"),
-        ] + [q(f"Counting practice problem {i}: apply counting skills in context.", "fill", "Answer = ____") for i in range(1, 20)],
-        4: [
-            cb("Counting Objects Mastery", ["Apply advanced counting: systematic, efficient, verified.", "Use multiple methods and compare results."], "Count 48 objects: by 4s=12 groups, by 6s=8 groups, by 8s=6 groups — all confirm 48"),
-        ] + [q(f"Counting mastery problem {i}: multi-step counting with verification.", "fill", "Answer = ____") for i in range(1, 20)],
-    }
-    return questions[sheet]
+    s1 = [
+        cb("Counting Objects", ["Count each object carefully — don't skip or double-count.", "Use tally marks to track: IIII = 4, IIII I = 5.", "Write the total clearly."], "Tally: IIII II = 7"),
+        q("Count the dots and write the total.", "diagram", "Total = ____", "", "dot_array", {"rows":3,"cols":5}),
+        q("Count the objects: how many circles if you draw 14?", "fill", "Total = ____"),
+        q("Write a tally for: 8 students raised their hand.", "fill", "Tally = ____"),
+        q("Write a tally for: 13 birds on a wire.", "fill", "Tally = ____"),
+        q("Read the tally IIII IIII II and write the number.", "fill", "Number = ____"),
+        cb("Groups of objects", ["Count groups, then add.", "2 groups of 5 = 10."], "3 rows of 4 dots = 12 total"),
+        q("There are 4 rows of 5 dots each. Total = ____.", "word", "Total = ____", "4 rows of 5"),
+        q("There are 3 groups of 6 apples each. Total = ____.", "word", "Total = ____", "3 groups of 6"),
+        q("Count: 2 bags of 10 marbles + 3 loose. Total = ____.", "word", "Total = ____", "2 bags of 10 and 3 loose"),
+        q("Count: 5 boxes of 4 pencils + 2 loose. Total = ____.", "word", "Total = ____", "5 boxes of 4 and 2 loose"),
+        q("In a fruit bowl: 4 apples, 3 oranges, 6 bananas. Total = ____.", "word", "Total = ____", "4 apples 3 oranges 6 bananas"),
+        cb("Counting and recording", ["Count methodically — row by row or group by group.", "Record with tally marks first if helpful."], ""),
+        q("24 students in class. 9 are absent. Present = ____.", "word", "Present = ____", "24 total 9 absent"),
+        q("Write a tally for 17.", "fill", "Tally = ____"),
+        q("Write a tally for 25.", "fill", "Tally = ____"),
+        q("Read tally IIII IIII IIII III and write the number.", "fill", "Number = ____"),
+        q("Count backwards from 15 to 1. Write all numbers.", "fill", "Answer = ____"),
+        q("Count by 2s from 0 to 20. Write all numbers.", "fill", "Answer = ____"),
+        q("Count by 5s from 5 to 50. Write all multiples.", "fill", "Answer = ____"),
+        q("A shop has 6 shelves of 10 items each and 7 extra. Total = ____.", "word", "Total = ____", "6 shelves of 10 and 7 extra"),
+        q("Write a tally for the number of letters in MATHEMATICS.", "fill", "Tally = ____"),
+        q("True or False: Counting by 10s from 3 gives: 3, 13, 23, 33...", "fill", "Answer = ____"),
+    ]
+    s2 = [
+        cb("Counting Objects — Concept", ["Counting in groups (by 2s, 5s, 10s) is faster.", "Use organised counting: rows, columns, groups.", "Estimate first, then count precisely."], "100 dots — count in 10s: 10,20,...,100"),
+        q("Count by 2s: how many legs do 9 chickens have?", "word", "Answer = ____", "9 chickens, 2 legs each"),
+        q("Count by 4s: how many legs do 7 dogs have?", "word", "Answer = ____", "7 dogs, 4 legs each"),
+        q("Count by 10s: 8 bags of 10 sweets. Total = ____.", "word", "Total = ____", "8 bags of 10"),
+        q("A jar has 43 coins. Write 43 as a tally.", "fill", "Tally = ____"),
+        q("Read this tally: IIII IIII IIII IIII IIII = ____", "fill", "Number = ____"),
+        cb("Pictographs", ["Each picture represents a fixed number.", "Multiply to find totals."], "Each smiley = 5 votes. 6 smileys = 30 votes"),
+        q("Each apple picture = 2 apples. 7 apple pictures = ____ apples.", "word", "Total = ____", "7 pictures, each = 2"),
+        q("Each star = 10 points. Ravi has 8 stars. Points = ____.", "word", "Points = ____", "8 stars, each = 10"),
+        q("Each circle = 5. There are 9 circles. Total = ____.", "word", "Total = ____", "9 circles, each = 5"),
+        q("In a pictograph, cats=5, dogs=3, birds=7. Total pets = ____.", "word", "Total = ____", "5 cats 3 dogs 7 birds"),
+        q("True or False: Counting in 5s is faster than counting in 1s.", "fill", "Answer = ____"),
+        cb("Organising counts", ["Use a frequency table to organise counts.", "Makes comparison easy."], "Red=4, Blue=7, Green=3, Total=14"),
+        q("Count vowels in MATHEMATICS: a=___, e=___, i=___, Total=___", "fill", "Answer = ____"),
+        q("A bag has 3 red, 5 blue, 4 green balls. Total = ____.", "word", "Total = ____", "3 red 5 blue 4 green"),
+        q("How many more blue than red in the previous question?", "fill", "Answer = ____"),
+        q("In a survey: football=12, cricket=9, tennis=5. Most popular = ____.", "word", "Answer = ____", "football=12 cricket=9 tennis=5"),
+        q("True or False: You get the same total counting forwards and backwards.", "fill", "Answer = ____"),
+        q("Write a tally for the number of days in a week.", "fill", "Answer = ____"),
+        q("How many tally groups (of 5) are needed to represent 35?", "fill", "Answer = ____"),
+        q("A teacher counts 24 boys and 18 girls. Total students = ____.", "word", "Total = ____", "24 boys 18 girls"),
+        q("A tally shows IIII IIII IIII II = ____", "fill", "Number = ____"),
+        q("In a pictograph where each symbol = 4, 7 symbols = ____", "word", "Answer = ____", "7 symbols each=4"),
+    ]
+    s3 = [
+        cb("Counting Objects Practice", ["Apply counting in various real contexts.", "Check by recounting using a different method.", "Organise counts using tables or tallies."], "Recount: if count=37, verify in groups of 5: 5,10,...,35+2=37"),
+        q("Count total sides of 4 triangles and 3 squares: ____", "word", "Answer = ____", "4 triangles 3 squares"),
+        q("A box has 5 layers of 6 chocolates each. Total = ____.", "word", "Total = ____", "5 layers of 6"),
+        q("Count: IIII IIII IIII IIII IIII IIII = ____", "fill", "Number = ____"),
+        q("Write as a tally: 32", "fill", "Tally = ____"),
+        q("A class survey: like maths=15, like English=11, like art=8. Total = ____.", "word", "Total = ____", "15+11+8"),
+        q("Each pictograph symbol = 3 students. 9 symbols = ____ students.", "word", "Answer = ____", "9 symbols each=3"),
+        cb("Multi-step counting", ["Combine counting with addition and subtraction.", "Always state the unit in your answer."], "Apples: 3 bags of 10 + 7 loose = 37 apples total"),
+        q("A shop has 4 boxes of 12 pens + 5 loose. Total pens = ____.", "word", "Total = ____", "4 boxes of 12 and 5 loose"),
+        q("Ravi counts 3 groups of 8 and 2 groups of 5. Total = ____.", "word", "Total = ____", "3 groups of 8 and 2 groups of 5"),
+        q("A bag had 50 marbles. 17 were removed. Left = ____.", "word", "Left = ____", "50 minus 17"),
+        q("How many wheels on 6 cars and 3 bicycles?", "word", "Answer = ____", "6 cars 4 wheels each 3 bicycles 2 wheels each"),
+        q("True or False: Counting in 3s from 0 will reach 30.", "fill", "Answer = ____"),
+        cb("Data from a tally chart", ["Read a tally chart to answer questions.", "Compare frequencies and find totals."], ""),
+        q("In a tally chart: Cats: IIII II, Dogs: IIII IIII, Fish: III. Most popular = ____.", "word", "Answer = ____", "tally chart"),
+        q("In the same chart, how many more dogs than cats?", "fill", "Answer = ____"),
+        q("Total animals in the same chart = ____.", "fill", "Total = ____"),
+        q("Count objects in 5 rows of 7: total = ____.", "word", "Total = ____", "5 rows of 7"),
+        q("A jar has 4 layers of 8 sweets each. Total = ____.", "word", "Total = ____", "4 layers of 8"),
+        q("True or False: 6 groups of 9 = 54.", "fill", "Answer = ____"),
+        q("How many dozens are in 60 items?", "fill", "Answer = ____"),
+        q("Write the number of wheels on: 5 cars, 2 trucks (6 wheels), 1 bicycle.", "word", "Total wheels = ____", "5 cars 2 trucks 1 bicycle"),
+        q("A box has 3 layers of 4 rows of 5 items each. Total = ____.", "word", "Total = ____", "3 layers 4 rows 5 items"),
+    ]
+    s4 = [
+        cb("Counting Objects Mastery", ["Apply advanced counting: systematic, efficient, verified.", "Use multiple methods and compare results.", "Explain your counting strategy clearly."], "Count 48: by 4s=12 groups, by 6s=8 groups, by 8s=6 groups — all confirm 48"),
+        q("Count total legs of 3 spiders (8 legs) and 5 ants (6 legs): ____", "word", "Answer = ____", "3 spiders 5 ants"),
+        q("A grid has 8 rows and 9 columns of dots. Total = ____.", "word", "Total = ____", "8 rows 9 columns"),
+        q("How many ways can you count 24 objects in equal groups?", "fill", "Answer = ____"),
+        q("Ravi says: '4 fives and 3 fours is 32.' Is he correct? Verify.", "fill", "Answer = ____"),
+        q("A shop sells in packs of 6. A customer wants 42. How many packs?", "word", "Packs = ____", "42 items packs of 6"),
+        q("In a 10×10 grid, how many cells have at least one even digit (row or column number)?", "fill", "Answer = ____"),
+        cb("Multi-strategy counting", ["Apply more than one method to verify your count.", "The methods should give the same answer."], "Verify 36: 6×6=36; 4×9=36; 3×12=36; all correct"),
+        q("Verify that 72 = 8×9 = 6×12 = 4×18. Which is easiest to count?", "fill", "Answer = ____"),
+        q("A packet of biscuits has 4 rows and 6 columns. 5 packets = ____.", "word", "Total = ____", "4 rows 6 cols 5 packets"),
+        q("Count: 7 pairs of shoes + 3 single shoes = ____ shoes total.", "word", "Total = ____", "7 pairs and 3 single"),
+        q("Meena counts by 3s from 3 and Ravi counts by 4s from 4. What is the first number they both say?", "fill", "Answer = ____"),
+        q("True or False: You can always recount a set by grouping differently and get the same total.", "fill", "Answer = ____"),
+        cb("Real-life counting challenges", ["Apply counting to complex real situations."], "Inventory: 3 shelves × 8 boxes × 12 items = 288 items"),
+        q("A library has 5 shelves, each with 9 rows of books, each row has 8 books. Total = ____.", "word", "Total = ____", "5 shelves 9 rows 8 books per row"),
+        q("How many minutes in 3 hours and 45 minutes?", "word", "Answer = ____", "3 hours and 45 minutes"),
+        q("A cinema has 12 rows of 15 seats. 78 seats are taken. Empty seats = ____.", "word", "Empty = ____", "12 rows of 15, 78 taken"),
+        q("Write all factor pairs of 36 (ways to group 36 objects in equal groups).", "fill", "Answer = ____"),
+        q("Challenge: Arrange 48 objects in as many rectangular arrays as possible. List all.", "fill", "Answer = ____"),
+        q("True or False: 100 objects can be counted in groups of 7 with none left over.", "fill", "Answer = ____"),
+        q("If a pattern tiles a wall with 6 tiles per row and the wall needs 90 tiles, how many rows?", "word", "Rows = ____", "6 per row 90 total"),
+        q("A chessboard has 8×8 squares. How many squares in total?", "word", "Answer = ____", "8 rows 8 columns"),
+        q("Count all angles in 4 rectangles and 3 triangles: ____", "word", "Answer = ____", "4 rectangles 3 triangles"),
+    ]
+    return [s1, s2, s3, s4][sheet - 1]
+
 
 def _L1H_s(sheet):
     starters = {
@@ -1533,6 +1642,8 @@ def _L1H_s(sheet):
         q("Write in words: the smallest 2-digit number.", "fill", "Answer = ____"),
         q("True or False: Forty-four = 44 = 4 tens + 4 ones.", "fill", "Answer = ____"),
         q("Spot the mistake: 'Seventy-two = 27.' Correct it.", "fill", "Answer = ____"),
+        q("Write in figures: eighty-one.", "fill", "Answer = ____"),
+        q("True or False: Seventy = 70 = 7 tens and 0 ones.", "fill", "Answer = ____"),
     ]
 
 def _L1I_s(sheet):
@@ -1563,6 +1674,8 @@ def _L1I_s(sheet):
         q("A number is halved and then 3 is subtracted. The result is 9. What is the number?", "fill", "Answer = ____"),
         q("I have 10 coins. Some are 1-rupee, some are 2-rupee. Total value = Rs 16. How many of each?", "word", "Answer = ____", "10 coins, mix of 1 and 2 rupee, total Rs 16"),
         q("Challenge: Write your own number puzzle for a classmate with 3 clues.", "fill", "Answer = ____"),
+        q("I am a 2-digit even number. My digits multiply to give 12. What am I? (List all.)", "fill", "Answer = ____"),
+        q("I am greater than 60. I am less than 70. I am divisible by 7. What am I?", "fill", "Answer = ____"),
     ]
 
 def _L1J_s(sheet):
@@ -1593,6 +1706,8 @@ def _L1J_s(sheet):
         q("Spot ALL mistakes: '49 < 94 because 4+9=13. Before 50 is 51. Pattern 2,4,8,14 has rule ×2.'", "fill", "Answer = ____"),
         q("A school has 7 classes of 35 students each. Total students = ____.", "word", "Total = ____", "7 classes of 35"),
         q("Challenge: Write the largest possible 2-digit number using digits 3, 7, 9 (one digit at a time). Then the smallest.", "fill", "Answer = ____"),
+        q("A sequence: 1, 3, 7, 15, 31, ___ — each term = previous × 2 + 1. Next = ____", "fill", "Answer = ____"),
+        q("Write ALL 2-digit numbers where the product of digits equals 8.", "fill", "Answer = ____"),
     ]
 
 
@@ -1622,6 +1737,8 @@ def _L2F_s(sheet):
         q("Find the largest composite number less than 20.", "fill", "Answer = ____"),
         q("Is 100 composite? What is its prime factorisation?", "fill", "Answer = ____"),
         q("Spot the mistake: '9 is prime because 9 is odd.' Correct it.", "fill", "Answer = ____"),
+        q("Write all composite numbers between 30 and 40.", "fill", "Answer = ____"),
+        q("True or False: The number 49 is composite. Explain.", "fill", "Answer = ____"),
     ]
 
 def _L2G_s(sheet):
@@ -1647,6 +1764,8 @@ def _L2G_s(sheet):
         q("Find a composite number between 80 and 90.", "fill", "Answer = ____"),
         q("Find a prime number between 80 and 90.", "fill", "Answer = ____"),
         q("Is 1001 prime? (hint: 1001 = 7 × 143 = 7 × 11 × 13) ____", "fill", "Answer = ____"),
+        q("Write all prime numbers between 70 and 90.", "fill", "Answer = ____"),
+        q("Is 143 prime? (Hint: try dividing by 11.) ____", "fill", "Answer = ____"),
     ]
 
 def _L2H_s(sheet):
@@ -1672,6 +1791,8 @@ def _L2H_s(sheet):
         q("Challenge: Find n if 2³ × n = 72.", "fill", "Answer = ____"),
         q("How many prime factors does 2 × 3 × 5 × 7 have?", "fill", "Answer = ____"),
         q("Write a number whose prime factorisation is 2² × 3 × 7.", "fill", "Answer = ____"),
+        q("Find the prime factorisation of 96.", "fill", "Answer = ____"),
+        q("True or False: 2 × 3 × 5 × 7 = 210. Verify.", "fill", "Answer = ____"),
     ]
 
 def _L2I_s(sheet):
@@ -1697,6 +1818,8 @@ def _L2I_s(sheet):
         q("How many numbers from 1 to 20 are odd AND prime?", "fill", "Answer = ____"),
         q("Spot the mistake: '6 is prime because it is even.' Correct it.", "fill", "Answer = ____"),
         q("Spot the mistake: '2 is composite because it is even.' Correct it.", "fill", "Answer = ____"),
+        q("List all numbers from 1 to 20 that are neither prime nor composite.", "fill", "Answer = ____"),
+        q("True or False: Every number greater than 1 is either prime or composite.", "fill", "Answer = ____"),
     ]
 
 def _L2J_s(sheet):
@@ -1722,6 +1845,8 @@ def _L2J_s(sheet):
         q("Challenge: A and B are primes. A × B = 143. Find A and B.", "fill", "Answer = ____"),
         q("The product of all primes less than 10 is ____.", "fill", "Answer = ____"),
         q("Challenge: Write the smallest number that has exactly 6 factors. What is it?", "fill", "Answer = ____"),
+        q("Find all 2-digit primes where the digits sum to a prime number.", "fill", "Answer = ____"),
+        q("Challenge: I am a prime. I am 6 less than a perfect square. I am less than 20. What am I?", "fill", "Answer = ____"),
     ]
 
 
