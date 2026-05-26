@@ -9230,25 +9230,32 @@ def get_questions(sublevel_code: str, sheet_num: str) -> list:
     else:
         items = _fallback(sublevel_code, base_sheet)
 
-    # Ensure exactly 20 questions (pad or trim)
-    # Exclude concept_box AND tips_box from question count
-    qs = [x for x in items if x["type"] not in ("concept_box", "tips_box")]
-    while len(qs) < 20:
-        qs.append(q(f"{sublevel_code} Q{len(qs)+1}: solve carefully.", "fill", "Answer = ____"))
+    # Ensure total items = 20 (concept_boxes + questions combined)
+    # First: keep all concept_box/tips_box items
+    concept_items = [x for x in items if x["type"] in ("concept_box", "tips_box")]
+    question_items = [x for x in items if x["type"] not in ("concept_box", "tips_box")]
 
-    # Rebuild in original order: keep concept_box and tips_box as-is, replace question items
+    # Pad questions if fewer than needed
+    needed_qs = max(1, 20 - len(concept_items))
+    while len(question_items) < needed_qs:
+        question_items.append(q(f"{sublevel_code} Q{len(question_items)+1}: solve carefully.", "fill", "Answer = ____"))
+
+    # Trim questions so total = 20
+    question_items = question_items[:needed_qs]
+
+    # Rebuild in original order
     result = []
     qi = 0
     for item in items:
         if item["type"] in ("concept_box", "tips_box"):
             result.append(item)
         else:
-            if qi < 20:
-                result.append(qs[qi])
+            if qi < len(question_items):
+                result.append(question_items[qi])
                 qi += 1
-    # Any remaining questions not yet added (if items had fewer than 20 qs)
-    while qi < 20:
-        result.append(qs[qi])
+    # Add any remaining padded questions
+    while qi < len(question_items):
+        result.append(question_items[qi])
         qi += 1
 
     # Apply remedial number variation
