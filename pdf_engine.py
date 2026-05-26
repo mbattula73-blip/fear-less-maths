@@ -252,7 +252,8 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
 
     n=0
     for item in questions:
-        n+=1; item["_num"]=n
+        if item.get("type") not in ("concept_box", "tips_box"):
+            n+=1; item["_num"]=n
 
     buf=BytesIO(); c=canvas.Canvas(buf,pagesize=A4)
     # Page 1 — questions only (L7+) or mixed (L1-L6)
