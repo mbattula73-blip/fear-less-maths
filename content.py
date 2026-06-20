@@ -17434,6 +17434,14 @@ def _fallback(code, sheet):
          for i in range(1, 20)]
 
 
+# Merge in Level 15 (Coordinate Geometry) content from content_l15.py
+try:
+    from content_l15 import DISPATCH_L15
+    _DISPATCH.update(DISPATCH_L15)
+except Exception as _e:
+    pass
+
+
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
     """
     Main entry point. Returns a list of question dicts.
