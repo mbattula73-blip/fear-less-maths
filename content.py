@@ -17441,6 +17441,13 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 16 (Triangles) content from content_l16.py
+try:
+    from content_l16 import DISPATCH_L16
+    _DISPATCH.update(DISPATCH_L16)
+except Exception as _e:
+    pass
+
 
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
     """
