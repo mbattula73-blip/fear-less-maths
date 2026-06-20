@@ -3,9 +3,23 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib import colors
+from reportlab.pdfbase.pdfmetrics import stringWidth
 import os, tempfile
 from io import BytesIO
 from content import get_questions
+
+def _wrap(text, font, size, maxw):
+    """Greedy word-wrap text to fit maxw, using stringWidth (no canvas needed)."""
+    words=text.split(); lines=[]; line=""
+    for w in words:
+        test=(line+" "+w).strip()
+        if stringWidth(test,font,size)<=maxw or not line:
+            line=test
+        else:
+            lines.append(line); line=w
+    if line: lines.append(line)
+    return lines or [""]
+
 
 # Re-import level metadata
 from levels_data import get_tier, LEVELS, SUBLEVELS
@@ -107,17 +121,30 @@ def _footer_p2(c):
     c.drawCentredString(SX+SW/2,MB+5*mm,"Parent")
     c.drawCentredString(SX+SW/2,MB+1.5*mm,"Signature:")
 
-def _est(item):
+def _est(item, cw=None):
     if item.get("type")=="concept_box":
-        n=len(item.get("section_bullets",[])); h=4*mm+n*4.5*mm+(4*mm if item.get("example") else 0)+5*mm; return h
+        title=item.get("section_title",""); bullets=item.get("section_bullets",[]); example=item.get("example","")
+        avail=(cw or 60*mm)-4*mm
+        n_lines=0
+        for b in bullets:
+            n_lines+=len(_wrap(f"\u2022 {b}","Helvetica",12,avail))
+        ex_lines=0
+        if example:
+            ex_lines=len(_wrap(f"e.g. {example}","Helvetica-Oblique",12,avail))
+        h=4*mm+n_lines*4.5*mm+ex_lines*4.5*mm+5*mm; return h
     if item.get("type")=="tips_box":
-        n=len(item.get("tips",[])); return 6*mm+n*4.5*mm+4*mm
+        tips=item.get("tips",[])
+        avail=(cw or 60*mm)-4*mm
+        n_lines=0
+        for t in tips:
+            n_lines+=len(_wrap(f"\u27a4 {t}","Helvetica",12,avail))
+        return 6*mm+n_lines*4.5*mm+4*mm
     return 2*mm+9*mm+(20*mm if item.get("diagram_type") else 0)+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
 
 class Col:
     def __init__(self,c,x,cw,top,bot):
         self.c=c; self.x=x+1*mm; self.cw=cw-3*mm; self.y=top; self.bot=bot
-    def fits(self,item): return self.y-_est(item)>=self.bot
+    def fits(self,item): return self.y-_est(item,self.cw)>=self.bot
     def render(self,item):
         if not self.fits(item): return False
         if item.get("type")=="concept_box": self._cb(item)
@@ -128,43 +155,38 @@ class Col:
         c=self.c; x=self.x; cw=self.cw
         title=item.get("section_title",""); bullets=item.get("section_bullets",[]); example=item.get("example","")
         self.y-=3.5*mm
-        bh=_est(item)-3.5*mm
+        bh=_est(item,cw)-3.5*mm
         c.setFillColor(colors.HexColor("#F5F5F5")); c.setStrokeColor(BLACK); c.setLineWidth(0)
         c.rect(x-1*mm,self.y-bh+1*mm,cw+1*mm,bh,fill=1,stroke=0)
         c.setStrokeColor(BLACK); c.setLineWidth(1.5)
         c.line(x-1*mm,self.y-bh+1*mm,x-1*mm,self.y+1*mm); c.setLineWidth(0.3)
-        c.setFont("Helvetica-Bold",9); c.setFillColor(BLACK)
+        c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
         c.drawString(x,self.y,title[:52]); self.y-=4.5*mm
+        avail=cw-4*mm
         for b in bullets:
-            c.setFont("Helvetica",7.5); c.setFillColor(BLACK)
-            txt=f"\u2022 {b}"
-            # Wrap within cw
-            if c.stringWidth(txt,"Helvetica",7.5)>cw:
-                cut=int(cw/c.stringWidth("a","Helvetica",7.5))
-                c.drawString(x+1.5*mm,self.y,txt[:cut-1])
-                self.y-=4*mm
-                c.drawString(x+4*mm,self.y,txt[cut-1:cut+cut-5] if len(txt)>cut else "")
-            else:
-                c.drawString(x+1.5*mm,self.y,txt)
-            self.y-=4*mm
+            c.setFont("Helvetica",12); c.setFillColor(BLACK)
+            for ln in _wrap(f"\u2022 {b}","Helvetica",12,avail):
+                c.drawString(x+1.5*mm,self.y,ln); self.y-=4.5*mm
         if example:
-            c.setFont("Helvetica-Oblique",7); c.setFillColor(MGRAY)
-            ex=f"e.g. {example}"[:70]; c.drawString(x+2*mm,self.y,ex); self.y-=4*mm
+            c.setFont("Helvetica-Oblique",12); c.setFillColor(MGRAY)
+            for ln in _wrap(f"e.g. {example}","Helvetica-Oblique",12,avail):
+                c.drawString(x+2*mm,self.y,ln); self.y-=4.5*mm
         self.y-=2*mm
     def _tb(self,item):
         """Render a tips box — compact, with lightblue background."""
         c=self.c; x=self.x; cw=self.cw
         title=item.get("section_title","Tips"); tips=item.get("tips",[])
         self.y-=3*mm
-        bh=_est(item)-3*mm
+        bh=_est(item,cw)-3*mm
         c.setFillColor(colors.HexColor("#E8F4FD")); c.setStrokeColor(colors.HexColor("#2196F3")); c.setLineWidth(1.2)
         c.rect(x-1*mm,self.y-bh+1*mm,cw+1*mm,bh,fill=1,stroke=1)
-        c.setFont("Helvetica-Bold",8.5); c.setFillColor(colors.HexColor("#1565C0"))
+        c.setFont("Helvetica-Bold",12); c.setFillColor(colors.HexColor("#1565C0"))
         c.drawString(x+1*mm,self.y,f"\u2605 {title}"); self.y-=4.5*mm
+        avail=cw-4*mm
         for tip in tips:
-            c.setFont("Helvetica",7.5); c.setFillColor(BLACK)
-            txt=f"\u27a4 {tip}"
-            c.drawString(x+2*mm,self.y,txt[:60]); self.y-=4.5*mm
+            c.setFont("Helvetica",12); c.setFillColor(BLACK)
+            for ln in _wrap(f"\u27a4 {tip}","Helvetica",12,avail):
+                c.drawString(x+2*mm,self.y,ln); self.y-=4.5*mm
         self.y-=2*mm
 
     def _q(self,item):
@@ -173,7 +195,7 @@ class Col:
         albl=item.get("answer_label","Answer = ____"); dtype=item.get("diagram_type"); dparm=item.get("diagram_params",{})
         if len(text)>88: text=text[:85]+"..."
         self.y-=2.5*mm
-        sz=8.5; c.setFont("Helvetica-Bold",sz); c.setFillColor(BLACK)
+        sz=12; c.setFont("Helvetica-Bold",sz); c.setFillColor(BLACK)
         ns=f"{num}."; nw=c.stringWidth(ns,"Helvetica-Bold",sz)+1.5*mm; c.drawString(x,self.y,ns)
         tx=x+nw; avail=cw-nw; lh=sz*1.45
         if bph and bph in text:
@@ -203,7 +225,7 @@ class Col:
                     c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
                     self.y-=ih+1.5*mm
                 except: pass
-        c.setFont("Helvetica-Bold",8); c.setFillColor(BLACK); c.drawString(x+1.5*mm,self.y,albl); self.y-=4*mm
+        c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK); c.drawString(x+1.5*mm,self.y,albl); self.y-=4*mm
         n_lines=1 if dtype else 3; c.setFont("Helvetica",4.5); c.setFillColor(LGRAY)
         du=c.stringWidth(". ","Helvetica",4.5); ds=". "*int(cw/max(du,0.1))
         for _ in range(n_lines): c.drawString(x,self.y,ds); self.y-=3.5*mm
