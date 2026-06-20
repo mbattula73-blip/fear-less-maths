@@ -134,6 +134,22 @@ def get_worksheet_tags(worksheet_id: str) -> dict:
         return {r["q_num"]: r["topic"] for r in rows}
 
 
+def get_worksheet_tags_with_fallback(worksheet_id: str) -> dict:
+    """
+    Like get_worksheet_tags, but if a remedial worksheet (ends in 'R') has no tags
+    of its own, falls back to its base sheet's tags — remedial sheets test the same
+    topics per question number, only the numbers in the text change.
+    e.g. '4A-1R' falls back to '4A-1' if '4A-1R' itself isn't tagged.
+    """
+    tags = get_worksheet_tags(worksheet_id)
+    if tags:
+        return tags
+    if worksheet_id.endswith("R"):
+        base_id = worksheet_id[:-1]
+        return get_worksheet_tags(base_id)
+    return tags
+
+
 def list_tagged_worksheets():
     with get_conn() as conn:
         rows = conn.execute(
@@ -143,9 +159,10 @@ def list_tagged_worksheets():
 
 
 def resolve_topics(worksheet_id: str, wrong_qs: list) -> dict:
-    """Returns {q_num: topic_or_'(untagged)'} for the given wrong question numbers."""
-    tags = get_worksheet_tags(worksheet_id)
-    return {q: tags.get(int(q), "(untagged)") for q in wrong_qs}
+    """Returns {q_num: topic_or_'(untagged)'} for the given wrong question numbers.
+    Remedial worksheets (ending in 'R') fall back to their base sheet's tags."""
+    tags = get_worksheet_tags_with_fallback(worksheet_id)
+    return {int(q): tags.get(int(q), "(untagged)") for q in wrong_qs}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

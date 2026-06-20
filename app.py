@@ -6,7 +6,7 @@ import streamlit as st
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
 from pdf_engine import build_pdf
 import db
-from ws_helpers import numbered_questions
+from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
 
 st.set_page_config(
     page_title="Fear Less Maths",
@@ -265,7 +265,10 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3 = st.tabs(["  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ", "  📑 Topic Tag Map  "])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
+    "  📑 Topic Tag Map  ", "  ✏️ Daily Entry  ",
+])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
 with tab1:
@@ -581,6 +584,152 @@ with tab3:
                      hide_index=True, width='stretch')
     else:
         st.caption("No worksheets tagged yet.")
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ─── TAB 4 — DAILY ENTRY ───────────────────────────────────────────────────────
+with tab4:
+    from datetime import date as _date
+
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+    st.markdown("##### Daily Entry")
+    st.caption("Log a student's worksheet attempt. Wrong questions auto-resolve to topics, "
+               "the matching remedial worksheet is auto-linked, and a parent report is generated.")
+
+    # ── Student picker / add-new ──────────────────────────────────────────────
+    st.markdown("###### Student")
+    existing_classes = db.get_classes()
+    default_mode_idx = 1 if not existing_classes else 0
+    pick_mode = st.radio("Student source", ["Pick existing", "Add new"], horizontal=True,
+                          index=default_mode_idx, key="de_student_mode", label_visibility="collapsed")
+
+    de_student_id = None
+    de_student_name = None
+    de_class = None
+    de_grade = None
+
+    if pick_mode == "Pick existing":
+        if not existing_classes:
+            st.info("No students added yet — switch to 'Add new' to add your first student.")
+        else:
+            col_p1, col_p2 = st.columns(2)
+            with col_p1:
+                de_class_pick = st.selectbox("Class", existing_classes, key="de_class_pick")
+            students_in_class = db.get_students(de_class_pick)
+            with col_p2:
+                if students_in_class:
+                    names = [s["name"] for s in students_in_class]
+                    de_name_pick = st.selectbox("Student", names, key="de_name_pick")
+                    picked = next(s for s in students_in_class if s["name"] == de_name_pick)
+                    de_student_id, de_student_name, de_class, de_grade = (
+                        picked["id"], picked["name"], picked["class_name"], picked["grade"]
+                    )
+                else:
+                    st.info("No students in this class yet — switch to 'Add new'.")
+    else:
+        col_n1, col_n2, col_n3 = st.columns(3)
+        with col_n1:
+            new_name = st.text_input("Student name", key="de_new_name")
+        with col_n2:
+            new_class = st.text_input("Class", key="de_new_class", placeholder="e.g. Class A")
+        with col_n3:
+            new_grade = st.number_input("Grade", min_value=1, max_value=10, value=1, key="de_new_grade")
+        if new_name.strip() and new_class.strip():
+            de_student_name, de_class, de_grade = new_name.strip(), new_class.strip(), int(new_grade)
+
+    st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+
+    # ── Worksheet + wrong questions ───────────────────────────────────────────
+    st.markdown("###### Worksheet attempted")
+    col_w1, col_w2, col_w3 = st.columns([1, 1, 1])
+    with col_w1:
+        de_date = st.date_input("Date", value=_date.today(), key="de_date")
+    with col_w2:
+        de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
+        de_sheet_sel = st.selectbox("Sheet", de_sheet_lbls, key="de_sheet")
+        de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
+    with col_w3:
+        de_total_q = st.number_input("Total questions", min_value=1, max_value=50, value=20, key="de_total_q")
+
+    de_ws_id = f"{sublevel_code}-{de_sheet_num}"
+    st.markdown(f"""
+    <div style="font-size:13px;color:#888;margin:4px 0 12px">
+        Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
+    </div>
+    """, unsafe_allow_html=True)
+
+    de_wrong_str = st.text_input(
+        "Wrong question numbers (comma-separated, leave blank if all correct)",
+        key="de_wrong_qs", placeholder="e.g. 17, 18",
+    )
+
+    de_wrong_qs = []
+    de_parse_error = None
+    if de_wrong_str.strip():
+        for part in de_wrong_str.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            if not part.isdigit():
+                de_parse_error = f"'{part}' is not a valid question number"
+                break
+            qn = int(part)
+            if qn < 1 or qn > de_total_q:
+                de_parse_error = f"Q{qn} is out of range (1–{de_total_q})"
+                break
+            de_wrong_qs.append(qn)
+
+    if de_parse_error:
+        st.error(de_parse_error)
+
+    # ── Live preview: resolved topics + remedial + WhatsApp report ───────────
+    if not de_parse_error and de_student_name and de_class:
+        resolved = db.resolve_topics(de_ws_id, de_wrong_qs) if de_wrong_qs else {}
+        remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
+
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        st.markdown("###### Preview")
+
+        if de_wrong_qs:
+            for qn, t in resolved.items():
+                tag_color = "#888" if t == "(untagged)" else "#111"
+                st.markdown(f"<div style='font-size:13px;margin-bottom:2px'>Q{qn} → "
+                            f"<span style='color:{tag_color}'>{t}</span></div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-size:13px;margin-top:8px;color:#555'>"
+                        f"Remedial worksheet: <b>{remedial_id}</b></div>", unsafe_allow_html=True)
+        else:
+            st.markdown("<div style='font-size:13px;color:#555'>No wrong questions — full marks.</div>",
+                        unsafe_allow_html=True)
+
+        whatsapp_msg = build_whatsapp_report(
+            de_student_name, de_ws_id, int(de_total_q), de_wrong_qs, resolved, remedial_id
+        )
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        st.markdown("###### Parent WhatsApp report")
+        whatsapp_key = f"de_whatsapp_preview_{de_ws_id}_{de_wrong_str}_{de_student_name}"
+        st.text_area("WhatsApp message", whatsapp_msg, height=100, key=whatsapp_key)
+
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        if st.button("💾  Save Entry", type="primary", key="de_save"):
+            sid = de_student_id or db.add_student(de_student_name, de_class, de_grade)
+            session_id = db.add_session(
+                session_date=de_date.isoformat(),
+                student_id=sid,
+                class_name=de_class,
+                grade=int(de_grade),
+                level_num=level_num,
+                worksheet_id=de_ws_id,
+                wrong_qs=de_wrong_qs,
+                resolved_topics=resolved,
+                total_questions=int(de_total_q),
+                remedial_id=remedial_id,
+            )
+            st.success(f"Saved entry for {de_student_name} — {de_ws_id} "
+                       f"({len(de_wrong_qs)} wrong). Session #{session_id}.")
+    elif not de_student_name or not de_class:
+        st.info("Pick or add a student above to continue.")
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
