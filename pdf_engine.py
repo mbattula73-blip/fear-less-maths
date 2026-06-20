@@ -111,6 +111,23 @@ def _divider(c,top_y,bot_y):
     c.setStrokeColor(LGRAY); c.setLineWidth(0.3); c.setDash(3,3)
     c.line(RX,bot_y,RX,top_y); c.setDash()
 
+def _rough_work(c,col,min_space=14*mm):
+    """Fill remaining space in a column with a 'rough work' ruled box, if enough room."""
+    avail=col.y-col.bot
+    if avail<min_space: return
+    x=col.x; cw=col.cw
+    c.setStrokeColor(LGRAY); c.setLineWidth(0.5)
+    c.line(x-1*mm,col.y,x-1*mm+cw+1*mm,col.y)
+    col.y-=5*mm
+    c.setFont("Helvetica-Oblique",10); c.setFillColor(MGRAY)
+    c.drawString(x,col.y,"Use this space for rough work")
+    col.y-=6*mm
+    c.setDash(1,2); c.setStrokeColor(LGRAY); c.setLineWidth(0.4)
+    while col.y-4.5*mm>=col.bot:
+        c.line(x,col.y,x+cw-2*mm,col.y)
+        col.y-=4.5*mm
+    c.setDash()
+
 def _footer_p2(c):
     c.setFillColor(WHITE); c.setStrokeColor(BLACK); c.setLineWidth(0.5)
     c.rect(ML,MB,BW,FTR_H,fill=1,stroke=1)
@@ -296,6 +313,7 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     for item in p3:
         if not rl2.render(item): p4.append(item)
     for item in p4: rr2.render(item)
+    _rough_work(c,rl2); _rough_work(c,rr2)
     # Page 3 — concept & tips (Level 7+ only)
     if level_num >= 7 and concept_items:
         c.showPage()
