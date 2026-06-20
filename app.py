@@ -5,6 +5,8 @@ LA Excellence Schools / IDPS Orchards
 import streamlit as st
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
 from pdf_engine import build_pdf
+import db
+from ws_helpers import numbered_questions
 
 st.set_page_config(
     page_title="Fear Less Maths",
@@ -263,7 +265,7 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2 = st.tabs(["  Generate Single Worksheet  ", "  Batch — All 8 Sheets  "])
+tab1, tab2, tab3 = st.tabs(["  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ", "  📑 Topic Tag Map  "])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
 with tab1:
@@ -459,7 +461,131 @@ with tab2:
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
-# Footer
+# ─── TAB 3 — TOPIC TAG MAP (Admin) ─────────────────────────────────────────────
+with tab3:
+    import pandas as pd
+
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+    st.markdown("##### Topic Tag Map")
+    st.caption(
+        "Map each question number on a worksheet to the topic/skill it tests. "
+        "Once tagged, every wrong-question entry in Daily Entry will auto-resolve to its topic."
+    )
+
+    col_t1, col_t2 = st.columns([1, 2])
+    with col_t1:
+        tag_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
+        tag_sheet_sel = st.selectbox("Sheet to tag", tag_sheet_lbls, key="tag_sheet")
+        tag_sheet_num = SHEET_OPTIONS[tag_sheet_lbls.index(tag_sheet_sel)][0]
+    tag_ws_id = f"{sublevel_code}-{tag_sheet_num}"
+
+    with col_t2:
+        st.markdown(f"""
+        <div style="padding-top:28px;font-size:13px;color:#888">
+            Tagging worksheet <b style="color:#111">{tag_ws_id}</b>
+            &nbsp;·&nbsp; {topic}
+        </div>
+        """, unsafe_allow_html=True)
+
+    try:
+        q_list = numbered_questions(sublevel_code, tag_sheet_num)
+    except Exception as e:
+        q_list = []
+        st.error(f"Could not load questions for {tag_ws_id}: {e}")
+
+    if q_list:
+        existing_tags = db.get_worksheet_tags(tag_ws_id)
+        df = pd.DataFrame(
+            [{"Q#": n, "Question preview": preview, "Topic": existing_tags.get(n, "")}
+             for n, preview in q_list]
+        )
+
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        edited_df = st.data_editor(
+            df,
+            column_config={
+                "Q#": st.column_config.NumberColumn("Q#", disabled=True, width="small"),
+                "Question preview": st.column_config.TextColumn("Question preview", disabled=True, width="large"),
+                "Topic": st.column_config.TextColumn("Topic", width="medium"),
+            },
+            hide_index=True,
+            width='stretch',
+            key=f"editor_{tag_ws_id}",
+        )
+
+        col_s1, col_s2 = st.columns([1, 1])
+        with col_s1:
+            if st.button("💾  Save Topic Tags", type="primary", key="save_tags"):
+                tag_map = {
+                    int(row["Q#"]): row["Topic"]
+                    for _, row in edited_df.iterrows()
+                    if str(row["Topic"]).strip()
+                }
+                db.set_worksheet_tags(tag_ws_id, tag_map)
+                st.success(f"Saved {len(tag_map)} topic tags for {tag_ws_id}.")
+
+        with col_s2:
+            tagged_count = sum(1 for _, r in edited_df.iterrows() if str(r["Topic"]).strip())
+            st.caption(f"{tagged_count} / {len(edited_df)} questions tagged in this editor (unsaved changes included).")
+
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+        st.markdown("###### Bulk paste (CSV)")
+        st.caption('Paste rows as "Q#,Topic" — one per line. This will overwrite tags for the Q# numbers you include; existing tags for other Q#s on this worksheet are kept unless re-saved via the table above.')
+        bulk_text = st.text_area(
+            "CSV paste box",
+            placeholder="11,fraction subtraction unlike denominators\n12,LCM word problems",
+            height=120,
+            key=f"bulk_{tag_ws_id}",
+            label_visibility="collapsed",
+        )
+        if st.button("📋  Apply Bulk Paste", key="apply_bulk"):
+            if not bulk_text.strip():
+                st.warning("Paste some rows first.")
+            else:
+                parsed = {}
+                errors = []
+                for i, line in enumerate(bulk_text.strip().splitlines(), 1):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    parts = line.split(",", 1)
+                    if len(parts) != 2:
+                        errors.append(f"Line {i}: expected 'Q#,Topic' — got '{line}'")
+                        continue
+                    qnum_str, topic_str = parts[0].strip(), parts[1].strip()
+                    if not qnum_str.isdigit():
+                        errors.append(f"Line {i}: '{qnum_str}' is not a valid question number")
+                        continue
+                    if not topic_str:
+                        errors.append(f"Line {i}: empty topic for Q{qnum_str}")
+                        continue
+                    parsed[int(qnum_str)] = topic_str
+
+                if errors:
+                    st.error("Some rows could not be parsed:\n\n" + "\n".join(errors))
+                if parsed:
+                    merged = db.get_worksheet_tags(tag_ws_id)
+                    merged.update(parsed)
+                    db.set_worksheet_tags(tag_ws_id, merged)
+                    st.success(f"Applied {len(parsed)} tags from bulk paste to {tag_ws_id}. Refresh the table above to see them.")
+                    st.rerun()
+    else:
+        st.info("No questions found for this worksheet.")
+
+    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+    st.markdown("###### Worksheets tagged so far")
+    tagged_list = db.list_tagged_worksheets()
+    if tagged_list:
+        st.dataframe(pd.DataFrame(tagged_list).rename(columns={"worksheet_id": "Worksheet", "n": "Tagged Qs"}),
+                     hide_index=True, width='stretch')
+    else:
+        st.caption("No worksheets tagged yet.")
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
 st.markdown(f"""
 <div class="footer-bar">
     <div class="fl">LA Excellence Schools / IDPS Orchards &nbsp;·&nbsp; Fear Less Maths</div>
