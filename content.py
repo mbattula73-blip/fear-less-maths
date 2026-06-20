@@ -17455,6 +17455,13 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 18 (Mensuration) content from content_l18.py
+try:
+    from content_l18 import DISPATCH_L18
+    _DISPATCH.update(DISPATCH_L18)
+except Exception as _e:
+    pass
+
 
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
     """
