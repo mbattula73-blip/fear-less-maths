@@ -17448,6 +17448,13 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 17 (Circles) content from content_l17.py
+try:
+    from content_l17 import DISPATCH_L17
+    _DISPATCH.update(DISPATCH_L17)
+except Exception as _e:
+    pass
+
 
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
     """
