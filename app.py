@@ -6,6 +6,7 @@ import streamlit as st
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
 from pdf_engine import build_pdf
 import db
+import analytics
 from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
 
 st.set_page_config(
@@ -265,9 +266,9 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  📑 Topic Tag Map  ", "  ✏️ Daily Entry  ",
+    "  📑 Topic Tag Map  ", "  ✏️ Daily Entry  ", "  📊 Analytics Dashboard  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -730,6 +731,115 @@ with tab4:
                        f"({len(de_wrong_qs)} wrong). Session #{session_id}.")
     elif not de_student_name or not de_class:
         st.info("Pick or add a student above to continue.")
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ─── TAB 5 — ANALYTICS DASHBOARD ───────────────────────────────────────────────
+with tab5:
+    import pandas as pd
+    from datetime import date as _date, timedelta as _timedelta
+
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+    st.markdown("##### Analytics Dashboard")
+
+    col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
+    with col_f1:
+        ad_preset = st.selectbox(
+            "Date range", ["All time", "Today", "Last 7 days", "Last 30 days", "Custom"],
+            key="ad_preset",
+        )
+    ad_date_from = ad_date_to = None
+    if ad_preset == "Today":
+        ad_date_from = ad_date_to = _date.today().isoformat()
+    elif ad_preset == "Last 7 days":
+        ad_date_from = (_date.today() - _timedelta(days=6)).isoformat()
+        ad_date_to = _date.today().isoformat()
+    elif ad_preset == "Last 30 days":
+        ad_date_from = (_date.today() - _timedelta(days=29)).isoformat()
+        ad_date_to = _date.today().isoformat()
+    elif ad_preset == "Custom":
+        with col_f2:
+            custom_from = st.date_input("From", value=_date.today() - _timedelta(days=7), key="ad_from")
+        with col_f3:
+            custom_to = st.date_input("To", value=_date.today(), key="ad_to")
+        ad_date_from, ad_date_to = custom_from.isoformat(), custom_to.isoformat()
+
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+    st.caption("Level distributions below reflect each student's CURRENT level (a standing fact). "
+               "Accuracy and topic-failure figures are limited to the date range selected above.")
+
+    # ── School-wide summary ───────────────────────────────────────────────────
+    st.markdown("###### School Summary")
+    summary = analytics.school_summary()
+    sc1, sc2, sc3, sc4 = st.columns(4)
+    for col, label, value in zip(
+        [sc1, sc2, sc3, sc4],
+        ["Total Students", "Average Level", "Seen Today", "Completion Today"],
+        [summary["total_students"], summary["avg_level"], summary["students_seen_today"],
+         f'{summary["completion_rate_today"]}%'],
+    ):
+        with col:
+            st.markdown(f"""
+            <div class="info-cell">
+                <div class="il">{label}</div>
+                <div class="iv" style="font-size:20px">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+    # ── Class-wise breakdown ──────────────────────────────────────────────────
+    st.markdown("###### Class-wise Breakdown")
+    class_rows = analytics.class_summary(ad_date_from, ad_date_to)
+    if class_rows:
+        for c in class_rows:
+            with st.expander(f"{c['class_name']} — {c['student_count']} students "
+                             f"· Accuracy: {c['avg_accuracy'] if c['avg_accuracy'] is not None else '—'}%"
+                             f" · {c['sessions_in_range']} sessions in range", expanded=True):
+                if c["level_distribution"]:
+                    lvl_df = pd.DataFrame(
+                        [{"Level": k, "Students": v} for k, v in c["level_distribution"].items()]
+                    )
+                    st.bar_chart(lvl_df.set_index("Level"), width='stretch')
+                else:
+                    st.caption("No students with a recorded level yet.")
+    else:
+        st.info("No students added yet.")
+
+    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+    # ── Topic failure ranking ─────────────────────────────────────────────────
+    st.markdown("###### Topic Failure Ranking")
+    st.caption("Topics ranked by number of distinct students currently struggling, within the date range above.")
+    topic_rows = analytics.topic_failure_ranking(ad_date_from, ad_date_to)
+    if topic_rows:
+        topic_df = pd.DataFrame(topic_rows).rename(columns={
+            "topic": "Topic", "student_count": "Students Affected", "occurrence_count": "Total Occurrences"
+        })
+        st.dataframe(topic_df, hide_index=True, width='stretch')
+    else:
+        st.caption("No tagged wrong-question data in this date range yet.")
+
+    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+    # ── Grade-wise rollup ──────────────────────────────────────────────────────
+    st.markdown("###### Grade-wise Rollup")
+    grade_rows = analytics.grade_rollup(ad_date_from, ad_date_to)
+    if grade_rows:
+        for g in grade_rows:
+            with st.expander(f"Grade {g['grade']} — {g['student_count']} students "
+                             f"· Accuracy: {g['avg_accuracy'] if g['avg_accuracy'] is not None else '—'}%"):
+                if g["level_distribution"]:
+                    lvl_df = pd.DataFrame(
+                        [{"Level": k, "Students": v} for k, v in g["level_distribution"].items()]
+                    )
+                    st.bar_chart(lvl_df.set_index("Level"), width='stretch')
+                else:
+                    st.caption("No students with a recorded level yet.")
+    else:
+        st.info("No students added yet.")
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
