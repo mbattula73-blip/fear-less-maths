@@ -14,11 +14,12 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "flm_data.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT NOT NULL,
-    class_name  TEXT NOT NULL,
-    grade       INTEGER NOT NULL,
-    created_at  TEXT NOT NULL,
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT NOT NULL,
+    class_name      TEXT NOT NULL,
+    grade           INTEGER NOT NULL,
+    parent_whatsapp TEXT,
+    created_at      TEXT NOT NULL,
     UNIQUE(name, class_name)
 );
 
@@ -75,24 +76,76 @@ def get_conn():
 def init_db():
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        # Migration: add parent_whatsapp to older DBs that predate it
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(students)").fetchall()]
+        if "parent_whatsapp" not in cols:
+            conn.execute("ALTER TABLE students ADD COLUMN parent_whatsapp TEXT")
+
+
+def import_roster(rows: list) -> dict:
+    """
+    Bulk import students. rows: list of dicts with keys name, class_name, grade, parent_whatsapp.
+    Returns {'added': n, 'errors': [...]}.
+    """
+    added = 0
+    errors = []
+    for i, r in enumerate(rows, 1):
+        name = str(r.get("name", "")).strip()
+        cls = str(r.get("class_name", "")).strip()
+        grade = r.get("grade")
+        wa = r.get("parent_whatsapp", "")
+        if not name or not cls:
+            errors.append(f"Row {i}: missing name or class")
+            continue
+        try:
+            grade = int(grade)
+        except (TypeError, ValueError):
+            errors.append(f"Row {i} ({name}): invalid grade '{grade}'")
+            continue
+        add_student(name, cls, grade, wa)
+        added += 1
+    return {"added": added, "errors": errors}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # STUDENTS
 # ─────────────────────────────────────────────────────────────────────────────
 
-def add_student(name: str, class_name: str, grade: int) -> int:
+def _normalize_whatsapp(num: str) -> str:
+    """Strip spaces/dashes/parens; ensure a country code. Defaults to +91 (India)
+    if a bare 10-digit number is given. Returns digits-only with country code,
+    suitable for wa.me links."""
+    if not num:
+        return ""
+    cleaned = "".join(ch for ch in str(num) if ch.isdigit() or ch == "+")
+    cleaned = cleaned.lstrip("+")
+    if len(cleaned) == 10:           # bare Indian mobile
+        cleaned = "91" + cleaned
+    return cleaned
+
+
+def add_student(name: str, class_name: str, grade: int, parent_whatsapp: str = None) -> int:
+    wa = _normalize_whatsapp(parent_whatsapp) if parent_whatsapp else None
     with get_conn() as conn:
         cur = conn.execute(
-            "INSERT OR IGNORE INTO students (name, class_name, grade, created_at) VALUES (?,?,?,?)",
-            (name.strip(), class_name.strip(), grade, datetime.now().isoformat()),
+            "INSERT OR IGNORE INTO students (name, class_name, grade, parent_whatsapp, created_at) VALUES (?,?,?,?,?)",
+            (name.strip(), class_name.strip(), grade, wa, datetime.now().isoformat()),
         )
         if cur.lastrowid:
             return cur.lastrowid
+        # Already exists — update grade/parent if provided
         row = conn.execute(
             "SELECT id FROM students WHERE name=? AND class_name=?", (name.strip(), class_name.strip())
         ).fetchone()
+        if wa:
+            conn.execute("UPDATE students SET parent_whatsapp=?, grade=? WHERE id=?", (wa, grade, row["id"]))
         return row["id"]
+
+
+def update_parent_whatsapp(student_id: int, parent_whatsapp: str):
+    with get_conn() as conn:
+        conn.execute("UPDATE students SET parent_whatsapp=? WHERE id=?",
+                     (_normalize_whatsapp(parent_whatsapp), student_id))
 
 
 def get_students(class_name: str = None):
@@ -158,11 +211,18 @@ def list_tagged_worksheets():
         return [dict(r) for r in rows]
 
 
-def resolve_topics(worksheet_id: str, wrong_qs: list) -> dict:
-    """Returns {q_num: topic_or_'(untagged)'} for the given wrong question numbers.
-    Remedial worksheets (ending in 'R') fall back to their base sheet's tags."""
+def resolve_topics(worksheet_id: str, wrong_qs: list, fallback_topic: str = None) -> dict:
+    """Returns {q_num: topic} for the given wrong question numbers.
+    Resolution order per question:
+      1. explicit per-question tag for this worksheet
+      2. explicit per-question tag of the base sheet (if this is a remedial 'R' sheet)
+      3. the worksheet's sublevel topic label (fallback_topic), so reports are
+         always meaningful even when nothing has been tagged by hand
+      4. '(untagged)' only if no fallback_topic was supplied
+    """
     tags = get_worksheet_tags_with_fallback(worksheet_id)
-    return {int(q): tags.get(int(q), "(untagged)") for q in wrong_qs}
+    default = fallback_topic if fallback_topic else "(untagged)"
+    return {int(q): tags.get(int(q), default) for q in wrong_qs}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

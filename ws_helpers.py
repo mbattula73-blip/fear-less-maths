@@ -33,6 +33,15 @@ def remedial_id_for(sublevel_code: str, sheet_num: str) -> str:
     return f"{sublevel_code}-{base}"
 
 
+def build_whatsapp_link(parent_whatsapp: str, message: str) -> str:
+    """Builds a wa.me click-to-send link that opens WhatsApp with the message
+    pre-filled to the parent's number. parent_whatsapp should already be
+    normalized (digits incl. country code)."""
+    from urllib.parse import quote
+    digits = "".join(ch for ch in str(parent_whatsapp) if ch.isdigit())
+    return f"https://wa.me/{digits}?text={quote(message)}"
+
+
 def build_whatsapp_report(student_name: str, worksheet_id: str, total_questions: int,
                            wrong_qs: list, resolved_topics: dict, remedial_id: str = None) -> str:
     """Builds a short, plain-language WhatsApp report for a parent."""

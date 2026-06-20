@@ -266,9 +266,9 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab4, tab5 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  📑 Topic Tag Map  ", "  ✏️ Daily Entry  ", "  📊 Analytics Dashboard  ",
+    "  ✏️ Daily Entry  ", "  📊 Dashboard  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -465,384 +465,249 @@ with tab2:
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
-# ─── TAB 3 — TOPIC TAG MAP (Admin) ─────────────────────────────────────────────
-with tab3:
+# ─── TAB 4 — DAILY ENTRY ───────────────────────────────────────────────────────
+with tab4:
     import pandas as pd
+    from datetime import date as _date
+    from ws_helpers import build_whatsapp_link
 
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
-    st.markdown("##### Topic Tag Map")
-    st.caption(
-        "Map each question number on a worksheet to the topic/skill it tests. "
-        "Once tagged, every wrong-question entry in Daily Entry will auto-resolve to its topic."
-    )
 
-    col_t1, col_t2 = st.columns([1, 2])
-    with col_t1:
-        tag_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
-        tag_sheet_sel = st.selectbox("Sheet to tag", tag_sheet_lbls, key="tag_sheet")
-        tag_sheet_num = SHEET_OPTIONS[tag_sheet_lbls.index(tag_sheet_sel)][0]
-    tag_ws_id = f"{sublevel_code}-{tag_sheet_num}"
+    existing_classes = db.get_classes()
 
-    with col_t2:
+    # ── First-run: roster setup ────────────────────────────────────────────────
+    if not existing_classes:
+        st.markdown("##### Set up your class roster (one time)")
+        st.caption("Paste your students once. Format per line:  Name, Class, Grade, Parent WhatsApp number")
+        roster_text = st.text_area(
+            "Roster",
+            placeholder="Ravi Kumar, Class A, 7, 7036525875\nMeena, Class A, 7, 9812345678\nArjun, Class B, 5, 9876543210",
+            height=160, key="roster_text", label_visibility="collapsed",
+        )
+        if st.button("📋  Import Roster", type="primary", key="import_roster"):
+            rows = []
+            errs = []
+            for i, line in enumerate(roster_text.strip().splitlines(), 1):
+                if not line.strip():
+                    continue
+                parts = [p.strip() for p in line.split(",")]
+                if len(parts) < 3:
+                    errs.append(f"Line {i}: need at least Name, Class, Grade")
+                    continue
+                rows.append({
+                    "name": parts[0], "class_name": parts[1], "grade": parts[2],
+                    "parent_whatsapp": parts[3] if len(parts) > 3 else "",
+                })
+            if errs:
+                st.error("\n".join(errs))
+            if rows:
+                res = db.import_roster(rows)
+                if res["errors"]:
+                    st.warning("Some rows skipped:\n\n" + "\n".join(res["errors"]))
+                st.success(f"Imported {res['added']} students. Reloading…")
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        # ── Daily entry flow ───────────────────────────────────────────────────
+        st.markdown("##### Daily Entry")
+        st.caption("Pick a student, the worksheet they did, and type the wrong question numbers. "
+                   "Topics, remedial and the parent report fill in automatically.")
+
+        col_d1, col_d2 = st.columns([1, 1])
+        with col_d1:
+            de_class = st.selectbox("Class", existing_classes, key="de_class")
+        roster = db.get_students(de_class)
+        with col_d2:
+            de_name = st.selectbox("Student", [s["name"] for s in roster], key="de_name")
+        student = next(s for s in roster if s["name"] == de_name)
+
+        # missing-number nudge
+        if not student.get("parent_whatsapp"):
+            wa_in = st.text_input(f"Parent WhatsApp number for {de_name} (not on file)",
+                                  key="de_add_wa", placeholder="e.g. 7036525875")
+            if wa_in.strip():
+                db.update_parent_whatsapp(student["id"], wa_in)
+                st.rerun()
+
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        col_w1, col_w2, col_w3 = st.columns([1, 1, 1])
+        with col_w1:
+            de_date = st.date_input("Date", value=_date.today(), key="de_date")
+        with col_w2:
+            de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
+            de_sheet_sel = st.selectbox("Sheet", de_sheet_lbls, key="de_sheet")
+            de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
+        with col_w3:
+            de_total_q = st.number_input("Total Qs", min_value=1, max_value=50, value=20, key="de_total_q")
+
+        de_ws_id = f"{sublevel_code}-{de_sheet_num}"
         st.markdown(f"""
-        <div style="padding-top:28px;font-size:13px;color:#888">
-            Tagging worksheet <b style="color:#111">{tag_ws_id}</b>
-            &nbsp;·&nbsp; {topic}
+        <div style="font-size:13px;color:#888;margin:4px 0 10px">
+            Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
         </div>
         """, unsafe_allow_html=True)
 
-    try:
-        q_list = numbered_questions(sublevel_code, tag_sheet_num)
-    except Exception as e:
-        q_list = []
-        st.error(f"Could not load questions for {tag_ws_id}: {e}")
-
-    if q_list:
-        existing_tags = db.get_worksheet_tags(tag_ws_id)
-        df = pd.DataFrame(
-            [{"Q#": n, "Question preview": preview, "Topic": existing_tags.get(n, "")}
-             for n, preview in q_list]
+        de_wrong_str = st.text_input(
+            "Wrong question numbers (comma-separated · leave blank if all correct)",
+            key="de_wrong_qs", placeholder="e.g. 17, 18",
         )
 
-        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-        edited_df = st.data_editor(
-            df,
-            column_config={
-                "Q#": st.column_config.NumberColumn("Q#", disabled=True, width="small"),
-                "Question preview": st.column_config.TextColumn("Question preview", disabled=True, width="large"),
-                "Topic": st.column_config.TextColumn("Topic", width="medium"),
-            },
-            hide_index=True,
-            width='stretch',
-            key=f"editor_{tag_ws_id}",
-        )
+        de_wrong_qs, de_err = [], None
+        if de_wrong_str.strip():
+            for part in de_wrong_str.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                if not part.isdigit():
+                    de_err = f"'{part}' is not a valid question number"; break
+                qn = int(part)
+                if qn < 1 or qn > de_total_q:
+                    de_err = f"Q{qn} is out of range (1–{de_total_q})"; break
+                de_wrong_qs.append(qn)
+        if de_err:
+            st.error(de_err)
 
-        col_s1, col_s2 = st.columns([1, 1])
-        with col_s1:
-            if st.button("💾  Save Topic Tags", type="primary", key="save_tags"):
-                tag_map = {
-                    int(row["Q#"]): row["Topic"]
-                    for _, row in edited_df.iterrows()
-                    if str(row["Topic"]).strip()
-                }
-                db.set_worksheet_tags(tag_ws_id, tag_map)
-                st.success(f"Saved {len(tag_map)} topic tags for {tag_ws_id}.")
-
-        with col_s2:
-            tagged_count = sum(1 for _, r in edited_df.iterrows() if str(r["Topic"]).strip())
-            st.caption(f"{tagged_count} / {len(edited_df)} questions tagged in this editor (unsaved changes included).")
-
-        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
-        st.markdown("###### Bulk paste (CSV)")
-        st.caption('Paste rows as "Q#,Topic" — one per line. This will overwrite tags for the Q# numbers you include; existing tags for other Q#s on this worksheet are kept unless re-saved via the table above.')
-        bulk_text = st.text_area(
-            "CSV paste box",
-            placeholder="11,fraction subtraction unlike denominators\n12,LCM word problems",
-            height=120,
-            key=f"bulk_{tag_ws_id}",
-            label_visibility="collapsed",
-        )
-        if st.button("📋  Apply Bulk Paste", key="apply_bulk"):
-            if not bulk_text.strip():
-                st.warning("Paste some rows first.")
-            else:
-                parsed = {}
-                errors = []
-                for i, line in enumerate(bulk_text.strip().splitlines(), 1):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    parts = line.split(",", 1)
-                    if len(parts) != 2:
-                        errors.append(f"Line {i}: expected 'Q#,Topic' — got '{line}'")
-                        continue
-                    qnum_str, topic_str = parts[0].strip(), parts[1].strip()
-                    if not qnum_str.isdigit():
-                        errors.append(f"Line {i}: '{qnum_str}' is not a valid question number")
-                        continue
-                    if not topic_str:
-                        errors.append(f"Line {i}: empty topic for Q{qnum_str}")
-                        continue
-                    parsed[int(qnum_str)] = topic_str
-
-                if errors:
-                    st.error("Some rows could not be parsed:\n\n" + "\n".join(errors))
-                if parsed:
-                    merged = db.get_worksheet_tags(tag_ws_id)
-                    merged.update(parsed)
-                    db.set_worksheet_tags(tag_ws_id, merged)
-                    st.success(f"Applied {len(parsed)} tags from bulk paste to {tag_ws_id}. Refresh the table above to see them.")
-                    st.rerun()
-    else:
-        st.info("No questions found for this worksheet.")
-
-    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
-    st.markdown("###### Worksheets tagged so far")
-    tagged_list = db.list_tagged_worksheets()
-    if tagged_list:
-        st.dataframe(pd.DataFrame(tagged_list).rename(columns={"worksheet_id": "Worksheet", "n": "Tagged Qs"}),
-                     hide_index=True, width='stretch')
-    else:
-        st.caption("No worksheets tagged yet.")
-
-    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ─── TAB 4 — DAILY ENTRY ───────────────────────────────────────────────────────
-with tab4:
-    from datetime import date as _date
-
-    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
-    st.markdown("##### Daily Entry")
-    st.caption("Log a student's worksheet attempt. Wrong questions auto-resolve to topics, "
-               "the matching remedial worksheet is auto-linked, and a parent report is generated.")
-
-    # ── Student picker / add-new ──────────────────────────────────────────────
-    st.markdown("###### Student")
-    existing_classes = db.get_classes()
-    default_mode_idx = 1 if not existing_classes else 0
-    pick_mode = st.radio("Student source", ["Pick existing", "Add new"], horizontal=True,
-                          index=default_mode_idx, key="de_student_mode", label_visibility="collapsed")
-
-    de_student_id = None
-    de_student_name = None
-    de_class = None
-    de_grade = None
-
-    if pick_mode == "Pick existing":
-        if not existing_classes:
-            st.info("No students added yet — switch to 'Add new' to add your first student.")
-        else:
-            col_p1, col_p2 = st.columns(2)
-            with col_p1:
-                de_class_pick = st.selectbox("Class", existing_classes, key="de_class_pick")
-            students_in_class = db.get_students(de_class_pick)
-            with col_p2:
-                if students_in_class:
-                    names = [s["name"] for s in students_in_class]
-                    de_name_pick = st.selectbox("Student", names, key="de_name_pick")
-                    picked = next(s for s in students_in_class if s["name"] == de_name_pick)
-                    de_student_id, de_student_name, de_class, de_grade = (
-                        picked["id"], picked["name"], picked["class_name"], picked["grade"]
-                    )
-                else:
-                    st.info("No students in this class yet — switch to 'Add new'.")
-    else:
-        col_n1, col_n2, col_n3 = st.columns(3)
-        with col_n1:
-            new_name = st.text_input("Student name", key="de_new_name")
-        with col_n2:
-            new_class = st.text_input("Class", key="de_new_class", placeholder="e.g. Class A")
-        with col_n3:
-            new_grade = st.number_input("Grade", min_value=1, max_value=10, value=1, key="de_new_grade")
-        if new_name.strip() and new_class.strip():
-            de_student_name, de_class, de_grade = new_name.strip(), new_class.strip(), int(new_grade)
-
-    st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
-
-    # ── Worksheet + wrong questions ───────────────────────────────────────────
-    st.markdown("###### Worksheet attempted")
-    col_w1, col_w2, col_w3 = st.columns([1, 1, 1])
-    with col_w1:
-        de_date = st.date_input("Date", value=_date.today(), key="de_date")
-    with col_w2:
-        de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
-        de_sheet_sel = st.selectbox("Sheet", de_sheet_lbls, key="de_sheet")
-        de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
-    with col_w3:
-        de_total_q = st.number_input("Total questions", min_value=1, max_value=50, value=20, key="de_total_q")
-
-    de_ws_id = f"{sublevel_code}-{de_sheet_num}"
-    st.markdown(f"""
-    <div style="font-size:13px;color:#888;margin:4px 0 12px">
-        Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
-    </div>
-    """, unsafe_allow_html=True)
-
-    de_wrong_str = st.text_input(
-        "Wrong question numbers (comma-separated, leave blank if all correct)",
-        key="de_wrong_qs", placeholder="e.g. 17, 18",
-    )
-
-    de_wrong_qs = []
-    de_parse_error = None
-    if de_wrong_str.strip():
-        for part in de_wrong_str.split(","):
-            part = part.strip()
-            if not part:
-                continue
-            if not part.isdigit():
-                de_parse_error = f"'{part}' is not a valid question number"
-                break
-            qn = int(part)
-            if qn < 1 or qn > de_total_q:
-                de_parse_error = f"Q{qn} is out of range (1–{de_total_q})"
-                break
-            de_wrong_qs.append(qn)
-
-    if de_parse_error:
-        st.error(de_parse_error)
-
-    # ── Live preview: resolved topics + remedial + WhatsApp report ───────────
-    if not de_parse_error and de_student_name and de_class:
-        resolved = db.resolve_topics(de_ws_id, de_wrong_qs) if de_wrong_qs else {}
-        remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
-
-        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
-        st.markdown("###### Preview")
-
-        if de_wrong_qs:
-            for qn, t in resolved.items():
-                tag_color = "#888" if t == "(untagged)" else "#111"
-                st.markdown(f"<div style='font-size:13px;margin-bottom:2px'>Q{qn} → "
-                            f"<span style='color:{tag_color}'>{t}</span></div>", unsafe_allow_html=True)
-            st.markdown(f"<div style='font-size:13px;margin-top:8px;color:#555'>"
-                        f"Remedial worksheet: <b>{remedial_id}</b></div>", unsafe_allow_html=True)
-        else:
-            st.markdown("<div style='font-size:13px;color:#555'>No wrong questions — full marks.</div>",
-                        unsafe_allow_html=True)
-
-        whatsapp_msg = build_whatsapp_report(
-            de_student_name, de_ws_id, int(de_total_q), de_wrong_qs, resolved, remedial_id
-        )
-        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
-        st.markdown("###### Parent WhatsApp report")
-        whatsapp_key = f"de_whatsapp_preview_{de_ws_id}_{de_wrong_str}_{de_student_name}"
-        st.text_area("WhatsApp message", whatsapp_msg, height=100, key=whatsapp_key)
-
-        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
-        if st.button("💾  Save Entry", type="primary", key="de_save"):
-            sid = de_student_id or db.add_student(de_student_name, de_class, de_grade)
-            session_id = db.add_session(
-                session_date=de_date.isoformat(),
-                student_id=sid,
-                class_name=de_class,
-                grade=int(de_grade),
-                level_num=level_num,
-                worksheet_id=de_ws_id,
-                wrong_qs=de_wrong_qs,
-                resolved_topics=resolved,
-                total_questions=int(de_total_q),
-                remedial_id=remedial_id,
+        if not de_err:
+            resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
+            remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
+            whatsapp_msg = build_whatsapp_report(
+                de_name, de_ws_id, int(de_total_q), de_wrong_qs, resolved, remedial_id
             )
-            st.success(f"Saved entry for {de_student_name} — {de_ws_id} "
-                       f"({len(de_wrong_qs)} wrong). Session #{session_id}.")
-    elif not de_student_name or not de_class:
-        st.info("Pick or add a student above to continue.")
 
-    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+            st.markdown(f"""
+            <div class="info-cell" style="margin-bottom:12px">
+                <div class="il">Parent report preview</div>
+                <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ─── TAB 5 — ANALYTICS DASHBOARD ───────────────────────────────────────────────
+            col_s1, col_s2 = st.columns([1, 1])
+            with col_s1:
+                if st.button("💾  Save Entry", type="primary", key="de_save"):
+                    db.add_session(
+                        session_date=de_date.isoformat(), student_id=student["id"],
+                        class_name=de_class, grade=student["grade"], level_num=level_num,
+                        worksheet_id=de_ws_id, wrong_qs=de_wrong_qs, resolved_topics=resolved,
+                        total_questions=int(de_total_q), remedial_id=remedial_id,
+                    )
+                    st.session_state["de_saved"] = de_name
+                    st.success(f"Saved entry for {de_name}.")
+
+            with col_s2:
+                wa_number = student.get("parent_whatsapp")
+                if wa_number:
+                    wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
+                    st.markdown(f"""
+                    <a href="{wa_link}" target="_blank" style="text-decoration:none">
+                      <div style="background:#25D366;color:#fff;text-align:center;
+                                  padding:14px 0;border-radius:8px;font-weight:600;font-size:15px">
+                        📲 Send to Parent
+                      </div>
+                    </a>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.caption("No parent number on file — add one above to enable sending.")
+
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─── TAB 5 — DASHBOARD ─────────────────────────────────────────────────────────
 with tab5:
     import pandas as pd
     from datetime import date as _date, timedelta as _timedelta
 
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
-    st.markdown("##### Analytics Dashboard")
 
-    col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
-    with col_f1:
-        ad_preset = st.selectbox(
-            "Date range", ["All time", "Today", "Last 7 days", "Last 30 days", "Custom"],
-            key="ad_preset",
-        )
-    ad_date_from = ad_date_to = None
-    if ad_preset == "Today":
-        ad_date_from = ad_date_to = _date.today().isoformat()
-    elif ad_preset == "Last 7 days":
-        ad_date_from = (_date.today() - _timedelta(days=6)).isoformat()
-        ad_date_to = _date.today().isoformat()
-    elif ad_preset == "Last 30 days":
-        ad_date_from = (_date.today() - _timedelta(days=29)).isoformat()
-        ad_date_to = _date.today().isoformat()
-    elif ad_preset == "Custom":
-        with col_f2:
-            custom_from = st.date_input("From", value=_date.today() - _timedelta(days=7), key="ad_from")
-        with col_f3:
-            custom_to = st.date_input("To", value=_date.today(), key="ad_to")
-        ad_date_from, ad_date_to = custom_from.isoformat(), custom_to.isoformat()
+    students_exist = bool(db.get_classes())
+    if not students_exist:
+        st.info("No data yet. Add your roster and log a few entries in the Daily Entry tab first.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        col_h, col_f = st.columns([2, 1])
+        with col_h:
+            st.markdown("##### Dashboard")
+        with col_f:
+            ad_preset = st.selectbox("Date range", ["Today", "Last 7 days", "Last 30 days", "All time"],
+                                     index=1, key="ad_preset", label_visibility="collapsed")
+        ad_from = ad_to = None
+        if ad_preset == "Today":
+            ad_from = ad_to = _date.today().isoformat()
+        elif ad_preset == "Last 7 days":
+            ad_from = (_date.today() - _timedelta(days=6)).isoformat(); ad_to = _date.today().isoformat()
+        elif ad_preset == "Last 30 days":
+            ad_from = (_date.today() - _timedelta(days=29)).isoformat(); ad_to = _date.today().isoformat()
 
-    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-    st.caption("Level distributions below reflect each student's CURRENT level (a standing fact). "
-               "Accuracy and topic-failure figures are limited to the date range selected above.")
+        # ── Summary metric cards ───────────────────────────────────────────────
+        summary = analytics.school_summary()
+        cards = [
+            ("Students", summary["total_students"]),
+            ("Avg Level", summary["avg_level"]),
+            ("Seen Today", summary["students_seen_today"]),
+            ("Done Today", f'{summary["completion_rate_today"]}%'),
+        ]
+        card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+        for label, value in cards:
+            card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                          f'<div class="iv" style="font-size:22px">{value}</div></div>')
+        card_html += '</div>'
+        st.markdown(card_html, unsafe_allow_html=True)
 
-    # ── School-wide summary ───────────────────────────────────────────────────
-    st.markdown("###### School Summary")
-    summary = analytics.school_summary()
-    sc1, sc2, sc3, sc4 = st.columns(4)
-    for col, label, value in zip(
-        [sc1, sc2, sc3, sc4],
-        ["Total Students", "Average Level", "Seen Today", "Completion Today"],
-        [summary["total_students"], summary["avg_level"], summary["students_seen_today"],
-         f'{summary["completion_rate_today"]}%'],
-    ):
-        with col:
-            st.markdown(f"""
-            <div class="info-cell">
-                <div class="il">{label}</div>
-                <div class="iv" style="font-size:20px">{value}</div>
-            </div>
-            """, unsafe_allow_html=True)
+        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
 
-    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+        # ── Top struggling topics ──────────────────────────────────────────────
+        st.markdown("###### Where students are struggling most")
+        st.caption(f"Topics with the most students struggling · {ad_preset.lower()}")
+        topic_rows = analytics.topic_failure_ranking(ad_from, ad_to)
+        if topic_rows:
+            top = topic_rows[:10]
+            chart_df = pd.DataFrame(
+                {"Students": [r["student_count"] for r in top]},
+                index=[r["topic"] for r in top],
+            )
+            st.bar_chart(chart_df, horizontal=True, color="#0D0D0D", width='stretch')
+        else:
+            st.caption("No wrong-answer data in this range yet.")
 
-    # ── Class-wise breakdown ──────────────────────────────────────────────────
-    st.markdown("###### Class-wise Breakdown")
-    class_rows = analytics.class_summary(ad_date_from, ad_date_to)
-    if class_rows:
-        for c in class_rows:
-            with st.expander(f"{c['class_name']} — {c['student_count']} students "
-                             f"· Accuracy: {c['avg_accuracy'] if c['avg_accuracy'] is not None else '—'}%"
-                             f" · {c['sessions_in_range']} sessions in range", expanded=True):
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── Class comparison ───────────────────────────────────────────────────
+        st.markdown("###### Class overview")
+        class_rows = analytics.class_summary(ad_from, ad_to)
+        if class_rows:
+            comp_df = pd.DataFrame([{
+                "Class": c["class_name"],
+                "Students": c["student_count"],
+                "Avg Accuracy": f'{c["avg_accuracy"]}%' if c["avg_accuracy"] is not None else "—",
+                "Sessions": c["sessions_in_range"],
+            } for c in class_rows])
+            st.dataframe(comp_df, hide_index=True, width='stretch')
+
+            for c in class_rows:
                 if c["level_distribution"]:
-                    lvl_df = pd.DataFrame(
-                        [{"Level": k, "Students": v} for k, v in c["level_distribution"].items()]
-                    )
-                    st.bar_chart(lvl_df.set_index("Level"), width='stretch')
-                else:
-                    st.caption("No students with a recorded level yet.")
-    else:
-        st.info("No students added yet.")
+                    st.caption(f"{c['class_name']} — level distribution")
+                    lvl_df = pd.DataFrame({"Students": list(c["level_distribution"].values())},
+                                          index=[f"L{k}" for k in c["level_distribution"].keys()])
+                    st.bar_chart(lvl_df, color="#0D0D0D", width='stretch')
 
-    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
 
-    # ── Topic failure ranking ─────────────────────────────────────────────────
-    st.markdown("###### Topic Failure Ranking")
-    st.caption("Topics ranked by number of distinct students currently struggling, within the date range above.")
-    topic_rows = analytics.topic_failure_ranking(ad_date_from, ad_date_to)
-    if topic_rows:
-        topic_df = pd.DataFrame(topic_rows).rename(columns={
-            "topic": "Topic", "student_count": "Students Affected", "occurrence_count": "Total Occurrences"
-        })
-        st.dataframe(topic_df, hide_index=True, width='stretch')
-    else:
-        st.caption("No tagged wrong-question data in this date range yet.")
+        # ── Grade overview ─────────────────────────────────────────────────────
+        st.markdown("###### Grade overview")
+        grade_rows = analytics.grade_rollup(ad_from, ad_to)
+        if grade_rows:
+            grade_df = pd.DataFrame([{
+                "Grade": g["grade"],
+                "Students": g["student_count"],
+                "Avg Accuracy": f'{g["avg_accuracy"]}%' if g["avg_accuracy"] is not None else "—",
+            } for g in grade_rows])
+            st.dataframe(grade_df, hide_index=True, width='stretch')
 
-    st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
-
-    # ── Grade-wise rollup ──────────────────────────────────────────────────────
-    st.markdown("###### Grade-wise Rollup")
-    grade_rows = analytics.grade_rollup(ad_date_from, ad_date_to)
-    if grade_rows:
-        for g in grade_rows:
-            with st.expander(f"Grade {g['grade']} — {g['student_count']} students "
-                             f"· Accuracy: {g['avg_accuracy'] if g['avg_accuracy'] is not None else '—'}%"):
-                if g["level_distribution"]:
-                    lvl_df = pd.DataFrame(
-                        [{"Level": k, "Students": v} for k, v in g["level_distribution"].items()]
-                    )
-                    st.bar_chart(lvl_df.set_index("Level"), width='stretch')
-                else:
-                    st.caption("No students with a recorded level yet.")
-    else:
-        st.info("No students added yet.")
-
-    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 st.markdown(f"""
