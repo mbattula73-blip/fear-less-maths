@@ -247,7 +247,7 @@ class Col:
         du=c.stringWidth(". ","Helvetica",4.5); ds=". "*int(cw/max(du,0.1))
         for _ in range(n_lines): c.drawString(x,self.y,ds); self.y-=3.5*mm
 
-def _concept_page(c, concept_items, ws_id, tier, topic, level_num):
+def _concept_page(c, concept_items, ws_id, tier, topic, level_num, sublevel_code_for_enrich=None):
     """Render Page 3: concept boxes and tips as a reference/answer guide page."""
     _outer(c)
     # Simplified header for concept page
@@ -274,6 +274,26 @@ def _concept_page(c, concept_items, ws_id, tier, topic, level_num):
     for item in concept_items:
         if not rl.render(item): overflow.append(item)
     for item in overflow: rr.render(item)
+    # --- Enrichment blocks (worked example, formula card, reference table) ---
+    try:
+        from tips_enrichment import get_enrichment
+        blocks=get_enrichment(sublevel_code_for_enrich, level_num, topic)
+        if blocks:
+            # First block(s) fill the right column top; remaining stack in left
+            # column under the tips box. This balances both columns.
+            lx=LX; rx=RX; ew=CW
+            ly=rl.y-2*mm           # below tips (left column)
+            ry=P1_TOP-2*mm         # right column top
+            # Heuristic: put the reference table (last block) on the right,
+            # the visual cards on the left under the tips.
+            *left_blocks, table_block = blocks if len(blocks)>1 else (blocks+[None])
+            for blk in left_blocks:
+                if blk and ly > P1_BOT+22*mm:
+                    ly=blk(c,lx,ly,ew)
+            if table_block and ry > P1_BOT+30*mm:
+                ry=table_block(c,rx,ry,ew)
+    except Exception:
+        pass
 
 def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     ws_id=f"{sublevel_code}-{sheet_num}"; tier=get_tier(sheet_num)
@@ -317,5 +337,34 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     # Page 3 — concept & tips (Level 7+ only)
     if level_num >= 7 and concept_items:
         c.showPage()
-        _concept_page(c, concept_items, ws_id, tier, topic, level_num)
+        _concept_page(c, concept_items, ws_id, tier, topic, level_num,
+                      sublevel_code_for_enrich=(sublevel_code if str(sheet_num)=="3" else None))
+    # Final page — RICH concept page, only on sheet 1 of a sublevel
+    if str(sheet_num) == "1":
+        try:
+            from concept_pages import get_concept_page, render_rich_concept_page
+            spec = get_concept_page(sublevel_code, level_num, topic)
+            if spec:
+                c.showPage()
+                _outer(c)
+                # Clean concept-page header (no grade sidebar; full width)
+                cx=ML+(PW-ML-MR)/2
+                c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
+                c.drawCentredString(cx,PH-MT-7*mm,"LA Excellence SCHOOLS  /  IDPS ORCHARDS")
+                c.setFont("Helvetica",7.5); c.setFillColor(MGRAY)
+                c.drawCentredString(cx,PH-MT-11.5*mm,
+                    f"Level {level_num} — {LEVELS.get(level_num,{}).get('name','')}  |  {topic}")
+                c.setFont("Helvetica-Bold",12); c.setFillColor(colors.HexColor('#1565C0'))
+                c.drawCentredString(cx,PH-MT-17.5*mm,"CONCEPT  &  TIPS  \u2014  Study Sheet")
+                c.setStrokeColor(BLACK); c.setLineWidth(0.8)
+                c.line(ML,PH-MT-20*mm,PW-MR,PH-MT-20*mm)
+                frame = {
+                    "ML":ML,"MR":MR,"MT":MT,"MB":MB,"PW":PW,"PH":PH,
+                    "BW":PW-ML-MR,"CW":(PW-ML-MR)/2-2*mm,
+                    "LX":ML,"RX":ML+(PW-ML-MR)/2+2*mm,"SX":SX,"SW":SW,
+                    "P_TOP":PH-MT-22*mm,"P_BOT":MB+2*mm,
+                }
+                render_rich_concept_page(c, spec, frame)
+        except Exception:
+            pass
     c.save(); _clean(); buf.seek(0); return buf
