@@ -1029,6 +1029,132 @@ def semicircle_vec(c, x, y, w):
     return r * 2 + 11 * mm
 
 
+def rect_shape_vec(c, x, y, w, length, width):
+    """Rectangle (or square) with length (bottom) and width (left) labelled.
+    Returns height used."""
+    aspect = (width / length) if length else 1
+    draw_w = min(w, 55 * mm)
+    draw_h = max(min(draw_w * aspect, 40 * mm), 16 * mm)
+    rx = x + (w - draw_w) / 2
+    ry = y - draw_h - 2 * mm
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(1.3)
+    c.rect(rx, ry, draw_w, draw_h, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(rx + draw_w / 2, ry - 4.5 * mm, str(length))
+    c.drawCentredString(rx - 6 * mm, ry + draw_h / 2, str(width))
+    return draw_h + 9 * mm
+
+
+def triangle_base_height_vec(c, x, y, w, base, height):
+    """Triangle with base labelled below and a dashed height line labelled.
+    Returns height used."""
+    bw = min(w, 55 * mm)
+    bh = max(min(bw * 0.7, 36 * mm), 16 * mm)
+    bx = x + (w - bw) / 2
+    by = y - bh - 2 * mm
+    A, B, C = (bx, by), (bx + bw, by), (bx + bw * 0.4, by + bh)
+    _draw_triangle_outline(c, A, B, C)
+    foot = (C[0], by)
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.9); c.setDash([2, 2])
+    c.line(C[0], C[1], foot[0], foot[1])
+    c.setDash([])
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString((A[0] + B[0]) / 2, by - 4.5 * mm, f"base={base}")
+    c.setFillColor(GOLD)
+    c.drawString(foot[0] + 1.5 * mm, (by + C[1]) / 2, f"h={height}")
+    return bh + 9 * mm
+
+
+def cuboid_vec(c, x, y, w, l, wd, h):
+    """Simple pseudo-3D wireframe cuboid with l, w (depth), h labelled.
+    Returns height used."""
+    fw = min(w * 0.5, 36 * mm)
+    fh = min(fw * 0.85, 30 * mm)
+    depth = fw * 0.4
+    bx = x + 4 * mm
+    by = y - fh - depth * 0.6 - 2 * mm
+    A, B, Cc, D = (bx, by), (bx + fw, by), (bx + fw, by + fh), (bx, by + fh)
+    dx, dy = depth * 0.7, depth * 0.5
+    A2 = (A[0] + dx, A[1] + dy); B2 = (B[0] + dx, B[1] + dy)
+    C2 = (Cc[0] + dx, Cc[1] + dy); D2 = (D[0] + dx, D[1] + dy)
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    for P, Q in [(A, B), (B, Cc), (Cc, D), (D, A)]:
+        c.line(P[0], P[1], Q[0], Q[1])
+    c.setStrokeColor(MGRAY); c.setLineWidth(1.0)
+    for P, Q in [(A2, B2), (B2, C2), (C2, D2), (D2, A2)]:
+        c.line(P[0], P[1], Q[0], Q[1])
+    for P, Q in [(A, A2), (B, B2), (Cc, C2), (D, D2)]:
+        c.line(P[0], P[1], Q[0], Q[1])
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString((A[0] + B[0]) / 2, A[1] - 4 * mm, f"l={l}")
+    c.setFillColor(GREEN)
+    c.drawString(A[0] - 8 * mm, (A[1] + D[1]) / 2, f"h={h}")
+    c.setFillColor(GOLD)
+    c.drawCentredString((B[0] + B2[0]) / 2 + 2 * mm, (B[1] + B2[1]) / 2, f"w={wd}")
+    return fh + dy + 14 * mm
+
+
+def cylinder_vec(c, x, y, w, r, h):
+    """Simple cylinder: two ellipses + sides, radius and height labelled.
+    Returns height used."""
+    cw = min(w * 0.5, 32 * mm)
+    ch = min(cw * 1.4, 44 * mm)
+    cx = x + w * 0.32
+    top_y = y - 6 * mm
+    bot_y = top_y - ch
+    rx_e = cw / 2; ry_e = cw * 0.18
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    c.ellipse(cx - rx_e, top_y - ry_e, cx + rx_e, top_y + ry_e, fill=0, stroke=1)
+    c.ellipse(cx - rx_e, bot_y - ry_e, cx + rx_e, bot_y + ry_e, fill=0, stroke=1)
+    c.line(cx - rx_e, top_y, cx - rx_e, bot_y)
+    c.line(cx + rx_e, top_y, cx + rx_e, bot_y)
+    c.setStrokeColor(GOLD); c.setLineWidth(1.1)
+    c.line(cx, top_y, cx + rx_e, top_y)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(cx + rx_e / 2, top_y + 2.8 * mm, f"r={r}")
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9.5)
+    c.drawString(cx + rx_e + 3 * mm, (top_y + bot_y) / 2, f"h={h}")
+    return (top_y - bot_y) + ry_e + 10 * mm
+
+
+def cone_vec(c, x, y, w, r, h):
+    """Simple cone: apex, base ellipse, slant sides; r and h labelled.
+    Returns height used."""
+    cw = min(w * 0.5, 32 * mm)
+    ch = min(cw * 1.3, 42 * mm)
+    cx = x + w * 0.32
+    apex = (cx, y - 6 * mm)
+    base_y = apex[1] - ch
+    rx_e = cw / 2; ry_e = cw * 0.18
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    c.ellipse(cx - rx_e, base_y - ry_e, cx + rx_e, base_y + ry_e, fill=0, stroke=1)
+    c.line(apex[0], apex[1], cx - rx_e, base_y)
+    c.line(apex[0], apex[1], cx + rx_e, base_y)
+    c.setStrokeColor(GOLD); c.setLineWidth(1.1)
+    c.line(cx, base_y, cx + rx_e, base_y)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(cx + rx_e / 2, base_y + 2.8 * mm, f"r={r}")
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9.5)
+    c.drawString(cx + 2 * mm, (apex[1] + base_y) / 2, f"h={h}")
+    return ch + ry_e + 10 * mm
+
+
+def sphere_vec(c, x, y, w, r):
+    """Circle with an equator ellipse (pseudo-3D sphere), radius labelled.
+    Returns height used."""
+    rad = min(w * 0.26, 26 * mm)
+    cx, cy = x + w / 2, y - rad - 2 * mm
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    c.circle(cx, cy, rad, fill=0, stroke=1)
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+    c.ellipse(cx - rad, cy - rad * 0.28, cx + rad, cy + rad * 0.28, fill=0, stroke=1)
+    c.setStrokeColor(GOLD); c.setLineWidth(1.2)
+    c.line(cx, cy, cx + rad, cy)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString(cx + rad / 2, cy + 3 * mm, f"r={r}")
+    return rad * 2 + 10 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -1445,6 +1571,45 @@ def _draw_example_diagram(c, x, y, w, rl):
     if kind == "semicircle":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = semicircle_vec(c, x + 4 * mm, y - 2 * mm, fig_w)
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "rect_shape":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = rect_shape_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                             rl["length"], rl["width"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "triangle_base_height":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = triangle_base_height_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                                       rl["base"], rl["height"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "cuboid":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = cuboid_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                         rl["l"], rl["wd"], rl["h"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "cylinder":
+        fig_w = min(w - 8 * mm, 48 * mm)
+        used = cylinder_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"], rl["h"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "cone":
+        fig_w = min(w - 8 * mm, 48 * mm)
+        used = cone_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"], rl["h"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "sphere":
+        fig_w = min(w - 8 * mm, 48 * mm)
+        used = sphere_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
@@ -2355,6 +2520,81 @@ def card_semicircle(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_rect_shape(c, x, y, w):
+    """Rectangle area/perimeter card."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Rectangle 6 by 4:")
+    fig_w = min(w - 8 * mm, 50 * mm)
+    used = rect_shape_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 6, 4)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Perimeter=2(l+w)=20. Area=l\u00d7w=24.")
+    return y - card_h - 2 * mm
+
+
+def card_triangle_area(c, x, y, w):
+    """Triangle-area card."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Triangle base 6, height 4:")
+    fig_w = min(w - 8 * mm, 50 * mm)
+    used = triangle_base_height_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 6, 4)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Area = \u00bd \u00d7 base \u00d7 height = 12.")
+    return y - card_h - 2 * mm
+
+
+def card_cuboid(c, x, y, w):
+    """Cuboid surface-area card."""
+    card_h = 62 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Cuboid l=5, w=3, h=4:")
+    fig_w = min(w - 8 * mm, 50 * mm)
+    used = cuboid_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 5, 3, 4)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "SA = 2(lw+wh+hl).")
+    return y - card_h - 2 * mm
+
+
+def card_cylinder(c, x, y, w):
+    """Cylinder volume card."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Cylinder r=7, h=10:")
+    fig_w = min(w - 8 * mm, 46 * mm)
+    used = cylinder_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 7, 10)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Volume = \u03c0r^2h.")
+    return y - card_h - 2 * mm
+
+
+def card_sphere(c, x, y, w):
+    """Sphere surface-area card."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Sphere r=7:")
+    fig_w = min(w - 8 * mm, 48 * mm)
+    used = sphere_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 7)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Surface area = 4\u03c0r^2.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -2384,6 +2624,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L16.get(sublevel_code)
     if level_num == 17:
         return _L17.get(sublevel_code)
+    if level_num == 18:
+        return _L18.get(sublevel_code)
     return None
 
 
@@ -9597,6 +9839,597 @@ _L17 = {
                 "3. What angle does a tangent make with the radius?",
             ],
             "answers": "1) 132 cm    2) 35\u00b0    3) 90\u00b0",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 18 — Mensuration: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L18 = {
+    # ---- 18A Perimeter ----
+    "18A": {
+        "title": "Perimeter",
+        "intro": [
+            "Perimeter = distance all the way around.",
+            "Add up every side.",
+            "Square: perimeter = 4 \u00d7 side.",
+            "Rectangle: perimeter = 2 \u00d7 (length + width).",
+            "Same units throughout (cm, m...).",
+        ],
+        "real_life": [
+            {"text": "1. Square side 5: perimeter = 20",
+             "diagram": "rect_shape", "length": 5, "width": 5,
+             "caption": "4\u00d75 = 20"},
+            {"text": "2. Square side 9: perimeter = 36",
+             "diagram": "rect_shape", "length": 9, "width": 9,
+             "caption": "4\u00d79 = 36"},
+            {"text": "3. Rectangle 6 by 4: perimeter = 20",
+             "diagram": "rect_shape", "length": 6, "width": 4,
+             "caption": "2\u00d7(6+4) = 20"},
+        ],
+        "card": card_rect_shape,
+        "solved": [
+            {"q": "Ex: Find the perimeter of a rectangle 6 by 4.",
+             "steps": ["2\u00d7(6+4)", "2\u00d710", "= 20"]},
+        ],
+        "tips": [
+            "Perimeter = distance around the outside.",
+            "Square: 4 \u00d7 side.",
+            "Rectangle: 2\u00d7(length+width).",
+            "Keep the same units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 7. Find the perimeter.",
+                "2. Rectangle 8 by 3. Find the perimeter.",
+                "3. Square side 12. Find the perimeter.",
+            ],
+            "answers": "1) 28    2) 22    3) 48",
+        },
+    },
+
+    # ---- 18B Area rectangle & square ----
+    "18B": {
+        "title": "Area: Rectangle & Square",
+        "intro": [
+            "Area = the space INSIDE a shape.",
+            "Rectangle: area = length \u00d7 width.",
+            "Square: area = side \u00d7 side.",
+            "Answer is in SQUARE units (cm^2, m^2).",
+            "6 by 4 rectangle: area = 24 cm^2.",
+        ],
+        "real_life": [
+            {"text": "1. Rectangle 6 by 4: area = 24",
+             "diagram": "rect_shape", "length": 6, "width": 4,
+             "caption": "6\u00d74 = 24"},
+            {"text": "2. Rectangle 8 by 5: area = 40",
+             "diagram": "rect_shape", "length": 8, "width": 5,
+             "caption": "8\u00d75 = 40"},
+            {"text": "3. Square side 5: area = 25",
+             "diagram": "rect_shape", "length": 5, "width": 5,
+             "caption": "5\u00d75 = 25"},
+        ],
+        "card": card_rect_shape,
+        "solved": [
+            {"q": "Ex: Find the area of a square with side 5.",
+             "steps": ["side \u00d7 side", "5\u00d75", "= 25 cm^2"]},
+        ],
+        "tips": [
+            "Area = space inside the shape.",
+            "Rectangle: length \u00d7 width.",
+            "Square: side \u00d7 side.",
+            "Units are SQUARED (cm^2).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Rectangle 9 by 4. Find the area.",
+                "2. Square side 8. Find the area.",
+                "3. Rectangle 7 by 6. Find the area.",
+            ],
+            "answers": "1) 36    2) 64    3) 42",
+        },
+    },
+
+    # ---- 18C Area of triangle ----
+    "18C": {
+        "title": "Area of a Triangle",
+        "intro": [
+            "Area = \u00bd \u00d7 base \u00d7 height.",
+            "The height is PERPENDICULAR to the base.",
+            "Base 6, height 4 \u2192 area = \u00bd\u00d76\u00d74 = 12.",
+            "Half of a rectangle's area, same base and height.",
+            "Always use the perpendicular height, not a slanted side.",
+        ],
+        "real_life": [
+            {"text": "1. Base 6, height 4: area = 12",
+             "diagram": "triangle_base_height", "base": 6, "height": 4,
+             "caption": "\u00bd\u00d76\u00d74 = 12"},
+            {"text": "2. Base 10, height 8: area = 40",
+             "diagram": "triangle_base_height", "base": 10, "height": 8,
+             "caption": "\u00bd\u00d710\u00d78 = 40"},
+            {"text": "3. Base 5, height 4: area = 10",
+             "diagram": "triangle_base_height", "base": 5, "height": 4,
+             "caption": "\u00bd\u00d75\u00d74 = 10"},
+        ],
+        "card": card_triangle_area,
+        "solved": [
+            {"q": "Ex: Find the area of a triangle, base 10, height 8.",
+             "steps": ["\u00bd \u00d7 10 \u00d7 8", "\u00bd \u00d7 80", "= 40"]},
+        ],
+        "tips": [
+            "Area = \u00bd \u00d7 base \u00d7 height.",
+            "Height must be perpendicular to base.",
+            "Half of the matching rectangle.",
+            "Units are squared.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Base 8, height 5. Find the area.",
+                "2. Base 12, height 6. Find the area.",
+                "3. Base 9, height 4. Find the area.",
+            ],
+            "answers": "1) 20    2) 36    3) 18",
+        },
+    },
+
+    # ---- 18CUM1 Mixed A+B+C ----
+    "18CUM1": {
+        "title": "Review: Perimeter, Area, Triangle Area",
+        "intro": [
+            "Perimeter: add all the sides.",
+            "Rectangle/square area: length \u00d7 width.",
+            "Triangle area: \u00bd \u00d7 base \u00d7 height.",
+            "Always check which formula the question needs.",
+            "Keep units consistent (and squared for area).",
+        ],
+        "real_life": [
+            {"text": "1. Rectangle 6 by 4: perimeter = 20",
+             "diagram": "rect_shape", "length": 6, "width": 4,
+             "caption": "perimeter"},
+            {"text": "2. Rectangle 6 by 4: area = 24",
+             "diagram": "rect_shape", "length": 6, "width": 4,
+             "caption": "area"},
+            {"text": "3. Base 6, height 4: area = 12",
+             "diagram": "triangle_base_height", "base": 6, "height": 4,
+             "caption": "triangle area"},
+        ],
+        "card": card_triangle_area,
+        "solved": [
+            {"q": "Ex: Rectangle 6 by 4. Find perimeter and area.",
+             "steps": ["Perimeter = 2\u00d7(6+4) = 20", "Area = 6\u00d74 = 24"]},
+        ],
+        "tips": [
+            "Perimeter: add sides.",
+            "Rectangle area: l\u00d7w.",
+            "Triangle area: \u00bd\u00d7base\u00d7height.",
+            "Re-read which one is asked.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 6. Find the perimeter.",
+                "2. Rectangle 7 by 5. Find the area.",
+                "3. Base 8, height 6. Find the triangle area.",
+            ],
+            "answers": "1) 24    2) 35    3) 24",
+        },
+    },
+
+    # ---- 18D Area of circle ----
+    "18D": {
+        "title": "Area of a Circle",
+        "intro": [
+            "Area = \u03c0 \u00d7 r^2.",
+            "Use \u03c0 = 22/7 for clean numbers.",
+            "Radius 7: A = 22/7\u00d77\u00d77 = 154.",
+            "Square the radius FIRST, then multiply by \u03c0.",
+            "Answer is in square units (cm^2).",
+        ],
+        "real_life": [
+            {"text": "1. Radius 7: area = 154 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "22/7\u00d77\u00d77"},
+            {"text": "2. Radius 14: area = 616 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "22/7\u00d714\u00d714"},
+            {"text": "3. Radius 21: area = 1386 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "22/7\u00d721\u00d721"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Find the area of a circle with radius 14.",
+             "steps": ["A = 22/7\u00d714\u00d714", "= 22\u00d72\u00d714", "= 616 cm^2"]},
+        ],
+        "tips": [
+            "Area = \u03c0r^2.",
+            "Square the radius first.",
+            "\u03c0 = 22/7 for clean answers.",
+            "Units are squared.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 7. Find the area.",
+                "2. Radius 28. Find the area.",
+                "3. Radius 35. Find the area.",
+            ],
+            "answers": "1) 154 cm^2    2) 2464 cm^2    3) 3850 cm^2",
+        },
+    },
+
+    # ---- 18E Surface area cube/cuboid ----
+    "18E": {
+        "title": "Surface Area: Cube & Cuboid",
+        "intro": [
+            "Surface area = total area of all faces.",
+            "Cube (6 equal faces): SA = 6 \u00d7 side^2.",
+            "Cuboid (3 pairs of faces): SA = 2(lw+wh+hl).",
+            "Cube side 3: SA = 6\u00d79 = 54.",
+            "Imagine unfolding the shape flat.",
+        ],
+        "real_life": [
+            {"text": "1. Cube side 3: SA = 54 cm^2",
+             "diagram": "cuboid", "l": 3, "wd": 3, "h": 3,
+             "caption": "6\u00d73^2 = 54"},
+            {"text": "2. Cube side 5: SA = 150 cm^2",
+             "diagram": "cuboid", "l": 5, "wd": 5, "h": 5,
+             "caption": "6\u00d75^2 = 150"},
+            {"text": "3. Cuboid l=5,w=3,h=4: SA = 94 cm^2",
+             "diagram": "cuboid", "l": 5, "wd": 3, "h": 4,
+             "caption": "2(15+12+20)"},
+        ],
+        "card": card_cuboid,
+        "solved": [
+            {"q": "Ex: Find the surface area of a cube with side 5.",
+             "steps": ["SA = 6 \u00d7 side^2", "6\u00d725", "= 150 cm^2"]},
+        ],
+        "tips": [
+            "Cube: 6 \u00d7 side^2.",
+            "Cuboid: 2(lw+wh+hl).",
+            "Add up ALL the faces.",
+            "Units are squared.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cube side 7. Find the surface area.",
+                "2. Cuboid l=4,w=3,h=2. Find the surface area.",
+                "3. Cube side 4. Find the surface area.",
+            ],
+            "answers": "1) 294 cm^2    2) 52 cm^2    3) 96 cm^2",
+        },
+    },
+
+    # ---- 18F Cylinder & cone ----
+    "18F": {
+        "title": "Cylinder & Cone Volume",
+        "intro": [
+            "Cylinder volume = \u03c0r^2h.",
+            "Cone volume = 1/3 \u00d7 \u03c0r^2h (a third of a cylinder).",
+            "Same radius/height: cone is exactly 1/3 the cylinder.",
+            "r=7,h=10 cylinder: V = 22/7\u00d77\u00d77\u00d710 = 1540.",
+            "Square the radius, multiply by height, then by \u03c0 (or 1/3\u03c0).",
+        ],
+        "real_life": [
+            {"text": "1. Cylinder r=7,h=10: V=1540 cm^3",
+             "diagram": "cylinder", "r": 7, "h": 10,
+             "caption": "\u03c0r^2h"},
+            {"text": "2. Cylinder r=7,h=20: V=3080 cm^3",
+             "diagram": "cylinder", "r": 7, "h": 20,
+             "caption": "\u03c0r^2h"},
+            {"text": "3. Cone r=7,h=10: V\u2248513 cm^3",
+             "diagram": "cone", "r": 7, "h": 10,
+             "caption": "1/3\u03c0r^2h"},
+        ],
+        "card": card_cylinder,
+        "solved": [
+            {"q": "Ex: Cylinder radius 7, height 10. Find the volume.",
+             "steps": ["V = \u03c0r^2h", "22/7\u00d77\u00d77\u00d710", "= 1540 cm^3"]},
+        ],
+        "tips": [
+            "Cylinder: V = \u03c0r^2h.",
+            "Cone: V = 1/3 \u00d7 \u03c0r^2h.",
+            "Cone is 1/3 of the matching cylinder.",
+            "Units are cubed (cm^3).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cylinder r=14,h=10. Find the volume.",
+                "2. Cylinder r=7,h=5. Find the volume.",
+                "3. Cone r=7,h=6. Find the volume.",
+            ],
+            "answers": "1) 6160 cm^3    2) 770 cm^3    3) 308 cm^3",
+        },
+    },
+
+    # ---- 18CUM2 Mixed D+E+F ----
+    "18CUM2": {
+        "title": "Review: Circle Area, Surface Area, Volume",
+        "intro": [
+            "Circle area: \u03c0r^2.",
+            "Cube/cuboid surface area: add all faces.",
+            "Cylinder volume: \u03c0r^2h.",
+            "Cone volume: 1/3 of the matching cylinder.",
+            "Always identify 2D (area) vs 3D (volume/SA).",
+        ],
+        "real_life": [
+            {"text": "1. Radius 7: circle area=154",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "2D area"},
+            {"text": "2. Cube side 3: SA=54",
+             "diagram": "cuboid", "l": 3, "wd": 3, "h": 3,
+             "caption": "3D surface area"},
+            {"text": "3. Cylinder r=7,h=10: V=1540",
+             "diagram": "cylinder", "r": 7, "h": 10,
+             "caption": "3D volume"},
+        ],
+        "card": card_cylinder,
+        "solved": [
+            {"q": "Ex: Circle radius 7 area, then cube side 3 surface area.",
+             "steps": ["Circle area = 154 cm^2", "Cube SA = 54 cm^2"]},
+        ],
+        "tips": [
+            "2D shapes: area only.",
+            "3D shapes: surface area AND volume.",
+            "Match the formula to the shape.",
+            "Keep units correct (squared vs cubed).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 14. Find the circle area.",
+                "2. Cube side 6. Find the surface area.",
+                "3. Cylinder r=7,h=14. Find the volume.",
+            ],
+            "answers": "1) 616 cm^2    2) 216 cm^2    3) 2156 cm^3",
+        },
+    },
+
+    # ---- 18G Sphere / hemisphere ----
+    "18G": {
+        "title": "Sphere & Hemisphere",
+        "intro": [
+            "Sphere surface area = 4\u03c0r^2.",
+            "Sphere volume = 4/3\u03c0r^3 (written as 4/3 \u00d7 \u03c0r^3).",
+            "Hemisphere = HALF a sphere.",
+            "Hemisphere volume = \u00bd \u00d7 sphere volume.",
+            "r=7: sphere SA = 4\u00d722/7\u00d749 = 616.",
+        ],
+        "real_life": [
+            {"text": "1. Sphere r=7: SA = 616 cm^2",
+             "diagram": "sphere", "r": 7,
+             "caption": "4\u00d722/7\u00d749"},
+            {"text": "2. Sphere r=14: SA = 2464 cm^2",
+             "diagram": "sphere", "r": 14,
+             "caption": "4\u03c0r^2"},
+            {"text": "3. Sphere r=21: SA = 5544 cm^2",
+             "diagram": "sphere", "r": 21,
+             "caption": "4\u03c0r^2"},
+        ],
+        "card": card_sphere,
+        "solved": [
+            {"q": "Ex: Sphere radius 7. Find the surface area.",
+             "steps": ["SA = 4\u03c0r^2", "4\u00d722/7\u00d77\u00d77", "= 616 cm^2"]},
+        ],
+        "tips": [
+            "Sphere SA = 4\u03c0r^2.",
+            "Sphere volume = 4/3 \u00d7 \u03c0r^3.",
+            "Hemisphere = half a sphere.",
+            "Square or cube the radius as the formula needs.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sphere r=7. Find the surface area.",
+                "2. Sphere r=14. Find the surface area.",
+                "3. Hemisphere: is its volume half the sphere's?",
+            ],
+            "answers": "1) 616 cm^2    2) 2464 cm^2    3) Yes",
+        },
+    },
+
+    # ---- 18H Volume problems ----
+    "18H": {
+        "title": "Volume of Solids",
+        "intro": [
+            "Cube volume = side^3.",
+            "Cuboid volume = l \u00d7 w \u00d7 h.",
+            "Cylinder volume = \u03c0r^2h.",
+            "Identify the shape first, then pick the formula.",
+            "Units are cubed (cm^3).",
+        ],
+        "real_life": [
+            {"text": "1. Cube side 5: volume = 125",
+             "diagram": "cuboid", "l": 5, "wd": 5, "h": 5,
+             "caption": "5^3"},
+            {"text": "2. Cuboid 6,5,4: volume = 120",
+             "diagram": "cuboid", "l": 6, "wd": 5, "h": 4,
+             "caption": "6\u00d75\u00d74"},
+            {"text": "3. Cylinder r=7,h=10: volume = 1540",
+             "diagram": "cylinder", "r": 7, "h": 10,
+             "caption": "\u03c0r^2h"},
+        ],
+        "card": card_cuboid,
+        "solved": [
+            {"q": "Ex: Cuboid 6 by 5 by 4. Find the volume.",
+             "steps": ["V = l\u00d7w\u00d7h", "6\u00d75\u00d74", "= 120 cm^3"]},
+        ],
+        "tips": [
+            "Cube: side^3.",
+            "Cuboid: l\u00d7w\u00d7h.",
+            "Cylinder: \u03c0r^2h.",
+            "Match the formula to the shape.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cube side 4. Find the volume.",
+                "2. Cuboid 8,3,2. Find the volume.",
+                "3. Cylinder r=14,h=5. Find the volume.",
+            ],
+            "answers": "1) 64 cm^3    2) 48 cm^3    3) 3080 cm^3",
+        },
+    },
+
+    # ---- 18I Mixed mensuration ----
+    "18I": {
+        "title": "Mensuration — Mixed",
+        "intro": [
+            "Mix perimeter, area, and 3D formulas.",
+            "Identify 2D vs 3D first.",
+            "2D: perimeter and area.",
+            "3D: surface area and volume.",
+            "Pick the right formula for the shape.",
+        ],
+        "real_life": [
+            {"text": "1. Square side 6: area = 36",
+             "diagram": "rect_shape", "length": 6, "width": 6,
+             "caption": "6\u00d76"},
+            {"text": "2. Rectangle 8 by 5: perimeter = 26",
+             "diagram": "rect_shape", "length": 8, "width": 5,
+             "caption": "2\u00d7(8+5)"},
+            {"text": "3. Triangle base 10, height 6: area = 30",
+             "diagram": "triangle_base_height", "base": 10, "height": 6,
+             "caption": "\u00bd\u00d710\u00d76"},
+        ],
+        "card": card_rect_shape,
+        "solved": [
+            {"q": "Ex: Square side 6, then rectangle 8 by 5 perimeter.",
+             "steps": ["Square area = 36", "Rectangle perimeter = 26"]},
+        ],
+        "tips": [
+            "2D: perimeter/area.",
+            "3D: surface area/volume.",
+            "Read carefully which is needed.",
+            "Keep units correct.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 9. Find the area.",
+                "2. Rectangle 7 by 4. Find the perimeter.",
+                "3. Triangle base 8, height 5. Find the area.",
+            ],
+            "answers": "1) 81    2) 22    3) 20",
+        },
+    },
+
+    # ---- 18CUM3 Mixed G+H+I ----
+    "18CUM3": {
+        "title": "Review: Sphere, Volume, Mixed",
+        "intro": [
+            "Sphere SA = 4\u03c0r^2; volume needs r^3.",
+            "Volume formulas vary by 3D shape.",
+            "Mixed problems test every formula together.",
+            "Identify the shape before picking a formula.",
+            "Keep squared vs cubed units correct.",
+        ],
+        "real_life": [
+            {"text": "1. Sphere r=7: SA=616",
+             "diagram": "sphere", "r": 7, "caption": "4\u03c0r^2"},
+            {"text": "2. Cube side 5: volume=125",
+             "diagram": "cuboid", "l": 5, "wd": 5, "h": 5,
+             "caption": "side^3"},
+            {"text": "3. Square side 6: area=36",
+             "diagram": "rect_shape", "length": 6, "width": 6,
+             "caption": "mixed practice"},
+        ],
+        "card": card_sphere,
+        "solved": [
+            {"q": "Ex: Sphere r=7 SA, then cube side 5 volume.",
+             "steps": ["Sphere SA = 616 cm^2", "Cube volume = 125 cm^3"]},
+        ],
+        "tips": [
+            "Sphere: SA=4\u03c0r^2.",
+            "Cube volume: side^3.",
+            "Identify 2D vs 3D.",
+            "Double-check your formula choice.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sphere r=14. Find the surface area.",
+                "2. Cube side 6. Find the volume.",
+                "3. Rectangle 9 by 4. Find the area.",
+            ],
+            "answers": "1) 2464 cm^2    2) 216 cm^3    3) 36",
+        },
+    },
+
+    # ---- 18J Mixed challenge ----
+    "18J": {
+        "title": "Mensuration — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "TSA (total surface area) adds every face.",
+            "Cylinder TSA = 2\u03c0rh + 2\u03c0r^2 (sides + 2 circles).",
+            "Identify each shape before solving.",
+            "Work step by step, check units.",
+        ],
+        "real_life": [
+            {"text": "1. Cylinder r=7,h=10: TSA=748",
+             "diagram": "cylinder", "r": 7, "h": 10,
+             "caption": "2\u03c0rh+2\u03c0r^2"},
+            {"text": "2. Cube side 7: SA=294",
+             "diagram": "cuboid", "l": 7, "wd": 7, "h": 7,
+             "caption": "6\u00d77^2"},
+            {"text": "3. Sphere r=7: SA=616",
+             "diagram": "sphere", "r": 7, "caption": "4\u03c0r^2"},
+        ],
+        "card": card_cylinder,
+        "solved": [
+            {"q": "Ex: Cylinder r=7,h=10. Find the total surface area.",
+             "steps": ["Curved = 2\u03c0rh = 440", "+2 circles = 2\u00d7154=308", "Total = 748"]},
+        ],
+        "tips": [
+            "TSA = curved + flat faces.",
+            "Cylinder TSA = 2\u03c0rh + 2\u03c0r^2.",
+            "Cube SA = 6\u00d7side^2.",
+            "Sphere SA = 4\u03c0r^2.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cylinder r=7,h=14. Find the TSA.",
+                "2. Cube side 5. Find the SA.",
+                "3. Sphere r=14. Find the SA.",
+            ],
+            "answers": "1) 924 cm^2    2) 150 cm^2    3) 2464 cm^2",
+        },
+    },
+
+    # ---- 18REV Revision ----
+    "18REV": {
+        "title": "Level 18 Revision — Mensuration",
+        "intro": [
+            "Perimeter: add the sides.",
+            "Area: rectangle l\u00d7w; triangle \u00bd\u00d7base\u00d7height; circle \u03c0r^2.",
+            "Surface area: cube 6\u00d7side^2; sphere 4\u03c0r^2.",
+            "Volume: cuboid l\u00d7w\u00d7h; cylinder \u03c0r^2h.",
+            "Always match the formula to the shape.",
+        ],
+        "real_life": [
+            {"text": "1. Rectangle 6 by 4: area=24",
+             "diagram": "rect_shape", "length": 6, "width": 4,
+             "caption": "l\u00d7w"},
+            {"text": "2. Cylinder r=7,h=10: volume=1540",
+             "diagram": "cylinder", "r": 7, "h": 10,
+             "caption": "\u03c0r^2h"},
+            {"text": "3. Sphere r=7: SA=616",
+             "diagram": "sphere", "r": 7, "caption": "4\u03c0r^2"},
+        ],
+        "card": card_cuboid,
+        "solved": [
+            {"q": "Ex: Rectangle 6 by 4 area, then cylinder r=7,h=10 volume.",
+             "steps": ["Area = 24 cm^2", "Volume = 1540 cm^3"]},
+        ],
+        "tips": [
+            "Perimeter adds; area multiplies.",
+            "Know each 3D surface-area formula.",
+            "Know each 3D volume formula.",
+            "Keep squared vs cubed units correct.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 8. Find the perimeter.",
+                "2. Circle radius 21. Find the area.",
+                "3. Cube side 6. Find the volume.",
+            ],
+            "answers": "1) 32    2) 1386 cm^2    3) 216 cm^3",
         },
     },
 }
