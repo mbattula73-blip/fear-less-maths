@@ -735,6 +735,177 @@ def line_graph_vec(c, x, y, w, slope, intercept, xmin=-1, xmax=4):
     return h + 6 * mm
 
 
+def _draw_triangle_outline(c, A, B, C, color=BLACK, width=1.4):
+    c.setStrokeColor(color); c.setLineWidth(width)
+    p = c.beginPath()
+    p.moveTo(*A); p.lineTo(*B); p.lineTo(*C); p.close()
+    c.drawPath(p, fill=0, stroke=1)
+
+
+def _tick_marks(c, P1, P2, n, color=BLUE):
+    """Draw n small perpendicular tick marks at the midpoint of segment P1-P2,
+    the standard way of indicating equal sides in geometry diagrams."""
+    import math
+    mx, my = (P1[0] + P2[0]) / 2, (P1[1] + P2[1]) / 2
+    dx, dy = P2[0] - P1[0], P2[1] - P1[1]
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux
+    offset = 1.6 * mm
+    spacing = 1.6 * mm
+    c.setStrokeColor(color); c.setLineWidth(1.1)
+    start_t = -(n - 1) / 2 * spacing
+    for i in range(n):
+        t = start_t + i * spacing
+        cx, cy = mx + ux * t, my + uy * t
+        c.line(cx - px * offset, cy - py * offset, cx + px * offset, cy + py * offset)
+
+
+def triangle_types_vec(c, x, y, w, kind):
+    """Draw an equilateral / isosceles / scalene triangle with tick marks
+    showing which sides are equal. Returns height used."""
+    h = w * 0.78
+    if kind == "equilateral":
+        A, B, C = (x, y - h), (x + w, y - h), (x + w / 2, y)
+        _draw_triangle_outline(c, A, B, C)
+        _tick_marks(c, A, B, 1); _tick_marks(c, B, C, 1); _tick_marks(c, C, A, 1)
+        label = "Equilateral: all 3 sides equal"
+    elif kind == "isosceles":
+        A, B, C = (x, y - h), (x + w, y - h), (x + w * 0.5, y)
+        _draw_triangle_outline(c, A, B, C)
+        _tick_marks(c, C, A, 1); _tick_marks(c, C, B, 1)
+        label = "Isosceles: 2 sides equal"
+    else:
+        A, B, C = (x, y - h), (x + w, y - h), (x + w * 0.25, y)
+        _draw_triangle_outline(c, A, B, C)
+        label = "Scalene: no sides equal"
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(x + w / 2, y - h - 6 * mm, label)
+    return h + 10 * mm
+
+
+def angle_sum_vec(c, x, y, w, angles):
+    """Triangle with its three angle values labelled near each vertex,
+    plus the 180-degree sum written below. Returns height used."""
+    h = w * 0.7
+    A, B, C = (x, y - h), (x + w, y - h), (x + w * 0.4, y)
+    _draw_triangle_outline(c, A, B, C)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9.5)
+    c.drawString(A[0] + 2.5 * mm, A[1] + 2.5 * mm, f"{angles[0]}\u00b0")
+    c.drawRightString(B[0] - 2.5 * mm, B[1] + 2.5 * mm, f"{angles[1]}\u00b0")
+    c.drawCentredString(C[0], C[1] - 5 * mm, f"{angles[2]}\u00b0")
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(x + w / 2, y - h - 7 * mm,
+                       f"{angles[0]}+{angles[1]}+{angles[2]} = 180\u00b0")
+    return h + 11 * mm
+
+
+def exterior_angle_vec(c, x, y, w, int1, int2):
+    """Triangle with one side extended to show the exterior angle theorem.
+    Returns height used."""
+    ext = int1 + int2
+    h = w * 0.65
+    A, B, C = (x, y - h), (x + w * 0.62, y - h), (x + w * 0.32, y)
+    D = (x + w, y - h)
+    _draw_triangle_outline(c, A, B, C)
+    c.setStrokeColor(BLACK); c.setLineWidth(1.4)
+    c.line(B[0], B[1], D[0], D[1])
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9.5)
+    c.drawString(A[0] + 2.5 * mm, A[1] + 2.5 * mm, f"{int1}\u00b0")
+    c.drawCentredString(C[0], C[1] - 5 * mm, f"{int2}\u00b0")
+    c.setFillColor(PINK)
+    c.drawString(B[0] + 2 * mm, B[1] + 4 * mm, f"{ext}\u00b0")
+    c.setFillColor(BLACK); c.setFont("Helvetica", 9.5)
+    c.drawCentredString(x + w / 2, y - h - 7 * mm,
+                       f"exterior = {int1}+{int2} = {ext}\u00b0")
+    return h + 11 * mm
+
+
+def congruence_vec(c, x, y, w, rule_label):
+    """Two triangles side by side with matching tick-mark patterns on
+    corresponding sides, showing congruence. Returns height used."""
+    tw = w * 0.42
+    h = tw * 0.85
+    A1, B1, C1 = (x, y - h), (x + tw, y - h), (x + tw * 0.5, y)
+    _draw_triangle_outline(c, A1, B1, C1)
+    _tick_marks(c, A1, B1, 1); _tick_marks(c, B1, C1, 2); _tick_marks(c, C1, A1, 3)
+    ox = x + w - tw
+    A2, B2, C2 = (ox, y - h), (ox + tw, y - h), (ox + tw * 0.5, y)
+    _draw_triangle_outline(c, A2, B2, C2)
+    _tick_marks(c, A2, B2, 1); _tick_marks(c, B2, C2, 2); _tick_marks(c, C2, A2, 3)
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(x + w / 2, y - h - 7 * mm, rule_label)
+    return h + 11 * mm
+
+
+def similar_triangles_vec(c, x, y, w, scale):
+    """A small triangle and a larger one (scaled), sharing a common baseline,
+    with matching tick marks on corresponding sides. Returns height used."""
+    tw_small = w * 0.28
+    h_small = tw_small * 0.85
+    tw_big = tw_small * scale; h_big = h_small * scale
+    base_y = y - h_big
+    A1 = (x, base_y); B1 = (x + tw_small, base_y); C1 = (x + tw_small * 0.5, base_y + h_small)
+    _draw_triangle_outline(c, A1, B1, C1)
+    _tick_marks(c, A1, B1, 1); _tick_marks(c, B1, C1, 2); _tick_marks(c, C1, A1, 3)
+    ox = x + w - tw_big
+    A2 = (ox, base_y); B2 = (ox + tw_big, base_y); C2 = (ox + tw_big * 0.5, base_y + h_big)
+    _draw_triangle_outline(c, A2, B2, C2)
+    _tick_marks(c, A2, B2, 1); _tick_marks(c, B2, C2, 2); _tick_marks(c, C2, A2, 3)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(x + w / 2, base_y - 7 * mm,
+                       f"Same shape \u2014 sides scale by {_fmt_num(scale)}")
+    return h_big + 11 * mm
+
+
+def pythagoras_vec(c, x, y, w, leg1, leg2):
+    """Right triangle with legs labelled, right-angle mark, and the
+    hypotenuse computed and labelled. Returns height used."""
+    import math
+    h = w * 0.75
+    A, B, C = (x, y - h), (x + w, y - h), (x, y)
+    _draw_triangle_outline(c, A, B, C)
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+    c.rect(A[0], A[1], 2.6 * mm, 2.6 * mm, fill=0, stroke=1)
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 10.5)
+    c.drawCentredString((A[0] + B[0]) / 2, A[1] - 4.5 * mm, str(leg1))
+    c.drawCentredString(A[0] - 6 * mm, (A[1] + C[1]) / 2, str(leg2))
+    hyp = math.sqrt(leg1 ** 2 + leg2 ** 2)
+    hyp_str = _fmt_num(hyp)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 10.5)
+    midx, midy = (B[0] + C[0]) / 2, (B[1] + C[1]) / 2
+    c.drawCentredString(midx + 5 * mm, midy + 1.5 * mm, hyp_str)
+    c.setFillColor(BLACK); c.setFont("Helvetica", 9.5)
+    c.drawCentredString(x + w / 2, y - h - 9 * mm,
+                       f"{leg1}^2 + {leg2}^2 = {hyp_str}^2")
+    return h + 13 * mm
+
+
+def ladder_vec(c, x, y, w, base, height):
+    """Right triangle styled as a ladder against a wall: thick wall and
+    ground, gold ladder (hypotenuse). Returns height used."""
+    import math
+    h = w * 0.9
+    A, B, C = (x, y - h), (x + w * 0.6, y - h), (x, y)
+    c.setStrokeColor(MGRAY); c.setLineWidth(3)
+    c.line(A[0], A[1], C[0], C[1])
+    c.line(A[0], A[1], B[0], B[1])
+    c.setStrokeColor(GOLD); c.setLineWidth(1.8)
+    c.line(B[0], B[1], C[0], C[1])
+    c.setStrokeColor(BLACK); c.setLineWidth(0.8)
+    c.rect(A[0], A[1], 2.6 * mm, 2.6 * mm, fill=0, stroke=1)
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString((A[0] + B[0]) / 2, A[1] - 4.5 * mm, f"{base} m")
+    c.drawCentredString(A[0] - 7 * mm, (A[1] + C[1]) / 2, f"{height} m")
+    hyp = math.sqrt(base ** 2 + height ** 2)
+    midx, midy = (B[0] + C[0]) / 2, (B[1] + C[1]) / 2
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(midx + 6 * mm, midy, f"{_fmt_num(hyp)} m")
+    return h + 8 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -1079,6 +1250,44 @@ def _draw_example_diagram(c, x, y, w, rl):
         used = line_graph_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                              rl["slope"], rl["intercept"],
                              xmin=rl.get("xmin", -1), xmax=rl.get("xmax", 4))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "triangle_types":
+        used = triangle_types_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["tkind"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "angle_sum":
+        used = angle_sum_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["angles"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "exterior_angle":
+        used = exterior_angle_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                                 rl["int1"], rl["int2"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "congruence":
+        used = congruence_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["rule_label"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "similar_triangles":
+        used = similar_triangles_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["scale"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "pythagoras":
+        used = pythagoras_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                             rl["leg1"], rl["leg2"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "ladder":
+        used = ladder_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                         rl["base"], rl["height"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
@@ -1838,6 +2047,97 @@ def card_line_graph(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_triangle_types(c, x, y, w):
+    """Triangle-types card: isosceles example with tick marks."""
+    card_h = 72 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Triangle types (by sides):")
+    fig_w = min(w - 12 * mm, 55 * mm)
+    used = triangle_types_vec(c, x + 6 * mm, y - 10 * mm, fig_w, "isosceles")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Tick marks show which sides are equal.")
+    return y - card_h - 2 * mm
+
+
+def card_angle_sum(c, x, y, w):
+    """Angle-sum-property card."""
+    card_h = 68 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Angle sum = 180\u00b0 always:")
+    fig_w = min(w - 12 * mm, 55 * mm)
+    used = angle_sum_vec(c, x + 6 * mm, y - 10 * mm, fig_w, (70, 60, 50))
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Every triangle's 3 angles add to 180\u00b0.")
+    return y - card_h - 2 * mm
+
+
+def card_exterior_angle(c, x, y, w):
+    """Exterior-angle-theorem card."""
+    card_h = 68 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Exterior angle theorem:")
+    fig_w = min(w - 12 * mm, 58 * mm)
+    used = exterior_angle_vec(c, x + 6 * mm, y - 10 * mm, fig_w, 50, 60)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Exterior = sum of the two opposite")
+    c.drawString(bx, y - 10 * mm - used - 10 * mm, "interior angles.")
+    return y - card_h - 2 * mm
+
+
+def card_congruence(c, x, y, w):
+    """Congruence card with matching tick marks."""
+    card_h = 60 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Congruent: same shape AND size:")
+    fig_w = min(w - 8 * mm, 65 * mm)
+    used = congruence_vec(c, x + 4 * mm, y - 10 * mm, fig_w, "SSS: all 3 sides match")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Matching tick marks = equal sides.")
+    return y - card_h - 2 * mm
+
+
+def card_similar(c, x, y, w):
+    """Similar-triangles card."""
+    card_h = 62 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Similar: same shape, different size:")
+    fig_w = min(w - 8 * mm, 65 * mm)
+    used = similar_triangles_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 2)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Angles stay equal; sides scale up.")
+    return y - card_h - 2 * mm
+
+
+def card_pythagoras(c, x, y, w):
+    """Pythagoras theorem card."""
+    card_h = 76 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Pythagoras: legs 3, 4:")
+    fig_w = min(w - 14 * mm, 52 * mm)
+    used = pythagoras_vec(c, x + 6 * mm, y - 10 * mm, fig_w, 3, 4)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "a^2 + b^2 = c^2 for a right triangle.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -1863,6 +2163,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L14.get(sublevel_code)
     if level_num == 15:
         return _L15.get(sublevel_code)
+    if level_num == 16:
+        return _L16.get(sublevel_code)
     return None
 
 
@@ -7885,6 +8187,602 @@ _L15 = {
                 "3. In y=4x-1, find the y-intercept.",
             ],
             "answers": "1) 13    2) (3,5)    3) -1",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 16 — Triangles: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L16 = {
+    # ---- 16A Types of triangles ----
+    "16A": {
+        "title": "Types of Triangles",
+        "intro": [
+            "Classified by sides or by angles.",
+            "Equilateral: all 3 sides equal.",
+            "Isosceles: exactly 2 sides equal.",
+            "Scalene: all sides different.",
+            "Tick marks show which sides match.",
+        ],
+        "real_life": [
+            {"text": "1. Equilateral: all 3 sides equal",
+             "diagram": "triangle_types", "tkind": "equilateral",
+             "caption": "same tick on every side"},
+            {"text": "2. Isosceles: 2 sides equal",
+             "diagram": "triangle_types", "tkind": "isosceles",
+             "caption": "matching ticks on 2 sides"},
+            {"text": "3. Scalene: no sides equal",
+             "diagram": "triangle_types", "tkind": "scalene",
+             "caption": "no matching ticks"},
+        ],
+        "card": card_triangle_types,
+        "solved": [
+            {"q": "Ex: A triangle has sides 5,5,8. What type?",
+             "steps": ["Two sides equal (5,5)", "Answer: isosceles"]},
+        ],
+        "tips": [
+            "Equilateral: 3 equal sides.",
+            "Isosceles: 2 equal sides.",
+            "Scalene: 0 equal sides.",
+            "Tick marks mark equal sides.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sides 6,6,6. What type?",
+                "2. Sides 4,7,9. What type?",
+                "3. Sides 3,3,5. What type?",
+            ],
+            "answers": "1) equilateral    2) scalene    3) isosceles",
+        },
+    },
+
+    # ---- 16B Angle sum property ----
+    "16B": {
+        "title": "Angle Sum Property",
+        "intro": [
+            "The 3 angles of ANY triangle add to 180\u00b0.",
+            "Know 2 angles? Subtract from 180 for the third.",
+            "70\u00b0 + 60\u00b0 + ? = 180\u00b0 \u2192 ? = 50\u00b0.",
+            "Works for every triangle, any shape.",
+            "Always check your 3 angles sum to 180.",
+        ],
+        "real_life": [
+            {"text": "1. 70\u00b0, 60\u00b0, third = 50\u00b0",
+             "diagram": "angle_sum", "angles": (70, 60, 50),
+             "caption": "70+60+50 = 180\u00b0"},
+            {"text": "2. 90\u00b0, 30\u00b0, third = 60\u00b0",
+             "diagram": "angle_sum", "angles": (90, 30, 60),
+             "caption": "90+30+60 = 180\u00b0"},
+            {"text": "3. 45\u00b0, 45\u00b0, third = 90\u00b0",
+             "diagram": "angle_sum", "angles": (45, 45, 90),
+             "caption": "45+45+90 = 180\u00b0"},
+        ],
+        "card": card_angle_sum,
+        "solved": [
+            {"q": "Ex: Two angles are 90\u00b0 and 30\u00b0. Find the third.",
+             "steps": ["180 - 90 - 30", "Answer = 60\u00b0"]},
+        ],
+        "tips": [
+            "All 3 angles sum to 180\u00b0.",
+            "Subtract the two known angles.",
+            "Works for every triangle.",
+            "Check: your 3 angles should total 180.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Angles 50\u00b0,60\u00b0. Find the third.",
+                "2. Angles 100\u00b0,40\u00b0. Find the third.",
+                "3. Angles 35\u00b0,35\u00b0. Find the third.",
+            ],
+            "answers": "1) 70\u00b0    2) 40\u00b0    3) 110\u00b0",
+        },
+    },
+
+    # ---- 16C Exterior angle theorem ----
+    "16C": {
+        "title": "Exterior Angle Theorem",
+        "intro": [
+            "Extend one side of a triangle outward.",
+            "The EXTERIOR angle forms outside.",
+            "It equals the sum of the two OPPOSITE interior angles.",
+            "Opposite angles 50\u00b0,60\u00b0 \u2192 exterior = 110\u00b0.",
+            "A handy shortcut \u2014 no need to find the third angle first.",
+        ],
+        "real_life": [
+            {"text": "1. Opposite 50\u00b0,60\u00b0 \u2192 exterior 110\u00b0",
+             "diagram": "exterior_angle", "int1": 50, "int2": 60,
+             "caption": "exterior = 50+60"},
+            {"text": "2. Opposite 70\u00b0,40\u00b0 \u2192 exterior 110\u00b0",
+             "diagram": "exterior_angle", "int1": 70, "int2": 40,
+             "caption": "exterior = 70+40"},
+            {"text": "3. Opposite 90\u00b0,30\u00b0 \u2192 exterior 120\u00b0",
+             "diagram": "exterior_angle", "int1": 90, "int2": 30,
+             "caption": "exterior = 90+30"},
+        ],
+        "card": card_exterior_angle,
+        "solved": [
+            {"q": "Ex: Opposite interior angles are 70\u00b0 and 40\u00b0. Find the exterior angle.",
+             "steps": ["Exterior = sum of opposite angles", "70+40", "Answer = 110\u00b0"]},
+        ],
+        "tips": [
+            "Extend a side to form the exterior angle.",
+            "Exterior = sum of the 2 opposite interior angles.",
+            "Quicker than finding all 3 angles.",
+            "Exterior + adjacent interior = 180\u00b0 too.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Opposite 60\u00b0,50\u00b0. Find the exterior angle.",
+                "2. Opposite 80\u00b0,40\u00b0. Find the exterior angle.",
+                "3. Opposite 55\u00b0,65\u00b0. Find the exterior angle.",
+            ],
+            "answers": "1) 110\u00b0    2) 120\u00b0    3) 120\u00b0",
+        },
+    },
+
+    # ---- 16CUM1 Mixed A+B+C ----
+    "16CUM1": {
+        "title": "Review: Types, Angle Sum, Exterior Angle",
+        "intro": [
+            "Equilateral/isosceles/scalene: by side count.",
+            "Angle sum: always 180\u00b0.",
+            "Exterior angle = sum of opposite interior angles.",
+            "Use tick marks and angle facts together.",
+            "Always double-check with 180\u00b0 sum.",
+        ],
+        "real_life": [
+            {"text": "1. Isosceles: 2 sides equal",
+             "diagram": "triangle_types", "tkind": "isosceles",
+             "caption": "matching ticks"},
+            {"text": "2. 70\u00b0,60\u00b0,50\u00b0 sum to 180\u00b0",
+             "diagram": "angle_sum", "angles": (70, 60, 50),
+             "caption": "angle sum property"},
+            {"text": "3. Opposite 50\u00b0,60\u00b0 \u2192 exterior 110\u00b0",
+             "diagram": "exterior_angle", "int1": 50, "int2": 60,
+             "caption": "exterior angle theorem"},
+        ],
+        "card": card_angle_sum,
+        "solved": [
+            {"q": "Ex: Angles 80\u00b0,60\u00b0. Find third, then the exterior at the third vertex.",
+             "steps": ["Third = 180-80-60 = 40\u00b0", "Exterior = 80+60 = 140\u00b0"]},
+        ],
+        "tips": [
+            "Classify by counting equal sides.",
+            "180\u00b0 sum always applies.",
+            "Exterior = sum of opposite angles.",
+            "Cross-check your answers.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sides 7,7,7. What type?",
+                "2. Angles 65\u00b0,75\u00b0. Find the third.",
+                "3. Opposite 65\u00b0,75\u00b0. Find the exterior angle.",
+            ],
+            "answers": "1) equilateral    2) 40\u00b0    3) 140\u00b0",
+        },
+    },
+
+    # ---- 16D Congruence ----
+    "16D": {
+        "title": "Congruent Triangles",
+        "intro": [
+            "Congruent = SAME shape AND same size.",
+            "All corresponding sides and angles match exactly.",
+            "SSS: all 3 sides equal.",
+            "SAS: 2 sides + the angle between them equal.",
+            "Matching tick marks show corresponding equal sides.",
+        ],
+        "real_life": [
+            {"text": "1. SSS: all 3 sides match",
+             "diagram": "congruence", "rule_label": "SSS: all 3 sides match",
+             "caption": "three pairs of equal sides"},
+            {"text": "2. SAS: 2 sides + included angle",
+             "diagram": "congruence", "rule_label": "SAS: 2 sides + angle match",
+             "caption": "two sides and the angle between"},
+            {"text": "3. ASA: 2 angles + included side",
+             "diagram": "congruence", "rule_label": "ASA: 2 angles + side match",
+             "caption": "two angles and the side between"},
+        ],
+        "card": card_congruence,
+        "solved": [
+            {"q": "Ex: Congruent triangles have the same shape and what else?",
+             "steps": ["Same shape AND same size", "All sides/angles match exactly"]},
+        ],
+        "tips": [
+            "Congruent = identical shape and size.",
+            "SSS: 3 sides match.",
+            "SAS: 2 sides + included angle.",
+            "ASA: 2 angles + included side.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. What does SSS stand for?",
+                "2. What does congruent mean?",
+                "3. What rule uses 2 angles and a side?",
+            ],
+            "answers": "1) side-side-side    2) same shape and size    3) ASA",
+        },
+    },
+
+    # ---- 16E Similar triangles ----
+    "16E": {
+        "title": "Similar Triangles",
+        "intro": [
+            "Similar = SAME shape, DIFFERENT size.",
+            "All corresponding angles are equal.",
+            "Corresponding sides are in the SAME ratio.",
+            "Sides 3,4,5 and 6,8,10: scale factor = 2.",
+            "Similar triangles 'look the same', just scaled.",
+        ],
+        "real_life": [
+            {"text": "1. Sides 3,4,5 and 6,8,10: scale 2",
+             "diagram": "similar_triangles", "scale": 2,
+             "caption": "every side doubled"},
+            {"text": "2. Sides 2,3,4 and 6,9,12: scale 3",
+             "diagram": "similar_triangles", "scale": 3,
+             "caption": "every side tripled"},
+            {"text": "3. Same shape, angles always equal",
+             "diagram": "similar_triangles", "scale": 1.5,
+             "caption": "scale factor 1.5"},
+        ],
+        "card": card_similar,
+        "solved": [
+            {"q": "Ex: Sides 3,4,5 and 6,8,10. Find the scale factor.",
+             "steps": ["6\u00f73 = 2", "Check: 8\u00f74=2, 10\u00f75=2", "Scale factor = 2"]},
+        ],
+        "tips": [
+            "Similar: same shape, different size.",
+            "Angles stay equal.",
+            "Sides scale by the same factor.",
+            "Divide corresponding sides to find it.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sides 2,5,6 and 4,10,12. Find the scale factor.",
+                "2. Sides 5,12,13 and 10,24,26. Find the scale factor.",
+                "3. Similar triangles: do angles change?",
+            ],
+            "answers": "1) 2    2) 2    3) No, angles stay equal",
+        },
+    },
+
+    # ---- 16F Pythagoras theorem ----
+    "16F": {
+        "title": "Pythagoras' Theorem",
+        "intro": [
+            "Works ONLY for right-angled triangles.",
+            "a^2 + b^2 = c^2 (c = hypotenuse).",
+            "Hypotenuse is the longest side (opposite the right angle).",
+            "Legs 3,4 \u2192 hypotenuse 5.",
+            "Square the legs, add, square root.",
+        ],
+        "real_life": [
+            {"text": "1. Legs 3,4 \u2192 hypotenuse 5",
+             "diagram": "pythagoras", "leg1": 3, "leg2": 4,
+             "caption": "3^2+4^2=5^2"},
+            {"text": "2. Legs 6,8 \u2192 hypotenuse 10",
+             "diagram": "pythagoras", "leg1": 6, "leg2": 8,
+             "caption": "6^2+8^2=10^2"},
+            {"text": "3. Legs 5,12 \u2192 hypotenuse 13",
+             "diagram": "pythagoras", "leg1": 5, "leg2": 12,
+             "caption": "5^2+12^2=13^2"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Legs 6 and 8. Find the hypotenuse.",
+             "steps": ["6^2+8^2 = 36+64 = 100", "sqrt(100) = 10"]},
+        ],
+        "tips": [
+            "Only for right triangles.",
+            "a^2+b^2=c^2.",
+            "c is always the hypotenuse.",
+            "Square, add, then square root.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Legs 8,15. Find the hypotenuse.",
+                "2. Legs 9,12. Find the hypotenuse.",
+                "3. Legs 7,24. Find the hypotenuse.",
+            ],
+            "answers": "1) 17    2) 15    3) 25",
+        },
+    },
+
+    # ---- 16CUM2 Mixed D+E+F ----
+    "16CUM2": {
+        "title": "Review: Congruence, Similarity, Pythagoras",
+        "intro": [
+            "Congruent: same shape AND size.",
+            "Similar: same shape, scaled size.",
+            "Pythagoras: a^2+b^2=c^2 for right triangles.",
+            "Use ratios for similar; ticks for congruent.",
+            "Square-add-root for the hypotenuse.",
+        ],
+        "real_life": [
+            {"text": "1. SSS congruence: all sides match",
+             "diagram": "congruence", "rule_label": "SSS: all 3 sides match",
+             "caption": "same shape and size"},
+            {"text": "2. Similar: scale factor 2",
+             "diagram": "similar_triangles", "scale": 2,
+             "caption": "same shape, scaled"},
+            {"text": "3. Legs 3,4 \u2192 hypotenuse 5",
+             "diagram": "pythagoras", "leg1": 3, "leg2": 4,
+             "caption": "Pythagoras' theorem"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Legs 9,12, then check if 5,12,13 is similar by scale 1.",
+             "steps": ["9^2+12^2=15^2 \u2192 hyp=15", "Scale 1 means identical (congruent)"]},
+        ],
+        "tips": [
+            "Congruent: identical.",
+            "Similar: same shape, scaled.",
+            "Pythagoras: right triangles only.",
+            "Check your arithmetic carefully.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. What makes triangles congruent?",
+                "2. Sides 4,6,8 and 8,12,16: scale factor?",
+                "3. Legs 10,24. Find the hypotenuse.",
+            ],
+            "answers": "1) same shape and size    2) 2    3) 26",
+        },
+    },
+
+    # ---- 16G Applications ----
+    "16G": {
+        "title": "Pythagoras in Real Life",
+        "intro": [
+            "Ladders, ramps, and roofs form right triangles.",
+            "The ladder/ramp is the hypotenuse.",
+            "Wall height and ground distance are the legs.",
+            "Use a^2+b^2=c^2 to find the missing length.",
+            "Always check which side is missing.",
+        ],
+        "real_life": [
+            {"text": "1. Ladder 5m, base 3m \u2192 height 4m",
+             "diagram": "ladder", "base": 3, "height": 4,
+             "caption": "3-4-5 right triangle"},
+            {"text": "2. Ramp rises 3m over 4m \u2192 length 5m",
+             "diagram": "ladder", "base": 4, "height": 3,
+             "caption": "ramp = hypotenuse"},
+            {"text": "3. Ladder 13m, base 5m \u2192 height 12m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "5-12-13 right triangle"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Ladder 5m, base 3m from the wall. Find the height.",
+             "steps": ["3^2+h^2=5^2", "h^2=25-9=16", "h=4m"]},
+        ],
+        "tips": [
+            "Ladder/ramp = hypotenuse.",
+            "Wall/height and base are the legs.",
+            "Rearrange a^2+b^2=c^2 for the missing side.",
+            "Keep the units (m).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Ladder 10m, base 6m. Find the height.",
+                "2. Ramp rises 5m over 12m. Find the ramp length.",
+                "3. Ladder 17m, base 8m. Find the height.",
+            ],
+            "answers": "1) 8m    2) 13m    3) 15m",
+        },
+    },
+
+    # ---- 16H Mixed ----
+    "16H": {
+        "title": "Triangles — Mixed",
+        "intro": [
+            "Mix types, angles, and Pythagoras.",
+            "Classify by sides first.",
+            "Use 180\u00b0 sum or exterior angle facts.",
+            "Apply Pythagoras for right triangles.",
+            "Read each question carefully.",
+        ],
+        "real_life": [
+            {"text": "1. Sides 5,5,8: isosceles",
+             "diagram": "triangle_types", "tkind": "isosceles",
+             "caption": "2 equal sides"},
+            {"text": "2. Angles 60\u00b0,70\u00b0: third=50\u00b0",
+             "diagram": "angle_sum", "angles": (60, 70, 50),
+             "caption": "180\u00b0 sum"},
+            {"text": "3. Opposite 50\u00b0,60\u00b0: exterior=110\u00b0",
+             "diagram": "exterior_angle", "int1": 50, "int2": 60,
+             "caption": "exterior angle theorem"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Sides 5,5,8: classify, then check angles sum to 180.",
+             "steps": ["Isosceles (2 equal)", "Any 3 angles must total 180\u00b0"]},
+        ],
+        "tips": [
+            "Classify by counting equal sides.",
+            "Angles always sum to 180\u00b0.",
+            "Exterior = sum of opposite angles.",
+            "Pythagoras only for right triangles.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sides 6,8,10. What type?",
+                "2. Angles 80\u00b0,55\u00b0. Find the third.",
+                "3. Opposite 80\u00b0,55\u00b0. Find the exterior angle.",
+            ],
+            "answers": "1) scalene    2) 45\u00b0    3) 135\u00b0",
+        },
+    },
+
+    # ---- 16I Puzzle geometry ----
+    "16I": {
+        "title": "Triangle Puzzles",
+        "intro": [
+            "Set up an equation from the clues.",
+            "Isosceles: base angles are equal.",
+            "Use the 180\u00b0 sum to form the equation.",
+            "Solve for the unknown, then check.",
+            "Substitute back to verify all angles.",
+        ],
+        "real_life": [
+            {"text": "1. Isosceles vertex 2x, base x each",
+             "diagram": "angle_sum", "angles": ("x", "x", "2x"),
+             "caption": "x+x+2x=180 \u2192 x=45"},
+            {"text": "2. Angles x, x+30, x+60",
+             "diagram": "equation_steps",
+             "steps": ["x+(x+30)+(x+60)=180", "3x+90=180", "x=30"],
+             "caption": "solve for x"},
+            {"text": "3. Exterior 3x = opposite x and 80",
+             "diagram": "equation_steps",
+             "steps": ["3x = x+80", "2x=80", "x=40"],
+             "caption": "exterior angle equation"},
+        ],
+        "card": card_angle_sum,
+        "solved": [
+            {"q": "Ex: Isosceles triangle, vertex 2x, base angles x each. Find x.",
+             "steps": ["x+x+2x=180", "4x=180", "x=45\u00b0"]},
+        ],
+        "tips": [
+            "Isosceles: base angles equal.",
+            "Use 180\u00b0 sum to form an equation.",
+            "Solve step by step.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Isosceles, vertex 3x, base angles x. Find x.",
+                "2. Angles x, x+10, x+20. Find x.",
+                "3. Exterior 4x = opposite x and 90. Find x.",
+            ],
+            "answers": "1) x=36    2) x=50    3) x=30",
+        },
+    },
+
+    # ---- 16CUM3 Mixed G+H+I ----
+    "16CUM3": {
+        "title": "Review: Applications, Mixed, Puzzles",
+        "intro": [
+            "Real-life right triangles use Pythagoras.",
+            "Mixed problems combine type, angle, and side facts.",
+            "Puzzles: form an equation, then solve.",
+            "Isosceles triangles have equal base angles.",
+            "Always check your final answer.",
+        ],
+        "real_life": [
+            {"text": "1. Ladder 5m, base 3m \u2192 height 4m",
+             "diagram": "ladder", "base": 3, "height": 4,
+             "caption": "Pythagoras application"},
+            {"text": "2. Sides 6,8,10: scalene",
+             "diagram": "triangle_types", "tkind": "scalene",
+             "caption": "no equal sides"},
+            {"text": "3. Isosceles vertex 2x, base x \u2192 x=45",
+             "diagram": "equation_steps", "steps": ["4x=180", "x=45"],
+             "caption": "puzzle"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Ladder 13m, base 5m, then classify a 9,9,9 triangle.",
+             "steps": ["height = sqrt(169-25) = 12m", "9,9,9 \u2192 equilateral"]},
+        ],
+        "tips": [
+            "Apply Pythagoras for right-triangle problems.",
+            "Classify by counting equal sides.",
+            "Form an equation for puzzles.",
+            "Check the final answer makes sense.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Ladder 15m, base 9m. Find the height.",
+                "2. Sides 7,7,10. What type?",
+                "3. Isosceles, vertex 4x, base x. Find x.",
+            ],
+            "answers": "1) 12m    2) isosceles    3) x=30",
+        },
+    },
+
+    # ---- 16J Mixed challenge ----
+    "16J": {
+        "title": "Triangles — Mixed Challenge",
+        "intro": [
+            "Mix every skill: type, angles, Pythagoras, area.",
+            "Area of a triangle = \u00bd \u00d7 base \u00d7 height.",
+            "Right-triangle area: \u00bd \u00d7 leg1 \u00d7 leg2.",
+            "Combine facts for harder problems.",
+            "Work through each part methodically.",
+        ],
+        "real_life": [
+            {"text": "1. Base 10, height 6: area = 30",
+             "diagram": "pythagoras", "leg1": 10, "leg2": 6,
+             "caption": "area = \u00bd\u00d710\u00d76 (not a right-tri check, just legs shown)"},
+            {"text": "2. Right triangle legs 8,15: area=60",
+             "diagram": "pythagoras", "leg1": 8, "leg2": 15,
+             "caption": "area = \u00bd\u00d78\u00d715"},
+            {"text": "3. Legs 9,12 \u2192 hypotenuse 15",
+             "diagram": "pythagoras", "leg1": 9, "leg2": 12,
+             "caption": "9^2+12^2=15^2"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Right triangle legs 8,15. Find the area and hypotenuse.",
+             "steps": ["Area = \u00bd\u00d78\u00d715 = 60", "Hyp = sqrt(64+225) = 17"]},
+        ],
+        "tips": [
+            "Area = \u00bd \u00d7 base \u00d7 height.",
+            "Right triangle: legs ARE base and height.",
+            "Pythagoras for the hypotenuse.",
+            "Keep units consistent.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Base 12, height 5. Find the area.",
+                "2. Right triangle legs 6,8. Find the area.",
+                "3. Legs 6,8. Find the hypotenuse.",
+            ],
+            "answers": "1) 30    2) 24    3) 10",
+        },
+    },
+
+    # ---- 16REV Revision ----
+    "16REV": {
+        "title": "Level 16 Revision — Triangles",
+        "intro": [
+            "Equilateral/isosceles/scalene: by equal sides.",
+            "Angle sum: always 180\u00b0.",
+            "Exterior angle = sum of opposite interior angles.",
+            "Congruent: same shape and size. Similar: scaled.",
+            "Pythagoras: a^2+b^2=c^2 for right triangles.",
+        ],
+        "real_life": [
+            {"text": "1. Isosceles: 2 sides equal",
+             "diagram": "triangle_types", "tkind": "isosceles",
+             "caption": "matching ticks"},
+            {"text": "2. Legs 3,4 \u2192 hypotenuse 5",
+             "diagram": "pythagoras", "leg1": 3, "leg2": 4,
+             "caption": "Pythagoras' theorem"},
+            {"text": "3. Similar triangles, scale 2",
+             "diagram": "similar_triangles", "scale": 2,
+             "caption": "same shape, scaled"},
+        ],
+        "card": card_pythagoras,
+        "solved": [
+            {"q": "Ex: Classify 5,5,8, then find the hypotenuse for legs 6,8.",
+             "steps": ["5,5,8 \u2192 isosceles", "Hyp = sqrt(36+64) = 10"]},
+        ],
+        "tips": [
+            "Classify by counting equal sides.",
+            "180\u00b0 sum and exterior angle facts.",
+            "Congruent = identical; similar = scaled.",
+            "Pythagoras for right triangles.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sides 4,4,4. What type?",
+                "2. Angles 100\u00b0,40\u00b0. Find the third.",
+                "3. Legs 5,12. Find the hypotenuse.",
+            ],
+            "answers": "1) equilateral    2) 40\u00b0    3) 13",
         },
     },
 }
