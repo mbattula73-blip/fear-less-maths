@@ -467,6 +467,65 @@ def equation_steps_vec(c, x, y, w, steps, accent=GOLD):
     return (y - cy) + 5 * mm
 
 
+def power_breakdown_vec(c, x, y, w, base, exp):
+    """Show base^exp with a real raised exponent, labelled base/exponent below.
+    Returns height used."""
+    cxm = x + w / 2
+    c.setFont("Helvetica-Bold", 9)
+    law = stringWidth("base", "Helvetica-Bold", 9)
+    lbw = stringWidth("exponent", "Helvetica-Bold", 9)
+    min_dist = (law / 2 + lbw / 2) + 6 * mm
+    half = min_dist / 2
+    base_cx = cxm - half
+    exp_cx = cxm + half
+    c.setFont("Helvetica-Bold", 26); c.setFillColor(GOLD)
+    bw = stringWidth(str(base), "Helvetica-Bold", 26)
+    c.drawString(base_cx - bw / 2, y - 9 * mm, str(base))
+    c.setFont("Helvetica-Bold", 16); c.setFillColor(BLUE)
+    ew = stringWidth(str(exp), "Helvetica-Bold", 16)
+    c.drawString(exp_cx - ew / 2, y - 9 * mm + 14, str(exp))
+    c.setStrokeColor(GOLD); c.setLineWidth(0.8)
+    c.line(base_cx, y - 11 * mm, base_cx, y - 14 * mm)
+    c.setStrokeColor(BLUE)
+    c.line(exp_cx, y - 11 * mm, exp_cx, y - 14 * mm)
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(GOLD); c.drawCentredString(base_cx, y - 18 * mm, "base")
+    c.setFillColor(BLUE); c.drawCentredString(exp_cx, y - 18 * mm, "exponent")
+    return 22 * mm
+
+
+def rule_box_vec(c, x, y, w, pairs, accent=BLUE, light=LBLUE):
+    """Grid of rule boxes (2 per row), e.g. index laws. Returns height used."""
+    rh = 7.5 * mm
+    cw = w / 2
+    c.setFont("Helvetica-Bold", 9.5)
+    for i, (rule, res) in enumerate(pairs):
+        col = i % 2; row = i // 2
+        bx = x + col * cw; by = y - (row + 1) * rh
+        c.setFillColor(light); c.setStrokeColor(accent); c.setLineWidth(0.8)
+        c.rect(bx, by, cw - 2 * mm, rh - 1.5 * mm, fill=1, stroke=1)
+        c.setFillColor(BLACK)
+        c.drawString(bx + 2 * mm, by + 1.8 * mm, f"{rule} = {res}")
+    rows = (len(pairs) + 1) // 2
+    return rows * rh + 2 * mm
+
+
+def square_root_vec(c, x, y, w, side, area):
+    """A square showing side length and area, illustrating a square root."""
+    s = 24 * mm
+    cx = x + w / 2 - s / 2
+    cy = y - s - 2 * mm
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(1.2)
+    c.rect(cx, cy, s, s, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(cx + s / 2, cy + s / 2 - 1.5 * mm, f"Area = {area}")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(BLUE)
+    c.drawCentredString(cx + s / 2, cy - 5 * mm, f"side = {side}")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawCentredString(cx + s / 2, cy + s + 5 * mm, f"\u221a{area} = {side}")
+    return s + 18 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -760,6 +819,22 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
         return used + 10 * mm
+    if kind == "power_breakdown":
+        used = power_breakdown_vec(c, x + 4 * mm, y, w - 8 * mm, rl["base"], rl["exp"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "rule_box":
+        used = rule_box_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["pairs"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 8 * mm
+    if kind == "square_root":
+        used = square_root_vec(c, x + 4 * mm, y - 6 * mm, w - 8 * mm,
+                              rl["side"], rl["area"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 9 * mm
     return 0
 
 
@@ -1290,6 +1365,86 @@ def card_number_puzzle(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_power_concept(c, x, y, w):
+    """Base/exponent breakdown card for 3^2."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Parts of a power:")
+    power_breakdown_vec(c, x + 4 * mm, y - 9 * mm, w - 8 * mm, 3, 2)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "3^2 means 3 \u00d7 3 (base used 2 times).")
+    c.drawString(bx, y - 44 * mm, "The exponent counts how many times")
+    c.drawString(bx, y - 50 * mm, "the base multiplies itself.")
+    return y - card_h - 2 * mm
+
+
+def card_laws_indices(c, x, y, w):
+    """Laws-of-indices rule grid card."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Laws of Indices:")
+    rule_box_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
+                [("a^m \u00d7 a^n", "a^(m+n)"), ("a^m \u00f7 a^n", "a^(m-n)"),
+                 ("(a^m)^n", "a^(mn)"), ("a^0", "1")])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 42 * mm, "Same base: add powers when multiplying,")
+    c.drawString(bx, y - 48 * mm, "subtract when dividing.")
+    return y - card_h - 2 * mm
+
+
+def card_negative_power(c, x, y, w):
+    """Equation-steps card for negative powers: 2^-2 = 1/4."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Negative power = reciprocal:")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["2^-2", "1 / 2^2", "1/4"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 50 * mm, "A negative exponent flips the base")
+    c.drawString(bx, y - 56 * mm, "to the bottom of a fraction.")
+    return y - card_h - 2 * mm
+
+
+def card_fractional_power(c, x, y, w):
+    """Square-root square card for fractional powers."""
+    card_h = 62 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Power of 1/2 means SQUARE ROOT:")
+    square_root_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 4, 16)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 57 * mm, "16^(1/2) = \u221a16 = 4")
+    return y - card_h - 2 * mm
+
+
+def card_sci_notation(c, x, y, w):
+    """Small table card for scientific notation."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Powers of 10:")
+    small_table_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
+                    ["Number", "As a power"],
+                    [["1000", "1 \u00d7 10^3"], ["10000", "1 \u00d7 10^4"], ["3000", "3 \u00d7 10^3"]],
+                    accent=GREEN, light=LGREEN)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 45 * mm, "Count the zeros to find the power of 10.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -1309,6 +1464,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L11.get(sublevel_code)
     if level_num == 12:
         return _L12.get(sublevel_code)
+    if level_num == 13:
+        return _L13.get(sublevel_code)
     return None
 
 
@@ -5493,6 +5650,602 @@ _L12 = {
                 "3. x toys + 5 more = 12. Find x.",
             ],
             "answers": "1) x=5    2) x=3    3) x=7",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 13 — Powers & Indices: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L13 = {
+    # ---- 13A Powers concept ----
+    "13A": {
+        "title": "Powers — Concept",
+        "intro": [
+            "A power has a BASE and an EXPONENT.",
+            "Base = the number being multiplied.",
+            "Exponent = how many times to multiply it.",
+            "3^2 means base 3, exponent 2.",
+            "2^3 = 2 \u00d7 2 \u00d7 2 = 8.",
+        ],
+        "real_life": [
+            {"text": "1. 3^2: base 3, exponent 2",
+             "diagram": "power_breakdown", "base": 3, "exp": 2,
+             "caption": "3^2 = 3\u00d73 = 9"},
+            {"text": "2. 5^4: base 5, exponent 4",
+             "diagram": "power_breakdown", "base": 5, "exp": 4,
+             "caption": "5^4 = 5\u00d75\u00d75\u00d75 = 625"},
+            {"text": "3. 2^3 = 2\u00d72\u00d72 = 8",
+             "diagram": "equation_steps", "steps": ["2^3", "2\u00d72\u00d72", "8"],
+             "caption": "expand the power"},
+        ],
+        "card": card_power_concept,
+        "solved": [
+            {"q": "Ex: In 5^4, identify base and exponent.",
+             "steps": ["Base = 5 (the number)", "Exponent = 4 (the count)"]},
+        ],
+        "tips": [
+            "Base is multiplied repeatedly.",
+            "Exponent counts the multiplications.",
+            "Write as base^exponent.",
+            "Expand to check: 2^3 = 2\u00d72\u00d72.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. In 4^3, what is the base?",
+                "2. In 7^2, what is the exponent?",
+                "3. Expand and evaluate 2^4.",
+            ],
+            "answers": "1) 4    2) 2    3) 16",
+        },
+    },
+
+    # ---- 13B Laws of indices ----
+    "13B": {
+        "title": "Laws of Indices",
+        "intro": [
+            "Same base, multiply \u2192 ADD exponents.",
+            "Same base, divide \u2192 SUBTRACT exponents.",
+            "Power of a power \u2192 MULTIPLY exponents.",
+            "2^3 \u00d7 2^4 = 2^(3+4) = 2^7.",
+            "Any number to the power 0 = 1.",
+        ],
+        "real_life": [
+            {"text": "1. 2^3 \u00d7 2^4 = 2^7 (add exponents)",
+             "diagram": "equation_steps", "steps": ["2^3 \u00d7 2^4", "2^(3+4)", "2^7"],
+             "caption": "multiply \u2192 add exponents"},
+            {"text": "2. 3^2 \u00d7 3^5 = 3^7",
+             "diagram": "equation_steps", "steps": ["3^2 \u00d7 3^5", "3^(2+5)", "3^7"],
+             "caption": "multiply \u2192 add exponents"},
+            {"text": "3. The 4 main laws",
+             "diagram": "rule_box",
+             "pairs": [("a^m \u00d7 a^n", "a^(m+n)"), ("a^m \u00f7 a^n", "a^(m-n)"),
+                      ("(a^m)^n", "a^(mn)"), ("a^0", "1")],
+             "caption": "the laws of indices"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Simplify 5^4 \u00d7 5^3.",
+             "steps": ["Same base 5", "Add exponents: 4+3=7", "Answer = 5^7"]},
+        ],
+        "tips": [
+            "Multiply \u2192 add exponents.",
+            "Divide \u2192 subtract exponents.",
+            "Power of a power \u2192 multiply exponents.",
+            "Anything^0 = 1.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 2^5 \u00d7 2^2.",
+                "2. Simplify 4^6 \u00f7 4^2.",
+                "3. Simplify (3^2)^3.",
+            ],
+            "answers": "1) 2^7    2) 4^4    3) 3^6",
+        },
+    },
+
+    # ---- 13C Simplification ----
+    "13C": {
+        "title": "Simplifying with Indices",
+        "intro": [
+            "Multiply the COEFFICIENTS separately.",
+            "Add the EXPONENTS of the same letter.",
+            "2x^3 \u00d7 3x^2 = (2\u00d73)x^(3+2) = 6x^5.",
+            "Keep numbers and letters apart, combine carefully.",
+            "Same rules as the laws of indices.",
+        ],
+        "real_life": [
+            {"text": "1. 2x^3 \u00d7 3x^2 = 6x^5",
+             "diagram": "equation_steps", "steps": ["2x^3 \u00d7 3x^2", "(2\u00d73)x^(3+2)", "6x^5"],
+             "caption": "multiply numbers, add powers"},
+            {"text": "2. 4a^2 \u00d7 5a^3 = 20a^5",
+             "diagram": "equation_steps", "steps": ["4a^2 \u00d7 5a^3", "(4\u00d75)a^(2+3)", "20a^5"],
+             "caption": "multiply numbers, add powers"},
+            {"text": "3. 3y^4 \u00d7 2y^5 = 6y^9",
+             "diagram": "equation_steps", "steps": ["3y^4 \u00d7 2y^5", "(3\u00d72)y^(4+5)", "6y^9"],
+             "caption": "multiply numbers, add powers"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Simplify 4a^2 \u00d7 5a^3.",
+             "steps": ["Numbers: 4\u00d75=20", "Powers: a^(2+3)=a^5", "Answer = 20a^5"]},
+        ],
+        "tips": [
+            "Multiply the numbers first.",
+            "Add exponents of the same letter.",
+            "Keep the letter the same.",
+            "Write number then letter^power.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 3x^2 \u00d7 4x^3.",
+                "2. Simplify 5a^4 \u00d7 2a^2.",
+                "3. Simplify 2y^3 \u00d7 6y^4.",
+            ],
+            "answers": "1) 12x^5    2) 10a^6    3) 12y^7",
+        },
+    },
+
+    # ---- 13CUM1 Mixed A+B+C ----
+    "13CUM1": {
+        "title": "Review: Concept, Laws, Simplification",
+        "intro": [
+            "Base is multiplied; exponent counts how many times.",
+            "Multiply same base \u2192 add exponents.",
+            "Divide same base \u2192 subtract exponents.",
+            "With letters: multiply numbers, add powers.",
+            "Anything^0 = 1.",
+        ],
+        "real_life": [
+            {"text": "1. 3^2 = 9 (base 3, exponent 2)",
+             "diagram": "power_breakdown", "base": 3, "exp": 2,
+             "caption": "3^2 = 3\u00d73 = 9"},
+            {"text": "2. 2^3 \u00d7 2^4 = 2^7",
+             "diagram": "equation_steps", "steps": ["2^3 \u00d7 2^4", "2^7"],
+             "caption": "add exponents"},
+            {"text": "3. 2x^3 \u00d7 3x^2 = 6x^5",
+             "diagram": "equation_steps", "steps": ["2x^3 \u00d7 3x^2", "6x^5"],
+             "caption": "multiply numbers, add powers"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Evaluate 2^3, then simplify 3x^2\u00d72x^3.",
+             "steps": ["2^3 = 8", "3x^2\u00d72x^3 = 6x^5"]},
+        ],
+        "tips": [
+            "Base, exponent: know the roles.",
+            "Same base: add or subtract powers.",
+            "With letters: numbers \u00d7, powers +.",
+            "Check by expanding small examples.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 4^2.",
+                "2. Simplify 5^2\u00d75^3.",
+                "3. Simplify 3a^2\u00d72a^4.",
+            ],
+            "answers": "1) 16    2) 5^5    3) 6a^6",
+        },
+    },
+
+    # ---- 13D Negative powers ----
+    "13D": {
+        "title": "Negative Powers",
+        "intro": [
+            "A negative exponent means RECIPROCAL.",
+            "a^(-n) = 1 / a^n.",
+            "2^(-1) = 1/2.",
+            "2^(-2) = 1/2^2 = 1/4.",
+            "The base flips to the bottom of a fraction.",
+        ],
+        "real_life": [
+            {"text": "1. 2^(-1) = 1/2",
+             "diagram": "equation_steps", "steps": ["2^-1", "1/2^1", "1/2"],
+             "caption": "flip to the bottom"},
+            {"text": "2. 2^(-2) = 1/4",
+             "diagram": "equation_steps", "steps": ["2^-2", "1/2^2", "1/4"],
+             "caption": "flip and square"},
+            {"text": "3. 2^(-3) = 1/8",
+             "diagram": "equation_steps", "steps": ["2^-3", "1/2^3", "1/8"],
+             "caption": "flip and cube"},
+        ],
+        "card": card_negative_power,
+        "solved": [
+            {"q": "Ex: Evaluate 2^(-3).",
+             "steps": ["= 1/2^3", "= 1/8", "Answer = 1/8"]},
+        ],
+        "tips": [
+            "Negative exponent \u2192 reciprocal.",
+            "a^(-n) = 1/a^n.",
+            "Flip the base to the bottom.",
+            "Then evaluate the positive power.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 3^(-1).",
+                "2. Evaluate 2^(-4).",
+                "3. Evaluate 5^(-2).",
+            ],
+            "answers": "1) 1/3    2) 1/16    3) 1/25",
+        },
+    },
+
+    # ---- 13E Fractional powers ----
+    "13E": {
+        "title": "Fractional Powers (Roots)",
+        "intro": [
+            "Power of 1/2 means SQUARE ROOT.",
+            "a^(1/2) = \u221aa.",
+            "4^(1/2) = \u221a4 = 2.",
+            "Find the number that squares to give a.",
+            "Power of 1/3 means cube root.",
+        ],
+        "real_life": [
+            {"text": "1. 4^(1/2) = \u221a4 = 2",
+             "diagram": "square_root", "side": 2, "area": 4,
+             "caption": "side 2, area 4"},
+            {"text": "2. 9^(1/2) = \u221a9 = 3",
+             "diagram": "square_root", "side": 3, "area": 9,
+             "caption": "side 3, area 9"},
+            {"text": "3. 16^(1/2) = \u221a16 = 4",
+             "diagram": "square_root", "side": 4, "area": 16,
+             "caption": "side 4, area 16"},
+        ],
+        "card": card_fractional_power,
+        "solved": [
+            {"q": "Ex: Evaluate 16^(1/2).",
+             "steps": ["16^(1/2) = \u221a16", "Find n where n\u00d7n=16", "Answer = 4"]},
+        ],
+        "tips": [
+            "Power 1/2 \u2192 square root.",
+            "Find what squares to give the number.",
+            "a^(1/2) = \u221aa.",
+            "Power 1/3 \u2192 cube root.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 25^(1/2).",
+                "2. Evaluate 36^(1/2).",
+                "3. Evaluate 49^(1/2).",
+            ],
+            "answers": "1) 5    2) 6    3) 7",
+        },
+    },
+
+    # ---- 13F Scientific notation ----
+    "13F": {
+        "title": "Scientific Notation",
+        "intro": [
+            "Big numbers written as (number) \u00d7 10^power.",
+            "Count the zeros for the power of 10.",
+            "1000 = 1 \u00d7 10^3 (3 zeros).",
+            "3000 = 3 \u00d7 10^3.",
+            "10000 = 1 \u00d7 10^4 (4 zeros).",
+        ],
+        "real_life": [
+            {"text": "1. 1000 = 1 \u00d7 10^3",
+             "diagram": "equation_steps", "steps": ["1000", "1 \u00d7 10^3"],
+             "caption": "3 zeros \u2192 power 3"},
+            {"text": "2. 10000 = 1 \u00d7 10^4",
+             "diagram": "equation_steps", "steps": ["10000", "1 \u00d7 10^4"],
+             "caption": "4 zeros \u2192 power 4"},
+            {"text": "3. 3000 = 3 \u00d7 10^3",
+             "diagram": "equation_steps", "steps": ["3000", "3 \u00d7 10^3"],
+             "caption": "3 zeros \u2192 power 3"},
+        ],
+        "card": card_sci_notation,
+        "solved": [
+            {"q": "Ex: Write 3000 in scientific notation.",
+             "steps": ["3000 = 3 \u00d7 1000", "1000 = 10^3", "Answer = 3 \u00d7 10^3"]},
+        ],
+        "tips": [
+            "Count the zeros for the power.",
+            "Number \u00d7 10^power.",
+            "Keep the leading digit(s) in front.",
+            "Useful for very large numbers.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 100000 as a power of 10.",
+                "2. Write 5000 in scientific notation.",
+                "3. Write 20000 in scientific notation.",
+            ],
+            "answers": "1) 10^5    2) 5\u00d710^3    3) 2\u00d710^4",
+        },
+    },
+
+    # ---- 13CUM2 Mixed D+E+F ----
+    "13CUM2": {
+        "title": "Review: Negative, Fractional, Scientific",
+        "intro": [
+            "Negative exponent \u2192 reciprocal.",
+            "Power 1/2 \u2192 square root.",
+            "Scientific notation: number \u00d7 10^power.",
+            "Count zeros for the power of 10.",
+            "Apply the right rule for each form.",
+        ],
+        "real_life": [
+            {"text": "1. 2^(-2) = 1/4",
+             "diagram": "equation_steps", "steps": ["2^-2", "1/4"],
+             "caption": "negative power"},
+            {"text": "2. 9^(1/2) = 3",
+             "diagram": "square_root", "side": 3, "area": 9,
+             "caption": "square root"},
+            {"text": "3. 5000 = 5\u00d710^3",
+             "diagram": "equation_steps", "steps": ["5000", "5 \u00d7 10^3"],
+             "caption": "scientific notation"},
+        ],
+        "card": card_fractional_power,
+        "solved": [
+            {"q": "Ex: Evaluate 2^(-3), then 25^(1/2).",
+             "steps": ["2^-3 = 1/8", "25^(1/2) = 5"]},
+        ],
+        "tips": [
+            "Negative \u2192 flip to a fraction.",
+            "1/2 power \u2192 square root.",
+            "Scientific: count the zeros.",
+            "Match the form to the rule.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 4^(-1).",
+                "2. Evaluate 64^(1/2).",
+                "3. Write 40000 in scientific notation.",
+            ],
+            "answers": "1) 1/4    2) 8    3) 4\u00d710^4",
+        },
+    },
+
+    # ---- 13G Word problems ----
+    "13G": {
+        "title": "Powers in Real Life",
+        "intro": [
+            "Area of a square = side^2.",
+            "Volume of a cube = side^3.",
+            "Powers describe growth and shapes.",
+            "Side 4cm \u2192 area = 4^2 = 16 cm^2.",
+            "Side 3cm \u2192 volume = 3^3 = 27 cm^3.",
+        ],
+        "real_life": [
+            {"text": "1. Square side 4cm: area = 4^2 = 16",
+             "diagram": "square_root", "side": 4, "area": 16,
+             "caption": "area = side^2"},
+            {"text": "2. Square side 7cm: area = 7^2 = 49",
+             "diagram": "square_root", "side": 7, "area": 49,
+             "caption": "area = side^2"},
+            {"text": "3. Cube side 3cm: volume = 3^3 = 27",
+             "diagram": "equation_steps", "steps": ["3^3", "3\u00d73\u00d73", "27 cm^3"],
+             "caption": "volume = side^3"},
+        ],
+        "card": card_power_concept,
+        "solved": [
+            {"q": "Ex: A cube has side 3cm. Find its volume.",
+             "steps": ["Volume = side^3", "= 3^3 = 27", "Answer = 27 cm^3"]},
+        ],
+        "tips": [
+            "Area of a square = side^2.",
+            "Volume of a cube = side^3.",
+            "Substitute the side length.",
+            "Keep the correct units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 5cm. Find the area.",
+                "2. Cube side 2cm. Find the volume.",
+                "3. Square side 10cm. Find the area.",
+            ],
+            "answers": "1) 25 cm^2    2) 8 cm^3    3) 100 cm^2",
+        },
+    },
+
+    # ---- 13H Mixed ----
+    "13H": {
+        "title": "Powers — Mixed",
+        "intro": [
+            "Mix evaluating, laws, and letters.",
+            "3^4 means 3 multiplied 4 times.",
+            "Anything^0 = 1.",
+            "Same base letters: add exponents.",
+            "Work each part, then combine.",
+        ],
+        "real_life": [
+            {"text": "1. 3^4 = 81",
+             "diagram": "equation_steps", "steps": ["3^4", "3\u00d73\u00d73\u00d73", "81"],
+             "caption": "expand and evaluate"},
+            {"text": "2. 2^0 = 1",
+             "diagram": "equation_steps", "steps": ["2^0", "1"],
+             "caption": "anything^0 = 1"},
+            {"text": "3. x^4 \u00d7 x^3 = x^7",
+             "diagram": "equation_steps", "steps": ["x^4 \u00d7 x^3", "x^(4+3)", "x^7"],
+             "caption": "add exponents"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Evaluate 3^4, then simplify x^4\u00d7x^3.",
+             "steps": ["3^4 = 81", "x^4\u00d7x^3 = x^7"]},
+        ],
+        "tips": [
+            "Expand to check your answer.",
+            "Anything to the power 0 is 1.",
+            "Same letter: add exponents.",
+            "Work step by step.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 2^5.",
+                "2. Evaluate 7^0.",
+                "3. Simplify y^3 \u00d7 y^2.",
+            ],
+            "answers": "1) 32    2) 1    3) y^5",
+        },
+    },
+
+    # ---- 13I Puzzle problems ----
+    "13I": {
+        "title": "Power Puzzles",
+        "intro": [
+            "Find the missing exponent.",
+            "2^? = 16 \u2192 think: 2,4,8,16 \u2192 4 steps.",
+            "List powers of the base until you find it.",
+            "2^4 = 16, so ? = 4.",
+            "Check by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. 2^?=16 \u2192 ?=4",
+             "diagram": "equation_steps", "steps": ["2^? = 16", "2^4 = 16", "? = 4"],
+             "caption": "list powers of 2"},
+            {"text": "2. 2^?=32 \u2192 ?=5",
+             "diagram": "equation_steps", "steps": ["2^? = 32", "2^5 = 32", "? = 5"],
+             "caption": "list powers of 2"},
+            {"text": "3. 3^?=27 \u2192 ?=3",
+             "diagram": "equation_steps", "steps": ["3^? = 27", "3^3 = 27", "? = 3"],
+             "caption": "list powers of 3"},
+        ],
+        "card": card_power_concept,
+        "solved": [
+            {"q": "Ex: Find ? if 3^? = 27.",
+             "steps": ["3,9,27 \u2192 3^1,3^2,3^3", "27 = 3^3", "Answer: ? = 3"]},
+        ],
+        "tips": [
+            "List the powers of the base.",
+            "Match to the target number.",
+            "That position is the exponent.",
+            "Check by computing it back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find ? if 2^? = 64.",
+                "2. Find ? if 5^? = 125.",
+                "3. Find ? if 4^? = 16.",
+            ],
+            "answers": "1) ?=6    2) ?=3    3) ?=2",
+        },
+    },
+
+    # ---- 13CUM3 Mixed G+H+I ----
+    "13CUM3": {
+        "title": "Review: Word Problems, Mixed, Puzzles",
+        "intro": [
+            "Area = side^2; Volume = side^3.",
+            "Expand powers to check answers.",
+            "Same base: add exponents when multiplying.",
+            "Puzzles: list powers, match the target.",
+            "Always verify the final answer.",
+        ],
+        "real_life": [
+            {"text": "1. Square side 4: area = 16",
+             "diagram": "square_root", "side": 4, "area": 16,
+             "caption": "area = side^2"},
+            {"text": "2. 3^4 = 81",
+             "diagram": "equation_steps", "steps": ["3^4", "81"],
+             "caption": "evaluate"},
+            {"text": "3. 2^?=16 \u2192 ?=4",
+             "diagram": "equation_steps", "steps": ["2^? = 16", "? = 4"],
+             "caption": "puzzle"},
+        ],
+        "card": card_power_concept,
+        "solved": [
+            {"q": "Ex: Cube side 2cm, then find ? if 2^?=8.",
+             "steps": ["Volume = 2^3 = 8 cm^3", "2^?=8 \u2192 ?=3"]},
+        ],
+        "tips": [
+            "Use side^2 and side^3 for shapes.",
+            "Expand to verify.",
+            "Add exponents for same base.",
+            "List powers for puzzles.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side 6. Find the area.",
+                "2. Evaluate 2^6.",
+                "3. Find ? if 3^?=9.",
+            ],
+            "answers": "1) 36    2) 64    3) ?=2",
+        },
+    },
+
+    # ---- 13J Mixed challenge ----
+    "13J": {
+        "title": "Powers — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "2^5 means 2 multiplied 5 times.",
+            "Anything^0 = 1.",
+            "Same base letters: add exponents.",
+            "Work carefully, step by step.",
+        ],
+        "real_life": [
+            {"text": "1. 2^5 = 32",
+             "diagram": "equation_steps", "steps": ["2^5", "32"],
+             "caption": "evaluate"},
+            {"text": "2. 3^0 = 1",
+             "diagram": "equation_steps", "steps": ["3^0", "1"],
+             "caption": "anything^0=1"},
+            {"text": "3. x^4 \u00d7 x^5 = x^9",
+             "diagram": "equation_steps", "steps": ["x^4 \u00d7 x^5", "x^9"],
+             "caption": "add exponents"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Evaluate 2^5, then simplify x^4\u00d7x^5.",
+             "steps": ["2^5 = 32", "x^4\u00d7x^5 = x^9"]},
+        ],
+        "tips": [
+            "Expand small powers to check.",
+            "Zero power always gives 1.",
+            "Add exponents for same base.",
+            "Take it one step at a time.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 3^3.",
+                "2. Evaluate 9^0.",
+                "3. Simplify a^2 \u00d7 a^6.",
+            ],
+            "answers": "1) 27    2) 1    3) a^8",
+        },
+    },
+
+    # ---- 13REV Revision ----
+    "13REV": {
+        "title": "Level 13 Revision — Powers & Indices",
+        "intro": [
+            "Power = base^exponent.",
+            "Multiply same base \u2192 add exponents.",
+            "Negative exponent \u2192 reciprocal.",
+            "Power 1/2 \u2192 square root.",
+            "Scientific notation: number \u00d7 10^power.",
+        ],
+        "real_life": [
+            {"text": "1. 3^2 = 9",
+             "diagram": "power_breakdown", "base": 3, "exp": 2,
+             "caption": "base 3, exponent 2"},
+            {"text": "2. 2^(-2) = 1/4",
+             "diagram": "equation_steps", "steps": ["2^-2", "1/4"],
+             "caption": "negative power"},
+            {"text": "3. 16^(1/2) = 4",
+             "diagram": "square_root", "side": 4, "area": 16,
+             "caption": "square root"},
+        ],
+        "card": card_laws_indices,
+        "solved": [
+            {"q": "Ex: Simplify 2^3\u00d72^2, then evaluate 2^(-1).",
+             "steps": ["2^3\u00d72^2 = 2^5 = 32", "2^-1 = 1/2"]},
+        ],
+        "tips": [
+            "Base and exponent roles.",
+            "Add/subtract powers for same base.",
+            "Negative \u2192 reciprocal; 1/2 \u2192 root.",
+            "Count zeros for scientific notation.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate 4^3.",
+                "2. Evaluate 3^(-2).",
+                "3. Evaluate 100^(1/2).",
+            ],
+            "answers": "1) 64    2) 1/9    3) 10",
         },
     },
 }
