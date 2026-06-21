@@ -7,6 +7,7 @@ from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
 from pdf_engine import build_pdf
 import db
 import analytics
+import concept_tagger
 from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
 
 st.set_page_config(
@@ -266,9 +267,9 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  ✏️ Daily Entry  ", "  📊 Dashboard  ",
+    "  🏷️ Concept Tags  ", "  ✏️ Daily Entry  ", "  📊 Dashboard  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -464,6 +465,87 @@ with tab2:
                     )
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+
+# ─── TAB 3 — CONCEPT TAGS ───────────────────────────────────────────────────────
+with tab3:
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+
+    st.markdown("##### Concept Tags")
+    st.caption(
+        "Each question can be tagged with the specific concept it tests (e.g. 'HCF' vs "
+        "'LCM' within the same mixed worksheet). This makes wrong-answer reports and the "
+        "Dashboard's 'struggling topics' chart genuinely specific instead of just repeating "
+        "the worksheet name. Tags below are auto-suggested from the question text — edit any "
+        "that need it, then save. Sheets 2–4 and remedial sheets reuse sheet 1's tags "
+        "automatically, so tagging sheet 1 is usually enough."
+    )
+
+    col_t1, col_t2 = st.columns([1, 3])
+    with col_t1:
+        # Only non-remedial sheets (1-4) — remedials inherit tags automatically.
+        ct_base_sheets = [(sn, lbl) for sn, lbl in SHEET_OPTIONS if not str(sn).endswith("R")]
+        ct_sheet_lbls = [lbl for _, lbl in ct_base_sheets]
+        ct_sheet_sel = st.selectbox("Sheet", ct_sheet_lbls, key="ct_sheet")
+        ct_sheet_num = ct_base_sheets[ct_sheet_lbls.index(ct_sheet_sel)][0]
+
+    ct_ws_id = f"{sublevel_code}-{ct_sheet_num}"
+    with col_t2:
+        st.markdown(f"""
+        <div style="padding-top:28px;font-size:13px;color:#888">
+            Worksheet: <b style="color:#111">{ct_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
+        </div>
+        """, unsafe_allow_html=True)
+
+    ct_nq = numbered_questions(sublevel_code, ct_sheet_num)
+    ct_existing = db.get_worksheet_tags(ct_ws_id)
+
+    if not ct_nq:
+        st.warning("No questions found for this worksheet.")
+    else:
+        if st.button("🔄  Re-suggest tags from question text", key="ct_resuggest"):
+            st.session_state["ct_suggested"] = concept_tagger.auto_tag_worksheet(ct_nq, topic)
+            st.session_state["ct_suggested_for"] = ct_ws_id
+
+        # Use existing DB tags if present; otherwise auto-suggest fresh ones.
+        if st.session_state.get("ct_suggested_for") == ct_ws_id:
+            ct_tags = st.session_state["ct_suggested"]
+        elif ct_existing:
+            ct_tags = {qn: ct_existing.get(qn, topic) for qn, _ in ct_nq}
+        else:
+            ct_tags = concept_tagger.auto_tag_worksheet(ct_nq, topic)
+
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+
+        edited = {}
+        for qn, preview in ct_nq:
+            c1, c2 = st.columns([3, 1.3])
+            with c1:
+                st.markdown(
+                    f'<div style="font-size:13px;color:#333;padding-top:9px">'
+                    f'<b>Q{qn}.</b> {preview}</div>',
+                    unsafe_allow_html=True,
+                )
+            with c2:
+                edited[qn] = st.text_input(
+                    f"Tag Q{qn}", value=ct_tags.get(qn, topic),
+                    key=f"ct_tag_{ct_ws_id}_{qn}", label_visibility="collapsed",
+                )
+
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        col_save, col_status = st.columns([1, 2])
+        with col_save:
+            if st.button("💾  Save Tags", type="primary", key="ct_save"):
+                db.set_worksheet_tags(ct_ws_id, edited)
+                st.session_state.pop("ct_suggested_for", None)
+                st.success(f"Saved {len(edited)} tags for {ct_ws_id}.")
+        with col_status:
+            n_specific = sum(1 for v in edited.values() if v != topic)
+            st.caption(f"{n_specific} of {len(edited)} questions have a specific tag "
+                      f"(others default to '{topic}').")
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ─── TAB 4 — DAILY ENTRY ───────────────────────────────────────────────────────
 with tab4:
