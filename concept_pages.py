@@ -277,6 +277,69 @@ def venn_hcf_lcm_vec(c, x, y, w, leftname, rightname, left_only, common, right_o
     return used + 4 * mm
 
 
+def ratio_bar_vec(c, x, y, w, h, a, b, color_a=GOLD, color_b=BLUE):
+    """A single bar split into a+b unit cells: first a cells one colour, the
+    rest another colour. Returns the height used."""
+    total = a + b
+    cell = w / total
+    for i in range(total):
+        c.setStrokeColor(BLACK); c.setLineWidth(0.9)
+        c.setFillColor(color_a if i < a else color_b)
+        c.rect(x + i * cell, y, cell, h, fill=1, stroke=1)
+    return h
+
+
+def cross_multiply_vec(c, x, y, w, a, b, c2, d):
+    """Bowtie cross-multiplication visual for a/b = c2/d. Returns height used."""
+    fw = w * 0.28
+    x1 = x + fw * 0.6
+    x2 = x + w - fw * 0.6
+    topy = y
+    boty = y - 13 * mm
+    c.setFont("Helvetica-Bold", 13); c.setFillColor(BLACK)
+    c.drawCentredString(x1, topy, str(a))
+    c.setStrokeColor(BLACK); c.setLineWidth(1)
+    c.line(x1 - 6 * mm, topy - 3 * mm, x1 + 6 * mm, topy - 3 * mm)
+    c.drawCentredString(x1, boty, str(b))
+    midx = (x1 + x2) / 2
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(midx, (topy + boty) / 2 - 2.2 * mm, "=")
+    c.drawCentredString(x2, topy, str(c2))
+    c.line(x2 - 6 * mm, topy - 3 * mm, x2 + 6 * mm, topy - 3 * mm)
+    c.drawCentredString(x2, boty, str(d))
+    c.setStrokeColor(GOLD); c.setLineWidth(1.3)
+    c.line(x1 + 3 * mm, topy - 1 * mm, x2 - 3 * mm, boty + 2 * mm)
+    c.line(x1 + 3 * mm, boty + 2 * mm, x2 - 3 * mm, topy - 1 * mm)
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawCentredString(midx, boty - 8 * mm, f"{a}\u00d7{d} = {a*d}    {b}\u00d7{c2} = {b*c2}")
+    return (topy - boty) + 8 * mm + 6 * mm
+
+
+def small_table_vec(c, x, y, w, headers, rows, accent=BLUE, light=LBLUE):
+    """A simple grid table. Returns the height used."""
+    n_cols = len(headers)
+    col_w = w / n_cols
+    row_h = 6.5 * mm
+    c.setFillColor(light); c.setStrokeColor(accent); c.setLineWidth(0.8)
+    c.rect(x, y - row_h, w, row_h, fill=1, stroke=1)
+    c.setFillColor(accent); c.setFont("Helvetica-Bold", 9)
+    for i, hd in enumerate(headers):
+        c.drawCentredString(x + col_w * (i + 0.5), y - row_h + 1.8 * mm, str(hd))
+    yy = y - row_h
+    c.setFont("Helvetica", 9)
+    for row in rows:
+        yy -= row_h
+        c.setFillColor(WHITE); c.setStrokeColor(LGRAY); c.setLineWidth(0.5)
+        c.rect(x, yy, w, row_h, fill=1, stroke=1)
+        c.setFillColor(BLACK)
+        for i, cell in enumerate(row):
+            c.drawCentredString(x + col_w * (i + 0.5), yy + 1.8 * mm, str(cell))
+    c.setStrokeColor(LGRAY); c.setLineWidth(0.5)
+    for i in range(1, n_cols):
+        c.line(x + col_w * i, yy, x + col_w * i, y - row_h)
+    return (len(rows) + 1) * row_h
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -523,6 +586,24 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
+    if kind == "ratio_bar":
+        ratio_bar_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 11 * mm,
+                     rl["a"], rl["b"], color_a=GOLD, color_b=BLUE)
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
+        return 24 * mm
+    if kind == "cross_multiply":
+        used = cross_multiply_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                                 rl["a"], rl["b"], rl["c2"], rl["d"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "table":
+        used = small_table_vec(c, x + 4 * mm, y, w - 8 * mm,
+                              rl["headers"], rl["rows"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 7 * mm
     return 0
 
 
@@ -800,6 +881,89 @@ def card_hcf_lcm(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_ratio(c, x, y, w):
+    """Ratio bar card: 3 red : 5 blue = 3:5."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    ratio_bar_vec(c, bx, y - 16 * mm, bw, 12 * mm, 3, 5, color_a=GOLD, color_b=BLUE)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 12)
+    c.drawString(bx, y - 23 * mm, "3 red : 5 blue  =  3 : 5")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 31 * mm, "Order matters! 3:5 is not the same as 5:3.")
+    c.drawString(bx, y - 37 * mm, "A ratio compares two quantities.")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GOLD)
+    c.drawString(bx, y - 45 * mm, "\u25a0 = red (3 parts)")
+    c.setFillColor(BLUE)
+    c.drawString(bx, y - 51 * mm, "\u25a0 = blue (5 parts)")
+    return y - card_h - 2 * mm
+
+
+def card_simplify_ratio(c, x, y, w):
+    """Before/after bars showing simplifying 8:4 to 2:1 using HCF."""
+    card_h = 60 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    ratio_bar_vec(c, bx, y - 16 * mm, bw, 11 * mm, 8, 4, color_a=GOLD, color_b=BLUE)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 23 * mm, "8 : 4  (before)")
+    ratio_bar_vec(c, bx, y - 36 * mm, bw * 0.5, 11 * mm, 2, 1, color_a=GOLD, color_b=BLUE)
+    c.drawString(bx, y - 43 * mm, "2 : 1  (after \u00f7 HCF=4)")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 51 * mm, "Divide BOTH sides by their HCF.")
+    return y - card_h - 2 * mm
+
+
+def card_equivalent_ratio(c, x, y, w):
+    """Two bars showing 1:2 scaled to 2:4 (equivalent ratios)."""
+    card_h = 60 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    ratio_bar_vec(c, bx, y - 16 * mm, bw * 0.4, 11 * mm, 1, 2, color_a=GOLD, color_b=BLUE)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 23 * mm, "1 : 2")
+    ratio_bar_vec(c, bx, y - 38 * mm, bw * 0.8, 11 * mm, 2, 4, color_a=GOLD, color_b=BLUE)
+    c.drawString(bx, y - 45 * mm, "2 : 4  (\u00d72, same proportion)")
+    c.setFont("Helvetica-Bold", 11); c.setFillColor(GREEN)
+    c.drawCentredString(x + w / 2, y - 53 * mm, "1:2 = 2:4 = 3:6  (equivalent)")
+    return y - card_h - 2 * mm
+
+
+def card_proportion(c, x, y, w):
+    """Cross-multiplication bowtie card for checking 2:3 = 4:6."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Check: is 2:3 = 4:6 a proportion?")
+    cross_multiply_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 2, 3, 4, 6)
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(x + w / 2, y - 44 * mm, "2\u00d76 = 12 and 3\u00d74 = 12 \u2192 EQUAL!")
+    c.setFillColor(MGRAY); c.setFont("Helvetica", 9.5)
+    c.drawCentredString(x + w / 2, y - 50 * mm, "Cross products match \u2192 it IS a proportion.")
+    return y - card_h - 2 * mm
+
+
+def card_direct_inverse(c, x, y, w):
+    """Two small tables contrasting direct and inverse proportion."""
+    card_h = 76 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(bx, y - 7 * mm, "Direct: y \u00f7 x = k (constant)")
+    small_table_vec(c, bx, y - 10 * mm, bw, ["x", "y"], [["2", "6"], ["4", "12"], ["6", "18"]],
+                    accent=GREEN, light=LGREEN)
+    c.setFillColor(PINK); c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(bx, y - 41 * mm, "Inverse: x \u00d7 y = k (constant)")
+    small_table_vec(c, bx, y - 44 * mm, bw, ["x", "y"], [["2", "12"], ["4", "6"], ["6", "4"]],
+                    accent=PINK, light=LPINK)
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -813,6 +977,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L8.get(sublevel_code)
     if level_num == 9:
         return _L9.get(sublevel_code)
+    if level_num == 10:
+        return _L10.get(sublevel_code)
     return None
 
 
@@ -3223,6 +3389,583 @@ _L9 = {
                 "3. LCM(6,8) = ?",
             ],
             "answers": "1) 1,2,4,5,10,20    2) 5    3) 24",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 10 — Ratio & Proportion: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L10 = {
+    # ---- 10A Ratio concept ----
+    "10A": {
+        "title": "Ratio — Concept",
+        "intro": [
+            "A ratio compares two quantities.",
+            "Written as a : b (read \u2018a to b\u2019).",
+            "Order matters: 3:5 is not 5:3.",
+            "3 red, 5 blue \u2192 ratio of red to blue = 3:5.",
+            "Keep the same units on both sides.",
+        ],
+        "real_life": [
+            {"text": "1. 3 red, 5 blue marbles \u2192 3:5",
+             "diagram": "ratio_bar", "a": 3, "b": 5, "caption": "red to blue = 3:5"},
+            {"text": "2. 2 cats, 7 dogs \u2192 2:7",
+             "diagram": "ratio_bar", "a": 2, "b": 7, "caption": "cats to dogs = 2:7"},
+            {"text": "3. 6 apples, 4 oranges \u2192 6:4",
+             "diagram": "ratio_bar", "a": 6, "b": 4, "caption": "apples to oranges = 6:4"},
+        ],
+        "card": card_ratio,
+        "solved": [
+            {"q": "Ex: 5 boys, 3 girls. Ratio of boys to girls?",
+             "steps": ["Boys = 5, girls = 3", "Answer = 5:3"]},
+        ],
+        "tips": [
+            "Ratio compares two amounts.",
+            "Order matters: a:b \u2260 b:a.",
+            "Same units both sides.",
+            "Write as a:b, not a fraction.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 4 pens, 6 pencils. Ratio of pens to pencils?",
+                "2. 9 boys, 2 girls. Ratio of girls to boys?",
+                "3. 7 red, 3 blue. Ratio of red to blue?",
+            ],
+            "answers": "1) 4:6    2) 2:9    3) 7:3",
+        },
+    },
+
+    # ---- 10B Simplifying ratios ----
+    "10B": {
+        "title": "Simplifying Ratios",
+        "intro": [
+            "Find the HCF of both numbers.",
+            "Divide BOTH sides by the HCF.",
+            "Result is the simplest form.",
+            "4:2 \u2192 HCF=2 \u2192 2:1.",
+            "If HCF=1, already simplest.",
+        ],
+        "real_life": [
+            {"text": "1. 4:2 \u2192 HCF=2 \u2192 2:1",
+             "diagram": "ratio_bar", "a": 4, "b": 2, "caption": "before simplifying"},
+            {"text": "2. 6:3 \u2192 HCF=3 \u2192 2:1",
+             "diagram": "ratio_bar", "a": 6, "b": 3, "caption": "before simplifying"},
+            {"text": "3. 8:4 \u2192 HCF=4 \u2192 2:1",
+             "diagram": "ratio_bar", "a": 8, "b": 4, "caption": "before simplifying"},
+        ],
+        "card": card_simplify_ratio,
+        "solved": [
+            {"q": "Ex: Simplify 8:4.",
+             "steps": ["HCF(8,4) = 4", "8\u00f74=2, 4\u00f74=1", "Answer = 2:1"]},
+        ],
+        "tips": [
+            "Find HCF of both numbers.",
+            "Divide both sides by HCF.",
+            "Check: no common factor left.",
+            "Order is kept after simplifying.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 10:5.",
+                "2. Simplify 9:6.",
+                "3. Simplify 12:8.",
+            ],
+            "answers": "1) 2:1    2) 3:2    3) 3:2",
+        },
+    },
+
+    # ---- 10C Equivalent ratios ----
+    "10C": {
+        "title": "Equivalent Ratios",
+        "intro": [
+            "Multiply BOTH sides by the same number.",
+            "1:3 = 2:6 = 3:9 (all equivalent).",
+            "Same proportion, different numbers.",
+            "Scaling up or down keeps it equal.",
+            "Check: cross products are equal.",
+        ],
+        "real_life": [
+            {"text": "1. 1:3 \u00d72 = 2:6",
+             "diagram": "ratio_bar", "a": 2, "b": 6, "caption": "scaled up \u00d72"},
+            {"text": "2. 1:3 \u00d73 = 3:9",
+             "diagram": "ratio_bar", "a": 3, "b": 9, "caption": "scaled up \u00d73"},
+            {"text": "3. 2:5 \u00d72 = 4:10",
+             "diagram": "ratio_bar", "a": 4, "b": 10, "caption": "scaled up \u00d72"},
+        ],
+        "card": card_equivalent_ratio,
+        "solved": [
+            {"q": "Ex: Find an equivalent ratio to 2:5 (\u00d73).",
+             "steps": ["2\u00d73=6, 5\u00d73=15", "Answer = 6:15"]},
+        ],
+        "tips": [
+            "Multiply both sides equally.",
+            "Same proportion, new numbers.",
+            "Can also divide both sides.",
+            "Check with cross multiplication.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 1:4 \u00d72 = ?",
+                "2. 3:5 \u00d72 = ?",
+                "3. 2:3 \u00d74 = ?",
+            ],
+            "answers": "1) 2:8    2) 6:10    3) 8:12",
+        },
+    },
+
+    # ---- 10CUM1 Mixed A+B+C ----
+    "10CUM1": {
+        "title": "Review: Concept, Simplify, Equivalent",
+        "intro": [
+            "Ratio compares two quantities, order matters.",
+            "Simplify: divide both by HCF.",
+            "Equivalent: multiply both by same number.",
+            "All equivalent ratios represent the same split.",
+            "Always keep units consistent.",
+        ],
+        "real_life": [
+            {"text": "1. 3 red : 5 blue = 3:5",
+             "diagram": "ratio_bar", "a": 3, "b": 5, "caption": "basic ratio"},
+            {"text": "2. 8:4 simplifies to 2:1",
+             "diagram": "ratio_bar", "a": 8, "b": 4, "caption": "before simplifying"},
+            {"text": "3. 1:3 = 2:6 (equivalent)",
+             "diagram": "ratio_bar", "a": 2, "b": 6, "caption": "scaled \u00d72"},
+        ],
+        "card": card_equivalent_ratio,
+        "solved": [
+            {"q": "Ex: Simplify 6:9, then find an equivalent of 1:2.",
+             "steps": ["HCF(6,9)=3 \u2192 6:9 = 2:3", "1:2 \u00d74 = 4:8"]},
+        ],
+        "tips": [
+            "Order matters in a ratio.",
+            "Simplify with HCF.",
+            "Equivalent: scale up/down equally.",
+            "Cross products check equivalence.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 5 boys, 2 girls. Ratio?",
+                "2. Simplify 14:21.",
+                "3. 2:7 \u00d73 = ?",
+            ],
+            "answers": "1) 5:2    2) 2:3    3) 6:21",
+        },
+    },
+
+    # ---- 10D Proportion ----
+    "10D": {
+        "title": "Proportion",
+        "intro": [
+            "A proportion says two ratios are EQUAL.",
+            "a:b = c:d means a\u00d7d = b\u00d7c.",
+            "Cross-multiply to check.",
+            "If cross products match \u2192 it IS a proportion.",
+            "2:3 = 4:6 because 2\u00d76 = 3\u00d74 = 12.",
+        ],
+        "real_life": [
+            {"text": "1. Is 2:3 = 4:6? Cross multiply to check",
+             "diagram": "cross_multiply", "a": 2, "b": 3, "c2": 4, "d": 6,
+             "caption": "12 = 12 \u2192 yes, proportion"},
+            {"text": "2. Is 1:2 = 3:6?",
+             "diagram": "cross_multiply", "a": 1, "b": 2, "c2": 3, "d": 6,
+             "caption": "6 = 6 \u2192 yes, proportion"},
+            {"text": "3. Is 3:4 = 9:12?",
+             "diagram": "cross_multiply", "a": 3, "b": 4, "c2": 9, "d": 12,
+             "caption": "36 = 36 \u2192 yes, proportion"},
+        ],
+        "card": card_proportion,
+        "solved": [
+            {"q": "Ex: Is 2:3 = 4:6 a proportion?",
+             "steps": ["2\u00d76=12", "3\u00d74=12", "Equal \u2192 yes, a proportion"]},
+        ],
+        "tips": [
+            "Cross-multiply both sides.",
+            "Equal products \u2192 proportion.",
+            "Different products \u2192 not a proportion.",
+            "Order: a:b = c:d \u2192 a\u00d7d, b\u00d7c.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 2:5 = 6:15 a proportion?",
+                "2. Is 3:4 = 5:8 a proportion?",
+                "3. Is 1:6 = 2:12 a proportion?",
+            ],
+            "answers": "1) Yes    2) No    3) Yes",
+        },
+    },
+
+    # ---- 10E Solving proportions ----
+    "10E": {
+        "title": "Solving Proportions",
+        "intro": [
+            "Find the value of ONE unit first.",
+            "Then multiply for the amount needed.",
+            "4 pens cost Rs 12 \u2192 1 pen = Rs 3.",
+            "So 6 pens = 6 \u00d7 3 = Rs 18.",
+            "This is the \u2018unitary method\u2019.",
+        ],
+        "real_life": [
+            {"text": "1. 4 pens = Rs 12 \u2192 1 pen = Rs 3",
+             "diagram": "table", "headers": ["Pens", "Cost"],
+             "rows": [["4", "12"], ["1", "3"], ["6", "18"]],
+             "caption": "find 1 unit, then scale"},
+            {"text": "2. 5 books = Rs 30 \u2192 1 book = Rs 6",
+             "diagram": "table", "headers": ["Books", "Cost"],
+             "rows": [["5", "30"], ["1", "6"], ["8", "48"]],
+             "caption": "unitary method"},
+            {"text": "3. 3 kg = Rs 18 \u2192 1 kg = Rs 6",
+             "diagram": "table", "headers": ["kg", "Cost"],
+             "rows": [["3", "18"], ["1", "6"], ["5", "30"]],
+             "caption": "unitary method"},
+        ],
+        "card": card_direct_inverse,
+        "solved": [
+            {"q": "Ex: 4 pens cost Rs 12. Find the cost of 6 pens.",
+             "steps": ["1 pen = 12\u00f74 = Rs 3", "6 pens = 6\u00d73", "= Rs 18"]},
+        ],
+        "tips": [
+            "Find the value of 1 unit first.",
+            "Divide total by quantity.",
+            "Multiply for the new quantity.",
+            "Keep the units (Rs, kg...).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 3 pens cost Rs 9. Cost of 5 pens?",
+                "2. 6 books cost Rs 60. Cost of 4 books?",
+                "3. 4 kg costs Rs 100. Cost of 7 kg?",
+            ],
+            "answers": "1) Rs 15    2) Rs 40    3) Rs 175",
+        },
+    },
+
+    # ---- 10CUM2 Mixed D+E+F ----
+    "10CUM2": {
+        "title": "Review: Proportion, Solving, Word Problems",
+        "intro": [
+            "Proportion: two ratios are equal.",
+            "Cross-multiply to check.",
+            "Unitary method: find 1 unit, then scale.",
+            "Sharing: total parts \u2192 1 part \u2192 each share.",
+            "Always check the answer fits the story.",
+        ],
+        "real_life": [
+            {"text": "1. Is 2:3 = 4:6?",
+             "diagram": "cross_multiply", "a": 2, "b": 3, "c2": 4, "d": 6,
+             "caption": "12 = 12 \u2192 yes"},
+            {"text": "2. 4 pens = Rs 12 \u2192 1 pen = Rs 3",
+             "diagram": "table", "headers": ["Pens", "Cost"],
+             "rows": [["4", "12"], ["1", "3"]], "caption": "unitary method"},
+            {"text": "3. Share Rs 30 in 1:2 \u2192 Rs 10 and Rs 20",
+             "diagram": "ratio_bar", "a": 1, "b": 2, "caption": "3 parts total"},
+        ],
+        "card": card_proportion,
+        "solved": [
+            {"q": "Ex: Share Rs 30 in ratio 1:2.",
+             "steps": ["Total parts = 1+2 = 3", "1 part = 30\u00f73 = 10",
+                       "Shares: Rs 10 and Rs 20"]},
+        ],
+        "tips": [
+            "Cross-multiply to check proportion.",
+            "Unitary method: find 1 unit.",
+            "Sharing: add parts, divide total.",
+            "Check shares add to the total.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 3:5 = 9:15 a proportion?",
+                "2. 5 books cost Rs 25. Cost of 8?",
+                "3. Share Rs 40 in ratio 3:5.",
+            ],
+            "answers": "1) Yes    2) Rs 40    3) Rs 15 and Rs 25",
+        },
+    },
+
+    # ---- 10F Word problems ----
+    "10F": {
+        "title": "Sharing in a Ratio",
+        "intro": [
+            "Add the ratio parts for the total parts.",
+            "Divide the total amount by total parts.",
+            "That gives the value of ONE part.",
+            "Multiply each ratio number by that value.",
+            "Check: shares add up to the total.",
+        ],
+        "real_life": [
+            {"text": "1. Share Rs 30 in 1:2 \u2192 Rs 10, Rs 20",
+             "diagram": "ratio_bar", "a": 1, "b": 2, "caption": "3 parts \u2192 Rs 10 each"},
+            {"text": "2. Share Rs 40 in 3:5 \u2192 Rs 15, Rs 25",
+             "diagram": "ratio_bar", "a": 3, "b": 5, "caption": "8 parts \u2192 Rs 5 each"},
+            {"text": "3. Share Rs 60 in 1:2 \u2192 Rs 20, Rs 40",
+             "diagram": "ratio_bar", "a": 1, "b": 2, "caption": "3 parts \u2192 Rs 20 each"},
+        ],
+        "card": card_ratio,
+        "solved": [
+            {"q": "Ex: Share Rs 40 in ratio 3:5.",
+             "steps": ["Total parts = 3+5 = 8", "1 part = 40\u00f78 = 5",
+                       "Shares: 3\u00d75=15, 5\u00d75=25"]},
+        ],
+        "tips": [
+            "Add the ratio numbers for total parts.",
+            "Divide total amount by total parts.",
+            "Multiply back for each share.",
+            "Shares must add to the total.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Share Rs 50 in ratio 2:3.",
+                "2. Share Rs 70 in ratio 3:4.",
+                "3. Share Rs 90 in ratio 4:5.",
+            ],
+            "answers": "1) Rs 20, Rs 30    2) Rs 30, Rs 40    3) Rs 40, Rs 50",
+        },
+    },
+
+    # ---- 10G Direct proportion ----
+    "10G": {
+        "title": "Direct Proportion",
+        "intro": [
+            "Both quantities increase together.",
+            "y \u00f7 x = k (a constant value).",
+            "Find k, then use it for new values.",
+            "x=2,y=6 \u2192 k=3. When x=4, y=k\u00d74=12.",
+            "More of one means more of the other.",
+        ],
+        "real_life": [
+            {"text": "1. x=2,y=6 (k=3). When x=4, y=12",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["2", "6"], ["4", "12"]], "caption": "y = 3x"},
+            {"text": "2. x=3,y=9 (k=3). When x=5, y=15",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["3", "9"], ["5", "15"]], "caption": "y = 3x"},
+            {"text": "3. x=4,y=12 (k=3). When x=7, y=21",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["4", "12"], ["7", "21"]], "caption": "y = 3x"},
+        ],
+        "card": card_direct_inverse,
+        "solved": [
+            {"q": "Ex: x=2,y=6. Find y when x=4.",
+             "steps": ["k = y\u00f7x = 6\u00f72 = 3", "y = k\u00d7x = 3\u00d74", "Answer = 12"]},
+        ],
+        "tips": [
+            "Direct: both rise together.",
+            "k = y \u00f7 x (constant).",
+            "y = k \u00d7 x for new values.",
+            "More x means more y.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. x=3,y=12. Find k.",
+                "2. Using k from above, find y when x=5.",
+                "3. x=2,y=8. Find y when x=6.",
+            ],
+            "answers": "1) k=4    2) y=20    3) y=24",
+        },
+    },
+
+    # ---- 10H Inverse proportion ----
+    "10H": {
+        "title": "Inverse Proportion",
+        "intro": [
+            "One quantity increases, the other decreases.",
+            "x \u00d7 y = k (a constant value).",
+            "Find k, then use it for new values.",
+            "x=2,y=12 \u2192 k=24. When x=4, y=24\u00f74=6.",
+            "More of one means LESS of the other.",
+        ],
+        "real_life": [
+            {"text": "1. x=2,y=12 (k=24). When x=4, y=6",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["2", "12"], ["4", "6"]], "caption": "x\u00d7y = 24"},
+            {"text": "2. x=3,y=8 (k=24). When x=6, y=4",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["3", "8"], ["6", "4"]], "caption": "x\u00d7y = 24"},
+            {"text": "3. x=4,y=6 (k=24). When x=8, y=3",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["4", "6"], ["8", "3"]], "caption": "x\u00d7y = 24"},
+        ],
+        "card": card_direct_inverse,
+        "solved": [
+            {"q": "Ex: x=2,y=12. Find y when x=4.",
+             "steps": ["k = x\u00d7y = 2\u00d712 = 24", "y = k\u00f7x = 24\u00f74", "Answer = 6"]},
+        ],
+        "tips": [
+            "Inverse: one up, other down.",
+            "k = x \u00d7 y (constant).",
+            "y = k \u00f7 x for new values.",
+            "More x means LESS y.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. x=3,y=10. Find k.",
+                "2. Using k from above, find y when x=5.",
+                "3. x=4,y=9. Find y when x=6.",
+            ],
+            "answers": "1) k=30    2) y=6    3) y=6",
+        },
+    },
+
+    # ---- 10I Mixed ----
+    "10I": {
+        "title": "Ratio & Proportion — Mixed",
+        "intro": [
+            "Simplify ratios using HCF.",
+            "Share totals using ratio parts.",
+            "Check proportions with cross multiply.",
+            "Direct: y\u00f7x=k. Inverse: x\u00d7y=k.",
+            "Read carefully to pick the right method.",
+        ],
+        "real_life": [
+            {"text": "1. Simplify 15:20 \u2192 HCF=5 \u2192 3:4",
+             "diagram": "ratio_bar", "a": 15, "b": 20, "caption": "before simplifying"},
+            {"text": "2. Share Rs 60 in 2:3 \u2192 Rs 24, Rs 36",
+             "diagram": "ratio_bar", "a": 2, "b": 3, "caption": "5 parts \u2192 Rs 12 each"},
+            {"text": "3. Is 4:6 = 6:9?",
+             "diagram": "cross_multiply", "a": 4, "b": 6, "c2": 6, "d": 9,
+             "caption": "36 = 36 \u2192 yes"},
+        ],
+        "card": card_proportion,
+        "solved": [
+            {"q": "Ex: Simplify 15:20, then share Rs 60 in 2:3.",
+             "steps": ["15:20 \u2192 3:4 (\u00f75)", "Rs 60 in 2:3 \u2192 Rs 24, Rs 36"]},
+        ],
+        "tips": [
+            "Simplify with HCF.",
+            "Share: total parts \u2192 1 part \u2192 scale.",
+            "Cross-multiply to check proportion.",
+            "Pick direct or inverse carefully.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 18:24.",
+                "2. Share Rs 100 in ratio 2:3.",
+                "3. Is 5:8 = 10:16 a proportion?",
+            ],
+            "answers": "1) 3:4    2) Rs 40, Rs 60    3) Yes",
+        },
+    },
+
+    # ---- 10CUM3 Mixed G+H+I ----
+    "10CUM3": {
+        "title": "Review: Direct, Inverse, Mixed",
+        "intro": [
+            "Direct: y\u00f7x=k, both rise together.",
+            "Inverse: x\u00d7y=k, one up other down.",
+            "Find k first, then use it for new values.",
+            "Simplify and share use HCF and parts.",
+            "Always identify which type applies.",
+        ],
+        "real_life": [
+            {"text": "1. Direct: x=2,y=6 \u2192 k=3",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["2", "6"], ["4", "12"]], "caption": "y = 3x"},
+            {"text": "2. Inverse: x=2,y=12 \u2192 k=24",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["2", "12"], ["4", "6"]], "caption": "x\u00d7y = 24"},
+            {"text": "3. Simplify 12:16 \u2192 3:4",
+             "diagram": "ratio_bar", "a": 12, "b": 16, "caption": "before simplifying"},
+        ],
+        "card": card_direct_inverse,
+        "solved": [
+            {"q": "Ex: x=3,y=9 (direct). Find y when x=6.",
+             "steps": ["k = 9\u00f73 = 3", "y = 3\u00d76", "= 18"]},
+        ],
+        "tips": [
+            "Direct: both rise (y\u00f7x=k).",
+            "Inverse: one rises, other falls (x\u00d7y=k).",
+            "Find k from the given pair first.",
+            "Re-check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Direct: x=4,y=20. Find y when x=6.",
+                "2. Inverse: x=5,y=8. Find y when x=10.",
+                "3. Simplify 16:20.",
+            ],
+            "answers": "1) y=30    2) y=4    3) 4:5",
+        },
+    },
+
+    # ---- 10J Mixed challenge ----
+    "10J": {
+        "title": "Ratio & Proportion — Mixed Challenge",
+        "intro": [
+            "Mix every skill: simplify, scale, solve.",
+            "Find missing values using proportions.",
+            "3:5 = ?:25 \u2192 scale factor is 25\u00f75=5.",
+            "So missing = 3\u00d75 = 15.",
+            "Always check with cross multiplication.",
+        ],
+        "real_life": [
+            {"text": "1. Simplify 8:14 \u2192 4:7",
+             "diagram": "ratio_bar", "a": 8, "b": 14, "caption": "before simplifying"},
+            {"text": "2. Simplify 36:24 \u2192 3:2",
+             "diagram": "ratio_bar", "a": 36, "b": 24, "caption": "before simplifying"},
+            {"text": "3. 3:5 = ?:25 \u2192 missing = 15",
+             "diagram": "cross_multiply", "a": 3, "b": 5, "c2": 15, "d": 25,
+             "caption": "75 = 75 \u2192 missing is 15"},
+        ],
+        "card": card_proportion,
+        "solved": [
+            {"q": "Ex: 3:5 = ?:25. Find the missing number.",
+             "steps": ["Scale factor: 25\u00f75 = 5", "3\u00d75 = 15", "Answer = 15"]},
+        ],
+        "tips": [
+            "Find the scale factor first.",
+            "Apply it to the other side.",
+            "Simplify using HCF.",
+            "Check with cross multiplication.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write ratio 10:15 in simplest form.",
+                "2. Simplify 42:28.",
+                "3. 2:7 = ?:21. Find the missing number.",
+            ],
+            "answers": "1) 2:3    2) 3:2    3) 6",
+        },
+    },
+
+    # ---- 10REV Revision ----
+    "10REV": {
+        "title": "Level 10 Revision — Ratio & Proportion",
+        "intro": [
+            "Ratio: a:b compares two quantities.",
+            "Simplify with HCF; scale for equivalents.",
+            "Proportion: cross products are equal.",
+            "Direct: y\u00f7x=k. Inverse: x\u00d7y=k.",
+            "Sharing: total parts \u2192 1 part \u2192 scale.",
+        ],
+        "real_life": [
+            {"text": "1. 3 red : 5 blue = 3:5",
+             "diagram": "ratio_bar", "a": 3, "b": 5, "caption": "basic ratio"},
+            {"text": "2. Is 2:3 = 4:6?",
+             "diagram": "cross_multiply", "a": 2, "b": 3, "c2": 4, "d": 6,
+             "caption": "12 = 12 \u2192 yes"},
+            {"text": "3. Direct: x=2,y=6 \u2192 k=3",
+             "diagram": "table", "headers": ["x", "y"],
+             "rows": [["2", "6"], ["4", "12"]], "caption": "y = 3x"},
+        ],
+        "card": card_proportion,
+        "solved": [
+            {"q": "Ex: Simplify 9:6, then share Rs 50 in 2:3.",
+             "steps": ["9:6 \u2192 3:2 (\u00f73)", "Rs 50 in 2:3 \u2192 Rs 20, Rs 30"]},
+        ],
+        "tips": [
+            "Order matters in a ratio.",
+            "Simplify with HCF.",
+            "Cross-multiply to check proportion.",
+            "Direct rises together; inverse one falls.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 20:16.",
+                "2. Is 3:4 = 6:8 a proportion?",
+                "3. Share Rs 80 in ratio 3:5.",
+            ],
+            "answers": "1) 5:4    2) Yes    3) Rs 30, Rs 50",
         },
     },
 }
