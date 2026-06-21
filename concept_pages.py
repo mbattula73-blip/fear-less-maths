@@ -340,6 +340,110 @@ def small_table_vec(c, x, y, w, headers, rows, accent=BLUE, light=LBLUE):
     return (len(rows) + 1) * row_h
 
 
+def balance_scale_vec(c, x, y, w, left_text, right_text):
+    """A balance scale showing left_text = right_text (level beam). Returns height."""
+    cxm = x + w / 2
+    beam_y = y - 6 * mm
+    c.setFillColor(MGRAY)
+    p = c.beginPath()
+    p.moveTo(cxm - 4 * mm, beam_y - 8 * mm)
+    p.lineTo(cxm + 4 * mm, beam_y - 8 * mm)
+    p.lineTo(cxm, beam_y)
+    p.close()
+    c.drawPath(p, fill=1, stroke=0)
+    c.setStrokeColor(BLACK); c.setLineWidth(1.6)
+    c.line(x + 8 * mm, beam_y, x + w - 8 * mm, beam_y)
+    pan_w = w * 0.32
+    lx = x + 8 * mm
+    rx = x + w - 8 * mm - pan_w
+    pan_y = beam_y - 15 * mm
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+    c.line(lx + pan_w / 2, beam_y, lx + pan_w / 2, pan_y + 8 * mm)
+    c.line(rx + pan_w / 2, beam_y, rx + pan_w / 2, pan_y + 8 * mm)
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(1)
+    c.rect(lx, pan_y, pan_w, 8 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(lx + pan_w / 2, pan_y + 2.6 * mm, left_text)
+    c.setFillColor(LGOLD); c.setStrokeColor(GOLD)
+    c.rect(rx, pan_y, pan_w, 8 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK)
+    c.drawCentredString(rx + pan_w / 2, pan_y + 2.6 * mm, right_text)
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawCentredString(cxm, pan_y - 5 * mm, "Balanced \u2014 both sides are EQUAL")
+    return (y - pan_y) + 7 * mm
+
+
+def function_machine_vec(c, x, y, w, input_val, operation, output_val):
+    """Input -> operation box -> output. Returns height used."""
+    cy = y - 8 * mm
+    box_w = w * 0.36
+    box_x = x + (w - box_w) / 2
+    c.setFont("Helvetica-Bold", 12); c.setFillColor(BLACK)
+    c.drawCentredString(x + 9 * mm, cy, str(input_val))
+    c.setStrokeColor(GOLD); c.setLineWidth(1.3)
+    c.line(x + 14 * mm, cy, box_x - 2 * mm, cy)
+    c.line(box_x - 2 * mm, cy, box_x - 5 * mm, cy + 1.6 * mm)
+    c.line(box_x - 2 * mm, cy, box_x - 5 * mm, cy - 1.6 * mm)
+    c.setFillColor(LGREEN); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.rect(box_x, cy - 6.5 * mm, box_w, 13 * mm, fill=1, stroke=1)
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(box_x + box_w / 2, cy - 1.6 * mm, operation)
+    c.setStrokeColor(GOLD)
+    c.line(box_x + box_w + 2 * mm, cy, x + w - 14 * mm, cy)
+    c.line(x + w - 14 * mm, cy, x + w - 17 * mm, cy + 1.6 * mm)
+    c.line(x + w - 14 * mm, cy, x + w - 17 * mm, cy - 1.6 * mm)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(x + w - 7 * mm, cy, str(output_val))
+    c.setFont("Helvetica-Oblique", 8); c.setFillColor(MGRAY)
+    c.drawCentredString(x + 9 * mm, cy - 11 * mm, "in")
+    c.drawCentredString(x + w - 7 * mm, cy - 11 * mm, "out")
+    return 20 * mm
+
+
+def term_breakdown_vec(c, x, y, w, coeff, var):
+    """Highlight coefficient vs variable in a term like 3x. Returns height."""
+    cxm = x + w / 2
+    c.setFont("Helvetica-Bold", 24)
+    cw = stringWidth(str(coeff), "Helvetica-Bold", 24)
+    vw = stringWidth(var, "Helvetica-Bold", 24)
+    startx = cxm - (cw + vw) / 2
+    c.setFillColor(GOLD)
+    c.drawString(startx, y - 8 * mm, str(coeff))
+    c.setFillColor(BLUE)
+    c.drawString(startx + cw, y - 8 * mm, var)
+    c.setStrokeColor(GOLD); c.setLineWidth(0.8)
+    c.line(startx + cw / 2, y - 10 * mm, startx + cw / 2, y - 14 * mm)
+    c.setStrokeColor(BLUE)
+    c.line(startx + cw + vw / 2, y - 10 * mm, startx + cw + vw / 2, y - 14 * mm)
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(GOLD)
+    c.drawCentredString(startx + cw / 2, y - 18 * mm, "coefficient")
+    c.setFillColor(BLUE)
+    c.drawCentredString(startx + cw + vw / 2, y - 18 * mm, "variable")
+    return 22 * mm
+
+
+def like_terms_vec(c, x, y, w, group_a, label_a, group_b, label_b):
+    """Two coloured boxes grouping like terms. Returns height used."""
+    bw = w * 0.46
+    bx1 = x
+    bx2 = x + w - bw
+    by = y - 15 * mm
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(1.1)
+    c.roundRect(bx1, by, bw, 15 * mm, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(bx1 + bw / 2, by + 9 * mm, "  ".join(group_a))
+    c.setFont("Helvetica", 8.5)
+    c.drawCentredString(bx1 + bw / 2, by + 3 * mm, label_a)
+    c.setFillColor(LPINK); c.setStrokeColor(PINK); c.setLineWidth(1.1)
+    c.roundRect(bx2, by, bw, 15 * mm, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(PINK); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(bx2 + bw / 2, by + 9 * mm, "  ".join(group_b))
+    c.setFont("Helvetica", 8.5)
+    c.drawCentredString(bx2 + bw / 2, by + 3 * mm, label_b)
+    return 19 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -604,6 +708,30 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 7 * mm
+    if kind == "balance_scale":
+        used = balance_scale_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                                rl["left_text"], rl["right_text"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        return used + 10 * mm
+    if kind == "function_machine":
+        used = function_machine_vec(c, x + 4 * mm, y - 4 * mm, w - 8 * mm,
+                                   rl["input_val"], rl["operation"], rl["output_val"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        return used + 10 * mm
+    if kind == "term_breakdown":
+        used = term_breakdown_vec(c, x + 4 * mm, y, w - 8 * mm,
+                                 rl["coeff"], rl["var"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "like_terms":
+        used = like_terms_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                             rl["group_a"], rl["label_a"], rl["group_b"], rl["label_b"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 8 * mm
     return 0
 
 
@@ -964,6 +1092,97 @@ def card_direct_inverse(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_variable(c, x, y, w):
+    """A variable as a mystery box that can hold any number."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 8 * mm, "A variable is a MYSTERY BOX:")
+    box_w = 22 * mm
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(1.2)
+    c.roundRect(bx, y - 30 * mm, box_w, 16 * mm, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(bx + box_w / 2, y - 24 * mm, "x")
+    c.setStrokeColor(GOLD); c.setLineWidth(1.3)
+    c.line(bx + box_w + 2 * mm, y - 22 * mm, bx + box_w + 14 * mm, y - 22 * mm)
+    c.line(bx + box_w + 14 * mm, y - 22 * mm, bx + box_w + 11 * mm, y - 20.5 * mm)
+    c.line(bx + box_w + 14 * mm, y - 22 * mm, bx + box_w + 11 * mm, y - 23.5 * mm)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 14)
+    c.drawString(bx + box_w + 17 * mm, y - 24 * mm, "could be 4, 7, 100...")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 40 * mm, "x is a LETTER that stands for an unknown number.")
+    c.drawString(bx, y - 46 * mm, "If x = 4, the box holds 4. Any letter can be used.")
+    return y - card_h - 2 * mm
+
+
+def card_expression_parts(c, x, y, w):
+    """Term breakdown card showing coefficient and variable in 3x + 5."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Parts of a term:")
+    term_breakdown_vec(c, x + 4 * mm, y - 9 * mm, w - 8 * mm, 3, "x")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "3x + 5 has TWO terms: 3x and 5.")
+    c.drawString(bx, y - 44 * mm, "3x is a variable term (has a letter).")
+    c.drawString(bx, y - 50 * mm, "5 is a constant term (just a number).")
+    return y - card_h - 2 * mm
+
+
+def card_like_unlike(c, x, y, w):
+    """Like-terms grouping card: x-terms vs y-terms."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Like terms have the SAME letter:")
+    like_terms_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
+                   ["3x", "5x"], "x-terms (LIKE)", ["2y", "7y"], "y-terms (LIKE)")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "3x and 5x are LIKE (both have x).")
+    c.drawString(bx, y - 44 * mm, "3x and 2y are UNLIKE (different letters).")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawString(bx, y - 51 * mm, "Only LIKE terms can be combined.")
+    return y - card_h - 2 * mm
+
+
+def card_substitution(c, x, y, w):
+    """Function-machine card for substitution: x + 4, x=3 -> 7."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Substitute: plug in the number for x")
+    function_machine_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, "x = 3", "+ 4", "7")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "Replace x with its value, then work it out.")
+    c.drawString(bx, y - 44 * mm, "x + 4, with x=3, becomes 3 + 4 = 7.")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawString(bx, y - 51 * mm, "This works for ANY expression!")
+    return y - card_h - 2 * mm
+
+
+def card_balance(c, x, y, w):
+    """Balance scale card for simple equations like x+3=7."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "An equation is a BALANCED scale:")
+    balance_scale_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, "x + 3", "7")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 43 * mm, "Both sides must stay EQUAL.")
+    c.drawString(bx, y - 49 * mm, "Take 3 from both sides: x = 4.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -979,6 +1198,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L9.get(sublevel_code)
     if level_num == 10:
         return _L10.get(sublevel_code)
+    if level_num == 11:
+        return _L11.get(sublevel_code)
     return None
 
 
@@ -3966,6 +4187,609 @@ _L10 = {
                 "3. Share Rs 80 in ratio 3:5.",
             ],
             "answers": "1) 5:4    2) Yes    3) Rs 30, Rs 50",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 11 — Algebra (Expressions): concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L11 = {
+    # ---- 11A Variables ----
+    "11A": {
+        "title": "Variables",
+        "intro": [
+            "A variable is a LETTER for an unknown number.",
+            "x, y, n are common variable letters.",
+            "If x = 4, the letter x stands for 4.",
+            "Variables can take different values.",
+            "Think of it as a labelled mystery box.",
+        ],
+        "real_life": [
+            {"text": "1. x = 4: the box holds 4",
+             "diagram": "function_machine", "input_val": "x", "operation": "= 4",
+             "output_val": "4", "caption": "x stands for 4"},
+            {"text": "2. y = 7: the box holds 7",
+             "diagram": "function_machine", "input_val": "y", "operation": "= 7",
+             "output_val": "7", "caption": "y stands for 7"},
+            {"text": "3. n = 10: the box holds 10",
+             "diagram": "function_machine", "input_val": "n", "operation": "= 10",
+             "output_val": "10", "caption": "n stands for 10"},
+        ],
+        "card": card_variable,
+        "solved": [
+            {"q": "Ex: If x = 4, what number does x stand for?",
+             "steps": ["x is the variable", "Its value is given as 4", "Answer = 4"]},
+        ],
+        "tips": [
+            "A variable is just a letter.",
+            "It stands for an unknown number.",
+            "Its value can change or be given.",
+            "Any letter can be a variable.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If a = 9, what does a stand for?",
+                "2. If m = 12, what is m?",
+                "3. If k = 0, what is k?",
+            ],
+            "answers": "1) 9    2) 12    3) 0",
+        },
+    },
+
+    # ---- 11B Algebraic expressions ----
+    "11B": {
+        "title": "Algebraic Expressions",
+        "intro": [
+            "An expression has NO equals sign.",
+            "An equation HAS an equals sign.",
+            "x + 3 is an expression.",
+            "x + 3 = 7 is an equation.",
+            "A term is a part separated by + or -.",
+        ],
+        "real_life": [
+            {"text": "1. x + 3 has no '=' \u2192 expression",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "1 term shown: x"},
+            {"text": "2. 3x + 5 has 2 terms: 3x and 5",
+             "diagram": "term_breakdown", "coeff": 3, "var": "x",
+             "caption": "coefficient 3, variable x"},
+            {"text": "3. x + 3 = 7 HAS '=' \u2192 equation",
+             "diagram": "balance_scale", "left_text": "x + 3", "right_text": "7",
+             "caption": "balanced \u2192 it's an equation"},
+        ],
+        "card": card_expression_parts,
+        "solved": [
+            {"q": "Ex: How many terms are in 3x + 5?",
+             "steps": ["Terms are separated by + or -", "3x and 5", "Answer = 2 terms"]},
+        ],
+        "tips": [
+            "No '=' \u2192 expression.",
+            "Has '=' \u2192 equation.",
+            "Terms split at + or -.",
+            "Coefficient is the number in front.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is '5y - 2' an expression or equation?",
+                "2. How many terms in 2x + 3y - 4?",
+                "3. What is the coefficient in 7n?",
+            ],
+            "answers": "1) expression    2) 3 terms    3) 7",
+        },
+    },
+
+    # ---- 11C Simplifying expressions ----
+    "11C": {
+        "title": "Simplifying Expressions",
+        "intro": [
+            "Combine LIKE terms (same letter).",
+            "Add or subtract their coefficients.",
+            "2x + 3x = (2+3)x = 5x.",
+            "Keep the letter the same.",
+            "Different letters can't combine.",
+        ],
+        "real_life": [
+            {"text": "1. 2x + 3x = 5x",
+             "diagram": "like_terms", "group_a": ["2x", "3x"], "label_a": "combine \u2192 5x",
+             "group_b": ["5x"], "label_b": "simplified",
+             "caption": "add coefficients: 2+3=5"},
+            {"text": "2. 5x + 4x = 9x",
+             "diagram": "like_terms", "group_a": ["5x", "4x"], "label_a": "combine \u2192 9x",
+             "group_b": ["9x"], "label_b": "simplified",
+             "caption": "add coefficients: 5+4=9"},
+            {"text": "3. 7n - 2n = 5n",
+             "diagram": "like_terms", "group_a": ["7n", "-2n"], "label_a": "combine \u2192 5n",
+             "group_b": ["5n"], "label_b": "simplified",
+             "caption": "subtract: 7-2=5"},
+        ],
+        "card": card_like_unlike,
+        "solved": [
+            {"q": "Ex: Simplify 5x + 4x.",
+             "steps": ["Same letter x", "Add coefficients: 5+4=9", "Answer = 9x"]},
+        ],
+        "tips": [
+            "Only combine LIKE terms.",
+            "Add/subtract the coefficients.",
+            "The letter stays the same.",
+            "Unlike terms stay separate.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 3y + 6y.",
+                "2. Simplify 9n - 4n.",
+                "3. Simplify 4x + 2x + x.",
+            ],
+            "answers": "1) 9y    2) 5n    3) 7x",
+        },
+    },
+
+    # ---- 11CUM1 Mixed A+B+C ----
+    "11CUM1": {
+        "title": "Review: Variables, Expressions, Simplifying",
+        "intro": [
+            "Variable: a letter for an unknown number.",
+            "Expression: no '='; equation: has '='.",
+            "Terms split at + or -.",
+            "Simplify by combining like terms.",
+            "Add/subtract coefficients, keep the letter.",
+        ],
+        "real_life": [
+            {"text": "1. x = 4 (variable holds a value)",
+             "diagram": "function_machine", "input_val": "x", "operation": "= 4",
+             "output_val": "4", "caption": "x stands for 4"},
+            {"text": "2. 3x + 5 has 2 terms",
+             "diagram": "term_breakdown", "coeff": 3, "var": "x",
+             "caption": "coefficient 3, variable x"},
+            {"text": "3. 2x + 3x = 5x",
+             "diagram": "like_terms", "group_a": ["2x", "3x"], "label_a": "combine \u2192 5x",
+             "group_b": ["5x"], "label_b": "simplified",
+             "caption": "combine like terms"},
+        ],
+        "card": card_expression_parts,
+        "solved": [
+            {"q": "Ex: If x=5, how many terms in 3x+5, and simplify 2x+3x?",
+             "steps": ["3x+5 has 2 terms", "2x+3x = 5x"]},
+        ],
+        "tips": [
+            "Variable = unknown letter.",
+            "Expression has no '='.",
+            "Terms split at + or -.",
+            "Combine like terms only.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If y=8, what does y stand for?",
+                "2. How many terms in 4x+2y-1?",
+                "3. Simplify 6x+2x.",
+            ],
+            "answers": "1) 8    2) 3 terms    3) 8x",
+        },
+    },
+
+    # ---- 11D Like/unlike terms ----
+    "11D": {
+        "title": "Like & Unlike Terms",
+        "intro": [
+            "Like terms have the SAME letter.",
+            "3x and 5x are like terms (both x).",
+            "3x and 5y are UNLIKE (different letters).",
+            "Only like terms can be added/subtracted.",
+            "The number in front can differ.",
+        ],
+        "real_life": [
+            {"text": "1. 3x and 5x are like (both x)",
+             "diagram": "like_terms", "group_a": ["3x", "5x"], "label_a": "LIKE",
+             "group_b": ["3y"], "label_b": "different letter",
+             "caption": "same letter = like terms"},
+            {"text": "2. 4y and 2y are like (both y)",
+             "diagram": "like_terms", "group_a": ["4y", "2y"], "label_a": "LIKE",
+             "group_b": ["4x"], "label_b": "different letter",
+             "caption": "same letter = like terms"},
+            {"text": "3. 3x and 5y are unlike",
+             "diagram": "like_terms", "group_a": ["3x"], "label_a": "x-term",
+             "group_b": ["5y"], "label_b": "y-term (UNLIKE)",
+             "caption": "different letters = unlike"},
+        ],
+        "card": card_like_unlike,
+        "solved": [
+            {"q": "Ex: Are 4y and 2y like or unlike?",
+             "steps": ["Both have letter y", "Same letter", "Answer: LIKE"]},
+        ],
+        "tips": [
+            "Same letter \u2192 like terms.",
+            "Different letter \u2192 unlike.",
+            "Coefficients can be different.",
+            "Only combine like terms.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Are 7a and 3a like or unlike?",
+                "2. Are 5m and 5n like or unlike?",
+                "3. Are 2x and 9x like or unlike?",
+            ],
+            "answers": "1) like    2) unlike    3) like",
+        },
+    },
+
+    # ---- 11E Substitution ----
+    "11E": {
+        "title": "Substitution",
+        "intro": [
+            "Substitution = replace the letter with its value.",
+            "x + 4, with x = 3, becomes 3 + 4.",
+            "Then work out the sum: 3 + 4 = 7.",
+            "Always replace EVERY occurrence of the letter.",
+            "Works for any expression.",
+        ],
+        "real_life": [
+            {"text": "1. x=3: x+4 \u2192 3+4 = 7",
+             "diagram": "function_machine", "input_val": "x=3", "operation": "+ 4",
+             "output_val": "7", "caption": "substitute then add"},
+            {"text": "2. x=5: x+2 \u2192 5+2 = 7",
+             "diagram": "function_machine", "input_val": "x=5", "operation": "+ 2",
+             "output_val": "7", "caption": "substitute then add"},
+            {"text": "3. n=7: n-3 \u2192 7-3 = 4",
+             "diagram": "function_machine", "input_val": "n=7", "operation": "- 3",
+             "output_val": "4", "caption": "substitute then subtract"},
+        ],
+        "card": card_substitution,
+        "solved": [
+            {"q": "Ex: If x = 5, find x + 2.",
+             "steps": ["Replace x with 5", "5 + 2", "Answer = 7"]},
+        ],
+        "tips": [
+            "Replace the letter with its value.",
+            "Keep the operation the same.",
+            "Then calculate the answer.",
+            "Works for + - \u00d7 \u00f7.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If x=6, find x+5.",
+                "2. If n=9, find n-4.",
+                "3. If y=2, find y+8.",
+            ],
+            "answers": "1) 11    2) 5    3) 10",
+        },
+    },
+
+    # ---- 11F Expression evaluation ----
+    "11F": {
+        "title": "Evaluating Expressions",
+        "intro": [
+            "Evaluate = substitute, then calculate.",
+            "Multiply BEFORE adding (order of operations).",
+            "2x means 2 \u00d7 x.",
+            "3x + 1, with x=2: 3\u00d72+1 = 7.",
+            "Always follow the correct order.",
+        ],
+        "real_life": [
+            {"text": "1. x+5, x=3 \u2192 8",
+             "diagram": "function_machine", "input_val": "x=3", "operation": "+ 5",
+             "output_val": "8", "caption": "evaluate the expression"},
+            {"text": "2. 2x, x=6 \u2192 12",
+             "diagram": "function_machine", "input_val": "x=6", "operation": "\u00d7 2",
+             "output_val": "12", "caption": "2x means 2 times x"},
+            {"text": "3. 3x+1, x=2 \u2192 7",
+             "diagram": "function_machine", "input_val": "x=2", "operation": "\u00d73, +1",
+             "output_val": "7", "caption": "multiply first, then add"},
+        ],
+        "card": card_substitution,
+        "solved": [
+            {"q": "Ex: Evaluate 3x + 1 when x = 2.",
+             "steps": ["3\u00d72 = 6", "6 + 1 = 7", "Answer = 7"]},
+        ],
+        "tips": [
+            "Substitute the value first.",
+            "Multiply/divide before add/subtract.",
+            "2x = 2 \u00d7 x.",
+            "Check your arithmetic.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Evaluate x+7 when x=4.",
+                "2. Evaluate 5x when x=3.",
+                "3. Evaluate 2x+3 when x=4.",
+            ],
+            "answers": "1) 11    2) 15    3) 11",
+        },
+    },
+
+    # ---- 11CUM2 Mixed D+E+F ----
+    "11CUM2": {
+        "title": "Review: Like Terms, Substitution, Evaluation",
+        "intro": [
+            "Like terms: same letter, can combine.",
+            "Substitution: replace letter with its value.",
+            "Evaluation: substitute then calculate.",
+            "Multiply before adding.",
+            "Always check every step.",
+        ],
+        "real_life": [
+            {"text": "1. 3x and 5x are like terms",
+             "diagram": "like_terms", "group_a": ["3x", "5x"], "label_a": "LIKE",
+             "group_b": ["3y"], "label_b": "different letter",
+             "caption": "same letter = like"},
+            {"text": "2. x=3: x+4 \u2192 7",
+             "diagram": "function_machine", "input_val": "x=3", "operation": "+ 4",
+             "output_val": "7", "caption": "substitute then add"},
+            {"text": "3. 3x+1, x=2 \u2192 7",
+             "diagram": "function_machine", "input_val": "x=2", "operation": "\u00d73,+1",
+             "output_val": "7", "caption": "evaluate"},
+        ],
+        "card": card_substitution,
+        "solved": [
+            {"q": "Ex: Are 2x,7x like? Evaluate 2x+1 when x=3.",
+             "steps": ["2x,7x: same letter \u2192 like", "2\u00d73+1 = 7"]},
+        ],
+        "tips": [
+            "Same letter \u2192 like terms.",
+            "Substitute, then compute.",
+            "Multiply before adding.",
+            "Re-check each step.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Are 4n,9n like terms?",
+                "2. If x=5, find x+6.",
+                "3. Evaluate 4x+2 when x=3.",
+            ],
+            "answers": "1) Yes    2) 11    3) 14",
+        },
+    },
+
+    # ---- 11G Word problems ----
+    "11G": {
+        "title": "Writing Expressions from Words",
+        "intro": [
+            "Translate words into algebra.",
+            "\u2018more than\u2019 \u2192 add. \u2018less than\u2019 \u2192 subtract.",
+            "\u2018times\u2019 / \u2018of\u2019 \u2192 multiply.",
+            "Use a letter for the unknown amount.",
+            "Ravi has x sweets, gets 4 more \u2192 x + 4.",
+        ],
+        "real_life": [
+            {"text": "1. Ravi has x sweets, gets 4 more \u2192 x+4",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "x represents Ravi's sweets"},
+            {"text": "2. Meena has y pens, gives away 2 \u2192 y-2",
+             "diagram": "function_machine", "input_val": "y", "operation": "- 2",
+             "output_val": "y-2", "caption": "subtract for 'gives away'"},
+            {"text": "3. A book costs n rupees, 5 books \u2192 5n",
+             "diagram": "function_machine", "input_val": "n", "operation": "\u00d7 5",
+             "output_val": "5n", "caption": "multiply for 'groups of'"},
+        ],
+        "card": card_expression_parts,
+        "solved": [
+            {"q": "Ex: A pen costs p rupees. Cost of 3 pens?",
+             "steps": ["3 groups of p", "3 \u00d7 p", "Answer = 3p"]},
+        ],
+        "tips": [
+            "More than \u2192 add.",
+            "Less than / gives away \u2192 subtract.",
+            "Times / groups of \u2192 multiply.",
+            "Pick a letter for the unknown.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. x apples, 6 more given. Expression?",
+                "2. y toys, 3 given away. Expression?",
+                "3. n rupees per book, 4 books. Expression?",
+            ],
+            "answers": "1) x+6    2) y-3    3) 4n",
+        },
+    },
+
+    # ---- 11H Mixed expressions ----
+    "11H": {
+        "title": "Expressions — Mixed",
+        "intro": [
+            "Mix substitution, evaluation, and writing.",
+            "Replace the letter, then calculate.",
+            "Translate words carefully.",
+            "Combine like terms where needed.",
+            "Double-check the operation used.",
+        ],
+        "real_life": [
+            {"text": "1. x=5: x+7 \u2192 12",
+             "diagram": "function_machine", "input_val": "x=5", "operation": "+ 7",
+             "output_val": "12", "caption": "substitute then add"},
+            {"text": "2. n=3: 4n \u2192 12",
+             "diagram": "function_machine", "input_val": "n=3", "operation": "\u00d7 4",
+             "output_val": "12", "caption": "4n means 4 times n"},
+            {"text": "3. '5 more than x' \u2192 x+5",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "translate words to algebra"},
+        ],
+        "card": card_substitution,
+        "solved": [
+            {"q": "Ex: If x=5, find x+7. Write '5 more than x'.",
+             "steps": ["x+7 = 5+7 = 12", "'5 more than x' = x+5"]},
+        ],
+        "tips": [
+            "Substitute carefully.",
+            "4n means 4\u00d7n.",
+            "'More than' \u2192 add after the letter.",
+            "Check the final answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If x=6, find x+9.",
+                "2. If n=4, find 5n.",
+                "3. Write '3 less than y'.",
+            ],
+            "answers": "1) 15    2) 20    3) y-3",
+        },
+    },
+
+    # ---- 11I Puzzle algebra ----
+    "11I": {
+        "title": "Solving Simple Equations",
+        "intro": [
+            "Keep the equation BALANCED.",
+            "Do the same thing to both sides.",
+            "x + 3 = 7 \u2192 subtract 3 from both sides.",
+            "x = 7 - 3 = 4.",
+            "Check by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. x+3=7 \u2192 x=4 (balance both sides)",
+             "diagram": "balance_scale", "left_text": "x + 3", "right_text": "7",
+             "caption": "subtract 3 from both sides"},
+            {"text": "2. x+5=9 \u2192 x=4",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "9",
+             "caption": "subtract 5 from both sides"},
+            {"text": "3. x+2=10 \u2192 x=8",
+             "diagram": "balance_scale", "left_text": "x + 2", "right_text": "10",
+             "caption": "subtract 2 from both sides"},
+        ],
+        "card": card_balance,
+        "solved": [
+            {"q": "Ex: Solve x + 5 = 9.",
+             "steps": ["Subtract 5 from both sides", "x = 9 - 5", "Answer: x = 4"]},
+        ],
+        "tips": [
+            "Keep both sides equal.",
+            "Same operation on both sides.",
+            "Undo + with -, and \u00d7 with \u00f7.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+4=10.",
+                "2. Solve x+6=11.",
+                "3. Solve x+1=8.",
+            ],
+            "answers": "1) x=6    2) x=5    3) x=7",
+        },
+    },
+
+    # ---- 11CUM3 Mixed G+H+I ----
+    "11CUM3": {
+        "title": "Review: Word Problems, Mixed, Solving",
+        "intro": [
+            "Translate words into expressions.",
+            "Substitute and evaluate carefully.",
+            "Solve equations by balancing both sides.",
+            "Undo the operation to find the letter.",
+            "Always check your final answer.",
+        ],
+        "real_life": [
+            {"text": "1. x sweets +4 more \u2192 x+4",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "translate words"},
+            {"text": "2. x=5: x+7 \u2192 12",
+             "diagram": "function_machine", "input_val": "x=5", "operation": "+ 7",
+             "output_val": "12", "caption": "evaluate"},
+            {"text": "3. x+3=7 \u2192 x=4",
+             "diagram": "balance_scale", "left_text": "x + 3", "right_text": "7",
+             "caption": "solve the equation"},
+        ],
+        "card": card_balance,
+        "solved": [
+            {"q": "Ex: Write 'y pens minus 2', then solve x+2=10.",
+             "steps": ["y pens minus 2 = y-2", "x+2=10 \u2192 x=8"]},
+        ],
+        "tips": [
+            "Translate carefully.",
+            "Substitute, then calculate.",
+            "Balance both sides to solve.",
+            "Check the answer fits.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 'n minus 5'.",
+                "2. If x=4, find 3x+1.",
+                "3. Solve x+7=15.",
+            ],
+            "answers": "1) n-5    2) 13    3) x=8",
+        },
+    },
+
+    # ---- 11J Mixed challenge ----
+    "11J": {
+        "title": "Algebra — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "Substitute carefully into expressions.",
+            "4n means 4 times n.",
+            "Translate words to algebra precisely.",
+            "Solve simple equations by balancing.",
+        ],
+        "real_life": [
+            {"text": "1. x=7: x+3 \u2192 10",
+             "diagram": "function_machine", "input_val": "x=7", "operation": "+ 3",
+             "output_val": "10", "caption": "substitute then add"},
+            {"text": "2. n=4: 3n \u2192 12",
+             "diagram": "function_machine", "input_val": "n=4", "operation": "\u00d7 3",
+             "output_val": "12", "caption": "3n means 3 times n"},
+            {"text": "3. '5 more than x' \u2192 x+5",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "translate to algebra"},
+        ],
+        "card": card_balance,
+        "solved": [
+            {"q": "Ex: If x=7, find x+3. Write '5 more than x'.",
+             "steps": ["x+3 = 7+3 = 10", "'5 more than x' = x+5"]},
+        ],
+        "tips": [
+            "Substitute carefully.",
+            "3n = 3 \u00d7 n.",
+            "Translate words precisely.",
+            "Balance both sides to solve.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If x=8, find x+2.",
+                "2. If n=5, find 4n.",
+                "3. Solve x+3=12.",
+            ],
+            "answers": "1) 10    2) 20    3) x=9",
+        },
+    },
+
+    # ---- 11REV Revision ----
+    "11REV": {
+        "title": "Level 11 Revision — Algebra (Expressions)",
+        "intro": [
+            "Variable: a letter for an unknown number.",
+            "Expression: no '='; equation: has '='.",
+            "Like terms (same letter) can combine.",
+            "Substitution: replace letter, then calculate.",
+            "Solve equations by balancing both sides.",
+        ],
+        "real_life": [
+            {"text": "1. x = 4 (variable)",
+             "diagram": "function_machine", "input_val": "x", "operation": "= 4",
+             "output_val": "4", "caption": "x stands for 4"},
+            {"text": "2. 2x + 3x = 5x (like terms)",
+             "diagram": "like_terms", "group_a": ["2x", "3x"], "label_a": "combine \u2192 5x",
+             "group_b": ["5x"], "label_b": "simplified",
+             "caption": "combine like terms"},
+            {"text": "3. x+3=7 \u2192 x=4 (solve)",
+             "diagram": "balance_scale", "left_text": "x + 3", "right_text": "7",
+             "caption": "balance to solve"},
+        ],
+        "card": card_balance,
+        "solved": [
+            {"q": "Ex: Simplify 4x+2x, then solve x+5=9.",
+             "steps": ["4x+2x = 6x", "x+5=9 \u2192 x=4"]},
+        ],
+        "tips": [
+            "Variable = unknown letter.",
+            "Combine only like terms.",
+            "Substitute then calculate.",
+            "Balance both sides to solve.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If n=6, what is n?",
+                "2. Simplify 7x-3x.",
+                "3. Solve x+4=12.",
+            ],
+            "answers": "1) 6    2) 4x    3) x=8",
         },
     },
 }
