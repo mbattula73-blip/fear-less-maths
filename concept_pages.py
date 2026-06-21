@@ -906,6 +906,129 @@ def ladder_vec(c, x, y, w, base, height):
     return h + 8 * mm
 
 
+def circle_parts_vec(c, x, y, w, parts=("radius", "diameter", "chord")):
+    """Draw a circle with selected parts highlighted: diameter (blue, through
+    centre), radius (gold), chord (green, not through centre). Returns height."""
+    import math
+    r = w * 0.36
+    cx, cy = x + w / 2, y - r - 2 * mm
+    c.setStrokeColor(BLACK); c.setLineWidth(1.4)
+    c.circle(cx, cy, r, fill=0, stroke=1)
+    c.setFillColor(BLACK); c.circle(cx, cy, 0.8 * mm, fill=1, stroke=0)
+    c.setFont("Helvetica-Bold", 9)
+    if "diameter" in parts:
+        c.setStrokeColor(BLUE); c.setLineWidth(1.3)
+        c.line(cx - r, cy, cx + r, cy)
+        c.setFillColor(BLUE)
+        c.drawCentredString(cx, cy + 3.5 * mm, "diameter")
+    if "radius" in parts:
+        c.setStrokeColor(GOLD); c.setLineWidth(1.4)
+        ang = math.radians(55)
+        ex, ey = cx + r * math.cos(ang), cy + r * math.sin(ang)
+        c.line(cx, cy, ex, ey)
+        c.setFillColor(GOLD)
+        c.drawString(cx + (ex - cx) * 0.45 + 2 * mm, cy + (ey - cy) * 0.45, "radius")
+    if "chord" in parts:
+        c.setStrokeColor(GREEN); c.setLineWidth(1.3)
+        a1, a2 = math.radians(200), math.radians(330)
+        p1 = (cx + r * math.cos(a1), cy + r * math.sin(a1))
+        p2 = (cx + r * math.cos(a2), cy + r * math.sin(a2))
+        c.line(p1[0], p1[1], p2[0], p2[1])
+        c.setFillColor(GREEN)
+        midx, midy = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+        c.drawCentredString(midx, midy - 4.5 * mm, "chord")
+    return r * 2 + 10 * mm
+
+
+def tangent_vec(c, x, y, w, two_tangents=False):
+    """Circle with a tangent line. If two_tangents, show both tangents from
+    an external point with equal-length labelling. Returns height used."""
+    import math
+    r = w * 0.28
+    cx, cy = x + w * 0.42, y - r - 2 * mm
+    c.setStrokeColor(BLACK); c.setLineWidth(1.4)
+    c.circle(cx, cy, r, fill=0, stroke=1)
+    c.setFillColor(BLACK); c.circle(cx, cy, 0.8 * mm, fill=1, stroke=0)
+    if not two_tangents:
+        touch = (cx + r, cy)
+        c.setStrokeColor(GOLD); c.setLineWidth(1.4)
+        c.line(touch[0], touch[1] - 11 * mm, touch[0], touch[1] + 11 * mm)
+        c.setStrokeColor(BLUE); c.setLineWidth(1.1)
+        c.line(cx, cy, touch[0], touch[1])
+        c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+        c.rect(touch[0] - 2.4 * mm, touch[1] - 1.2 * mm, 2.4 * mm, 2.4 * mm, fill=0, stroke=1)
+        c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 9)
+        c.drawCentredString(touch[0] + 8 * mm, touch[1] + 9 * mm, "tangent")
+        c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9)
+        c.drawCentredString(cx + r * 0.5, cy + 3 * mm, "radius")
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Bold", 8)
+        c.drawString(touch[0] + 3 * mm, touch[1] + 2 * mm, "90\u00b0")
+        return r * 2 + 16 * mm
+    else:
+        ext = (cx + r * 2.3, cy)
+        ang = math.degrees(math.acos(r / (r * 2.3)))
+        a1 = math.radians(ang); a2 = -a1
+        t1 = (cx + r * math.cos(a1), cy + r * math.sin(a1))
+        t2 = (cx + r * math.cos(a2), cy + r * math.sin(a2))
+        c.setStrokeColor(GOLD); c.setLineWidth(1.3)
+        c.line(ext[0], ext[1], t1[0], t1[1])
+        c.line(ext[0], ext[1], t2[0], t2[1])
+        c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 9)
+        c.circle(ext[0], ext[1], 1 * mm, fill=1, stroke=0)
+        c.drawString(ext[0] + 2.5 * mm, ext[1] - 1 * mm, "P")
+        c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 9.5)
+        c.drawCentredString(x + w / 2, cy - r - 8 * mm, "PT1 = PT2 (tangents are equal)")
+        return r * 2 + 16 * mm
+
+
+def central_inscribed_angle_vec(c, x, y, w, center_angle):
+    """Circle showing the centre angle and the inscribed (circumference)
+    angle on the same arc, illustrating centre = 2 x circumference. Returns height."""
+    import math
+    r = w * 0.32
+    cx, cy = x + w / 2, y - r - 2 * mm
+    c.setStrokeColor(BLACK); c.setLineWidth(1.4)
+    c.circle(cx, cy, r, fill=0, stroke=1)
+    c.setFillColor(BLACK); c.circle(cx, cy, 0.8 * mm, fill=1, stroke=0)
+    half = center_angle / 2
+    a1 = math.radians(90 + half); a2 = math.radians(90 - half)
+    A = (cx + r * math.cos(a1), cy + r * math.sin(a1))
+    B = (cx + r * math.cos(a2), cy + r * math.sin(a2))
+    C = (cx, cy - r)
+    c.setStrokeColor(BLUE); c.setLineWidth(1.2)
+    c.line(cx, cy, A[0], A[1]); c.line(cx, cy, B[0], B[1])
+    c.setStrokeColor(GREEN); c.setLineWidth(1.2)
+    c.line(C[0], C[1], A[0], A[1]); c.line(C[0], C[1], B[0], B[1])
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 9.5)
+    c.drawCentredString(cx, cy + 4.5 * mm, f"{_fmt_num(center_angle)}\u00b0")
+    c.setFillColor(GREEN)
+    c.drawCentredString(C[0], C[1] - 5 * mm, f"{_fmt_num(half)}\u00b0")
+    c.setFillColor(BLACK); c.setFont("Helvetica", 8.5)
+    c.drawCentredString(x + w / 2, cy - r - 9 * mm, "centre angle = 2 \u00d7 circumference angle")
+    return r * 2 + 13 * mm
+
+
+def semicircle_vec(c, x, y, w):
+    """Semicircle (diameter + arc point) showing the angle in a semicircle
+    is always 90 degrees. Returns height used."""
+    import math
+    r = w * 0.34
+    cx, cy = x + w / 2, y - r - 2 * mm
+    c.setStrokeColor(BLACK); c.setLineWidth(1.4)
+    c.circle(cx, cy, r, fill=0, stroke=1)
+    A = (cx - r, cy); B = (cx + r, cy)
+    c.setStrokeColor(BLUE); c.setLineWidth(1.3)
+    c.line(A[0], A[1], B[0], B[1])
+    P = (cx + r * math.cos(math.radians(130)), cy + r * math.sin(math.radians(130)))
+    c.setStrokeColor(GREEN); c.setLineWidth(1.2)
+    c.line(A[0], A[1], P[0], P[1]); c.line(B[0], B[1], P[0], P[1])
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(P[0], P[1] + 4 * mm, "90\u00b0")
+    c.setFillColor(BLACK); c.setFont("Helvetica", 9)
+    c.drawCentredString(cx, cy - r - 7 * mm, "Angle in a semicircle = 90\u00b0")
+    return r * 2 + 11 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -1254,40 +1377,74 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "triangle_types":
-        used = triangle_types_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["tkind"])
+        fig_w = min(w - 8 * mm, 56 * mm)
+        used = triangle_types_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["tkind"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "angle_sum":
-        used = angle_sum_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["angles"])
+        fig_w = min(w - 8 * mm, 56 * mm)
+        used = angle_sum_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["angles"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "exterior_angle":
-        used = exterior_angle_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+        fig_w = min(w - 8 * mm, 58 * mm)
+        used = exterior_angle_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                                  rl["int1"], rl["int2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "congruence":
-        used = congruence_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["rule_label"])
+        fig_w = min(w - 4 * mm, 65 * mm)
+        used = congruence_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["rule_label"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "similar_triangles":
-        used = similar_triangles_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["scale"])
+        fig_w = min(w - 4 * mm, 65 * mm)
+        used = similar_triangles_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["scale"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "pythagoras":
-        used = pythagoras_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+        fig_w = min(w - 10 * mm, 52 * mm)
+        used = pythagoras_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                              rl["leg1"], rl["leg2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "ladder":
-        used = ladder_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+        fig_w = min(w - 8 * mm, 52 * mm)
+        used = ladder_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                          rl["base"], rl["height"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "circle_parts":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = circle_parts_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                               parts=rl.get("parts", ("radius", "diameter", "chord")))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "tangent":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = tangent_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                          two_tangents=rl.get("two_tangents", False))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "central_inscribed_angle":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = central_inscribed_angle_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
+                                          rl["center_angle"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 5 * mm, rl.get("caption", ""))
+        return used + 9 * mm
+    if kind == "semicircle":
+        fig_w = min(w - 8 * mm, 50 * mm)
+        used = semicircle_vec(c, x + 4 * mm, y - 2 * mm, fig_w)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
@@ -2138,6 +2295,66 @@ def card_pythagoras(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_circle_parts(c, x, y, w):
+    """Circle-anatomy card: radius, diameter, chord."""
+    card_h = 70 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Parts of a circle:")
+    fig_w = min(w - 8 * mm, 56 * mm)
+    used = circle_parts_vec(c, x + 4 * mm, y - 10 * mm, fig_w)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Diameter = 2 \u00d7 radius.")
+    return y - card_h - 2 * mm
+
+
+def card_tangent(c, x, y, w):
+    """Tangent card: radius perpendicular to tangent."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Tangent meets radius at 90\u00b0:")
+    fig_w = min(w - 8 * mm, 50 * mm)
+    used = tangent_vec(c, x + 4 * mm, y - 10 * mm, fig_w)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "A tangent touches the circle once.")
+    return y - card_h - 2 * mm
+
+
+def card_circle_theorem(c, x, y, w):
+    """Central/inscribed angle theorem card."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Centre angle = 2 \u00d7 circumference angle:")
+    fig_w = min(w - 8 * mm, 56 * mm)
+    used = central_inscribed_angle_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 80)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Both angles sit on the SAME arc.")
+    return y - card_h - 2 * mm
+
+
+def card_semicircle(c, x, y, w):
+    """Angle-in-a-semicircle card."""
+    card_h = 68 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Angle in a semicircle:")
+    fig_w = min(w - 8 * mm, 56 * mm)
+    used = semicircle_vec(c, x + 4 * mm, y - 10 * mm, fig_w)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Always exactly 90\u00b0, every time.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -2165,6 +2382,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L15.get(sublevel_code)
     if level_num == 16:
         return _L16.get(sublevel_code)
+    if level_num == 17:
+        return _L17.get(sublevel_code)
     return None
 
 
@@ -8783,6 +9002,601 @@ _L16 = {
                 "3. Legs 5,12. Find the hypotenuse.",
             ],
             "answers": "1) equilateral    2) 40\u00b0    3) 13",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 17 — Circles: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L17 = {
+    # ---- 17A Circle basics ----
+    "17A": {
+        "title": "Circle Basics",
+        "intro": [
+            "Centre: the fixed middle point.",
+            "Radius: centre to the edge.",
+            "Diameter: edge to edge, through the centre.",
+            "Chord: edge to edge, NOT through the centre.",
+            "Diameter = 2 \u00d7 radius.",
+        ],
+        "real_life": [
+            {"text": "1. Radius: centre to the edge",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "from centre outward"},
+            {"text": "2. Diameter: passes through the centre",
+             "diagram": "circle_parts", "parts": ("diameter",),
+             "caption": "the longest chord"},
+            {"text": "3. Chord: does NOT pass through centre",
+             "diagram": "circle_parts", "parts": ("chord",),
+             "caption": "any line edge to edge"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: What is a chord that passes through the centre called?",
+             "steps": ["A chord through the centre", "Answer: diameter"]},
+        ],
+        "tips": [
+            "Centre = the fixed middle point.",
+            "Radius: centre to edge.",
+            "Diameter: through the centre.",
+            "Chord: any edge-to-edge line.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. What is the fixed middle point called?",
+                "2. What do we call a line from centre to edge?",
+                "3. What is the longest possible chord called?",
+            ],
+            "answers": "1) centre    2) radius    3) diameter",
+        },
+    },
+
+    # ---- 17B Radius / diameter ----
+    "17B": {
+        "title": "Radius, Diameter, Area & Circumference",
+        "intro": [
+            "Diameter = 2 \u00d7 radius.",
+            "Circumference = 2\u03c0r (distance around).",
+            "Area = \u03c0r^2 (space inside).",
+            "Use \u03c0 = 22/7 for clean fractions.",
+            "Radius 7 cm: Area = 22/7\u00d77\u00d77 = 154 cm^2.",
+        ],
+        "real_life": [
+            {"text": "1. Radius 7cm: Area = 154 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "A = 22/7\u00d77\u00d77"},
+            {"text": "2. Radius 14cm: Area = 616 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "A = 22/7\u00d714\u00d714"},
+            {"text": "3. Radius 21cm: Area = 1386 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "A = 22/7\u00d721\u00d721"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Find the area of a circle with radius 14 cm.",
+             "steps": ["A = 22/7 \u00d7 14 \u00d7 14", "= 22\u00d72\u00d714", "= 616 cm^2"]},
+        ],
+        "tips": [
+            "Diameter = 2 \u00d7 radius.",
+            "Circumference = 2\u03c0r.",
+            "Area = \u03c0r^2.",
+            "\u03c0 = 22/7 keeps numbers clean.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 7cm. Find the circumference.",
+                "2. Radius 14cm. Find the diameter.",
+                "3. Radius 21cm. Find the circumference.",
+            ],
+            "answers": "1) 44 cm    2) 28 cm    3) 132 cm",
+        },
+    },
+
+    # ---- 17C Chords ----
+    "17C": {
+        "title": "Chords",
+        "intro": [
+            "A chord joins two points on the circle.",
+            "The diameter is the LONGEST possible chord.",
+            "The perpendicular from the centre BISECTS a chord.",
+            "Bisects means splits into two EQUAL halves.",
+            "Chord 16 cm \u2192 each half = 8 cm.",
+        ],
+        "real_life": [
+            {"text": "1. A chord across the circle",
+             "diagram": "circle_parts", "parts": ("chord",),
+             "caption": "joins two points on the edge"},
+            {"text": "2. Diameter = the longest chord",
+             "diagram": "circle_parts", "parts": ("diameter", "chord"),
+             "caption": "diameter beats every other chord"},
+            {"text": "3. Chord 16cm \u2192 each half 8cm",
+             "diagram": "equation_steps", "steps": ["chord = 16", "half = 16\u00f72", "8 cm"],
+             "caption": "perpendicular bisects the chord"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: A chord is 16 cm. Find each half after the perpendicular bisector.",
+             "steps": ["Bisect means split equally", "16\u00f72", "= 8 cm each"]},
+        ],
+        "tips": [
+            "Chord: joins two points on the circle.",
+            "Diameter is the longest chord.",
+            "Perpendicular from centre bisects the chord.",
+            "Bisect = split into 2 equal parts.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. What is the longest chord called?",
+                "2. Chord 20cm. Find each half.",
+                "3. Chord 30cm. Find each half.",
+            ],
+            "answers": "1) diameter    2) 10 cm    3) 15 cm",
+        },
+    },
+
+    # ---- 17CUM1 Mixed A+B+C ----
+    "17CUM1": {
+        "title": "Review: Basics, Radius/Diameter, Chords",
+        "intro": [
+            "Centre, radius, diameter, chord: know each part.",
+            "Diameter = 2 \u00d7 radius.",
+            "Area = \u03c0r^2; Circumference = 2\u03c0r.",
+            "Perpendicular from centre bisects a chord.",
+            "Diameter is the longest chord.",
+        ],
+        "real_life": [
+            {"text": "1. Radius and diameter",
+             "diagram": "circle_parts", "parts": ("radius", "diameter"),
+             "caption": "diameter = 2 \u00d7 radius"},
+            {"text": "2. Radius 7cm: Area=154 cm^2",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "A = 22/7\u00d77\u00d77"},
+            {"text": "3. Chord 16cm \u2192 each half 8cm",
+             "diagram": "equation_steps", "steps": ["chord=16", "half=8"],
+             "caption": "bisected by the perpendicular"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Radius 7cm, find diameter and area.",
+             "steps": ["Diameter = 14 cm", "Area = 22/7\u00d77\u00d77 = 154 cm^2"]},
+        ],
+        "tips": [
+            "Know each circle part by name.",
+            "Diameter = 2\u00d7radius.",
+            "\u03c0=22/7 for clean numbers.",
+            "Chords are bisected by the perpendicular.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 10cm. Find the diameter.",
+                "2. Radius 7cm. Find the area.",
+                "3. Chord 24cm. Find each half.",
+            ],
+            "answers": "1) 20 cm    2) 154 cm^2    3) 12 cm",
+        },
+    },
+
+    # ---- 17D Tangents ----
+    "17D": {
+        "title": "Tangents",
+        "intro": [
+            "A tangent touches the circle at EXACTLY 1 point.",
+            "The radius is PERPENDICULAR to the tangent there.",
+            "That angle is always 90\u00b0.",
+            "From an outside point, both tangents drawn are EQUAL.",
+            "PT1 = PT2 for tangents from the same external point.",
+        ],
+        "real_life": [
+            {"text": "1. Tangent touches at 1 point, radius \u22a5 tangent",
+             "diagram": "tangent", "two_tangents": False,
+             "caption": "angle = 90\u00b0 always"},
+            {"text": "2. Two tangents from an external point are equal",
+             "diagram": "tangent", "two_tangents": True,
+             "caption": "PT1 = PT2"},
+            {"text": "3. The 90\u00b0 angle never changes",
+             "diagram": "tangent", "two_tangents": False,
+             "caption": "radius meets tangent at 90\u00b0"},
+        ],
+        "card": card_tangent,
+        "solved": [
+            {"q": "Ex: What is the angle between a tangent and the radius at the touch point?",
+             "steps": ["Always perpendicular", "Answer = 90\u00b0"]},
+        ],
+        "tips": [
+            "Tangent touches at exactly 1 point.",
+            "Radius \u22a5 tangent at that point (90\u00b0).",
+            "Two tangents from one point are equal.",
+            "Use this to solve tangent-length problems.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. A tangent touches a circle at how many points?",
+                "2. What is the angle between a tangent and radius?",
+                "3. From outside, are the two tangents equal?",
+            ],
+            "answers": "1) 1 point    2) 90\u00b0    3) Yes",
+        },
+    },
+
+    # ---- 17E Circle theorems ----
+    "17E": {
+        "title": "Circle Theorems",
+        "intro": [
+            "Angle at the CENTRE = 2 \u00d7 angle at the CIRCUMFERENCE.",
+            "Both angles must stand on the SAME arc.",
+            "Circumference angle 40\u00b0 \u2192 centre angle 80\u00b0.",
+            "Centre angle 100\u00b0 \u2192 circumference angle 50\u00b0.",
+            "Halve to go centre\u2192circumference; double the reverse.",
+        ],
+        "real_life": [
+            {"text": "1. Centre 80\u00b0 \u2192 circumference 40\u00b0",
+             "diagram": "central_inscribed_angle", "center_angle": 80,
+             "caption": "halve 80 to get 40"},
+            {"text": "2. Centre 100\u00b0 \u2192 circumference 50\u00b0",
+             "diagram": "central_inscribed_angle", "center_angle": 100,
+             "caption": "halve 100 to get 50"},
+            {"text": "3. Centre 120\u00b0 \u2192 circumference 60\u00b0",
+             "diagram": "central_inscribed_angle", "center_angle": 120,
+             "caption": "halve 120 to get 60"},
+        ],
+        "card": card_circle_theorem,
+        "solved": [
+            {"q": "Ex: The circumference angle is 40\u00b0. Find the centre angle.",
+             "steps": ["Centre = 2 \u00d7 circumference", "2\u00d740", "= 80\u00b0"]},
+        ],
+        "tips": [
+            "Centre angle = 2 \u00d7 circumference angle.",
+            "Both angles share the same arc.",
+            "Double centre\u2192circumference is wrong way; halve instead.",
+            "Double circumference to get centre.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Circumference angle 30\u00b0. Find the centre angle.",
+                "2. Centre angle 140\u00b0. Find the circumference angle.",
+                "3. Circumference angle 55\u00b0. Find the centre angle.",
+            ],
+            "answers": "1) 60\u00b0    2) 70\u00b0    3) 110\u00b0",
+        },
+    },
+
+    # ---- 17F Angle in circle ----
+    "17F": {
+        "title": "Angle in a Semicircle",
+        "intro": [
+            "A semicircle's diameter creates a special case.",
+            "ANY angle drawn from the diameter to the arc is 90\u00b0.",
+            "This is because the centre angle of a semicircle is 180\u00b0.",
+            "180\u00b0 \u00f7 2 = 90\u00b0 by the circle theorem.",
+            "Always true, no matter where the point is on the arc.",
+        ],
+        "real_life": [
+            {"text": "1. Semicircle: angle at circumference = 90\u00b0",
+             "diagram": "semicircle", "caption": "always exactly 90\u00b0"},
+            {"text": "2. Centre angle of a semicircle = 180\u00b0",
+             "diagram": "central_inscribed_angle", "center_angle": 180,
+             "caption": "half of 180 is 90"},
+            {"text": "3. Works for ANY point on the arc",
+             "diagram": "semicircle", "caption": "still 90\u00b0"},
+        ],
+        "card": card_semicircle,
+        "solved": [
+            {"q": "Ex: What is the angle at the circumference in a semicircle?",
+             "steps": ["Centre angle = 180\u00b0", "180\u00f72", "Circumference angle = 90\u00b0"]},
+        ],
+        "tips": [
+            "Semicircle centre angle = 180\u00b0.",
+            "Circumference angle is always 90\u00b0.",
+            "Works for any point on the arc.",
+            "A quarter arc gives a centre angle of 90\u00b0.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Semicircle: find the angle at the centre.",
+                "2. Semicircle: find the angle at the circumference.",
+                "3. Quarter arc: find the centre angle.",
+            ],
+            "answers": "1) 180\u00b0    2) 90\u00b0    3) 90\u00b0",
+        },
+    },
+
+    # ---- 17CUM2 Mixed D+E+F ----
+    "17CUM2": {
+        "title": "Review: Tangents, Theorems, Semicircle",
+        "intro": [
+            "Tangent \u22a5 radius at the touch point (90\u00b0).",
+            "Two tangents from one point are equal.",
+            "Centre angle = 2 \u00d7 circumference angle.",
+            "Semicircle's circumference angle is always 90\u00b0.",
+            "Combine these facts for harder problems.",
+        ],
+        "real_life": [
+            {"text": "1. Tangent \u22a5 radius (90\u00b0)",
+             "diagram": "tangent", "two_tangents": False,
+             "caption": "tangent meets radius at 90\u00b0"},
+            {"text": "2. Centre 100\u00b0 \u2192 circumference 50\u00b0",
+             "diagram": "central_inscribed_angle", "center_angle": 100,
+             "caption": "circle theorem"},
+            {"text": "3. Semicircle: circumference angle = 90\u00b0",
+             "diagram": "semicircle", "caption": "always 90\u00b0"},
+        ],
+        "card": card_circle_theorem,
+        "solved": [
+            {"q": "Ex: Centre angle 90\u00b0. Find circumference angle, then state the tangent-radius angle.",
+             "steps": ["Circumference = 90\u00f72 = 45\u00b0", "Tangent-radius angle = 90\u00b0 (always)"]},
+        ],
+        "tips": [
+            "Tangent meets radius at 90\u00b0.",
+            "Centre angle = 2 \u00d7 circumference.",
+            "Semicircle circumference angle = 90\u00b0.",
+            "Apply the right fact to each question.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Centre angle 60\u00b0. Find the circumference angle.",
+                "2. What angle does a tangent make with the radius?",
+                "3. Semicircle: find the circumference angle.",
+            ],
+            "answers": "1) 30\u00b0    2) 90\u00b0    3) 90\u00b0",
+        },
+    },
+
+    # ---- 17G Applications ----
+    "17G": {
+        "title": "Circles in Real Life",
+        "intro": [
+            "Wheels and tracks are circles.",
+            "One full turn covers the CIRCUMFERENCE.",
+            "Distance per turn = 2\u03c0r.",
+            "Multiply by number of turns for total distance.",
+            "Use \u03c0 = 22/7 for clean numbers.",
+        ],
+        "real_life": [
+            {"text": "1. Wheel radius 35cm: 1 turn = 220cm",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "C = 2\u00d722/7\u00d735"},
+            {"text": "2. Wheel radius 7cm: 1 turn = 44cm",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "C = 2\u00d722/7\u00d77"},
+            {"text": "3. Track radius 21m: 1 lap = 132m",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "C = 2\u00d722/7\u00d721"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Wheel radius 35cm. Find the distance per turn.",
+             "steps": ["C = 2\u00d722/7\u00d735", "= 2\u00d722\u00d75", "= 220 cm"]},
+        ],
+        "tips": [
+            "1 turn = 1 circumference.",
+            "C = 2\u03c0r.",
+            "Multiply by turns for total distance.",
+            "Use \u03c0=22/7 for clean answers.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Wheel radius 14cm. Find 1 turn distance.",
+                "2. Track radius 7m. Find 1 lap distance.",
+                "3. Wheel radius 21cm, 2 turns. Total distance?",
+            ],
+            "answers": "1) 88 cm    2) 44 m    3) 264 cm",
+        },
+    },
+
+    # ---- 17H Mixed ----
+    "17H": {
+        "title": "Circles — Mixed",
+        "intro": [
+            "Mix radius, diameter, circumference, area.",
+            "Radius 7: diameter=14, circumference=44, area=154.",
+            "Always identify what's being asked first.",
+            "Use \u03c0=22/7 throughout.",
+            "Keep units consistent.",
+        ],
+        "real_life": [
+            {"text": "1. Radius 7: diameter = 14",
+             "diagram": "circle_parts", "parts": ("radius", "diameter"),
+             "caption": "diameter = 2\u00d7radius"},
+            {"text": "2. Radius 7: circumference = 44cm",
+             "diagram": "equation_steps", "steps": ["C=2\u00d722/7\u00d77", "44 cm"],
+             "caption": "circumference formula"},
+            {"text": "3. Radius 7: area = 154 cm^2",
+             "diagram": "equation_steps", "steps": ["A=22/7\u00d77\u00d77", "154 cm^2"],
+             "caption": "area formula"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Radius 7. Find diameter, circumference, and area.",
+             "steps": ["Diameter=14", "Circumference=44cm", "Area=154 cm^2"]},
+        ],
+        "tips": [
+            "Diameter = 2\u00d7radius.",
+            "Circumference = 2\u03c0r.",
+            "Area = \u03c0r^2.",
+            "Use \u03c0=22/7.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 14. Find the diameter.",
+                "2. Radius 14. Find the circumference.",
+                "3. Radius 14. Find the area.",
+            ],
+            "answers": "1) 28    2) 88 cm    3) 616 cm^2",
+        },
+    },
+
+    # ---- 17I Puzzle problems ----
+    "17I": {
+        "title": "Circle Puzzles",
+        "intro": [
+            "Tangent length = sqrt(d^2 - r^2).",
+            "d = distance from external point to centre.",
+            "Chord length = 2\u00d7sqrt(r^2 - dist^2).",
+            "dist = perpendicular distance from centre to chord.",
+            "Substitute carefully into each formula.",
+        ],
+        "real_life": [
+            {"text": "1. d=10, r=8: tangent length",
+             "diagram": "equation_steps",
+             "steps": ["sqrt(10^2-8^2)", "sqrt(100-64)", "sqrt(36)=6"],
+             "caption": "tangent = sqrt(d^2-r^2)"},
+            {"text": "2. r=10, dist=6: chord length",
+             "diagram": "equation_steps",
+             "steps": ["2\u00d7sqrt(10^2-6^2)", "2\u00d7sqrt(64)", "2\u00d78=16"],
+             "caption": "chord = 2\u00d7sqrt(r^2-dist^2)"},
+            {"text": "3. Centre angle 2x = 100\u00b0",
+             "diagram": "equation_steps", "steps": ["2x=100", "x=50\u00b0"],
+             "caption": "solve for x"},
+        ],
+        "card": card_tangent,
+        "solved": [
+            {"q": "Ex: d=10, r=8. Find the tangent length.",
+             "steps": ["sqrt(10^2-8^2)", "sqrt(36)", "= 6"]},
+        ],
+        "tips": [
+            "Tangent length: sqrt(d^2-r^2).",
+            "Chord length: 2\u00d7sqrt(r^2-dist^2).",
+            "Substitute carefully.",
+            "Square root only at the end.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. d=13, r=5. Find the tangent length.",
+                "2. r=13, dist=5. Find the chord length.",
+                "3. Centre angle 2x=80\u00b0. Find x.",
+            ],
+            "answers": "1) 12    2) 24    3) x=40\u00b0",
+        },
+    },
+
+    # ---- 17CUM3 Mixed G+H+I ----
+    "17CUM3": {
+        "title": "Review: Applications, Mixed, Puzzles",
+        "intro": [
+            "Real-life circles: wheels, tracks use circumference.",
+            "Mixed problems combine radius/diameter/area facts.",
+            "Puzzles use the tangent and chord length formulas.",
+            "Always substitute carefully into formulas.",
+            "Check your final answer makes sense.",
+        ],
+        "real_life": [
+            {"text": "1. Wheel radius 35cm: 1 turn = 220cm",
+             "diagram": "circle_parts", "parts": ("radius",),
+             "caption": "real-life application"},
+            {"text": "2. Radius 14: area = 616 cm^2",
+             "diagram": "equation_steps", "steps": ["A=22/7\u00d714\u00d714", "616"],
+             "caption": "mixed practice"},
+            {"text": "3. d=10,r=8: tangent=6",
+             "diagram": "equation_steps", "steps": ["sqrt(100-64)", "6"],
+             "caption": "puzzle"},
+        ],
+        "card": card_circle_parts,
+        "solved": [
+            {"q": "Ex: Wheel radius 21cm, 1 lap. Then d=13,r=12: tangent length?",
+             "steps": ["1 lap = 132cm", "tangent = sqrt(169-144) = 5"]},
+        ],
+        "tips": [
+            "Identify what's asked first.",
+            "Use \u03c0=22/7 consistently.",
+            "Apply the right formula carefully.",
+            "Double-check by re-substituting.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Wheel radius 7cm. Find 1 turn distance.",
+                "2. Radius 21. Find the area.",
+                "3. d=17,r=15. Find the tangent length.",
+            ],
+            "answers": "1) 44 cm    2) 1386 cm^2    3) 8",
+        },
+    },
+
+    # ---- 17J Mixed challenge ----
+    "17J": {
+        "title": "Circles — Mixed Challenge",
+        "intro": [
+            "Mix every skill: area, circumference, sectors.",
+            "Sector area = (angle/360) \u00d7 \u03c0r^2.",
+            "Arc length = (angle/360) \u00d7 2\u03c0r.",
+            "A semicircle is a 180\u00b0 sector.",
+            "A quarter circle is a 90\u00b0 sector.",
+        ],
+        "real_life": [
+            {"text": "1. 90\u00b0 sector radius 14: area=154",
+             "diagram": "equation_steps",
+             "steps": ["(90/360)\u00d722/7\u00d714\u00d714", "1/4\u00d7616", "154"],
+             "caption": "quarter of the full area"},
+            {"text": "2. 180\u00b0 sector radius 14: area=308",
+             "diagram": "equation_steps",
+             "steps": ["(180/360)\u00d722/7\u00d714\u00d714", "1/2\u00d7616", "308"],
+             "caption": "half of the full area"},
+            {"text": "3. 90\u00b0 sector radius 14: arc=22",
+             "diagram": "equation_steps",
+             "steps": ["(90/360)\u00d72\u00d722/7\u00d714", "1/4\u00d788", "22"],
+             "caption": "quarter of the circumference"},
+        ],
+        "card": card_circle_theorem,
+        "solved": [
+            {"q": "Ex: Sector 90\u00b0, radius 14. Find the sector area.",
+             "steps": ["(90/360)\u00d7\u03c0r^2", "1/4\u00d722/7\u00d714\u00d714", "= 154 cm^2"]},
+        ],
+        "tips": [
+            "Sector area = fraction of \u03c0r^2.",
+            "Arc length = fraction of 2\u03c0r.",
+            "Fraction = angle \u00f7 360.",
+            "Semicircle = 180\u00b0; quarter = 90\u00b0.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Sector 180\u00b0, radius 7. Find the area.",
+                "2. Sector 90\u00b0, radius 21. Find the area.",
+                "3. Sector 90\u00b0, radius 7. Find the arc length.",
+            ],
+            "answers": "1) 77 cm^2    2) 346.5 cm^2    3) 11 cm",
+        },
+    },
+
+    # ---- 17REV Revision ----
+    "17REV": {
+        "title": "Level 17 Revision — Circles",
+        "intro": [
+            "Centre, radius, diameter, chord, tangent.",
+            "Diameter = 2\u00d7radius; C=2\u03c0r; A=\u03c0r^2.",
+            "Tangent \u22a5 radius (90\u00b0) at the touch point.",
+            "Centre angle = 2 \u00d7 circumference angle.",
+            "Semicircle's circumference angle is always 90\u00b0.",
+        ],
+        "real_life": [
+            {"text": "1. Radius, diameter, chord",
+             "diagram": "circle_parts", "parts": ("radius", "diameter", "chord"),
+             "caption": "the basic circle parts"},
+            {"text": "2. Tangent meets radius at 90\u00b0",
+             "diagram": "tangent", "two_tangents": False,
+             "caption": "tangent theorem"},
+            {"text": "3. Semicircle: 90\u00b0 always",
+             "diagram": "semicircle", "caption": "angle in a semicircle"},
+        ],
+        "card": card_circle_theorem,
+        "solved": [
+            {"q": "Ex: Radius 7, find area; then centre angle 100\u00b0, find circumference angle.",
+             "steps": ["Area = 154 cm^2", "Circumference angle = 50\u00b0"]},
+        ],
+        "tips": [
+            "Know every circle part by name.",
+            "C=2\u03c0r; A=\u03c0r^2; \u03c0=22/7.",
+            "Tangent-radius angle is always 90\u00b0.",
+            "Centre angle = 2\u00d7circumference angle.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Radius 21. Find the circumference.",
+                "2. Centre angle 70\u00b0. Find the circumference angle.",
+                "3. What angle does a tangent make with the radius?",
+            ],
+            "answers": "1) 132 cm    2) 35\u00b0    3) 90\u00b0",
         },
     },
 }
