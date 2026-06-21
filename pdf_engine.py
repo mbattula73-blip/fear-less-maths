@@ -334,37 +334,50 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
         if not rl2.render(item): p4.append(item)
     for item in p4: rr2.render(item)
     _rough_work(c,rl2); _rough_work(c,rr2)
-    # Page 3 — concept & tips (Level 7+ only)
-    if level_num >= 7 and concept_items:
+    # Decide whether a RICH concept page will be added (sheet 1 + spec exists).
+    rich_spec = None
+    if str(sheet_num) == "1":
+        try:
+            from concept_pages import get_concept_page
+            rich_spec = get_concept_page(sublevel_code, level_num, topic)
+        except Exception:
+            rich_spec = None
+
+    # Page 3 — concept & tips (Level 7+). Skipped when the rich concept page
+    # will be shown (it replaces this), to avoid a redundant page.
+    if level_num >= 7 and concept_items and rich_spec is None:
         c.showPage()
         _concept_page(c, concept_items, ws_id, tier, topic, level_num,
                       sublevel_code_for_enrich=(sublevel_code if str(sheet_num)=="3" else None))
-    # Final page — RICH concept page, only on sheet 1 of a sublevel
-    if str(sheet_num) == "1":
+
+    # RICH concept page — only on sheet 1 of a sublevel (becomes page 3).
+    if rich_spec is not None:
         try:
-            from concept_pages import get_concept_page, render_rich_concept_page
-            spec = get_concept_page(sublevel_code, level_num, topic)
-            if spec:
-                c.showPage()
-                _outer(c)
-                # Clean concept-page header (no grade sidebar; full width)
-                cx=ML+(PW-ML-MR)/2
-                c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
-                c.drawCentredString(cx,PH-MT-7*mm,"LA Excellence SCHOOLS  /  IDPS ORCHARDS")
-                c.setFont("Helvetica",7.5); c.setFillColor(MGRAY)
-                c.drawCentredString(cx,PH-MT-11.5*mm,
-                    f"Level {level_num} — {LEVELS.get(level_num,{}).get('name','')}  |  {topic}")
-                c.setFont("Helvetica-Bold",12); c.setFillColor(colors.HexColor('#1565C0'))
-                c.drawCentredString(cx,PH-MT-17.5*mm,"CONCEPT  &  TIPS  \u2014  Study Sheet")
-                c.setStrokeColor(BLACK); c.setLineWidth(0.8)
-                c.line(ML,PH-MT-20*mm,PW-MR,PH-MT-20*mm)
-                frame = {
-                    "ML":ML,"MR":MR,"MT":MT,"MB":MB,"PW":PW,"PH":PH,
-                    "BW":PW-ML-MR,"CW":(PW-ML-MR)/2-2*mm,
-                    "LX":ML,"RX":ML+(PW-ML-MR)/2+2*mm,"SX":SX,"SW":SW,
-                    "P_TOP":PH-MT-22*mm,"P_BOT":MB+2*mm,
-                }
-                render_rich_concept_page(c, spec, frame)
+            from concept_pages import render_rich_concept_page
+            spec = rich_spec
+            c.showPage()
+            _outer(c)
+            # Clean concept-page header (no grade sidebar; full width)
+            cx=ML+(PW-ML-MR)/2
+            c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
+            c.drawCentredString(cx,PH-MT-7*mm,"LA Excellence SCHOOLS  /  IDPS ORCHARDS")
+            c.setFont("Helvetica",7.5); c.setFillColor(MGRAY)
+            c.drawCentredString(cx,PH-MT-11.5*mm,
+                f"Level {level_num} — {LEVELS.get(level_num,{}).get('name','')}  |  {topic}")
+            c.setFont("Helvetica-Bold",12); c.setFillColor(colors.HexColor('#1565C0'))
+            c.drawCentredString(cx,PH-MT-17.5*mm,"CONCEPT  &  TIPS  \u2014  Study Sheet")
+            # Worksheet / sublevel number (so it's clear which sublevel this belongs to)
+            c.setFont("Helvetica-Bold",9); c.setFillColor(BLACK)
+            c.drawRightString(PW-MR-1*mm,PH-MT-7*mm,f"Worksheet:  {ws_id}")
+            c.setStrokeColor(BLACK); c.setLineWidth(0.8)
+            c.line(ML,PH-MT-20*mm,PW-MR,PH-MT-20*mm)
+            frame = {
+                "ML":ML,"MR":MR,"MT":MT,"MB":MB,"PW":PW,"PH":PH,
+                "BW":PW-ML-MR,"CW":(PW-ML-MR)/2-2*mm,
+                "LX":ML,"RX":ML+(PW-ML-MR)/2+2*mm,"SX":SX,"SW":SW,
+                "P_TOP":PH-MT-22*mm,"P_BOT":MB+2*mm,
+            }
+            render_rich_concept_page(c, spec, frame)
         except Exception:
             pass
     c.save(); _clean(); buf.seek(0); return buf
