@@ -1155,6 +1155,36 @@ def sphere_vec(c, x, y, w, r):
     return rad * 2 + 10 * mm
 
 
+def trig_triangle_vec(c, x, y, w):
+    """Right triangle with angle theta marked, opp/adj/hyp labelled, and the
+    three SOH-CAH-TOA ratio formulas listed below. Returns height used."""
+    h = w * 0.62
+    bw = min(w * 0.6, h / 0.62 * 0.6)
+    A = (x, y - h)
+    B = (x + bw, y - h)
+    C = (x, y)
+    _draw_triangle_outline(c, A, B, C)
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+    c.rect(A[0], A[1], 2.4 * mm, 2.4 * mm, fill=0, stroke=1)
+    c.setStrokeColor(GOLD); c.setLineWidth(1.1)
+    c.arc(B[0] - 7 * mm, B[1] - 1 * mm, B[0] + 1 * mm, B[1] + 7 * mm, 110, 50)
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 10)
+    c.drawString(B[0] - 9 * mm, B[1] + 2 * mm, "\u03b8")
+    c.setFillColor(BLUE); c.setFont("Helvetica-Oblique", 8.5)
+    c.drawString(A[0] - 7 * mm, (A[1] + C[1]) / 2, "opp")
+    c.drawCentredString((A[0] + B[0]) / 2, A[1] - 4.2 * mm, "adj")
+    c.setFillColor(GOLD)
+    midx, midy = (B[0] + C[0]) / 2, (B[1] + C[1]) / 2
+    c.drawString(midx + 2 * mm, midy + 1 * mm, "hyp")
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 9.5)
+    fx = x + 1 * mm
+    fy = y - h - 9 * mm
+    c.drawString(fx, fy, "sin \u03b8 = opp/hyp")
+    c.drawString(fx, fy - 5.5 * mm, "cos \u03b8 = adj/hyp")
+    c.drawString(fx, fy - 11 * mm, "tan \u03b8 = opp/adj")
+    return h + 19 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -1268,7 +1298,7 @@ def render_rich_concept_page(c, spec, frame):
     if spec.get("try_it") and ty > BOT + 22 * mm:
         full_w = (RXc + CW) - LXc
         box_h = ty - BOT - 2 * mm
-        box_h = min(box_h, 34 * mm)
+        box_h = min(box_h, 38 * mm)
         by = ty - box_h
         c.setFillColor(colors.HexColor("#FFFDF5")); c.setStrokeColor(GOLD); c.setLineWidth(1.2)
         c.roundRect(LXc, by, full_w, box_h, 2 * mm, fill=1, stroke=1)
@@ -1279,9 +1309,12 @@ def render_rich_concept_page(c, spec, frame):
         for t in spec["try_it"]["questions"]:
             for ln in _wrap(t, "Helvetica", 10, full_w - 6 * mm):
                 c.drawString(LXc + 4 * mm, yy, ln); yy -= 5 * mm
-        # tiny answers line at the very bottom
+        # answers line: anchored near the bottom, but pushed lower if the
+        # questions ran long enough to risk overlapping it (never below the box)
+        ans_y = min(by + 2.5 * mm, yy - 3 * mm)
+        ans_y = max(ans_y, by + 1 * mm)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 8)
-        c.drawString(LXc + 4 * mm, by + 2.5 * mm, "Answers: " + spec["try_it"]["answers"])
+        c.drawString(LXc + 4 * mm, ans_y, "Answers: " + spec["try_it"]["answers"])
 
 
 def _bullets(c, x, y, w, items, size=10):
@@ -1610,6 +1643,12 @@ def _draw_example_diagram(c, x, y, w, rl):
     if kind == "sphere":
         fig_w = min(w - 8 * mm, 48 * mm)
         used = sphere_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "trig_triangle":
+        fig_w = min(w - 8 * mm, 46 * mm)
+        used = trig_triangle_vec(c, x + 4 * mm, y - 2 * mm, fig_w)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
@@ -2595,6 +2634,72 @@ def card_sphere(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_trig_ratios(c, x, y, w):
+    """SOH-CAH-TOA triangle card."""
+    card_h = 76 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "SOH - CAH - TOA:")
+    fig_w = min(w - 8 * mm, 46 * mm)
+    used = trig_triangle_vec(c, x + 4 * mm, y - 10 * mm, fig_w)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 5 * mm, "Same triangle, three different ratios.")
+    return y - card_h - 2 * mm
+
+
+def card_trig_table(c, x, y, w):
+    """Standard trig-values table card."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Standard angle values:")
+    fig_w = min(w - 8 * mm, 65 * mm)
+    used = small_table_vec(c, x + 4 * mm, y - 10 * mm, fig_w,
+                          ["\u03b8", "sin", "cos", "tan"],
+                          [["0\u00b0", "0", "1", "0"], ["30\u00b0", "1/2", "\u221a3/2", "1/\u221a3"],
+                           ["45\u00b0", "1/\u221a2", "1/\u221a2", "1"], ["60\u00b0", "\u221a3/2", "1/2", "\u221a3"],
+                           ["90\u00b0", "1", "0", "\u2014"]])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Memorise these five angles.")
+    return y - card_h - 2 * mm
+
+
+def card_trig_identities(c, x, y, w):
+    """Trig identities rule-box card."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "The 3 Pythagorean identities (\u03b8 = angle):")
+    fig_w = min(w - 4 * mm, 78 * mm)
+    used = rule_box_vec(c, x + 4 * mm, y - 10 * mm, fig_w,
+                       [("sin^2+cos^2", "1"), ("1+tan^2", "sec^2"),
+                        ("1+cot^2", "cosec^2")])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Use these to simplify expressions.")
+    return y - card_h - 2 * mm
+
+
+def card_heights_distances(c, x, y, w):
+    """Heights & distances card (reuses the ladder visual)."""
+    card_h = 72 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Angle of elevation example:")
+    fig_w = min(w - 8 * mm, 50 * mm)
+    used = ladder_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 5, 12)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "tan(angle) = height \u00f7 distance.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -2626,6 +2731,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L17.get(sublevel_code)
     if level_num == 18:
         return _L18.get(sublevel_code)
+    if level_num == 19:
+        return _L19.get(sublevel_code)
     return None
 
 
@@ -10430,6 +10537,600 @@ _L18 = {
                 "3. Cube side 6. Find the volume.",
             ],
             "answers": "1) 32    2) 1386 cm^2    3) 216 cm^3",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 19 — Trigonometry: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L19 = {
+    # ---- 19A Trig ratios ----
+    "19A": {
+        "title": "Trig Ratios — SOH-CAH-TOA",
+        "intro": [
+            "sin \u03b8 = opposite \u00f7 hypotenuse.",
+            "cos \u03b8 = adjacent \u00f7 hypotenuse.",
+            "tan \u03b8 = opposite \u00f7 adjacent.",
+            "Same triangle, three different ratios.",
+            "Remember the word SOH-CAH-TOA.",
+        ],
+        "real_life": [
+            {"text": "1. 3-4-5 triangle: sin\u03b8 = 3/5",
+             "diagram": "pythagoras", "leg1": 3, "leg2": 4,
+             "caption": "opp=3, hyp=5"},
+            {"text": "2. 5-12-13 triangle: cos\u03b8 = 5/13",
+             "diagram": "pythagoras", "leg1": 5, "leg2": 12,
+             "caption": "adj=5, hyp=13"},
+            {"text": "3. 8-15-17 triangle: tan\u03b8 = 8/15",
+             "diagram": "equation_steps", "steps": ["tan\u03b8 = opp/adj", "8/15"],
+             "caption": "opp=8, adj=15"},
+        ],
+        "card": card_trig_ratios,
+        "solved": [
+            {"q": "Ex: Triangle legs 3,4, hyp 5. Find sin\u03b8 (opp=3).",
+             "steps": ["sin\u03b8 = opp/hyp", "= 3/5"]},
+        ],
+        "tips": [
+            "SOH: sin = opp/hyp.",
+            "CAH: cos = adj/hyp.",
+            "TOA: tan = opp/adj.",
+            "Identify opp/adj relative to the angle.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Legs 3,4,hyp 5. Find cos\u03b8 (adj=4).",
+                "2. Legs 5,12,hyp 13. Find tan\u03b8 (opp=5,adj=12).",
+                "3. Legs 8,15,hyp 17. Find sin\u03b8 (opp=8).",
+            ],
+            "answers": "1) 4/5    2) 5/12    3) 8/17",
+        },
+    },
+
+    # ---- 19B Trig table ----
+    "19B": {
+        "title": "Standard Angle Values",
+        "intro": [
+            "Five angles to memorise: 0\u00b0,30\u00b0,45\u00b0,60\u00b0,90\u00b0.",
+            "sin: 0, 1/2, 1/\u221a2, \u221a3/2, 1.",
+            "cos is sin reversed: 1, \u221a3/2, 1/\u221a2, 1/2, 0.",
+            "tan = sin \u00f7 cos for each angle.",
+            "tan 90\u00b0 is undefined (division by 0).",
+        ],
+        "real_life": [
+            {"text": "1. sin30\u00b0=1/2, cos60\u00b0=1/2 (equal!)",
+             "diagram": "equation_steps", "steps": ["sin 30\u00b0", "1/2"],
+             "caption": "same value"},
+            {"text": "2. sin45\u00b0=cos45\u00b0=1/\u221a2",
+             "diagram": "equation_steps", "steps": ["sin 45\u00b0 = cos 45\u00b0", "1/\u221a2"],
+             "caption": "equal at 45\u00b0"},
+            {"text": "3. The full standard-values table",
+             "diagram": "rule_box",
+             "pairs": [("sin30", "1/2"), ("cos60", "1/2"), ("tan45", "1"), ("sin90", "1")],
+             "caption": "memorise these"},
+        ],
+        "card": card_trig_table,
+        "solved": [
+            {"q": "Ex: Find tan 60\u00b0 using sin and cos.",
+             "steps": ["tan = sin\u00f7cos", "(\u221a3/2)\u00f7(1/2)", "= \u221a3"]},
+        ],
+        "tips": [
+            "Memorise the 5 standard angles.",
+            "cos is sin reversed.",
+            "tan = sin \u00f7 cos.",
+            "tan 90\u00b0 is undefined.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find sin 60\u00b0.",
+                "2. Find cos 30\u00b0.",
+                "3. Find tan 45\u00b0.",
+            ],
+            "answers": "1) \u221a3/2    2) \u221a3/2    3) 1",
+        },
+    },
+
+    # ---- 19C Basic simplification ----
+    "19C": {
+        "title": "Simplifying Trig Expressions",
+        "intro": [
+            "Substitute the standard values.",
+            "Then simplify the fractions/surds carefully.",
+            "sin30 \u00d7 cos60 = 1/2 \u00d7 1/2 = 1/4.",
+            "Work one operation at a time.",
+            "Keep surds exact, don't round.",
+        ],
+        "real_life": [
+            {"text": "1. sin30 \u00d7 cos60 = 1/4",
+             "diagram": "equation_steps", "steps": ["1/2 \u00d7 1/2", "1/4"],
+             "caption": "multiply the values"},
+            {"text": "2. sin^2 30 + cos^2 30 = 1",
+             "diagram": "equation_steps", "steps": ["1/4 + 3/4", "1"],
+             "caption": "Pythagorean check"},
+            {"text": "3. 2 sin45 cos45 = 1",
+             "diagram": "equation_steps", "steps": ["2\u00d7(1/\u221a2)\u00d7(1/\u221a2)", "2\u00d71/2", "1"],
+             "caption": "simplify step by step"},
+        ],
+        "card": card_trig_table,
+        "solved": [
+            {"q": "Ex: Simplify sin^2 30 + cos^2 30.",
+             "steps": ["(1/2)^2 + (\u221a3/2)^2", "1/4 + 3/4", "= 1"]},
+        ],
+        "tips": [
+            "Substitute the standard values first.",
+            "Simplify fractions carefully.",
+            "Keep surds exact.",
+            "Check using known identities.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify cos30 \u00d7 sin60.",
+                "2. Simplify sin^2 45 + cos^2 45.",
+                "3. Simplify 2 sin30 \u00d7 cos30.",
+            ],
+            "answers": "1) 3/4    2) 1    3) \u221a3/2",
+        },
+    },
+
+    # ---- 19CUM1 Mixed A+B+C ----
+    "19CUM1": {
+        "title": "Review: Ratios, Table, Simplification",
+        "intro": [
+            "SOH-CAH-TOA gives the three ratios.",
+            "Memorise the 5 standard angles.",
+            "Substitute then simplify expressions.",
+            "Keep exact surd values.",
+            "Cross-check with sin^2+cos^2=1.",
+        ],
+        "real_life": [
+            {"text": "1. 3-4-5 triangle: sin\u03b8=3/5",
+             "diagram": "pythagoras", "leg1": 3, "leg2": 4,
+             "caption": "trig ratio"},
+            {"text": "2. sin30\u00b0=1/2",
+             "diagram": "equation_steps", "steps": ["sin 30\u00b0", "1/2"],
+             "caption": "standard value"},
+            {"text": "3. sin30\u00d7cos60=1/4",
+             "diagram": "equation_steps", "steps": ["1/2\u00d71/2", "1/4"],
+             "caption": "simplify"},
+        ],
+        "card": card_trig_table,
+        "solved": [
+            {"q": "Ex: Find cos\u03b8 for legs 3,4,hyp5 (adj=4), then evaluate cos60.",
+             "steps": ["cos\u03b8 = 4/5", "cos60\u00b0 = 1/2"]},
+        ],
+        "tips": [
+            "Identify opp/adj/hyp first.",
+            "Recall standard values.",
+            "Substitute then simplify.",
+            "Verify with identities.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Legs 5,12,hyp13. Find sin\u03b8 (opp=12).",
+                "2. Find tan 60\u00b0.",
+                "3. Simplify sin90 \u00d7 cos0.",
+            ],
+            "answers": "1) 12/13    2) \u221a3    3) 1",
+        },
+    },
+
+    # ---- 19D Trig identities ----
+    "19D": {
+        "title": "Trig Identities",
+        "intro": [
+            "sin^2\u03b8 + cos^2\u03b8 = 1 (always true).",
+            "1 + tan^2\u03b8 = sec^2\u03b8.",
+            "1 + cot^2\u03b8 = cosec^2\u03b8.",
+            "Use these to simplify or prove expressions.",
+            "Derived directly from Pythagoras.",
+        ],
+        "real_life": [
+            {"text": "1. sin^2+cos^2=1 (the main identity)",
+             "diagram": "rule_box", "pairs": [("sin^2\u03b8+cos^2\u03b8", "1")],
+             "caption": "always true"},
+            {"text": "2. 1+tan^2\u03b8 = sec^2\u03b8",
+             "diagram": "rule_box", "pairs": [("1+tan^2\u03b8", "sec^2\u03b8")],
+             "caption": "from dividing by cos^2"},
+            {"text": "3. 1+cot^2\u03b8 = cosec^2\u03b8",
+             "diagram": "rule_box", "pairs": [("1+cot^2\u03b8", "cosec^2\u03b8")],
+             "caption": "from dividing by sin^2"},
+        ],
+        "card": card_trig_identities,
+        "solved": [
+            {"q": "Ex: If sin\u03b8 = 3/5, find cos\u03b8 using the identity.",
+             "steps": ["cos^2\u03b8 = 1 - sin^2\u03b8", "= 1 - 9/25 = 16/25", "cos\u03b8 = 4/5"]},
+        ],
+        "tips": [
+            "sin^2+cos^2=1 is the key identity.",
+            "1+tan^2=sec^2.",
+            "1+cot^2=cosec^2.",
+            "All come from Pythagoras.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If sin\u03b8=5/13, find cos\u03b8.",
+                "2. Simplify sec^2\u03b8 - tan^2\u03b8.",
+                "3. Simplify cosec^2\u03b8 - cot^2\u03b8.",
+            ],
+            "answers": "1) 12/13    2) 1    3) 1",
+        },
+    },
+
+    # ---- 19E Heights & distances ----
+    "19E": {
+        "title": "Heights & Distances",
+        "intro": [
+            "Angle of elevation: looking UP from the ground.",
+            "tan(angle) = height \u00f7 distance.",
+            "Set up a right triangle: height, distance, line of sight.",
+            "Solve for the unknown side using tan, sin, or cos.",
+            "5-12-13 triangle: tan\u03b8 = 12/5.",
+        ],
+        "real_life": [
+            {"text": "1. Tower: height 12m, distance 5m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "tan\u03b8 = 12/5"},
+            {"text": "2. Ramp: rise 3m, run 4m",
+             "diagram": "ladder", "base": 4, "height": 3,
+             "caption": "tan\u03b8 = 3/4"},
+            {"text": "3. Building: height 8m, distance 6m",
+             "diagram": "ladder", "base": 6, "height": 8,
+             "caption": "hyp = 10m (line of sight)"},
+        ],
+        "card": card_heights_distances,
+        "solved": [
+            {"q": "Ex: A tower is 12m tall, 5m from an observer. Find the line-of-sight distance.",
+             "steps": ["hyp^2 = 12^2+5^2", "= 144+25 = 169", "hyp = 13m"]},
+        ],
+        "tips": [
+            "tan(angle) = height \u00f7 distance.",
+            "Draw the right triangle first.",
+            "Use Pythagoras for the line of sight.",
+            "Keep consistent units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Height 9m, distance 12m. Find tan\u03b8.",
+                "2. Height 8m, distance 6m. Find the line of sight.",
+                "3. Height 15m, distance 8m. Find the line of sight.",
+            ],
+            "answers": "1) 3/4    2) 10m    3) 17m",
+        },
+    },
+
+    # ---- 19F Applications ----
+    "19F": {
+        "title": "Trig Applications",
+        "intro": [
+            "Ladders, ramps, kites: all use right triangles.",
+            "Identify what's given: angle, side, or both.",
+            "Choose sin, cos, or tan based on the known sides.",
+            "Solve step by step.",
+            "Always check the answer is sensible.",
+        ],
+        "real_life": [
+            {"text": "1. Ladder 13m against a wall, base 5m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "reaches 12m up"},
+            {"text": "2. Kite string 13m, height 12m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "horizontal distance 5m"},
+            {"text": "3. Ramp length 17m, rise 15m",
+             "diagram": "ladder", "base": 8, "height": 15,
+             "caption": "horizontal run 8m"},
+        ],
+        "card": card_heights_distances,
+        "solved": [
+            {"q": "Ex: A 13m ladder has its base 5m from the wall. How high does it reach?",
+             "steps": ["height^2 = 13^2-5^2", "= 169-25 = 144", "height = 12m"]},
+        ],
+        "tips": [
+            "Identify the right triangle in the story.",
+            "Match given sides to opp/adj/hyp.",
+            "Pick the right ratio or Pythagoras.",
+            "State the answer with units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Ladder 17m, base 8m. Find the height.",
+                "2. Kite string 25m, height 24m. Find the distance.",
+                "3. Ramp length 10m, rise 6m. Find the run.",
+            ],
+            "answers": "1) 15m    2) 7m    3) 8m",
+        },
+    },
+
+    # ---- 19CUM2 Mixed D+E+F ----
+    "19CUM2": {
+        "title": "Review: Identities, Heights, Applications",
+        "intro": [
+            "Identities: sin^2+cos^2=1 and its variants.",
+            "Heights & distances: tan = height\u00f7distance.",
+            "Applications: ladders, ramps, kites.",
+            "Use Pythagoras for the missing side.",
+            "Combine identities with real triangles.",
+        ],
+        "real_life": [
+            {"text": "1. sin^2+cos^2=1",
+             "diagram": "rule_box", "pairs": [("sin^2\u03b8+cos^2\u03b8", "1")],
+             "caption": "key identity"},
+            {"text": "2. Tower height 12, distance 5",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "heights & distances"},
+            {"text": "3. Ladder 13m, base 5m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "application"},
+        ],
+        "card": card_heights_distances,
+        "solved": [
+            {"q": "Ex: If sin\u03b8=12/13, find cos\u03b8, then find the height for a 13m ladder, base 5m.",
+             "steps": ["cos\u03b8 = 5/13", "height = sqrt(169-25) = 12m"]},
+        ],
+        "tips": [
+            "Apply identities to find missing ratios.",
+            "tan = height\u00f7distance for elevation.",
+            "Pythagoras finds the missing side.",
+            "Double check every step.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If cos\u03b8=3/5, find sin\u03b8.",
+                "2. Ladder 10m, base 6m. Find the height.",
+                "3. Height 9, distance 12. Find tan\u03b8.",
+            ],
+            "answers": "1) 4/5    2) 8m    3) 3/4",
+        },
+    },
+
+    # ---- 19G Mixed problems ----
+    "19G": {
+        "title": "Trigonometry — Mixed Problems",
+        "intro": [
+            "Mix ratios, identities, and real triangles.",
+            "Identify what the question is really asking.",
+            "Use the table for standard angles.",
+            "Use Pythagoras for missing sides.",
+            "Show each step clearly.",
+        ],
+        "real_life": [
+            {"text": "1. 5-12-13 triangle: tan\u03b8=12/5",
+             "diagram": "pythagoras", "leg1": 5, "leg2": 12,
+             "caption": "ratio from sides"},
+            {"text": "2. sin30\u00b0=1/2",
+             "diagram": "equation_steps", "steps": ["sin 30\u00b0", "1/2"],
+             "caption": "standard value"},
+            {"text": "3. Ladder 13m, base 5m: height 12m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "real triangle"},
+        ],
+        "card": card_trig_ratios,
+        "solved": [
+            {"q": "Ex: 5-12-13 triangle. Find sin\u03b8, cos\u03b8, tan\u03b8 (opp=12,adj=5).",
+             "steps": ["sin\u03b8=12/13", "cos\u03b8=5/13", "tan\u03b8=12/5"]},
+        ],
+        "tips": [
+            "Read the question carefully.",
+            "Match the right method.",
+            "Standard angles save time.",
+            "Show clear working.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 8-15-17 triangle. Find sin\u03b8 (opp=8).",
+                "2. Find cos 60\u00b0.",
+                "3. Ladder 17m, base 8m. Find the height.",
+            ],
+            "answers": "1) 8/17    2) 1/2    3) 15m",
+        },
+    },
+
+    # ---- 19H Advanced simplification ----
+    "19H": {
+        "title": "Advanced Simplification",
+        "intro": [
+            "Complementary angles: sin(90-\u03b8) = cos\u03b8.",
+            "Similarly, tan(90-\u03b8) = cot\u03b8.",
+            "Use this to rewrite expressions.",
+            "Combine with the Pythagorean identities.",
+            "Simplify step by step, don't skip steps.",
+        ],
+        "real_life": [
+            {"text": "1. sin(90-\u03b8) = cos\u03b8",
+             "diagram": "rule_box", "pairs": [("sin(90-\u03b8)", "cos\u03b8")],
+             "caption": "complementary angle rule"},
+            {"text": "2. cos(90-\u03b8) = sin\u03b8",
+             "diagram": "rule_box", "pairs": [("cos(90-\u03b8)", "sin\u03b8")],
+             "caption": "complementary angle rule"},
+            {"text": "3. tan60 \u00d7 tan30 = 1",
+             "diagram": "equation_steps", "steps": ["\u221a3 \u00d7 1/\u221a3", "1"],
+             "caption": "complementary product"},
+        ],
+        "card": card_trig_identities,
+        "solved": [
+            {"q": "Ex: Simplify sin(90-\u03b8) \u00f7 cos\u03b8.",
+             "steps": ["sin(90-\u03b8) = cos\u03b8", "cos\u03b8 \u00f7 cos\u03b8", "= 1"]},
+        ],
+        "tips": [
+            "sin(90-\u03b8)=cos\u03b8; cos(90-\u03b8)=sin\u03b8.",
+            "tan(90-\u03b8)=cot\u03b8.",
+            "Use with the Pythagorean identities.",
+            "Work through methodically.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify cos(90-\u03b8) \u00f7 sin\u03b8.",
+                "2. Find sin60 \u00d7 sin30 + cos60 \u00d7 cos30 (hint: =cos30).",
+                "3. Simplify tan(90-\u03b8) \u00d7 tan\u03b8.",
+            ],
+            "answers": "1) 1    2) \u221a3/2    3) 1",
+        },
+    },
+
+    # ---- 19I Puzzle trig ----
+    "19I": {
+        "title": "Trig Puzzles",
+        "intro": [
+            "Find the missing angle from a known ratio.",
+            "Match the value to the standard-angle table.",
+            "sin\u03b8=1/2 \u2192 \u03b8=30\u00b0.",
+            "Work backwards from the equation.",
+            "Check your angle against all clues.",
+        ],
+        "real_life": [
+            {"text": "1. sin\u03b8=1/2 \u2192 \u03b8=30\u00b0",
+             "diagram": "equation_steps", "steps": ["sin\u03b8 = 1/2", "\u03b8 = 30\u00b0"],
+             "caption": "match the table"},
+            {"text": "2. tan\u03b8=1 \u2192 \u03b8=45\u00b0",
+             "diagram": "equation_steps", "steps": ["tan\u03b8 = 1", "\u03b8 = 45\u00b0"],
+             "caption": "match the table"},
+            {"text": "3. cos\u03b8=\u221a3/2 \u2192 \u03b8=30\u00b0",
+             "diagram": "equation_steps", "steps": ["cos\u03b8 = \u221a3/2", "\u03b8 = 30\u00b0"],
+             "caption": "match the table"},
+        ],
+        "card": card_trig_table,
+        "solved": [
+            {"q": "Ex: If tan\u03b8 = \u221a3, find \u03b8.",
+             "steps": ["Match to the table", "tan60\u00b0 = \u221a3", "\u03b8 = 60\u00b0"]},
+        ],
+        "tips": [
+            "Match the value to the table.",
+            "Know all 5 standard angles well.",
+            "Work backwards carefully.",
+            "Verify against the original equation.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. If sin\u03b8=\u221a3/2, find \u03b8.",
+                "2. If cos\u03b8=1/2, find \u03b8.",
+                "3. If tan\u03b8=1/\u221a3, find \u03b8.",
+            ],
+            "answers": "1) 60\u00b0    2) 60\u00b0    3) 30\u00b0",
+        },
+    },
+
+    # ---- 19CUM3 Mixed G+H+I ----
+    "19CUM3": {
+        "title": "Review: Mixed, Advanced, Puzzles",
+        "intro": [
+            "Mixed problems use ratios and Pythagoras.",
+            "Complementary angle rules simplify expressions.",
+            "Puzzles match values back to angles.",
+            "Always show your working clearly.",
+            "Double-check with known identities.",
+        ],
+        "real_life": [
+            {"text": "1. 5-12-13 triangle ratios",
+             "diagram": "pythagoras", "leg1": 5, "leg2": 12,
+             "caption": "mixed problem"},
+            {"text": "2. sin(90-\u03b8)=cos\u03b8",
+             "diagram": "rule_box", "pairs": [("sin(90-\u03b8)", "cos\u03b8")],
+             "caption": "advanced simplification"},
+            {"text": "3. sin\u03b8=1/2 \u2192 \u03b8=30\u00b0",
+             "diagram": "equation_steps", "steps": ["sin\u03b8=1/2", "\u03b8=30\u00b0"],
+             "caption": "puzzle"},
+        ],
+        "card": card_trig_identities,
+        "solved": [
+            {"q": "Ex: 5-12-13 triangle ratio, then solve cos\u03b8=1/2.",
+             "steps": ["sin\u03b8(opp=12)=12/13", "cos\u03b8=1/2 \u2192 \u03b8=60\u00b0"]},
+        ],
+        "tips": [
+            "Combine ratios with identities.",
+            "Use complementary rules to simplify.",
+            "Match values to the standard table.",
+            "Check every step.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 8-15-17 triangle. Find cos\u03b8 (adj=15).",
+                "2. Simplify cos(90-\u03b8)\u00f7sin\u03b8.",
+                "3. If sin\u03b8=1, find \u03b8.",
+            ],
+            "answers": "1) 15/17    2) 1    3) 90\u00b0",
+        },
+    },
+
+    # ---- 19J Mixed challenge ----
+    "19J": {
+        "title": "Trigonometry — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "Ratios, identities, heights, and puzzles together.",
+            "Identify the right method for each part.",
+            "Use exact surd values throughout.",
+            "Work carefully, step by step.",
+        ],
+        "real_life": [
+            {"text": "1. 7-24-25 triangle ratios",
+             "diagram": "pythagoras", "leg1": 7, "leg2": 24,
+             "caption": "find sin,cos,tan"},
+            {"text": "2. sin^2\u03b8+cos^2\u03b8=1",
+             "diagram": "rule_box", "pairs": [("sin^2\u03b8+cos^2\u03b8", "1")],
+             "caption": "key identity"},
+            {"text": "3. Ladder 25m, base 7m: height 24m",
+             "diagram": "ladder", "base": 7, "height": 24,
+             "caption": "application"},
+        ],
+        "card": card_trig_ratios,
+        "solved": [
+            {"q": "Ex: 7-24-25 triangle (opp=24). Find sin\u03b8, then check sin^2+cos^2=1.",
+             "steps": ["sin\u03b8=24/25, cos\u03b8=7/25", "(24/25)^2+(7/25)^2 = 1"]},
+        ],
+        "tips": [
+            "Apply SOH-CAH-TOA carefully.",
+            "Use identities to check answers.",
+            "Heights & distances need a clear triangle.",
+            "Show every step of your work.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 9-40-41 triangle. Find tan\u03b8 (opp=9,adj=40).",
+                "2. Simplify 1+tan^2\u03b8 (in terms of sec).",
+                "3. Ladder 41m, base 9m. Find the height.",
+            ],
+            "answers": "1) 9/40    2) sec^2\u03b8    3) 40m",
+        },
+    },
+
+    # ---- 19REV Revision ----
+    "19REV": {
+        "title": "Level 19 Revision — Trigonometry",
+        "intro": [
+            "SOH-CAH-TOA: sin=opp/hyp, cos=adj/hyp, tan=opp/adj.",
+            "Memorise the 5 standard angles.",
+            "sin^2\u03b8+cos^2\u03b8=1 and related identities.",
+            "Heights & distances: tan=height\u00f7distance.",
+            "Match values to angles for puzzles.",
+        ],
+        "real_life": [
+            {"text": "1. SOH-CAH-TOA triangle",
+             "diagram": "trig_triangle", "caption": "the three ratios"},
+            {"text": "2. sin^2+cos^2=1",
+             "diagram": "rule_box", "pairs": [("sin^2\u03b8+cos^2\u03b8", "1")],
+             "caption": "key identity"},
+            {"text": "3. Ladder 13m, base 5m: height 12m",
+             "diagram": "ladder", "base": 5, "height": 12,
+             "caption": "real application"},
+        ],
+        "card": card_trig_table,
+        "solved": [
+            {"q": "Ex: Find sin30\u00b0, then the height of a 13m ladder with base 5m.",
+             "steps": ["sin30\u00b0 = 1/2", "height = sqrt(169-25) = 12m"]},
+        ],
+        "tips": [
+            "Know SOH-CAH-TOA by heart.",
+            "Memorise the standard-angle table.",
+            "Use identities to simplify or check.",
+            "Draw the triangle for word problems.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find cos 45\u00b0.",
+                "2. If sin\u03b8=7/25, find cos\u03b8.",
+                "3. Ladder 25m, base 7m. Find the height.",
+            ],
+            "answers": "1) 1/\u221a2    2) 24/25    3) 24m",
         },
     },
 }
