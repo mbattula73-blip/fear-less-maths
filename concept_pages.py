@@ -403,23 +403,27 @@ def function_machine_vec(c, x, y, w, input_val, operation, output_val):
 def term_breakdown_vec(c, x, y, w, coeff, var):
     """Highlight coefficient vs variable in a term like 3x. Returns height."""
     cxm = x + w / 2
+    c.setFont("Helvetica-Bold", 9)
+    law = stringWidth("coefficient", "Helvetica-Bold", 9)
+    lbw = stringWidth("variable", "Helvetica-Bold", 9)
+    min_dist = (law / 2 + lbw / 2) + 5 * mm
+    half = min_dist / 2
+    cx = cxm - half
+    vx = cxm + half
     c.setFont("Helvetica-Bold", 24)
-    cw = stringWidth(str(coeff), "Helvetica-Bold", 24)
-    vw = stringWidth(var, "Helvetica-Bold", 24)
-    startx = cxm - (cw + vw) / 2
     c.setFillColor(GOLD)
-    c.drawString(startx, y - 8 * mm, str(coeff))
+    c.drawCentredString(cx, y - 8 * mm, str(coeff))
     c.setFillColor(BLUE)
-    c.drawString(startx + cw, y - 8 * mm, var)
+    c.drawCentredString(vx, y - 8 * mm, var)
     c.setStrokeColor(GOLD); c.setLineWidth(0.8)
-    c.line(startx + cw / 2, y - 10 * mm, startx + cw / 2, y - 14 * mm)
+    c.line(cx, y - 10 * mm, cx, y - 14 * mm)
     c.setStrokeColor(BLUE)
-    c.line(startx + cw + vw / 2, y - 10 * mm, startx + cw + vw / 2, y - 14 * mm)
+    c.line(vx, y - 10 * mm, vx, y - 14 * mm)
     c.setFont("Helvetica-Bold", 9)
     c.setFillColor(GOLD)
-    c.drawCentredString(startx + cw / 2, y - 18 * mm, "coefficient")
+    c.drawCentredString(cx, y - 18 * mm, "coefficient")
     c.setFillColor(BLUE)
-    c.drawCentredString(startx + cw + vw / 2, y - 18 * mm, "variable")
+    c.drawCentredString(vx, y - 18 * mm, "variable")
     return 22 * mm
 
 
@@ -442,6 +446,25 @@ def like_terms_vec(c, x, y, w, group_a, label_a, group_b, label_b):
     c.setFont("Helvetica", 8.5)
     c.drawCentredString(bx2 + bw / 2, by + 3 * mm, label_b)
     return 19 * mm
+
+
+def equation_steps_vec(c, x, y, w, steps, accent=GOLD):
+    """Vertical sequence of equation lines with down-arrows between them,
+    e.g. ['2x + 3 = 11', '2x = 8', 'x = 4']. Returns height used."""
+    cxm = x + w / 2
+    cy = y
+    c.setFont("Helvetica-Bold", 13)
+    for i, step in enumerate(steps):
+        c.setFillColor(BLACK)
+        c.drawCentredString(cxm, cy, step)
+        if i < len(steps) - 1:
+            ay = cy - 7 * mm
+            c.setStrokeColor(accent); c.setLineWidth(1.3)
+            c.line(cxm, cy - 2.5 * mm, cxm, ay + 2 * mm)
+            c.line(cxm, ay + 2 * mm, cxm - 1.6 * mm, ay + 3.8 * mm)
+            c.line(cxm, ay + 2 * mm, cxm + 1.6 * mm, ay + 3.8 * mm)
+            cy = ay - 3 * mm
+    return (y - cy) + 5 * mm
 
 
 def sign_rule_vec(c, x, y, w, pairs):
@@ -732,6 +755,11 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
+    if kind == "equation_steps":
+        used = equation_steps_vec(c, x + 4 * mm, y - 4 * mm, w - 8 * mm, rl["steps"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        return used + 10 * mm
     return 0
 
 
@@ -1183,6 +1211,85 @@ def card_balance(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_equation_vs_expr(c, x, y, w):
+    """Contrast expression (x+5) vs equation (x+5=8)."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 13)
+    c.drawString(bx, y - 10 * mm, "x + 5")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 17 * mm, "EXPRESSION \u2014 no '=' sign, no fixed value.")
+    c.setStrokeColor(LGRAY); c.setLineWidth(0.6)
+    c.line(bx, y - 22 * mm, x + w - 5 * mm, y - 22 * mm)
+    balance_scale_vec(c, x + 4 * mm, y - 27 * mm, w - 8 * mm, "x + 5", "8")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 56 * mm, "EQUATION \u2014 has '=', can be solved for x.")
+    return y - card_h - 2 * mm
+
+
+def card_one_step_eq(c, x, y, w):
+    """Balance-scale card for one-step equations."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Solve x + 4 = 9:")
+    balance_scale_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, "x + 4", "9")
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 47 * mm, "Subtract 4 from both sides: x = 5.")
+    return y - card_h - 2 * mm
+
+
+def card_multi_step_eq(c, x, y, w):
+    """Equation-steps card for multi-step equations: 2x+3=11 -> x=4."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Solve 2x + 3 = 11 step by step:")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["2x + 3 = 11", "2x = 8", "x = 4"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 56 * mm, "Step 1: subtract 3.  Step 2: divide by 2.")
+    return y - card_h - 2 * mm
+
+
+def card_word_to_equation(c, x, y, w):
+    """Word problem to equation card: x sweets + 3 more = 10."""
+    card_h = 62 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(x + 5 * mm, y - 7 * mm, "\u2018x sweets + 3 more = 10\u2019 becomes:")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["x + 3 = 10", "x = 10 - 3", "x = 7"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 54 * mm, "Turn the story into an equation first,")
+    c.drawString(bx, y - 60 * mm, "then solve for the unknown.")
+    return y - card_h - 2 * mm
+
+
+def card_number_puzzle(c, x, y, w):
+    """'Think of a number' puzzle card."""
+    card_h = 60 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(x + 5 * mm, y - 7 * mm, "\u2018Double a number, add 5, get 17\u2019:")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["2x + 5 = 17", "2x = 12", "x = 6"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 52 * mm, "Write the equation, then undo each")
+    c.drawString(bx, y - 58 * mm, "operation in reverse order.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -1200,6 +1307,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L10.get(sublevel_code)
     if level_num == 11:
         return _L11.get(sublevel_code)
+    if level_num == 12:
+        return _L12.get(sublevel_code)
     return None
 
 
@@ -4790,6 +4899,600 @@ _L11 = {
                 "3. Solve x+4=12.",
             ],
             "answers": "1) 6    2) 4x    3) x=8",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 12 — Algebra (Equations): concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L12 = {
+    # ---- 12A Equation concept ----
+    "12A": {
+        "title": "Equations — Concept",
+        "intro": [
+            "An expression has NO '=' sign.",
+            "An equation HAS an '=' sign.",
+            "x + 5 is an expression.",
+            "x + 5 = 8 is an equation.",
+            "An equation can be SOLVED for x.",
+        ],
+        "real_life": [
+            {"text": "1. x + 5 (no '=') \u2192 expression",
+             "diagram": "term_breakdown", "coeff": 1, "var": "x",
+             "caption": "just a term, no equation"},
+            {"text": "2. x + 5 = 8 (has '=') \u2192 equation",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "8",
+             "caption": "balanced, can solve for x"},
+            {"text": "3. 2x (no '=') \u2192 expression",
+             "diagram": "term_breakdown", "coeff": 2, "var": "x",
+             "caption": "just a term, no equation"},
+        ],
+        "card": card_equation_vs_expr,
+        "solved": [
+            {"q": "Ex: Is 'x + 5 = 8' an expression or equation?",
+             "steps": ["It has an '=' sign", "Answer: equation"]},
+        ],
+        "tips": [
+            "No '=' \u2192 expression.",
+            "Has '=' \u2192 equation.",
+            "Equations can be solved.",
+            "Expressions just simplify.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is '3x' an expression or equation?",
+                "2. Is 'y - 2 = 5' an expression or equation?",
+                "3. Is '4x + 1' an expression or equation?",
+            ],
+            "answers": "1) expression    2) equation    3) expression",
+        },
+    },
+
+    # ---- 12B Solving equations ----
+    "12B": {
+        "title": "Solving One-Step Equations",
+        "intro": [
+            "Get x alone on one side.",
+            "Do the OPPOSITE operation to both sides.",
+            "x + 4 = 9 \u2192 subtract 4 from both sides.",
+            "x = 9 - 4 = 5.",
+            "Always check by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. x+4=9 \u2192 x=5 (subtract 4)",
+             "diagram": "balance_scale", "left_text": "x + 4", "right_text": "9",
+             "caption": "subtract 4 from both sides"},
+            {"text": "2. x+5=12 \u2192 x=7",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "12",
+             "caption": "subtract 5 from both sides"},
+            {"text": "3. x+2=8 \u2192 x=6",
+             "diagram": "balance_scale", "left_text": "x + 2", "right_text": "8",
+             "caption": "subtract 2 from both sides"},
+        ],
+        "card": card_one_step_eq,
+        "solved": [
+            {"q": "Ex: Solve x + 5 = 12.",
+             "steps": ["Subtract 5 from both sides", "x = 12 - 5", "Answer: x = 7"]},
+        ],
+        "tips": [
+            "Same operation, both sides.",
+            "Undo + with -, and \u00d7 with \u00f7.",
+            "Isolate x on one side.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+6=14.",
+                "2. Solve x+3=10.",
+                "3. Solve x+9=13.",
+            ],
+            "answers": "1) x=8    2) x=7    3) x=4",
+        },
+    },
+
+    # ---- 12C Multi-step equations ----
+    "12C": {
+        "title": "Multi-Step Equations",
+        "intro": [
+            "Sometimes you need TWO steps.",
+            "Step 1: subtract/add the constant.",
+            "Step 2: divide/multiply by the coefficient.",
+            "2x + 3 = 11 \u2192 2x = 8 \u2192 x = 4.",
+            "Always do steps in the right order.",
+        ],
+        "real_life": [
+            {"text": "1. 2x+3=11 \u2192 2x=8 \u2192 x=4",
+             "diagram": "equation_steps", "steps": ["2x + 3 = 11", "2x = 8", "x = 4"],
+             "caption": "subtract 3, then divide by 2"},
+            {"text": "2. 3x+1=13 \u2192 3x=12 \u2192 x=4",
+             "diagram": "equation_steps", "steps": ["3x + 1 = 13", "3x = 12", "x = 4"],
+             "caption": "subtract 1, then divide by 3"},
+            {"text": "3. 2x+5=15 \u2192 2x=10 \u2192 x=5",
+             "diagram": "equation_steps", "steps": ["2x + 5 = 15", "2x = 10", "x = 5"],
+             "caption": "subtract 5, then divide by 2"},
+        ],
+        "card": card_multi_step_eq,
+        "solved": [
+            {"q": "Ex: Solve 3x + 1 = 13.",
+             "steps": ["3x = 13 - 1 = 12", "x = 12 \u00f7 3", "Answer: x = 4"]},
+        ],
+        "tips": [
+            "Subtract/add the constant first.",
+            "Then divide/multiply by the coefficient.",
+            "Work top to bottom, one step at a time.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve 2x+1=9.",
+                "2. Solve 4x+3=15.",
+                "3. Solve 3x+2=14.",
+            ],
+            "answers": "1) x=4    2) x=3    3) x=4",
+        },
+    },
+
+    # ---- 12CUM1 Mixed A+B+C ----
+    "12CUM1": {
+        "title": "Review: Concept, One-Step, Multi-Step",
+        "intro": [
+            "Expression: no '='. Equation: has '='.",
+            "One-step: undo with one opposite operation.",
+            "Multi-step: subtract/add, then divide/multiply.",
+            "Always isolate x on one side.",
+            "Check the solution by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. x+5=8 is an equation",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "8",
+             "caption": "balanced equation"},
+            {"text": "2. x+4=9 \u2192 x=5 (one step)",
+             "diagram": "balance_scale", "left_text": "x + 4", "right_text": "9",
+             "caption": "subtract 4"},
+            {"text": "3. 2x+3=11 \u2192 x=4 (two steps)",
+             "diagram": "equation_steps", "steps": ["2x + 3 = 11", "2x = 8", "x = 4"],
+             "caption": "subtract then divide"},
+        ],
+        "card": card_multi_step_eq,
+        "solved": [
+            {"q": "Ex: Solve x+6=10, then 2x+1=9.",
+             "steps": ["x+6=10 \u2192 x=4", "2x+1=9 \u2192 2x=8 \u2192 x=4"]},
+        ],
+        "tips": [
+            "Has '=' \u2192 equation.",
+            "One-step: one opposite operation.",
+            "Multi-step: two operations in order.",
+            "Always check your answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 'x-3' an expression or equation?",
+                "2. Solve x+7=12.",
+                "3. Solve 2x+4=10.",
+            ],
+            "answers": "1) expression    2) x=5    3) x=3",
+        },
+    },
+
+    # ---- 12D Word problems ----
+    "12D": {
+        "title": "Word Problems to Equations",
+        "intro": [
+            "Pick a letter for the unknown.",
+            "Translate the story into an equation.",
+            "\u2018more\u2019 \u2192 add. \u2018gives away\u2019 \u2192 subtract.",
+            "\u2018x sweets + 3 more, total 10\u2019 \u2192 x+3=10.",
+            "Solve, then check it fits the story.",
+        ],
+        "real_life": [
+            {"text": "1. x sweets +3 more = 10 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["x + 3 = 10", "x = 10 - 3", "x = 7"],
+             "caption": "translate then solve"},
+            {"text": "2. x pens -2 given = 5 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["x - 2 = 5", "x = 5 + 2", "x = 7"],
+             "caption": "translate then solve"},
+            {"text": "3. 3 books at Rs x = Rs 21 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["3x = 21", "x = 21 \u00f7 3", "x = 7"],
+             "caption": "translate then solve"},
+        ],
+        "card": card_word_to_equation,
+        "solved": [
+            {"q": "Ex: Meena has x pens, gives away 2, has 5 left.",
+             "steps": ["x - 2 = 5", "x = 5 + 2", "Answer: x = 7"]},
+        ],
+        "tips": [
+            "Choose a letter for the unknown.",
+            "Translate the story carefully.",
+            "Solve step by step.",
+            "Check: does it make sense?",
+        ],
+        "try_it": {
+            "questions": [
+                "1. x apples + 4 more = 9. Find x.",
+                "2. x rupees - 5 spent = 12 left. Find x.",
+                "3. 4 pencils at Rs x = Rs 20. Find x.",
+            ],
+            "answers": "1) x=5    2) x=17    3) x=5",
+        },
+    },
+
+    # ---- 12E Equation applications ----
+    "12E": {
+        "title": "Equation Applications",
+        "intro": [
+            "Real situations turn into equations.",
+            "Cost, age, and distance problems are common.",
+            "Set up the equation from the clues.",
+            "A book Rs x, 3 books Rs 36 \u2192 3x=36.",
+            "Solve for the unknown amount.",
+        ],
+        "real_life": [
+            {"text": "1. 3 books at Rs x = Rs 36 \u2192 x=12",
+             "diagram": "equation_steps", "steps": ["3x = 36", "x = 36 \u00f7 3", "x = 12"],
+             "caption": "cost per book"},
+            {"text": "2. Ravi is x yrs, in 4 yrs he's 13 \u2192 x=9",
+             "diagram": "equation_steps", "steps": ["x + 4 = 13", "x = 13 - 4", "x = 9"],
+             "caption": "age problem"},
+            {"text": "3. Taxi: Rs5 + Rs2/km, 6km \u2192 Rs17",
+             "diagram": "equation_steps", "steps": ["5 + 2\u00d76", "5 + 12", "= 17"],
+             "caption": "fixed + rate \u00d7 distance"},
+        ],
+        "card": card_word_to_equation,
+        "solved": [
+            {"q": "Ex: A taxi charges Rs5 + Rs2/km. Cost for 6km?",
+             "steps": ["5 + 2\u00d76", "5 + 12", "Answer = Rs 17"]},
+        ],
+        "tips": [
+            "Identify the unknown.",
+            "Build the equation from the story.",
+            "Solve step by step.",
+            "Keep the units in the answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 4 pens at Rs x = Rs 32. Find x.",
+                "2. Meena is x yrs, in 5 yrs she's 15. Find x.",
+                "3. Taxi Rs10 + Rs3/km, 4km. Total cost?",
+            ],
+            "answers": "1) x=8    2) x=10    3) Rs 22",
+        },
+    },
+
+    # ---- 12CUM2 Mixed D+E+F ----
+    "12CUM2": {
+        "title": "Review: Word Problems, Applications, Puzzles",
+        "intro": [
+            "Translate words/situations into equations.",
+            "Solve step by step, in the right order.",
+            "Number puzzles: \u2018think of a number\u2019 style.",
+            "Set up, solve, then check the story.",
+            "Keep units where relevant.",
+        ],
+        "real_life": [
+            {"text": "1. x sweets +3 more = 10 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["x + 3 = 10", "x = 7"],
+             "caption": "word problem"},
+            {"text": "2. 3 books at Rs x = Rs 36 \u2192 x=12",
+             "diagram": "equation_steps", "steps": ["3x = 36", "x = 12"],
+             "caption": "application"},
+            {"text": "3. Add 5 to my number, get 12 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["x + 5 = 12", "x = 7"],
+             "caption": "number puzzle"},
+        ],
+        "card": card_number_puzzle,
+        "solved": [
+            {"q": "Ex: Double a number, add 5, get 17.",
+             "steps": ["2x + 5 = 17", "2x = 12", "x = 6"]},
+        ],
+        "tips": [
+            "Translate carefully into an equation.",
+            "Solve in the correct order.",
+            "Number puzzles follow the same rule.",
+            "Check the answer fits.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. x toys + 6 more = 14. Find x.",
+                "2. 5 erasers at Rs x = Rs 25. Find x.",
+                "3. Treble my number, get 21. Find x.",
+            ],
+            "answers": "1) x=8    2) x=5    3) x=7",
+        },
+    },
+
+    # ---- 12F Equation puzzles ----
+    "12F": {
+        "title": "Number Puzzles",
+        "intro": [
+            "\u2018Think of a number\u2019 puzzles use equations.",
+            "Write what happens to the number as an equation.",
+            "Add 5, get 12 \u2192 x+5=12.",
+            "Double, get 14 \u2192 2x=14.",
+            "Solve to find the mystery number.",
+        ],
+        "real_life": [
+            {"text": "1. Add 5, get 12 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["x + 5 = 12", "x = 7"],
+             "caption": "subtract 5"},
+            {"text": "2. Subtract 3, get 8 \u2192 x=11",
+             "diagram": "equation_steps", "steps": ["x - 3 = 8", "x = 11"],
+             "caption": "add 3"},
+            {"text": "3. Double, get 14 \u2192 x=7",
+             "diagram": "equation_steps", "steps": ["2x = 14", "x = 7"],
+             "caption": "divide by 2"},
+        ],
+        "card": card_number_puzzle,
+        "solved": [
+            {"q": "Ex: I double my number and get 14. Find it.",
+             "steps": ["2x = 14", "x = 14 \u00f7 2", "Answer: x = 7"]},
+        ],
+        "tips": [
+            "Write the operation as an equation.",
+            "Undo the operation to solve.",
+            "Double \u2192 \u00f72. Add \u2192 subtract.",
+            "Check by working forwards again.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Add 9, get 15. Find the number.",
+                "2. Subtract 6, get 4. Find the number.",
+                "3. Treble, get 18. Find the number.",
+            ],
+            "answers": "1) x=6    2) x=10    3) x=6",
+        },
+    },
+
+    # ---- 12G Mixed equations ----
+    "12G": {
+        "title": "Solving Mixed Equations",
+        "intro": [
+            "Mix of +, -, \u00d7 equations.",
+            "Identify the operation, then undo it.",
+            "x+8=15 \u2192 subtract 8.",
+            "x-4=9 \u2192 add 4.",
+            "5x=30 \u2192 divide by 5.",
+        ],
+        "real_life": [
+            {"text": "1. x+8=15 \u2192 x=7",
+             "diagram": "balance_scale", "left_text": "x + 8", "right_text": "15",
+             "caption": "subtract 8"},
+            {"text": "2. x-4=9 \u2192 x=13",
+             "diagram": "equation_steps", "steps": ["x - 4 = 9", "x = 13"],
+             "caption": "add 4"},
+            {"text": "3. 5x=30 \u2192 x=6",
+             "diagram": "equation_steps", "steps": ["5x = 30", "x = 6"],
+             "caption": "divide by 5"},
+        ],
+        "card": card_one_step_eq,
+        "solved": [
+            {"q": "Ex: Solve 5x = 30.",
+             "steps": ["Divide both sides by 5", "x = 30 \u00f7 5", "Answer: x = 6"]},
+        ],
+        "tips": [
+            "Identify the operation used.",
+            "Undo it with the opposite.",
+            "+ \u2194 -, \u00d7 \u2194 \u00f7.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+9=16.",
+                "2. Solve x-7=8.",
+                "3. Solve 4x=28.",
+            ],
+            "answers": "1) x=7    2) x=15    3) x=7",
+        },
+    },
+
+    # ---- 12H Speed solving ----
+    "12H": {
+        "title": "Speed Solving Equations",
+        "intro": [
+            "Practice solving QUICKLY and accurately.",
+            "Spot the operation right away.",
+            "x+3=8 \u2192 instantly think x=8-3.",
+            "Build speed with the same method every time.",
+            "Accuracy first, then speed.",
+        ],
+        "real_life": [
+            {"text": "1. x+3=8 \u2192 x=5",
+             "diagram": "balance_scale", "left_text": "x + 3", "right_text": "8",
+             "caption": "subtract 3"},
+            {"text": "2. x+5=11 \u2192 x=6",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "11",
+             "caption": "subtract 5"},
+            {"text": "3. x+7=15 \u2192 x=8",
+             "diagram": "balance_scale", "left_text": "x + 7", "right_text": "15",
+             "caption": "subtract 7"},
+        ],
+        "card": card_one_step_eq,
+        "solved": [
+            {"q": "Ex: Solve x + 7 = 15 quickly.",
+             "steps": ["x = 15 - 7", "Answer: x = 8"]},
+        ],
+        "tips": [
+            "Spot the operation instantly.",
+            "Apply the opposite right away.",
+            "Same method every time builds speed.",
+            "Don't skip checking.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+4=12.",
+                "2. Solve x+9=20.",
+                "3. Solve x+2=9.",
+            ],
+            "answers": "1) x=8    2) x=11    3) x=7",
+        },
+    },
+
+    # ---- 12I Hard problems ----
+    "12I": {
+        "title": "Harder Equation Problems",
+        "intro": [
+            "Translate tricky phrasing carefully.",
+            "\u2018Twice a number\u2019 \u2192 2x.",
+            "\u2018Reduced by\u2019 \u2192 subtract.",
+            "\u2018Sum with its double\u2019 \u2192 x + 2x = 3x.",
+            "Set up fully before solving.",
+        ],
+        "real_life": [
+            {"text": "1. 5 added to twice a number = 17",
+             "diagram": "equation_steps", "steps": ["2x + 5 = 17", "2x = 12", "x = 6"],
+             "caption": "twice = 2x"},
+            {"text": "2. Treble a number reduced by 4 = 14",
+             "diagram": "equation_steps", "steps": ["3x - 4 = 14", "3x = 18", "x = 6"],
+             "caption": "reduced by = subtract"},
+            {"text": "3. Sum of a number and its double = 24",
+             "diagram": "equation_steps", "steps": ["x + 2x = 24", "3x = 24", "x = 8"],
+             "caption": "combine like terms first"},
+        ],
+        "card": card_multi_step_eq,
+        "solved": [
+            {"q": "Ex: Sum of a number and its double is 24.",
+             "steps": ["x + 2x = 24", "3x = 24", "Answer: x = 8"]},
+        ],
+        "tips": [
+            "Twice/double \u2192 2x. Treble \u2192 3x.",
+            "Reduced by/less \u2192 subtract.",
+            "Combine like terms first.",
+            "Then solve as usual.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 4 added to twice a number = 16. Find it.",
+                "2. Double a number reduced by 3 = 9. Find it.",
+                "3. Sum of a number and its treble = 20. Find it.",
+            ],
+            "answers": "1) x=6    2) x=6    3) x=5",
+        },
+    },
+
+    # ---- 12CUM3 Mixed G+H+I ----
+    "12CUM3": {
+        "title": "Review: Mixed, Speed, Hard Problems",
+        "intro": [
+            "Identify the operation, undo it.",
+            "Build speed with consistent method.",
+            "Tricky phrasing: twice=2x, treble=3x.",
+            "Combine like terms before solving.",
+            "Always check your final answer.",
+        ],
+        "real_life": [
+            {"text": "1. x+8=15 \u2192 x=7",
+             "diagram": "balance_scale", "left_text": "x + 8", "right_text": "15",
+             "caption": "one-step"},
+            {"text": "2. x+4=12 \u2192 x=8 (speed)",
+             "diagram": "balance_scale", "left_text": "x + 4", "right_text": "12",
+             "caption": "quick solve"},
+            {"text": "3. 2x+5=17 \u2192 x=6 (hard)",
+             "diagram": "equation_steps", "steps": ["2x + 5 = 17", "2x = 12", "x = 6"],
+             "caption": "twice a number"},
+        ],
+        "card": card_multi_step_eq,
+        "solved": [
+            {"q": "Ex: Solve x+6=13, then 3x-2=10.",
+             "steps": ["x+6=13 \u2192 x=7", "3x-2=10 \u2192 3x=12 \u2192 x=4"]},
+        ],
+        "tips": [
+            "Spot the operation fast.",
+            "Use the same method every time.",
+            "Translate tricky words carefully.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+5=11.",
+                "2. Solve 2x+3=13.",
+                "3. Treble a number is 21. Find it.",
+            ],
+            "answers": "1) x=6    2) x=5    3) x=7",
+        },
+    },
+
+    # ---- 12J Mixed challenge ----
+    "12J": {
+        "title": "Equations — Mixed Challenge",
+        "intro": [
+            "Mix concept, solving, and word problems.",
+            "Has '=' \u2192 equation; can be solved.",
+            "One-step: one opposite operation.",
+            "Multi-step: subtract/add, then divide/multiply.",
+            "Always check your final answer.",
+        ],
+        "real_life": [
+            {"text": "1. x+5=10 is an equation",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "10",
+             "caption": "has '=' sign"},
+            {"text": "2. x+6=11 \u2192 x=5",
+             "diagram": "balance_scale", "left_text": "x + 6", "right_text": "11",
+             "caption": "subtract 6"},
+            {"text": "3. x-4=7 \u2192 x=11",
+             "diagram": "equation_steps", "steps": ["x - 4 = 7", "x = 11"],
+             "caption": "add 4"},
+        ],
+        "card": card_one_step_eq,
+        "solved": [
+            {"q": "Ex: Is 'x+5=10' an equation? Solve x+6=11.",
+             "steps": ["Has '=' \u2192 yes, equation", "x+6=11 \u2192 x=5"]},
+        ],
+        "tips": [
+            "Has '=' \u2192 equation.",
+            "Undo the operation to solve.",
+            "Multi-step: order matters.",
+            "Always verify your answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 'x-2=6' an equation?",
+                "2. Solve x+8=12.",
+                "3. Solve x-5=9.",
+            ],
+            "answers": "1) Yes    2) x=4    3) x=14",
+        },
+    },
+
+    # ---- 12REV Revision ----
+    "12REV": {
+        "title": "Level 12 Revision — Algebra (Equations)",
+        "intro": [
+            "Equation has '='; expression does not.",
+            "Solve by undoing operations on both sides.",
+            "Multi-step: constant first, then coefficient.",
+            "Word problems: translate, then solve.",
+            "Always check by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. x+5=8 is an equation",
+             "diagram": "balance_scale", "left_text": "x + 5", "right_text": "8",
+             "caption": "has '=' sign"},
+            {"text": "2. x+4=9 \u2192 x=5",
+             "diagram": "balance_scale", "left_text": "x + 4", "right_text": "9",
+             "caption": "one-step solve"},
+            {"text": "3. 2x+3=11 \u2192 x=4",
+             "diagram": "equation_steps", "steps": ["2x + 3 = 11", "2x = 8", "x = 4"],
+             "caption": "multi-step solve"},
+        ],
+        "card": card_multi_step_eq,
+        "solved": [
+            {"q": "Ex: Solve x+7=13, then 2x+1=9.",
+             "steps": ["x+7=13 \u2192 x=6", "2x+1=9 \u2192 2x=8 \u2192 x=4"]},
+        ],
+        "tips": [
+            "'=' sign makes it an equation.",
+            "Undo operations to isolate x.",
+            "Multi-step: subtract/add, then \u00f7/\u00d7.",
+            "Check by substituting back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Solve x+9=14.",
+                "2. Solve 3x+2=11.",
+                "3. x toys + 5 more = 12. Find x.",
+            ],
+            "answers": "1) x=5    2) x=3    3) x=7",
         },
     },
 }
