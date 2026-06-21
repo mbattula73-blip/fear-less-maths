@@ -579,6 +579,162 @@ def degree_terms_vec(c, x, y, w, terms):
     return bh + 3 * mm
 
 
+def _draw_coord_grid(c, x, y, w, h, xmin, xmax, ymin, ymax, quadrant_labels=False):
+    """Low-level Cartesian grid + axes drawer. Returns to_px(px,py)->(cx,cy)."""
+    import math as _m
+
+    def to_px(px, py):
+        cx = x + (px - xmin) / (xmax - xmin) * w
+        cy = (y - h) + (py - ymin) / (ymax - ymin) * h
+        return cx, cy
+
+    c.setStrokeColor(LGRAY); c.setLineWidth(0.4)
+    for gx in range(_m.ceil(xmin), _m.floor(xmax) + 1):
+        x0, y0 = to_px(gx, ymin); x1, y1 = to_px(gx, ymax)
+        c.line(x0, y0, x1, y1)
+    for gy in range(_m.ceil(ymin), _m.floor(ymax) + 1):
+        x0, y0 = to_px(xmin, gy); x1, y1 = to_px(xmax, gy)
+        c.line(x0, y0, x1, y1)
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    if ymin <= 0 <= ymax:
+        x0, y0 = to_px(xmin, 0); x1, y1 = to_px(xmax, 0)
+        c.line(x0, y0, x1, y1)
+        c.line(x1, y1, x1 - 2 * mm, y1 + 1.2 * mm)
+        c.line(x1, y1, x1 - 2 * mm, y1 - 1.2 * mm)
+        c.setFont("Helvetica-Bold", 8); c.setFillColor(MGRAY)
+        c.drawString(x1 + 0.5 * mm, y1 - 1 * mm, "x")
+    if xmin <= 0 <= xmax:
+        x0, y0 = to_px(0, ymin); x1, y1 = to_px(0, ymax)
+        c.line(x0, y0, x1, y1)
+        c.line(x1, y1, x1 - 1.2 * mm, y1 - 2 * mm)
+        c.line(x1, y1, x1 + 1.2 * mm, y1 - 2 * mm)
+        c.setFont("Helvetica-Bold", 8); c.setFillColor(MGRAY)
+        c.drawString(x1 + 0.5 * mm, y1 + 0.5 * mm, "y")
+    if quadrant_labels and xmin < 0 < xmax and ymin < 0 < ymax:
+        c.setFont("Helvetica-Oblique", 8); c.setFillColor(LGRAY)
+        for (qx, qy, lab) in [(xmax * 0.6, ymax * 0.6, "I"), (xmin * 0.6, ymax * 0.6, "II"),
+                               (xmin * 0.6, ymin * 0.6, "III"), (xmax * 0.6, ymin * 0.6, "IV")]:
+            cx, cy = to_px(qx, qy)
+            c.drawCentredString(cx, cy, lab)
+    return to_px
+
+
+def _fmt_num(v):
+    return str(int(v)) if float(v) == int(v) else f"{v:g}"
+
+
+def coord_plane_vec(c, x, y, w, points=None, guides=None,
+                    xmin=-4, xmax=4, ymin=-4, ymax=4, quadrant_labels=True):
+    """Cartesian plane with optional points plotted and dashed guide lines
+    (e.g. showing the move-right/move-up path to a point). Returns height."""
+    h = w * (ymax - ymin) / (xmax - xmin)
+    to_px = _draw_coord_grid(c, x, y, w, h, xmin, xmax, ymin, ymax, quadrant_labels)
+    if guides:
+        c.setStrokeColor(GOLD); c.setLineWidth(1.1); c.setDash([2, 2])
+        for p1, p2 in guides:
+            x0, y0 = to_px(*p1); x1, y1 = to_px(*p2)
+            c.line(x0, y0, x1, y1)
+        c.setDash([])
+    if points:
+        for (px, py, label, color) in points:
+            cx, cy = to_px(px, py)
+            c.setFillColor(color); c.circle(cx, cy, 1.6 * mm, fill=1, stroke=0)
+            c.setFont("Helvetica-Bold", 8.5); c.setFillColor(BLACK)
+            c.drawString(cx + 2 * mm, cy + 1 * mm,
+                        f"{label}({_fmt_num(px)},{_fmt_num(py)})")
+    return h + 4 * mm
+
+
+def distance_triangle_vec(c, x, y, w, p1, p2):
+    """Plot p1,p2; draw the right-triangle legs (dashed) and the
+    hypotenuse (solid gold) = the distance. Returns height used."""
+    import math
+    xs = [p1[0], p2[0]]; ys = [p1[1], p2[1]]
+    xmin, xmax = min(xs) - 1, max(xs) + 1
+    ymin, ymax = min(ys) - 1, max(ys) + 1
+    h = w * (ymax - ymin) / (xmax - xmin)
+    h = max(min(h, 50 * mm), 28 * mm)
+    to_px = _draw_coord_grid(c, x, y, w, h, xmin, xmax, ymin, ymax)
+    cx1, cy1 = to_px(*p1); cx2, cy2 = to_px(*p2)
+    corner = (p2[0], p1[1])
+    ccx, ccy = to_px(*corner)
+    c.setStrokeColor(MGRAY); c.setLineWidth(1); c.setDash([2, 2])
+    c.line(cx1, cy1, ccx, ccy)
+    c.line(ccx, ccy, cx2, cy2)
+    c.setDash([])
+    c.setStrokeColor(GOLD); c.setLineWidth(1.6)
+    c.line(cx1, cy1, cx2, cy2)
+    for (pp, (cxp, cyp), lab) in [(p1, (cx1, cy1), "A"), (p2, (cx2, cy2), "B")]:
+        c.setFillColor(BLUE); c.circle(cxp, cyp, 1.5 * mm, fill=1, stroke=0)
+        c.setFont("Helvetica-Bold", 8.5); c.setFillColor(BLACK)
+        c.drawString(cxp + 2 * mm, cyp + 1 * mm,
+                    f"{lab}({_fmt_num(pp[0])},{_fmt_num(pp[1])})")
+    dx = abs(p2[0] - p1[0]); dy = abs(p2[1] - p1[1])
+    dist = math.sqrt(dx * dx + dy * dy)
+    midhx, midhy = (cx1 + ccx) / 2, (cy1 + ccy) / 2
+    c.setFont("Helvetica-Bold", 9); c.setFillColor(MGRAY)
+    c.drawCentredString(midhx, midhy - 3 * mm, _fmt_num(dx))
+    midvx, midvy = (ccx + cx2) / 2, (ccy + cy2) / 2
+    c.drawCentredString(midvx + 3 * mm, midvy, _fmt_num(dy))
+    midx, midy = (cx1 + cx2) / 2, (cy1 + cy2) / 2
+    c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(midx, midy + 3 * mm, f"dist={_fmt_num(dist)}")
+    return h + 6 * mm
+
+
+def midpoint_vec(c, x, y, w, p1, p2):
+    """Plot p1,p2 with a connecting segment and the midpoint marked
+    distinctly in gold. Returns height used."""
+    xs = [p1[0], p2[0]]; ys = [p1[1], p2[1]]
+    xmin, xmax = min(xs) - 1, max(xs) + 1
+    ymin, ymax = min(ys) - 1, max(ys) + 1
+    h = w * (ymax - ymin) / (xmax - xmin)
+    h = max(min(h, 42 * mm), 26 * mm)
+    to_px = _draw_coord_grid(c, x, y, w, h, xmin, xmax, ymin, ymax)
+    cx1, cy1 = to_px(*p1); cx2, cy2 = to_px(*p2)
+    c.setStrokeColor(BLUE); c.setLineWidth(1.4)
+    c.line(cx1, cy1, cx2, cy2)
+    mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+    cmx, cmy = to_px(mx, my)
+    for (pp, (cxp, cyp), lab) in [(p1, (cx1, cy1), "A"), (p2, (cx2, cy2), "B")]:
+        c.setFillColor(BLUE); c.circle(cxp, cyp, 1.5 * mm, fill=1, stroke=0)
+        c.setFont("Helvetica-Bold", 8.5); c.setFillColor(BLACK)
+        c.drawString(cxp + 2 * mm, cyp + 1 * mm,
+                    f"{lab}({_fmt_num(pp[0])},{_fmt_num(pp[1])})")
+    c.setFillColor(GOLD); c.circle(cmx, cmy, 1.8 * mm, fill=1, stroke=0)
+    c.setFont("Helvetica-Bold", 9); c.setFillColor(GOLD)
+    c.drawString(cmx + 2 * mm, cmy - 3.5 * mm, f"M({_fmt_num(mx)},{_fmt_num(my)})")
+    return h + 6 * mm
+
+
+def line_graph_vec(c, x, y, w, slope, intercept, xmin=-1, xmax=4):
+    """Draw y=mx+c on a grid; mark the y-intercept dot and a rise/run triangle."""
+    ys_at = [slope * v + intercept for v in (xmin, xmax)]
+    ymin = min(ys_at + [0]) - 1; ymax = max(ys_at + [0]) + 1
+    h = w * 0.72
+    to_px = _draw_coord_grid(c, x, y, w, h, xmin, xmax, ymin, ymax)
+    x0v, y0v = xmin, slope * xmin + intercept
+    x1v, y1v = xmax, slope * xmax + intercept
+    cx0, cy0 = to_px(x0v, y0v); cx1, cy1 = to_px(x1v, y1v)
+    c.setStrokeColor(BLUE); c.setLineWidth(1.6)
+    c.line(cx0, cy0, cx1, cy1)
+    bx, by = to_px(0, intercept)
+    c.setFillColor(GOLD); c.circle(bx, by, 1.8 * mm, fill=1, stroke=0)
+    # rise/run triangle offset further along the line to avoid the axis/marker
+    rx0v = 1
+    ry0v = intercept + slope * rx0v
+    rx1v = rx0v + 1
+    ry1v = intercept + slope * rx1v
+    crx0, cry0 = to_px(rx0v, ry0v); crx1, cry1 = to_px(rx1v, ry0v); crx2, cry2 = to_px(rx1v, ry1v)
+    c.setStrokeColor(MGRAY); c.setLineWidth(0.9); c.setDash([2, 2])
+    c.line(crx0, cry0, crx1, cry1); c.line(crx1, cry1, crx2, cry2)
+    c.setDash([])
+    c.setFont("Helvetica", 8); c.setFillColor(MGRAY)
+    c.drawCentredString((crx0 + crx1) / 2, cry0 - 3 * mm, "run=1")
+    c.drawCentredString(crx1 + 4.5 * mm, (cry1 + cry2) / 2, f"rise={_fmt_num(slope)}")
+    return h + 6 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -899,6 +1055,33 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
+    if kind == "coord_plane":
+        used = coord_plane_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                              points=rl.get("points"), guides=rl.get("guides"),
+                              xmin=rl.get("xmin", -4), xmax=rl.get("xmax", 4),
+                              ymin=rl.get("ymin", -4), ymax=rl.get("ymax", 4),
+                              quadrant_labels=rl.get("quadrant_labels", True))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "distance_triangle":
+        used = distance_triangle_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                                    rl["p1"], rl["p2"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "midpoint":
+        used = midpoint_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["p1"], rl["p2"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
+    if kind == "line_graph":
+        used = line_graph_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                             rl["slope"], rl["intercept"],
+                             xmin=rl.get("xmin", -1), xmax=rl.get("xmax", 4))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
     return 0
 
 
@@ -1586,6 +1769,75 @@ def card_factorisation(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_coord_plane(c, x, y, w):
+    """Cartesian plane card with quadrants and a sample point."""
+    card_h = 80 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "The Coordinate Plane:")
+    grid_w = min(w - 8 * mm, 56 * mm)
+    coord_plane_vec(c, x + 4 * mm, y - 10 * mm, grid_w,
+                    points=[(3, 2, "P", GOLD)])
+    return y - card_h - 2 * mm
+
+
+def card_plotting(c, x, y, w):
+    """Plotting-points card with move-right/move-up guide lines."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Plot (6,2): right 6, up 2:")
+    coord_plane_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
+                    points=[(6, 2, "P", GOLD)],
+                    guides=[((0, 0), (6, 0)), ((6, 0), (6, 2))],
+                    xmin=-1, xmax=8, ymin=-1, ymax=5, quadrant_labels=False)
+    return y - card_h - 2 * mm
+
+
+def card_distance(c, x, y, w):
+    """Distance-formula right-triangle card."""
+    card_h = 72 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Distance from (0,0) to (3,4):")
+    used = distance_triangle_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, (0, 0), (3, 4))
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "dist = sqrt(3^2 + 4^2) = sqrt(25) = 5")
+    return y - card_h - 2 * mm
+
+
+def card_midpoint(c, x, y, w):
+    """Midpoint-formula card."""
+    card_h = 68 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Midpoint of (0,0) and (4,6):")
+    used = midpoint_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, (0, 0), (4, 6))
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "M = ((x1+x2)/2, (y1+y2)/2) = (2,3)")
+    return y - card_h - 2 * mm
+
+
+def card_line_graph(c, x, y, w):
+    """Slope-intercept line graph card."""
+    card_h = 76 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "y = 2x + 1:")
+    used = line_graph_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, 2, 1)
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 10 * mm - used - 4 * mm, "slope=2 (rise/run), y-intercept=1")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -1609,6 +1861,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L13.get(sublevel_code)
     if level_num == 14:
         return _L14.get(sublevel_code)
+    if level_num == 15:
+        return _L15.get(sublevel_code)
     return None
 
 
@@ -7012,6 +7266,625 @@ _L14 = {
                 "3. Factorise 12x+18.",
             ],
             "answers": "1) 3    2) x^2+8x+12    3) 6(2x+3)",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 15 — Coordinate Geometry: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L15 = {
+    # ---- 15A Coordinate plane ----
+    "15A": {
+        "title": "The Coordinate Plane",
+        "intro": [
+            "Two number lines cross at the ORIGIN (0,0).",
+            "x-axis is horizontal; y-axis is vertical.",
+            "A point is written (x, y).",
+            "x tells how far right/left; y tells up/down.",
+            "The plane has 4 quadrants: I, II, III, IV.",
+        ],
+        "real_life": [
+            {"text": "1. Origin = (0,0), where axes cross",
+             "diagram": "coord_plane", "points": [(0, 0, "O", BLUE)],
+             "caption": "the starting point"},
+            {"text": "2. Point (5,7): x=5, y=7",
+             "diagram": "coord_plane", "points": [(5, 7, "P", GOLD)],
+             "xmin": -2, "xmax": 8, "ymin": -2, "ymax": 8, "quadrant_labels": False,
+             "caption": "x-coordinate first, y second"},
+            {"text": "3. Quadrant I: both x,y positive",
+             "diagram": "coord_plane", "points": [(3, 3, "Q", GREEN)],
+             "caption": "top-right quadrant"},
+        ],
+        "card": card_coord_plane,
+        "solved": [
+            {"q": "Ex: In the point (5,7), which is the x-coordinate?",
+             "steps": ["Written as (x,y)", "First number is x", "Answer = 5"]},
+        ],
+        "tips": [
+            "Origin = (0,0).",
+            "x first, then y: (x,y).",
+            "Right/up = positive.",
+            "4 quadrants: I, II, III, IV.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. What are the coordinates of the origin?",
+                "2. In (8,3), what is the y-coordinate?",
+                "3. Which quadrant has both x,y positive?",
+            ],
+            "answers": "1) (0,0)    2) 3    3) Quadrant I",
+        },
+    },
+
+    # ---- 15B Plotting points ----
+    "15B": {
+        "title": "Plotting Points",
+        "intro": [
+            "Start at the origin (0,0).",
+            "Move RIGHT (or left) by the x value.",
+            "Then move UP (or down) by the y value.",
+            "Mark the point where you land.",
+            "Negative x \u2192 left; negative y \u2192 down.",
+        ],
+        "real_life": [
+            {"text": "1. Plot (6,2): right 6, up 2",
+             "diagram": "coord_plane", "points": [(6, 2, "P", GOLD)],
+             "guides": [((0, 0), (6, 0)), ((6, 0), (6, 2))],
+             "xmin": -1, "xmax": 8, "ymin": -1, "ymax": 5, "quadrant_labels": False,
+             "caption": "right 6, then up 2"},
+            {"text": "2. Plot (-3,4): left 3, up 4",
+             "diagram": "coord_plane", "points": [(-3, 4, "Q", GOLD)],
+             "guides": [((0, 0), (-3, 0)), ((-3, 0), (-3, 4))],
+             "xmin": -5, "xmax": 3, "ymin": -1, "ymax": 6, "quadrant_labels": False,
+             "caption": "left 3, then up 4"},
+            {"text": "3. Plot (4,-2): right 4, down 2",
+             "diagram": "coord_plane", "points": [(4, -2, "R", GOLD)],
+             "guides": [((0, 0), (4, 0)), ((4, 0), (4, -2))],
+             "xmin": -1, "xmax": 6, "ymin": -4, "ymax": 3, "quadrant_labels": False,
+             "caption": "right 4, then down 2"},
+        ],
+        "card": card_plotting,
+        "solved": [
+            {"q": "Ex: To plot (-3,4), which way first?",
+             "steps": ["x=-3 \u2192 move LEFT 3", "y=4 \u2192 then move UP 4"]},
+        ],
+        "tips": [
+            "x first: right if +, left if -.",
+            "y second: up if +, down if -.",
+            "Always start at the origin.",
+            "Mark the final landing spot.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. To plot (5,3), which direction first?",
+                "2. To plot (-2,-4), which way is x?",
+                "3. To plot (0,6), do you move sideways at all?",
+            ],
+            "answers": "1) right 5, then up 3    2) left    3) No, stay on the y-axis",
+        },
+    },
+
+    # ---- 15C Distance formula ----
+    "15C": {
+        "title": "The Distance Formula",
+        "intro": [
+            "Distance uses the right-triangle idea.",
+            "Horizontal leg \u00d7 horizontal leg + vertical \u00d7 vertical.",
+            "Then take the square root.",
+            "(0,0) to (3,4): legs 3 and 4, distance 5.",
+            "This is just Pythagoras on the grid!",
+        ],
+        "real_life": [
+            {"text": "1. (0,0) to (3,4): distance 5",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (3, 4),
+             "caption": "legs 3,4 \u2192 distance 5"},
+            {"text": "2. (0,0) to (6,8): distance 10",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (6, 8),
+             "caption": "legs 6,8 \u2192 distance 10"},
+            {"text": "3. (0,0) to (5,12): distance 13",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (5, 12),
+             "caption": "legs 5,12 \u2192 distance 13"},
+        ],
+        "card": card_distance,
+        "solved": [
+            {"q": "Ex: Find the distance from (0,0) to (6,8).",
+             "steps": ["legs: 6 and 8", "6^2+8^2 = 36+64 = 100", "sqrt(100) = 10"]},
+        ],
+        "tips": [
+            "Find the horizontal and vertical legs.",
+            "Square each leg, then add.",
+            "Take the square root.",
+            "This is Pythagoras on the grid.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Distance from (0,0) to (8,6)?",
+                "2. Distance from (0,0) to (9,12)?",
+                "3. Distance from (0,0) to (7,24)?",
+            ],
+            "answers": "1) 10    2) 15    3) 25",
+        },
+    },
+
+    # ---- 15CUM1 Mixed A+B+C ----
+    "15CUM1": {
+        "title": "Review: Plane, Plotting, Distance",
+        "intro": [
+            "Origin (0,0); point as (x,y).",
+            "Plot: move right/left for x, up/down for y.",
+            "Distance: legs squared, add, square root.",
+            "Quadrant I has both x,y positive.",
+            "Practice reading and plotting carefully.",
+        ],
+        "real_life": [
+            {"text": "1. Point (5,7) on the plane",
+             "diagram": "coord_plane", "points": [(5, 7, "P", GOLD)],
+             "xmin": -2, "xmax": 8, "ymin": -2, "ymax": 8, "quadrant_labels": False,
+             "caption": "x=5, y=7"},
+            {"text": "2. Plot (6,2): right 6, up 2",
+             "diagram": "coord_plane", "points": [(6, 2, "P", GOLD)],
+             "guides": [((0, 0), (6, 0)), ((6, 0), (6, 2))],
+             "xmin": -1, "xmax": 8, "ymin": -1, "ymax": 5, "quadrant_labels": False,
+             "caption": "right then up"},
+            {"text": "3. Distance (0,0) to (3,4) = 5",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (3, 4),
+             "caption": "legs 3,4 \u2192 5"},
+        ],
+        "card": card_distance,
+        "solved": [
+            {"q": "Ex: Plot (4,3), then find its distance from origin.",
+             "steps": ["Plot: right 4, up 3", "Distance = sqrt(16+9) = 5"]},
+        ],
+        "tips": [
+            "Always start at the origin.",
+            "x first, then y.",
+            "Distance uses Pythagoras.",
+            "Check by counting grid squares.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. In (2,9), what is the x-coordinate?",
+                "2. To plot (1,-5), which way is y?",
+                "3. Distance from (0,0) to (4,3)?",
+            ],
+            "answers": "1) 2    2) down    3) 5",
+        },
+    },
+
+    # ---- 15D Midpoint formula ----
+    "15D": {
+        "title": "The Midpoint Formula",
+        "intro": [
+            "Midpoint = the exact middle of two points.",
+            "Average the x's, then average the y's.",
+            "M = ((x1+x2)/2, (y1+y2)/2).",
+            "(0,0) and (4,6): M = (2,3).",
+            "The midpoint is equally far from both points.",
+        ],
+        "real_life": [
+            {"text": "1. Midpoint of (0,0) and (4,6) = (2,3)",
+             "diagram": "midpoint", "p1": (0, 0), "p2": (4, 6),
+             "caption": "average x's and y's"},
+            {"text": "2. Midpoint of (2,4) and (6,8) = (4,6)",
+             "diagram": "midpoint", "p1": (2, 4), "p2": (6, 8),
+             "caption": "average x's and y's"},
+            {"text": "3. Midpoint of (1,1) and (5,5) = (3,3)",
+             "diagram": "midpoint", "p1": (1, 1), "p2": (5, 5),
+             "caption": "average x's and y's"},
+        ],
+        "card": card_midpoint,
+        "solved": [
+            {"q": "Ex: Find the midpoint of (2,4) and (6,8).",
+             "steps": ["x: (2+6)/2 = 4", "y: (4+8)/2 = 6", "Midpoint = (4,6)"]},
+        ],
+        "tips": [
+            "Average the two x's.",
+            "Average the two y's.",
+            "M = ((x1+x2)/2, (y1+y2)/2).",
+            "Midpoint sits exactly between.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Midpoint of (0,0) and (8,2)?",
+                "2. Midpoint of (3,1) and (7,9)?",
+                "3. Midpoint of (2,2) and (4,4)?",
+            ],
+            "answers": "1) (4,1)    2) (5,5)    3) (3,3)",
+        },
+    },
+
+    # ---- 15E Section concept ----
+    "15E": {
+        "title": "The Section Formula",
+        "intro": [
+            "Section formula finds a point dividing a segment.",
+            "Ratio m:n splits AB into m parts and n parts.",
+            "Ratio 1:1 is the SAME as the midpoint.",
+            "A(0,0), B(6,0), ratio 1:1 \u2192 P=(3,0).",
+            "Ratio 1:2 puts P closer to A.",
+        ],
+        "real_life": [
+            {"text": "1. Ratio 1:1 = midpoint: P=(3,0)",
+             "diagram": "midpoint", "p1": (0, 0), "p2": (6, 0),
+             "caption": "1:1 splits equally"},
+            {"text": "2. A(0,0), B(6,0), ratio 1:2 \u2192 P=(2,0)",
+             "diagram": "coord_plane",
+             "points": [(0, 0, "A", BLUE), (6, 0, "B", BLUE), (2, 0, "P", GOLD)],
+             "xmin": -1, "xmax": 7, "ymin": -2, "ymax": 2, "quadrant_labels": False,
+             "caption": "closer to A (1 part vs 2)"},
+            {"text": "3. A(0,0), B(9,0), ratio 2:1 \u2192 P=(6,0)",
+             "diagram": "coord_plane",
+             "points": [(0, 0, "A", BLUE), (9, 0, "B", BLUE), (6, 0, "P", GOLD)],
+             "xmin": -1, "xmax": 10, "ymin": -2, "ymax": 2, "quadrant_labels": False,
+             "caption": "closer to B (2 parts vs 1)"},
+        ],
+        "card": card_midpoint,
+        "solved": [
+            {"q": "Ex: A(0,0), B(6,0), ratio 1:2. Find P.",
+             "steps": ["Split AB into 1+2=3 parts", "P is 1 part from A: 6\u00f73=2", "P=(2,0)"]},
+        ],
+        "tips": [
+            "Ratio 1:1 \u2192 midpoint.",
+            "More parts on one side \u2192 P closer to other.",
+            "Total parts = sum of ratio numbers.",
+            "Scale the distance by the ratio.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. A(0,0), B(8,0), ratio 1:1. Find P.",
+                "2. A(0,0), B(9,0), ratio 1:2. Find P.",
+                "3. A(0,0), B(12,0), ratio 1:3. Find P.",
+            ],
+            "answers": "1) (4,0)    2) (3,0)    3) (3,0)",
+        },
+    },
+
+    # ---- 15F Graph basics ----
+    "15F": {
+        "title": "Graphing y = mx + c",
+        "intro": [
+            "m = SLOPE (steepness); c = Y-INTERCEPT.",
+            "Slope = rise \u00f7 run (how much y changes per x).",
+            "y-intercept = where the line crosses the y-axis.",
+            "y = 3x + 5: slope 3, y-intercept 5.",
+            "Bigger slope = steeper line.",
+        ],
+        "real_life": [
+            {"text": "1. y=2x+1: slope 2, intercept 1",
+             "diagram": "line_graph", "slope": 2, "intercept": 1,
+             "caption": "rise 2 for every run 1"},
+            {"text": "2. y=3x+5: slope 3, intercept 5",
+             "diagram": "line_graph", "slope": 3, "intercept": 5,
+             "caption": "steeper line"},
+            {"text": "3. y=-2x+4: slope -2, intercept 4",
+             "diagram": "line_graph", "slope": -2, "intercept": 4,
+             "caption": "negative slope goes downhill"},
+        ],
+        "card": card_line_graph,
+        "solved": [
+            {"q": "Ex: In y = -2x + 4, find the slope and y-intercept.",
+             "steps": ["Compare to y=mx+c", "Slope m = -2", "Y-intercept c = 4"]},
+        ],
+        "tips": [
+            "m is the slope (number with x).",
+            "c is the y-intercept (the constant).",
+            "Positive slope \u2192 uphill.",
+            "Negative slope \u2192 downhill.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. In y=4x+2, find the slope.",
+                "2. In y=4x+2, find the y-intercept.",
+                "3. In y=-x+7, find the slope.",
+            ],
+            "answers": "1) 4    2) 2    3) -1",
+        },
+    },
+
+    # ---- 15CUM2 Mixed D+E+F ----
+    "15CUM2": {
+        "title": "Review: Midpoint, Section, Graphs",
+        "intro": [
+            "Midpoint: average the x's and y's.",
+            "Section formula: ratio m:n divides the segment.",
+            "Graph y=mx+c: m=slope, c=y-intercept.",
+            "Ratio 1:1 is the same as midpoint.",
+            "Practice each formula with simple numbers.",
+        ],
+        "real_life": [
+            {"text": "1. Midpoint of (2,4),(6,8) = (4,6)",
+             "diagram": "midpoint", "p1": (2, 4), "p2": (6, 8),
+             "caption": "average x's and y's"},
+            {"text": "2. A(0,0),B(6,0), ratio 1:2 \u2192 P=(2,0)",
+             "diagram": "coord_plane",
+             "points": [(0, 0, "A", BLUE), (6, 0, "B", BLUE), (2, 0, "P", GOLD)],
+             "xmin": -1, "xmax": 7, "ymin": -2, "ymax": 2, "quadrant_labels": False,
+             "caption": "section formula"},
+            {"text": "3. y=2x+1: slope 2, intercept 1",
+             "diagram": "line_graph", "slope": 2, "intercept": 1,
+             "caption": "graph basics"},
+        ],
+        "card": card_line_graph,
+        "solved": [
+            {"q": "Ex: Midpoint of (1,1),(5,5), then slope of y=4x+3.",
+             "steps": ["Midpoint = (3,3)", "Slope = 4"]},
+        ],
+        "tips": [
+            "Midpoint: average both coordinates.",
+            "Section: split by the ratio's parts.",
+            "Slope: coefficient of x.",
+            "Y-intercept: the constant term.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Midpoint of (0,0),(10,4)?",
+                "2. A(0,0),B(10,0), ratio 1:1. Find P.",
+                "3. In y=5x+2, find the slope.",
+            ],
+            "answers": "1) (5,2)    2) (5,0)    3) 5",
+        },
+    },
+
+    # ---- 15G Graph applications ----
+    "15G": {
+        "title": "Graphs in Real Life",
+        "intro": [
+            "Many real situations are straight lines.",
+            "Cost = rate \u00d7 quantity (y=mx, no intercept).",
+            "Speed: distance = speed \u00d7 time.",
+            "Slope = the rate of change.",
+            "Substitute values to find specific answers.",
+        ],
+        "real_life": [
+            {"text": "1. Cost y=50x: 3 units \u2192 Rs150",
+             "diagram": "line_graph", "slope": 50, "intercept": 0, "xmin": 0, "xmax": 4,
+             "caption": "cost grows with quantity"},
+            {"text": "2. Distance y=60x: 4 hours \u2192 240km",
+             "diagram": "equation_steps", "steps": ["y = 60x", "y = 60(4)", "240 km"],
+             "caption": "distance = speed \u00d7 time"},
+            {"text": "3. y=2x+1: at x=3, y=7",
+             "diagram": "line_graph", "slope": 2, "intercept": 1,
+             "caption": "substitute x to find y"},
+        ],
+        "card": card_line_graph,
+        "solved": [
+            {"q": "Ex: Cost y=50x. Find the cost of 10 units.",
+             "steps": ["y = 50(10)", "Answer = Rs 500"]},
+        ],
+        "tips": [
+            "Identify the slope (rate) and intercept.",
+            "Substitute the given x value.",
+            "Calculate y carefully.",
+            "Keep the correct units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cost y=40x. Find cost of 5 units.",
+                "2. Distance y=60x. Find distance in 2 hours.",
+                "3. y=3x+2. Find y when x=4.",
+            ],
+            "answers": "1) Rs 200    2) 120 km    3) 14",
+        },
+    },
+
+    # ---- 15H Mixed ----
+    "15H": {
+        "title": "Coordinate Geometry — Mixed",
+        "intro": [
+            "Mix quadrants, distance, and midpoint.",
+            "Quadrant depends on the signs of x,y.",
+            "Distance uses the right-triangle method.",
+            "Midpoint averages both coordinates.",
+            "Read each question carefully.",
+        ],
+        "real_life": [
+            {"text": "1. (-5,8) is in Quadrant II",
+             "diagram": "coord_plane", "points": [(-5, 8, "P", GOLD)],
+             "xmin": -8, "xmax": 8, "ymin": -8, "ymax": 8,
+             "caption": "x negative, y positive"},
+            {"text": "2. Distance (0,0) to (6,8) = 10",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (6, 8),
+             "caption": "legs 6,8 \u2192 10"},
+            {"text": "3. Midpoint of (2,4),(8,10) = (5,7)",
+             "diagram": "midpoint", "p1": (2, 4), "p2": (8, 10),
+             "caption": "average x's and y's"},
+        ],
+        "card": card_distance,
+        "solved": [
+            {"q": "Ex: Find the quadrant of (-5,8).",
+             "steps": ["x negative, y positive", "That's Quadrant II"]},
+        ],
+        "tips": [
+            "(+,+) \u2192 I; (-,+) \u2192 II.",
+            "(-,-) \u2192 III; (+,-) \u2192 IV.",
+            "Distance: Pythagoras on the grid.",
+            "Midpoint: average both coordinates.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Quadrant of (4,-3)?",
+                "2. Distance from (0,0) to (8,15)?",
+                "3. Midpoint of (1,3),(7,9)?",
+            ],
+            "answers": "1) IV    2) 17    3) (4,6)",
+        },
+    },
+
+    # ---- 15I Puzzle graphs ----
+    "15I": {
+        "title": "Coordinate Puzzles",
+        "intro": [
+            "Use the given clue to find a missing value.",
+            "Distance from origin uses Pythagoras.",
+            "Midpoint clues need reverse arithmetic.",
+            "(a,0) at distance 5 \u2192 a=5 (on the x-axis).",
+            "Work backwards from the formula.",
+        ],
+        "real_life": [
+            {"text": "1. (a,0) distance 5 from origin \u2192 a=5",
+             "diagram": "coord_plane", "points": [(5, 0, "P", GOLD)],
+             "xmin": -1, "xmax": 7, "ymin": -3, "ymax": 3, "quadrant_labels": False,
+             "caption": "on the x-axis, distance=a"},
+            {"text": "2. (0,b) distance 12 from origin \u2192 b=12",
+             "diagram": "coord_plane", "points": [(0, 12, "Q", GOLD)],
+             "xmin": -3, "xmax": 3, "ymin": -1, "ymax": 14, "quadrant_labels": False,
+             "caption": "on the y-axis, distance=b"},
+            {"text": "3. Midpoint of (2,k),(8,10) is (5,7). Find k",
+             "diagram": "equation_steps",
+             "steps": ["(k+10)/2 = 7", "k+10 = 14", "k = 4"],
+             "caption": "reverse the midpoint formula"},
+        ],
+        "card": card_midpoint,
+        "solved": [
+            {"q": "Ex: Midpoint of (2,k) and (8,10) is (5,7). Find k.",
+             "steps": ["(k+10)/2 = 7", "k+10 = 14", "k = 4"]},
+        ],
+        "tips": [
+            "On an axis, distance = the nonzero coordinate.",
+            "Reverse the midpoint formula carefully.",
+            "Set up an equation, then solve.",
+            "Check your answer fits.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. (a,0) distance 7 from origin. Find a.",
+                "2. Midpoint of (1,k),(5,9) is (3,6). Find k.",
+                "3. (0,b) distance 9 from origin. Find b.",
+            ],
+            "answers": "1) a=7    2) k=3    3) b=9",
+        },
+    },
+
+    # ---- 15CUM3 Mixed G+H+I ----
+    "15CUM3": {
+        "title": "Review: Applications, Mixed, Puzzles",
+        "intro": [
+            "Real-life graphs: identify slope and intercept.",
+            "Quadrants depend on the signs of x,y.",
+            "Puzzles: reverse the formula to find unknowns.",
+            "Distance and midpoint use the same coordinates.",
+            "Always check your final answer.",
+        ],
+        "real_life": [
+            {"text": "1. Cost y=50x: 3 units \u2192 Rs150",
+             "diagram": "line_graph", "slope": 50, "intercept": 0, "xmin": 0, "xmax": 4,
+             "caption": "real-life graph"},
+            {"text": "2. (-5,8) is Quadrant II",
+             "diagram": "coord_plane", "points": [(-5, 8, "P", GOLD)],
+             "caption": "mixed quadrant"},
+            {"text": "3. Midpoint of (2,k),(8,10) is (5,7). k=4",
+             "diagram": "equation_steps", "steps": ["(k+10)/2=7", "k=4"],
+             "caption": "puzzle"},
+        ],
+        "card": card_distance,
+        "solved": [
+            {"q": "Ex: Cost y=50x for 4 units, then quadrant of (3,-2).",
+             "steps": ["y=50(4)=200", "(3,-2) is Quadrant IV"]},
+        ],
+        "tips": [
+            "Substitute carefully in real-life graphs.",
+            "Match signs to the correct quadrant.",
+            "Reverse formulas for puzzles.",
+            "Double-check every answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Cost y=30x. Find cost of 6 units.",
+                "2. Quadrant of (-2,-7)?",
+                "3. Midpoint of (3,k),(9,11) is (6,8). Find k.",
+            ],
+            "answers": "1) Rs180    2) III    3) k=5",
+        },
+    },
+
+    # ---- 15J Mixed challenge ----
+    "15J": {
+        "title": "Coordinate Geometry — Mixed Challenge",
+        "intro": [
+            "Mix distance, area, and coordinates.",
+            "Area of a right triangle = \u00bd \u00d7 base \u00d7 height.",
+            "On axes, legs are easy to read off.",
+            "Distance uses the right-triangle method.",
+            "Combine skills for harder problems.",
+        ],
+        "real_life": [
+            {"text": "1. Triangle (0,0),(4,0),(0,3): area=6",
+             "diagram": "coord_plane",
+             "points": [(0, 0, "O", BLUE), (4, 0, "A", BLUE), (0, 3, "B", BLUE)],
+             "xmin": -1, "xmax": 6, "ymin": -1, "ymax": 5, "quadrant_labels": False,
+             "caption": "legs 4 and 3, area = \u00bd\u00d74\u00d73"},
+            {"text": "2. Triangle (0,0),(6,0),(0,8): area=24",
+             "diagram": "coord_plane",
+             "points": [(0, 0, "O", BLUE), (6, 0, "A", BLUE), (0, 8, "B", BLUE)],
+             "xmin": -1, "xmax": 8, "ymin": -1, "ymax": 10, "quadrant_labels": False,
+             "caption": "legs 6 and 8, area = \u00bd\u00d76\u00d78"},
+            {"text": "3. Distance (1,1) to (4,5) = 5",
+             "diagram": "distance_triangle", "p1": (1, 1), "p2": (4, 5),
+             "caption": "legs 3,4 \u2192 distance 5"},
+        ],
+        "card": card_distance,
+        "solved": [
+            {"q": "Ex: Find the area of triangle (0,0),(4,0),(0,3).",
+             "steps": ["Legs = 4 and 3", "Area = \u00bd\u00d74\u00d73", "= 6"]},
+        ],
+        "tips": [
+            "Right triangle on axes: legs are easy.",
+            "Area = \u00bd \u00d7 base \u00d7 height.",
+            "Distance: subtract, square, add, root.",
+            "Sketch first if it helps.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Triangle (0,0),(5,0),(0,4). Find the area.",
+                "2. Distance from (2,2) to (5,6)?",
+                "3. Triangle (0,0),(8,0),(0,6). Find the area.",
+            ],
+            "answers": "1) 10    2) 5    3) 24",
+        },
+    },
+
+    # ---- 15REV Revision ----
+    "15REV": {
+        "title": "Level 15 Revision — Coordinate Geometry",
+        "intro": [
+            "Point = (x,y); origin = (0,0).",
+            "Distance: legs squared, add, square root.",
+            "Midpoint: average the x's and y's.",
+            "y=mx+c: m=slope, c=y-intercept.",
+            "Quadrants depend on the signs of x,y.",
+        ],
+        "real_life": [
+            {"text": "1. Point (5,7) on the plane",
+             "diagram": "coord_plane", "points": [(5, 7, "P", GOLD)],
+             "xmin": -2, "xmax": 8, "ymin": -2, "ymax": 8, "quadrant_labels": False,
+             "caption": "x=5, y=7"},
+            {"text": "2. Distance (0,0) to (3,4) = 5",
+             "diagram": "distance_triangle", "p1": (0, 0), "p2": (3, 4),
+             "caption": "Pythagoras on the grid"},
+            {"text": "3. y=2x+1: slope 2, intercept 1",
+             "diagram": "line_graph", "slope": 2, "intercept": 1,
+             "caption": "graph basics"},
+        ],
+        "card": card_midpoint,
+        "solved": [
+            {"q": "Ex: Find distance (0,0) to (6,8), then midpoint.",
+             "steps": ["Distance = sqrt(36+64) = 10", "Midpoint = (3,4)"]},
+        ],
+        "tips": [
+            "x first, then y: (x,y).",
+            "Distance uses Pythagoras.",
+            "Midpoint: average both coordinates.",
+            "Slope and y-intercept from y=mx+c.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Distance from (0,0) to (5,12)?",
+                "2. Midpoint of (0,0),(6,10)?",
+                "3. In y=4x-1, find the y-intercept.",
+            ],
+            "answers": "1) 13    2) (3,5)    3) -1",
         },
     },
 }
