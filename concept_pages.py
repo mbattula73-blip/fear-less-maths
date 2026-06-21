@@ -183,6 +183,100 @@ def int_line_vec(c, x, y, w, lo, hi, marks=None, jump=None):
     return 12 * mm
 
 
+def factor_tree_vec(c, x, y, w, root, splits):
+    """Draw a simple factor tree. splits = list of (parent_label, left, right)
+    drawn top to bottom. The final primes are circled. Returns height used."""
+    cxm = x + w / 2
+    # root
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(cxm, y - 4 * mm, str(root))
+    yy = y - 4 * mm
+    level_gap = 11 * mm
+    # We draw a left-leaning tree: each step splits into a prime (left) and a
+    # quotient (right) that continues down.
+    px = cxm
+    for i, (prime, quotient, is_prime_quotient) in enumerate(splits):
+        ny = yy - level_gap
+        lx = px - 9 * mm
+        rx = px + 9 * mm
+        c.setStrokeColor(MGRAY); c.setLineWidth(0.8)
+        c.line(px, yy - 1.5 * mm, lx, ny + 1.5 * mm)
+        c.line(px, yy - 1.5 * mm, rx, ny + 1.5 * mm)
+        # prime on the left (circled)
+        c.setStrokeColor(GREEN); c.setLineWidth(1.1); c.setFillColor(LGREEN)
+        c.circle(lx, ny, 3.2 * mm, fill=1, stroke=1)
+        c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(lx, ny - 1.3 * mm, str(prime))
+        # quotient on the right
+        c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+        if is_prime_quotient:
+            c.setStrokeColor(GREEN); c.setLineWidth(1.1); c.setFillColor(LGREEN)
+            c.circle(rx, ny, 3.2 * mm, fill=1, stroke=1)
+            c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+            c.drawCentredString(rx, ny - 1.3 * mm, str(quotient))
+        else:
+            c.drawCentredString(rx, ny - 1.3 * mm, str(quotient))
+        px = rx
+        yy = ny
+    return (y - yy) + 8 * mm
+
+
+def multiples_strip_vec(c, x, y, w, base, count, accent=GOLD):
+    """Skip-counting strip: cells labelled base, 2*base, ... highlighted."""
+    cell = w / count
+    for i in range(count):
+        c.setStrokeColor(BLACK); c.setLineWidth(0.9)
+        c.setFillColor(accent)
+        c.rect(x + i * cell, y, cell, 8 * mm, fill=1, stroke=1)
+        c.setFillColor(WHITE if True else BLACK); c.setFont("Helvetica-Bold", 9)
+        c.drawCentredString(x + i * cell + cell / 2, y + 2.4 * mm, str(base * (i + 1)))
+    return 8 * mm
+
+
+def factor_pairs_vec(c, x, y, w, n, pairs):
+    """Show factor pairs of n as rows 'a x b = n'. Returns height."""
+    c.setFont("Helvetica-Bold", 10); rh = 5.5 * mm
+    for i, (a, b) in enumerate(pairs):
+        c.setFillColor(BLACK)
+        c.drawString(x + 2 * mm, y - (i + 1) * rh + 1.4 * mm, f"{a} \u00d7 {b} = {n}")
+    return len(pairs) * rh + 1 * mm
+
+
+def venn_hcf_lcm_vec(c, x, y, w, leftname, rightname, left_only, common, right_only,
+                     hcf=None, lcm=None):
+    """Two overlapping circles showing shared (HCF) and combined (LCM) factors."""
+    r = 16 * mm
+    cy = y - r - 2 * mm
+    lcx = x + r
+    rcx = x + w - r
+    c.setStrokeColor(BLUE); c.setLineWidth(1.2); c.setFillColor(WHITE)
+    c.circle(lcx, cy, r, fill=0, stroke=1)
+    c.setStrokeColor(PINK)
+    c.circle(rcx, cy, r, fill=0, stroke=1)
+    # names
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(BLUE); c.drawCentredString(lcx - r / 2, cy + r + 1 * mm, leftname)
+    c.setFillColor(PINK); c.drawCentredString(rcx + r / 2, cy + r + 1 * mm, rightname)
+    # contents
+    c.setFillColor(BLACK); c.setFont("Helvetica", 9)
+    c.drawCentredString(lcx - r / 2, cy, "  ".join(str(v) for v in left_only))
+    c.drawCentredString(rcx + r / 2, cy, "  ".join(str(v) for v in right_only))
+    midx = (lcx + rcx) / 2
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 9)
+    c.drawCentredString(midx, cy, "  ".join(str(v) for v in common))
+    used = 2 * r + 4 * mm
+    yy = cy - r - 4 * mm
+    if hcf is not None:
+        c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(x + w / 2, yy, f"HCF = biggest shared factor = {hcf}")
+        yy -= 5 * mm; used += 5 * mm
+    if lcm is not None:
+        c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(x + w / 2, yy, f"LCM = ({leftname}\u00d7{rightname})\u00f7HCF = {lcm}")
+        used += 5 * mm
+    return used + 4 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -403,6 +497,32 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
+    if kind == "factor_tree":
+        used = factor_tree_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                              rl["root"], rl["splits"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 8 * mm
+    if kind == "multiples_strip":
+        used = multiples_strip_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
+                                  rl["base"], rl["count"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - 16 * mm, rl.get("caption", ""))
+        return 20 * mm
+    if kind == "factor_pairs":
+        used = factor_pairs_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                               rl["n"], rl["pairs"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 5 * mm, rl.get("caption", ""))
+        return used + 9 * mm
+    if kind == "venn":
+        used = venn_hcf_lcm_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                               rl["leftname"], rl["rightname"],
+                               rl["left_only"], rl["common"], rl["right_only"],
+                               rl.get("hcf"), rl.get("lcm"))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 6 * mm
     return 0
 
 
@@ -615,6 +735,71 @@ def card_int_signs(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_factors(c, x, y, w):
+    """Factor pairs of 12 shown as a card."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 8 * mm, "Factors of 12 (numbers that divide it exactly):")
+    factor_pairs_vec(c, bx, y - 13 * mm, bw, 12,
+                     [(1, 12), (2, 6), (3, 4)])
+    c.setFont("Helvetica-Bold", 11); c.setFillColor(GREEN)
+    c.drawString(bx, y - 36 * mm, "Factors of 12: 1, 2, 3, 4, 6, 12")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 43 * mm, "Check: does it divide with NO remainder?")
+    c.drawString(bx, y - 49 * mm, "12 \u00f7 3 = 4 exactly \u2192 3 is a factor.")
+    return y - card_h - 2 * mm
+
+
+def card_multiples(c, x, y, w):
+    """Multiples strip for 4."""
+    card_h = 50 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 8 * mm, "Multiples of 4 (skip-count by 4):")
+    multiples_strip_vec(c, bx, y - 22 * mm, bw, 4, 6)
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 30 * mm, "4, 8, 12, 16, 20, 24, ...")
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawString(bx, y - 38 * mm, "A multiple = the number \u00d7 1, 2, 3, ...")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 44 * mm, "Multiples never stop \u2014 there are infinite!")
+    return y - card_h - 2 * mm
+
+
+def card_factor_tree(c, x, y, w):
+    """Factor tree for 12 = 2 x 2 x 3."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Factor Tree of 12:")
+    factor_tree_vec(c, x + 4 * mm, y - 11 * mm, w - 8 * mm, 12,
+                    [(2, 6, False), (2, 3, True)])
+    c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(x + w / 2, y - 44 * mm, "12 = 2 \u00d7 2 \u00d7 3 = 2^2 × 3")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawCentredString(x + w / 2, y - 51 * mm, "Keep splitting until every branch is PRIME.")
+    return y - card_h - 2 * mm
+
+
+def card_hcf_lcm(c, x, y, w):
+    """Venn diagram card for HCF/LCM of 12 and 18."""
+    card_h = 62 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "HCF & LCM of 12 and 18:")
+    venn_hcf_lcm_vec(c, x + 4 * mm, y - 11 * mm, w - 8 * mm,
+                     "12", "18", [4], [1, 2, 3, 6], [9, 18],
+                     hcf=6, lcm=36)
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -626,6 +811,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L7.get(sublevel_code)
     if level_num == 8:
         return _L8.get(sublevel_code)
+    if level_num == 9:
+        return _L9.get(sublevel_code)
     return None
 
 
@@ -2418,6 +2605,624 @@ _L8 = {
                 "3. (-3) \u00d7 (-4) = ?",
             ],
             "answers": "1) -8    2) 9    3) 12",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 9 — Factors, Multiples & HCF/LCM: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L9 = {
+    # ---- 9A Factors ----
+    "9A": {
+        "title": "Factors",
+        "intro": [
+            "A factor divides a number with NO remainder.",
+            "Check: does it divide exactly?",
+            "Every number has 1 and itself as factors.",
+            "Factors come in pairs: a \u00d7 b = n.",
+            "12 = 1\u00d712 = 2\u00d76 = 3\u00d74.",
+        ],
+        "real_life": [
+            {"text": "1. 12 sweets shared in equal rows: 3\u00d74=12",
+             "diagram": "factor_pairs", "n": 12, "pairs": [(1, 12), (2, 6), (3, 4)],
+             "caption": "all factor pairs of 12"},
+            {"text": "2. Is 5 a factor of 12? 12\u00f75 = 2 r 2 \u2192 No",
+             "diagram": "factor_pairs", "n": 12, "pairs": [(2, 6), (3, 4)],
+             "caption": "5 does not divide evenly"},
+            {"text": "3. Arrange 18 chairs in equal rows: 2\u00d79, 3\u00d76",
+             "diagram": "factor_pairs", "n": 18, "pairs": [(1, 18), (2, 9), (3, 6)],
+             "caption": "factor pairs of 18"},
+        ],
+        "card": card_factors,
+        "solved": [
+            {"q": "Ex: Is 3 a factor of 12?",
+             "steps": ["12 \u00f7 3 = 4", "No remainder", "Yes, 3 is a factor"]},
+        ],
+        "tips": [
+            "Factor \u2192 divides exactly (no remainder).",
+            "1 and the number itself are always factors.",
+            "List factors in pairs.",
+            "Check each pair multiplies back to n.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 4 a factor of 20?",
+                "2. List all factors of 15.",
+                "3. Is 6 a factor of 21?",
+            ],
+            "answers": "1) Yes    2) 1,3,5,15    3) No",
+        },
+    },
+
+    # ---- 9B Multiples ----
+    "9B": {
+        "title": "Multiples",
+        "intro": [
+            "A multiple = the number times 1, 2, 3...",
+            "Multiples of 3: 3, 6, 9, 12, 15...",
+            "Skip-count to find multiples.",
+            "Multiples never stop (infinite).",
+            "A number IS a multiple of its own factors.",
+        ],
+        "real_life": [
+            {"text": "1. Multiples of 3: skip-count by 3s",
+             "diagram": "multiples_strip", "base": 3, "count": 6,
+             "caption": "3, 6, 9, 12, 15, 18"},
+            {"text": "2. Multiples of 5: skip-count by 5s",
+             "diagram": "multiples_strip", "base": 5, "count": 6,
+             "caption": "5, 10, 15, 20, 25, 30"},
+            {"text": "3. Multiples of 7: skip-count by 7s",
+             "diagram": "multiples_strip", "base": 7, "count": 6,
+             "caption": "7, 14, 21, 28, 35, 42"},
+        ],
+        "card": card_multiples,
+        "solved": [
+            {"q": "Ex: Write the first 6 multiples of 6.",
+             "steps": ["6\u00d71, 6\u00d72, 6\u00d73, ...", "Answer: 6,12,18,24,30,36"]},
+        ],
+        "tips": [
+            "Multiple = number \u00d7 1,2,3,...",
+            "Skip-count to list them.",
+            "Multiples go on forever.",
+            "0 is a multiple of every number.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. First 6 multiples of 4.",
+                "2. First 6 multiples of 9.",
+                "3. Is 28 a multiple of 7?",
+            ],
+            "answers": "1) 4,8,12,16,20,24    2) 9,18,27,36,45,54    3) Yes",
+        },
+    },
+
+    # ---- 9C Prime factorisation ----
+    "9C": {
+        "title": "Prime Factorisation",
+        "intro": [
+            "Break a number into PRIME factors only.",
+            "A prime has exactly 2 factors: 1 and itself.",
+            "Use a factor tree: split until all primes.",
+            "12 = 2 \u00d7 2 \u00d7 3 = 2^2 × 3.",
+            "Write repeated primes with powers.",
+        ],
+        "real_life": [
+            {"text": "1. 8 = 2 \u00d7 2 \u00d7 2 = 2^3",
+             "diagram": "factor_tree", "root": 8, "splits": [(2, 4, False), (2, 2, True)],
+             "caption": "8 = 2^3"},
+            {"text": "2. 18 = 2 \u00d7 3 \u00d7 3 = 2 \u00d7 3^2",
+             "diagram": "factor_tree", "root": 18, "splits": [(2, 9, False), (3, 3, True)],
+             "caption": "18 = 2 \u00d7 3^2"},
+            {"text": "3. 20 = 2 \u00d7 2 \u00d7 5 = 2^2 × 5",
+             "diagram": "factor_tree", "root": 20, "splits": [(2, 10, False), (2, 5, True)],
+             "caption": "20 = 2^2 × 5"},
+        ],
+        "card": card_factor_tree,
+        "solved": [
+            {"q": "Ex: Find the prime factorisation of 12.",
+             "steps": ["12 = 2 \u00d7 6", "6 = 2 \u00d7 3", "12 = 2 \u00d7 2 \u00d7 3 = 2^2×3"]},
+        ],
+        "tips": [
+            "Prime = only 1 and itself divide it.",
+            "Split until every branch is prime.",
+            "Circle the primes on the tree.",
+            "Write repeats with a power.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Prime factorise 16.",
+                "2. Prime factorise 30.",
+                "3. Prime factorise 24.",
+            ],
+            "answers": "1) 2^4    2) 2\u00d73\u00d75    3) 2^3\u00d73",
+        },
+    },
+
+    # ---- 9CUM1 Mixed A+B+C ----
+    "9CUM1": {
+        "title": "Review: Factors, Multiples, Prime Factorisation",
+        "intro": [
+            "Factor: divides exactly, no remainder.",
+            "Multiple: number \u00d7 1, 2, 3...",
+            "Prime factorisation: split into primes only.",
+            "Use a factor tree for prime factorisation.",
+            "Factors are finite; multiples are infinite.",
+        ],
+        "real_life": [
+            {"text": "1. Factors of 12: 1,2,3,4,6,12",
+             "diagram": "factor_pairs", "n": 12, "pairs": [(1, 12), (2, 6), (3, 4)],
+             "caption": "factor pairs of 12"},
+            {"text": "2. Multiples of 3: 3,6,9,12,15,18",
+             "diagram": "multiples_strip", "base": 3, "count": 6,
+             "caption": "skip-count by 3"},
+            {"text": "3. 12 = 2^2 × 3",
+             "diagram": "factor_tree", "root": 12, "splits": [(2, 6, False), (2, 3, True)],
+             "caption": "prime factorisation"},
+        ],
+        "card": card_factor_tree,
+        "solved": [
+            {"q": "Ex: Is 4 a factor of 20? List 3 multiples of 5.",
+             "steps": ["20\u00f74=5, yes", "Multiples of 5: 5,10,15"]},
+        ],
+        "tips": [
+            "Factor \u2192 divides exactly.",
+            "Multiple \u2192 number \u00d7 1,2,3...",
+            "Tree splits to primes only.",
+            "Powers show repeated primes.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. List all factors of 18.",
+                "2. First 5 multiples of 6.",
+                "3. Prime factorise 28.",
+            ],
+            "answers": "1) 1,2,3,6,9,18    2) 6,12,18,24,30    3) 2^2×7",
+        },
+    },
+
+    # ---- 9D HCF ----
+    "9D": {
+        "title": "HCF — Highest Common Factor",
+        "intro": [
+            "HCF = the BIGGEST factor shared by numbers.",
+            "List factors of each, find common ones.",
+            "Pick the largest common factor.",
+            "Factors of 8: 1,2,4,8. Of 12: 1,2,3,4,6,12.",
+            "Common: 1,2,4 \u2192 HCF(8,12) = 4.",
+        ],
+        "real_life": [
+            {"text": "1. HCF(8,12) = 4 (shared factors)",
+             "diagram": "venn", "leftname": "8", "rightname": "12",
+             "left_only": [8], "common": [1, 2, 4], "right_only": [3, 6, 12],
+             "hcf": 4, "caption": "biggest shared factor"},
+            {"text": "2. HCF(10,15) = 5",
+             "diagram": "venn", "leftname": "10", "rightname": "15",
+             "left_only": [2, 10], "common": [1, 5], "right_only": [3, 15],
+             "hcf": 5, "caption": "shared factors 1,5"},
+            {"text": "3. HCF(12,20) = 4",
+             "diagram": "venn", "leftname": "12", "rightname": "20",
+             "left_only": [3, 6, 12], "common": [1, 2, 4], "right_only": [5, 10, 20],
+             "hcf": 4, "caption": "biggest shared = 4"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: Find HCF(12,18).",
+             "steps": ["Factors 12: 1,2,3,4,6,12", "Factors 18: 1,2,3,6,9,18",
+                       "Common: 1,2,3,6 \u2192 HCF = 6"]},
+        ],
+        "tips": [
+            "HCF = biggest shared factor.",
+            "List factors of each number.",
+            "Circle the common ones.",
+            "Pick the largest.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. HCF(6,9) = ?",
+                "2. HCF(14,21) = ?",
+                "3. HCF(16,24) = ?",
+            ],
+            "answers": "1) 3    2) 7    3) 8",
+        },
+    },
+
+    # ---- 9E LCM ----
+    "9E": {
+        "title": "LCM — Lowest Common Multiple",
+        "intro": [
+            "LCM = the SMALLEST multiple shared by numbers.",
+            "List multiples of each, find common ones.",
+            "Pick the smallest common multiple.",
+            "Multiples of 3: 3,6,9,12. Of 4: 4,8,12.",
+            "Common: 12 \u2192 LCM(3,4) = 12.",
+        ],
+        "real_life": [
+            {"text": "1. LCM(3,4) = 12 (first shared multiple)",
+             "diagram": "venn", "leftname": "mult. of 3", "rightname": "mult. of 4",
+             "left_only": [3, 6, 9], "common": [12], "right_only": [4, 8, 16],
+             "lcm": 12, "caption": "smallest shared multiple"},
+            {"text": "2. LCM(4,5) = 20",
+             "diagram": "venn", "leftname": "mult. of 4", "rightname": "mult. of 5",
+             "left_only": [4, 8, 12], "common": [20], "right_only": [5, 10, 15],
+             "lcm": 20, "caption": "smallest shared = 20"},
+            {"text": "3. LCM(2,7) = 14",
+             "diagram": "venn", "leftname": "mult. of 2", "rightname": "mult. of 7",
+             "left_only": [2, 4, 6], "common": [14], "right_only": [7, 21, 28],
+             "lcm": 14, "caption": "smallest shared = 14"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: Find LCM(4,6).",
+             "steps": ["Multiples of 4: 4,8,12,16", "Multiples of 6: 6,12,18",
+                       "First common: 12 \u2192 LCM = 12"]},
+        ],
+        "tips": [
+            "LCM = smallest shared multiple.",
+            "List multiples of each.",
+            "Find the first match.",
+            "LCM is never smaller than the numbers.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. LCM(2,3) = ?",
+                "2. LCM(5,6) = ?",
+                "3. LCM(4,10) = ?",
+            ],
+            "answers": "1) 6    2) 30    3) 20",
+        },
+    },
+
+    # ---- 9CUM2 Mixed D+E+F ----
+    "9CUM2": {
+        "title": "Review: HCF, LCM, Word Problems",
+        "intro": [
+            "HCF = biggest shared factor.",
+            "LCM = smallest shared multiple.",
+            "Equal groups, no leftover \u2192 use HCF.",
+            "Events repeating together \u2192 use LCM.",
+            "List factors/multiples, then compare.",
+        ],
+        "real_life": [
+            {"text": "1. HCF(12,18) = 6 (equal bundles)",
+             "diagram": "venn", "leftname": "12", "rightname": "18",
+             "left_only": [4, 12], "common": [1, 2, 3, 6], "right_only": [9, 18],
+             "hcf": 6, "caption": "biggest shared factor"},
+            {"text": "2. LCM(4,6) = 12 (events repeat together)",
+             "diagram": "venn", "leftname": "mult. of 4", "rightname": "mult. of 6",
+             "left_only": [4, 8, 16], "common": [12], "right_only": [6, 18, 24],
+             "lcm": 12, "caption": "smallest shared multiple"},
+            {"text": "3. 24 pens, 36 pencils \u2192 max bundles = HCF = 12",
+             "diagram": "venn", "leftname": "24", "rightname": "36",
+             "left_only": [8, 24], "common": [1, 2, 3, 4, 6, 12], "right_only": [9, 18, 36],
+             "hcf": 12, "caption": "largest equal bundle size"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: 12 pens, 18 pencils \u2014 max equal bundles?",
+             "steps": ["Need HCF(12,18)", "= 6", "6 bundles, no leftover"]},
+        ],
+        "tips": [
+            "Bundles/groups \u2192 HCF.",
+            "Repeating together \u2192 LCM.",
+            "List then compare.",
+            "Check the answer fits the story.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. HCF(15,25) = ?",
+                "2. LCM(3,5) = ?",
+                "3. 18 boys, 24 girls, equal teams. Max team size?",
+            ],
+            "answers": "1) 5    2) 15    3) 6",
+        },
+    },
+
+    # ---- 9F Word problems ----
+    "9F": {
+        "title": "HCF/LCM Word Problems",
+        "intro": [
+            "Equal groups, no leftovers \u2192 HCF.",
+            "Cutting into equal pieces \u2192 HCF.",
+            "Events that repeat together \u2192 LCM.",
+            "Read carefully: \u2018max/largest\u2019 = HCF often.",
+            "\u2018first time together\u2019 = LCM often.",
+        ],
+        "real_life": [
+            {"text": "1. 12 pens, 18 pencils, equal bundles: HCF=6",
+             "diagram": "venn", "leftname": "12", "rightname": "18",
+             "left_only": [4, 12], "common": [1, 2, 3, 6], "right_only": [9, 18],
+             "hcf": 6, "caption": "max bundle size = 6"},
+            {"text": "2. Ropes 24m, 36m, equal pieces: HCF=12",
+             "diagram": "venn", "leftname": "24", "rightname": "36",
+             "left_only": [8, 24], "common": [1, 2, 3, 4, 6, 12], "right_only": [9, 18, 36],
+             "hcf": 12, "caption": "longest equal piece = 12m"},
+            {"text": "3. 48 boys, 60 girls, equal teams: HCF=12",
+             "diagram": "venn", "leftname": "48", "rightname": "60",
+             "left_only": [16, 48], "common": [1, 2, 3, 4, 6, 12], "right_only": [20, 60],
+             "hcf": 12, "caption": "largest team size = 12"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: 24m and 36m ropes cut equally, no waste. Longest piece?",
+             "steps": ["Need HCF(24,36)", "= 12", "Longest piece = 12 m"]},
+        ],
+        "tips": [
+            "Equal groups/pieces \u2192 HCF.",
+            "Repeats together \u2192 LCM.",
+            "\u2018Max/largest\u2019 often means HCF.",
+            "Check units in the final answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 16 apples, 24 oranges, equal baskets. Max baskets?",
+                "2. Ropes 18m, 30m, equal pieces. Longest piece?",
+                "3. 20 boys, 28 girls, equal teams. Max team size?",
+            ],
+            "answers": "1) 8    2) 6 m    3) 4",
+        },
+    },
+
+    # ---- 9G Applications ----
+    "9G": {
+        "title": "Simplifying Fractions with HCF",
+        "intro": [
+            "Find HCF of top and bottom.",
+            "Divide BOTH by the HCF.",
+            "Result is in simplest form.",
+            "6/9: HCF(6,9)=3 \u2192 6\u00f73 / 9\u00f73 = 2/3.",
+            "If HCF = 1, already simplest.",
+        ],
+        "real_life": [
+            {"text": "1. Simplify 6/9 using HCF=3",
+             "diagram": "venn", "leftname": "6", "rightname": "9",
+             "left_only": [2, 6], "common": [1, 3], "right_only": [9],
+             "hcf": 3, "caption": "6/9 = 2/3"},
+            {"text": "2. Simplify 8/12 using HCF=4",
+             "diagram": "venn", "leftname": "8", "rightname": "12",
+             "left_only": [2, 8], "common": [1, 2, 4], "right_only": [3, 6, 12],
+             "hcf": 4, "caption": "8/12 = 2/3"},
+            {"text": "3. Simplify 15/20 using HCF=5",
+             "diagram": "venn", "leftname": "15", "rightname": "20",
+             "left_only": [3, 15], "common": [1, 5], "right_only": [4, 20],
+             "hcf": 5, "caption": "15/20 = 3/4"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: Simplify 15/20.",
+             "steps": ["HCF(15,20) = 5", "15\u00f75=3, 20\u00f75=4", "Answer = 3/4"]},
+        ],
+        "tips": [
+            "Find HCF of top and bottom.",
+            "Divide both by the HCF.",
+            "HCF=1 means already simplest.",
+            "Check: no more common factor left.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 10/15.",
+                "2. Simplify 9/12.",
+                "3. Simplify 14/21.",
+            ],
+            "answers": "1) 2/3    2) 3/4    3) 2/3",
+        },
+    },
+
+    # ---- 9H Mixed ----
+    "9H": {
+        "title": "Factors & Multiples — Mixed",
+        "intro": [
+            "Mix factors, multiples, and checks.",
+            "Factors: divide exactly, list in pairs.",
+            "Multiples: skip-count, list in order.",
+            "Check division: remainder 0 means factor.",
+            "Bigger numbers may have many factors.",
+        ],
+        "real_life": [
+            {"text": "1. All factors of 42",
+             "diagram": "factor_pairs", "n": 42, "pairs": [(1, 42), (2, 21), (3, 14), (6, 7)],
+             "caption": "1,2,3,6,7,14,21,42"},
+            {"text": "2. First 6 multiples of 9",
+             "diagram": "multiples_strip", "base": 9, "count": 6,
+             "caption": "9,18,27,36,45,54"},
+            {"text": "3. Is 7 a factor of 56? 56\u00f77=8 \u2192 Yes",
+             "diagram": "factor_pairs", "n": 56, "pairs": [(7, 8), (4, 14)],
+             "caption": "7\u00d78=56"},
+        ],
+        "card": card_factors,
+        "solved": [
+            {"q": "Ex: List all factors of 42.",
+             "steps": ["Pairs: 1\u00d742, 2\u00d721, 3\u00d714, 6\u00d77",
+                       "Answer: 1,2,3,6,7,14,21,42"]},
+        ],
+        "tips": [
+            "List factor pairs systematically.",
+            "Skip-count for multiples.",
+            "Remainder 0 \u2192 it's a factor.",
+            "Double-check with multiplication.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. List all factors of 36.",
+                "2. First 5 multiples of 11.",
+                "3. Is 8 a factor of 64?",
+            ],
+            "answers": "1) 1,2,3,4,6,9,12,18,36    2) 11,22,33,44,55    3) Yes",
+        },
+    },
+
+    # ---- 9I Puzzle ----
+    "9I": {
+        "title": "Factor & Multiple Puzzles",
+        "intro": [
+            "Use every clue together.",
+            "List options for one clue, then filter.",
+            "\u2018Multiple of\u2019 and \u2018factor of\u2019 are different.",
+            "Narrow down using range clues (between...).",
+            "Check your final answer against ALL clues.",
+        ],
+        "real_life": [
+            {"text": "1. Multiple of 4, factor of 24, between 10-20 \u2192 12",
+             "diagram": "factor_pairs", "n": 24, "pairs": [(2, 12), (4, 6)],
+             "caption": "12 fits all 3 clues"},
+            {"text": "2. Multiple of 6, under 30, factor of 60",
+             "diagram": "multiples_strip", "base": 6, "count": 4,
+             "caption": "6,12,18,24 \u2014 check factor of 60"},
+            {"text": "3. Common factor of 24,36, greater than 5",
+             "diagram": "venn", "leftname": "24", "rightname": "36",
+             "left_only": [8, 24], "common": [1, 2, 3, 4, 6, 12], "right_only": [9, 18, 36],
+             "hcf": 12, "caption": "6 or 12 fit"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: I am a multiple of 4, a factor of 24, between 10-20.",
+             "steps": ["Multiples of 4: 4,8,12,16,20", "Factors of 24 in that list: 12",
+                       "Between 10-20: 12 fits"]},
+        ],
+        "tips": [
+            "List for the strictest clue first.",
+            "Cross-check with each other clue.",
+            "Range clues narrow it fast.",
+            "Re-verify before finalising.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Multiple of 5, factor of 40, between 15-25.",
+                "2. Common factor of 18,30, greater than 3.",
+                "3. Multiple of 3, under 20, factor of 36.",
+            ],
+            "answers": "1) 20    2) 6    3) 3,6,9,12,18",
+        },
+    },
+
+    # ---- 9CUM3 Mixed G+H+I ----
+    "9CUM3": {
+        "title": "Review: Applications, Mixed, Puzzles",
+        "intro": [
+            "Simplify with HCF: divide top & bottom.",
+            "List factors/multiples to solve mixes.",
+            "Puzzles: use every clue, then check.",
+            "HCF \u2192 biggest shared; LCM \u2192 smallest shared.",
+            "Re-check answers against the question.",
+        ],
+        "real_life": [
+            {"text": "1. Simplify 8/12 using HCF=4",
+             "diagram": "venn", "leftname": "8", "rightname": "12",
+             "left_only": [2, 8], "common": [1, 2, 4], "right_only": [3, 6, 12],
+             "hcf": 4, "caption": "8/12 = 2/3"},
+            {"text": "2. All factors of 36",
+             "diagram": "factor_pairs", "n": 36, "pairs": [(1, 36), (2, 18), (3, 12), (4, 9), (6, 6)],
+             "caption": "1,2,3,4,6,9,12,18,36"},
+            {"text": "3. Multiple of 4, factor of 24, between 10-20 \u2192 12",
+             "diagram": "multiples_strip", "base": 4, "count": 5,
+             "caption": "checking multiples of 4"},
+        ],
+        "card": card_factors,
+        "solved": [
+            {"q": "Ex: Simplify 9/12, then list factors of 9.",
+             "steps": ["HCF(9,12)=3 \u2192 9/12 = 3/4", "Factors of 9: 1,3,9"]},
+        ],
+        "tips": [
+            "Simplify: divide by HCF.",
+            "List systematically, don't guess.",
+            "Puzzles: filter by every clue.",
+            "Always double-check.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Simplify 12/16.",
+                "2. List all factors of 28.",
+                "3. Multiple of 6, factor of 48, under 20.",
+            ],
+            "answers": "1) 3/4    2) 1,2,4,7,14,28    3) 6,12",
+        },
+    },
+
+    # ---- 9J Mixed challenge ----
+    "9J": {
+        "title": "Factors/Multiples — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "Factors: list in pairs, check division.",
+            "Multiples: skip-count, list in order.",
+            "Use HCF/LCM where the story needs it.",
+            "Prime factorise for power-of forms.",
+        ],
+        "real_life": [
+            {"text": "1. All factors of 48",
+             "diagram": "factor_pairs", "n": 48, "pairs": [(1, 48), (2, 24), (3, 16), (4, 12), (6, 8)],
+             "caption": "1,2,3,4,6,8,12,16,24,48"},
+            {"text": "2. First 5 multiples of 8",
+             "diagram": "multiples_strip", "base": 8, "count": 5,
+             "caption": "8,16,24,32,40"},
+            {"text": "3. Is 9 a factor of 72? 72\u00f79=8 \u2192 Yes",
+             "diagram": "factor_pairs", "n": 72, "pairs": [(9, 8), (6, 12)],
+             "caption": "9\u00d78=72"},
+        ],
+        "card": card_factor_tree,
+        "solved": [
+            {"q": "Ex: List all factors of 48, then check if 9 is a factor of 72.",
+             "steps": ["Factors of 48: 1,2,3,4,6,8,12,16,24,48",
+                       "72\u00f79=8, no remainder \u2192 yes"]},
+        ],
+        "tips": [
+            "List factor pairs in order.",
+            "Skip-count for multiples.",
+            "Check remainder for factor tests.",
+            "Use HCF/LCM where needed.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. List all factors of 40.",
+                "2. First 5 multiples of 12.",
+                "3. Is 8 a factor of 96?",
+            ],
+            "answers": "1) 1,2,4,5,8,10,20,40    2) 12,24,36,48,60    3) Yes",
+        },
+    },
+
+    # ---- 9REV Revision ----
+    "9REV": {
+        "title": "Level 9 Revision — Factors, Multiples, HCF/LCM",
+        "intro": [
+            "Factor: divides exactly, no remainder.",
+            "Multiple: number \u00d7 1,2,3... (infinite).",
+            "Prime factorisation: split to primes only.",
+            "HCF = biggest shared factor.",
+            "LCM = smallest shared multiple.",
+        ],
+        "real_life": [
+            {"text": "1. Factors of 12: 1,2,3,4,6,12",
+             "diagram": "factor_pairs", "n": 12, "pairs": [(1, 12), (2, 6), (3, 4)],
+             "caption": "factor pairs of 12"},
+            {"text": "2. HCF(12,18)=6, LCM(12,18)=36",
+             "diagram": "venn", "leftname": "12", "rightname": "18",
+             "left_only": [4, 12], "common": [1, 2, 3, 6], "right_only": [9, 18],
+             "hcf": 6, "lcm": 36, "caption": "shared and combined"},
+            {"text": "3. 12 = 2^2 × 3 (prime factorisation)",
+             "diagram": "factor_tree", "root": 12, "splits": [(2, 6, False), (2, 3, True)],
+             "caption": "prime factor tree"},
+        ],
+        "card": card_hcf_lcm,
+        "solved": [
+            {"q": "Ex: HCF and LCM of 8 and 12.",
+             "steps": ["Factors: 8\u21921,2,4,8  12\u21921,2,3,4,6,12", "HCF=4",
+                       "Multiples meet at 24 \u2192 LCM=24"]},
+        ],
+        "tips": [
+            "Factor: divides exactly.",
+            "Multiple: skip-counts, infinite.",
+            "HCF: biggest shared factor.",
+            "LCM: smallest shared multiple.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. List all factors of 20.",
+                "2. HCF(15,20) = ?",
+                "3. LCM(6,8) = ?",
+            ],
+            "answers": "1) 1,2,4,5,10,20    2) 5    3) 24",
         },
     },
 }
