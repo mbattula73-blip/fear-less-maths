@@ -526,6 +526,59 @@ def square_root_vec(c, x, y, w, side, area):
     return s + 18 * mm
 
 
+def area_model_vec(c, x, y, w, col_labels, row_labels, cell_values):
+    """2D grid area-model for binomial multiplication, e.g. (x+5)(x+2):
+    col_labels/row_labels are the two factors' terms; cell_values is a
+    row-major 2D list of the products. Returns height used."""
+    n_cols = len(col_labels)
+    n_rows = len(row_labels)
+    label_w = 13 * mm
+    label_h = 9 * mm
+    grid_w = w - label_w
+    grid_h = 30 * mm
+    cw = grid_w / n_cols
+    rh = grid_h / n_rows
+    gx = x + label_w
+    gy = y - label_h - grid_h
+    c.setFont("Helvetica-Bold", 12); c.setFillColor(BLUE)
+    for j, lab in enumerate(col_labels):
+        c.drawCentredString(gx + j * cw + cw / 2, y - label_h + 2.5 * mm, str(lab))
+    c.setFillColor(GREEN)
+    for i, lab in enumerate(row_labels):
+        ry = gy + grid_h - i * rh - rh / 2
+        c.drawCentredString(x + label_w / 2, ry - 1.8 * mm, str(lab))
+    c.setFont("Helvetica-Bold", 11)
+    for i in range(n_rows):
+        for j in range(n_cols):
+            cx0 = gx + j * cw
+            cy0 = gy + grid_h - (i + 1) * rh
+            c.setFillColor(LBLUE if (i + j) % 2 == 0 else LGOLD)
+            c.setStrokeColor(BLACK); c.setLineWidth(1)
+            c.rect(cx0, cy0, cw, rh, fill=1, stroke=1)
+            c.setFillColor(BLACK)
+            c.drawCentredString(cx0 + cw / 2, cy0 + rh / 2 - 1.8 * mm, str(cell_values[i][j]))
+    return label_h + grid_h + 4 * mm
+
+
+def degree_terms_vec(c, x, y, w, terms):
+    """Polynomial terms in a row, each in a coloured box with its degree
+    labelled below. terms: list of (term_text, degree_label). Returns height."""
+    n = len(terms)
+    palette = [(BLUE, LBLUE), (GOLD, LGOLD), (GREEN, LGREEN), (PINK, LPINK)]
+    cw = w / n
+    bh = 15 * mm
+    for i, (term, deg) in enumerate(terms):
+        accent, light = palette[i % len(palette)]
+        bx = x + i * cw
+        c.setFillColor(light); c.setStrokeColor(accent); c.setLineWidth(1.1)
+        c.roundRect(bx + 1.5 * mm, y - bh, cw - 3 * mm, bh, 1.5 * mm, fill=1, stroke=1)
+        c.setFillColor(accent); c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(bx + cw / 2, y - bh * 0.58, term)
+        c.setFont("Helvetica", 8)
+        c.drawCentredString(bx + cw / 2, y - bh * 0.85, deg)
+    return bh + 3 * mm
+
+
 def sign_rule_vec(c, x, y, w, pairs):
     """Grid of sign rules: list of (rule_text, result). Returns height used."""
     rh = 7 * mm
@@ -835,6 +888,17 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 9 * mm
+    if kind == "area_model":
+        used = area_model_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
+                             rl["col_labels"], rl["row_labels"], rl["cell_values"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
+        c.drawCentredString(cxm, y - used - 3 * mm, rl.get("caption", ""))
+        return used + 7 * mm
+    if kind == "degree_terms":
+        used = degree_terms_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["terms"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 8 * mm
     return 0
 
 
@@ -1445,6 +1509,83 @@ def card_sci_notation(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_poly_basics(c, x, y, w):
+    """Degree-labelled terms card for x^2+3x+1."""
+    card_h = 50 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "x^2 + 3x + 1 \u2014 three terms:")
+    degree_terms_vec(c, x + 4 * mm, y - 11 * mm, w - 8 * mm,
+                     [("x^2", "degree 2"), ("3x", "degree 1"), ("1", "degree 0")])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "Degree = highest power of x.")
+    c.drawString(bx, y - 44 * mm, "This polynomial has degree 2.")
+    return y - card_h - 2 * mm
+
+
+def card_poly_addsub(c, x, y, w):
+    """Equation-steps card for adding polynomials."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Add (2x+3) + (4x+1):")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["(2x+3) + (4x+1)", "(2x+4x) + (3+1)", "6x + 4"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 50 * mm, "Group like terms, then combine.")
+    return y - card_h - 2 * mm
+
+
+def card_area_model(c, x, y, w):
+    """Area-model card for (x+5)(x+2)."""
+    card_h = 66 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "(x+5)(x+2) \u2014 area model:")
+    area_model_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, ["x", "2"], ["x", "5"],
+                  [["x^2", "2x"], ["5x", "10"]])
+    bx = x + 5 * mm
+    c.setFont("Helvetica-Bold", 10.5); c.setFillColor(GREEN)
+    c.drawString(bx, y - 57 * mm, "= x^2 + 2x + 5x + 10 = x^2 + 7x + 10")
+    return y - card_h - 2 * mm
+
+
+def card_identity(c, x, y, w):
+    """Area-model card for the perfect-square identity (x+3)^2."""
+    card_h = 66 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "(x+3)^2 \u2014 same factor twice:")
+    area_model_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, ["x", "3"], ["x", "3"],
+                  [["x^2", "3x"], ["3x", "9"]])
+    bx = x + 5 * mm
+    c.setFont("Helvetica-Bold", 10.5); c.setFillColor(GREEN)
+    c.drawString(bx, y - 57 * mm, "= x^2 + 6x + 9  (the two 3x's combine)")
+    return y - card_h - 2 * mm
+
+
+def card_factorisation(c, x, y, w):
+    """Equation-steps card for factorising 6x+9."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(x + 5 * mm, y - 7 * mm, "Factorise 6x + 9:")
+    equation_steps_vec(c, x + 4 * mm, y - 16 * mm, w - 8 * mm,
+                       ["6x + 9", "3(2x) + 3(3)", "3(2x + 3)"])
+    bx = x + 5 * mm
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 48 * mm, "Find the HCF of all terms,")
+    c.drawString(bx, y - 54 * mm, "then pull it out front.")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -1466,6 +1607,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L12.get(sublevel_code)
     if level_num == 13:
         return _L13.get(sublevel_code)
+    if level_num == 14:
+        return _L14.get(sublevel_code)
     return None
 
 
@@ -6246,6 +6389,629 @@ _L13 = {
                 "3. Evaluate 100^(1/2).",
             ],
             "answers": "1) 64    2) 1/9    3) 10",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 14 — Polynomials: concept page specs (sheet 1)
+# ───────────────────────────────────────────────────────────────────────────────
+_L14 = {
+    # ---- 14A Polynomial basics ----
+    "14A": {
+        "title": "Polynomial Basics",
+        "intro": [
+            "A polynomial has terms with whole-number powers.",
+            "Degree = the HIGHEST power of x present.",
+            "x^2 + 3x + 1 has degree 2.",
+            "Each term has its own degree.",
+            "A constant (just a number) has degree 0.",
+        ],
+        "real_life": [
+            {"text": "1. x^2+3x+1: three terms, degree 2",
+             "diagram": "degree_terms",
+             "terms": [("x^2", "degree 2"), ("3x", "degree 1"), ("1", "degree 0")],
+             "caption": "highest power decides the degree"},
+            {"text": "2. 4x^3-2x+7: degree 3",
+             "diagram": "degree_terms",
+             "terms": [("4x^3", "degree 3"), ("-2x", "degree 1"), ("7", "degree 0")],
+             "caption": "highest power is 3"},
+            {"text": "3. 4x^5-3x^3+x: degree 5",
+             "diagram": "degree_terms",
+             "terms": [("4x^5", "degree 5"), ("-3x^3", "degree 3"), ("x", "degree 1")],
+             "caption": "highest power is 5"},
+        ],
+        "card": card_poly_basics,
+        "solved": [
+            {"q": "Ex: Find the degree of 4x^3 - 2x + 7.",
+             "steps": ["Powers present: 3, 1, 0", "Highest = 3", "Degree = 3"]},
+        ],
+        "tips": [
+            "Degree = highest power of x.",
+            "Count every term carefully.",
+            "A lone number has degree 0.",
+            "Powers must be whole numbers.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. How many terms in 5x^2 - x + 9?",
+                "2. Find the degree of 2x^4 + x.",
+                "3. Find the degree of 7 (just a number).",
+            ],
+            "answers": "1) 3    2) 4    3) 0",
+        },
+    },
+
+    # ---- 14B Addition ----
+    "14B": {
+        "title": "Adding Polynomials",
+        "intro": [
+            "Group LIKE terms (same power of x).",
+            "Add their coefficients.",
+            "(2x+3)+(4x+1) \u2192 group: (2x+4x)+(3+1).",
+            "= 6x + 4.",
+            "Keep unlike terms separate.",
+        ],
+        "real_life": [
+            {"text": "1. (2x+3)+(4x+1) = 6x+4",
+             "diagram": "equation_steps",
+             "steps": ["(2x+3)+(4x+1)", "(2x+4x)+(3+1)", "6x+4"],
+             "caption": "group like terms, then add"},
+            {"text": "2. (3x+5)+(2x+4) = 5x+9",
+             "diagram": "equation_steps",
+             "steps": ["(3x+5)+(2x+4)", "(3x+2x)+(5+4)", "5x+9"],
+             "caption": "group like terms, then add"},
+            {"text": "3. (x+7)+(5x+2) = 6x+9",
+             "diagram": "equation_steps",
+             "steps": ["(x+7)+(5x+2)", "(x+5x)+(7+2)", "6x+9"],
+             "caption": "group like terms, then add"},
+        ],
+        "card": card_poly_addsub,
+        "solved": [
+            {"q": "Ex: Add (3x+5) and (2x+4).",
+             "steps": ["Group: (3x+2x)+(5+4)", "= 5x+9"]},
+        ],
+        "tips": [
+            "Group like terms first.",
+            "Add the coefficients.",
+            "Keep the letter the same.",
+            "Unlike terms stay separate.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. (4x+2)+(3x+5) = ?",
+                "2. (x+1)+(6x+3) = ?",
+                "3. (2x+8)+(2x+2) = ?",
+            ],
+            "answers": "1) 7x+7    2) 7x+4    3) 4x+10",
+        },
+    },
+
+    # ---- 14C Subtraction ----
+    "14C": {
+        "title": "Subtracting Polynomials",
+        "intro": [
+            "Subtract means flip the signs of the SECOND bracket.",
+            "Then group like terms and combine.",
+            "(5x+3)-(2x+1) \u2192 5x+3-2x-1.",
+            "= (5x-2x)+(3-1) = 3x+2.",
+            "Be careful with the minus sign.",
+        ],
+        "real_life": [
+            {"text": "1. (5x+3)-(2x+1) = 3x+2",
+             "diagram": "equation_steps",
+             "steps": ["(5x+3)-(2x+1)", "(5x-2x)+(3-1)", "3x+2"],
+             "caption": "flip signs, then combine"},
+            {"text": "2. (7x-2)-(3x-4) = 4x+2",
+             "diagram": "equation_steps",
+             "steps": ["(7x-2)-(3x-4)", "(7x-3x)+(-2+4)", "4x+2"],
+             "caption": "flip signs, then combine"},
+            {"text": "3. (4x+5)-(x+2) = 3x+3",
+             "diagram": "equation_steps",
+             "steps": ["(4x+5)-(x+2)", "(4x-x)+(5-2)", "3x+3"],
+             "caption": "flip signs, then combine"},
+        ],
+        "card": card_poly_addsub,
+        "solved": [
+            {"q": "Ex: Subtract (3x-4) from (7x-2).",
+             "steps": ["(7x-2)-(3x-4)", "= 7x-2-3x+4", "= 4x+2"]},
+        ],
+        "tips": [
+            "Flip the sign of every term subtracted.",
+            "Then group like terms.",
+            "Watch minus-minus = plus.",
+            "Combine carefully.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. (6x+5)-(2x+1) = ?",
+                "2. (8x-3)-(3x-5) = ?",
+                "3. (5x+4)-(x+4) = ?",
+            ],
+            "answers": "1) 4x+4    2) 5x+2    3) 4x",
+        },
+    },
+
+    # ---- 14CUM1 Mixed A+B+C ----
+    "14CUM1": {
+        "title": "Review: Basics, Addition, Subtraction",
+        "intro": [
+            "Degree = highest power of x.",
+            "Add: group like terms, add coefficients.",
+            "Subtract: flip signs, then group and combine.",
+            "Watch for minus signs carefully.",
+            "Keep unlike terms separate.",
+        ],
+        "real_life": [
+            {"text": "1. x^2+3x+1 has degree 2",
+             "diagram": "degree_terms",
+             "terms": [("x^2", "degree 2"), ("3x", "degree 1"), ("1", "degree 0")],
+             "caption": "highest power = degree"},
+            {"text": "2. (2x+3)+(4x+1) = 6x+4",
+             "diagram": "equation_steps", "steps": ["(2x+3)+(4x+1)", "6x+4"],
+             "caption": "addition"},
+            {"text": "3. (5x+3)-(2x+1) = 3x+2",
+             "diagram": "equation_steps", "steps": ["(5x+3)-(2x+1)", "3x+2"],
+             "caption": "subtraction"},
+        ],
+        "card": card_poly_addsub,
+        "solved": [
+            {"q": "Ex: Find degree of 3x^2+x, then add (x+2)+(3x+5).",
+             "steps": ["Degree = 2", "(x+2)+(3x+5) = 4x+7"]},
+        ],
+        "tips": [
+            "Degree: highest power present.",
+            "Addition: group then add.",
+            "Subtraction: flip signs first.",
+            "Check every term carefully.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find the degree of 5x^3+2x.",
+                "2. (3x+4)+(2x+6) = ?",
+                "3. (6x+1)-(2x+1) = ?",
+            ],
+            "answers": "1) 3    2) 5x+10    3) 4x",
+        },
+    },
+
+    # ---- 14D Multiplication ----
+    "14D": {
+        "title": "Multiplying Polynomials",
+        "intro": [
+            "Multiply EVERY term inside by what's outside.",
+            "2(x+5) = 2\u00d7x + 2\u00d75 = 2x+10.",
+            "x(x+3) = x\u00d7x + x\u00d73 = x^2+3x.",
+            "For two brackets, use an AREA MODEL.",
+            "(x+5)(x+2): split into 4 smaller products.",
+        ],
+        "real_life": [
+            {"text": "1. 2(x+5) = 2x+10",
+             "diagram": "equation_steps", "steps": ["2(x+5)", "2\u00d7x + 2\u00d75", "2x+10"],
+             "caption": "distribute the 2"},
+            {"text": "2. 3(2x-4) = 6x-12",
+             "diagram": "equation_steps", "steps": ["3(2x-4)", "3\u00d72x - 3\u00d74", "6x-12"],
+             "caption": "distribute the 3"},
+            {"text": "3. (x+5)(x+2) area model",
+             "diagram": "area_model", "col_labels": ["x", "2"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "2x"], ["5x", "10"]],
+             "caption": "= x^2+2x+5x+10 = x^2+7x+10"},
+        ],
+        "card": card_area_model,
+        "solved": [
+            {"q": "Ex: Expand x(x+3).",
+             "steps": ["x\u00d7x + x\u00d73", "= x^2 + 3x"]},
+        ],
+        "tips": [
+            "Multiply every inside term.",
+            "Two brackets: use the area model.",
+            "Add up all 4 small products.",
+            "Combine like terms at the end.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Expand 4(x+2).",
+                "2. Expand x(x+5).",
+                "3. Expand (x+1)(x+4).",
+            ],
+            "answers": "1) 4x+8    2) x^2+5x    3) x^2+5x+4",
+        },
+    },
+
+    # ---- 14E Identities ----
+    "14E": {
+        "title": "Algebraic Identities",
+        "intro": [
+            "(x+a)^2 = x^2 + 2ax + a^2.",
+            "(x-a)^2 = x^2 - 2ax + a^2.",
+            "Comes from multiplying (x+a)(x+a).",
+            "The middle term DOUBLES because two\u00d7ax terms add.",
+            "Memorise these to expand instantly.",
+        ],
+        "real_life": [
+            {"text": "1. (x+5)^2 = x^2+10x+25",
+             "diagram": "area_model", "col_labels": ["x", "5"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "5x"], ["5x", "25"]],
+             "caption": "two 5x's combine to 10x"},
+            {"text": "2. (x+7)^2 = x^2+14x+49",
+             "diagram": "area_model", "col_labels": ["x", "7"], "row_labels": ["x", "7"],
+             "cell_values": [["x^2", "7x"], ["7x", "49"]],
+             "caption": "two 7x's combine to 14x"},
+            {"text": "3. (x-3)^2 = x^2-6x+9",
+             "diagram": "equation_steps",
+             "steps": ["(x-3)(x-3)", "x^2-3x-3x+9", "x^2-6x+9"],
+             "caption": "minus version of the identity"},
+        ],
+        "card": card_identity,
+        "solved": [
+            {"q": "Ex: Expand (x+7)^2 using the identity.",
+             "steps": ["x^2 + 2(7)x + 7^2", "= x^2 + 14x + 49"]},
+        ],
+        "tips": [
+            "(x+a)^2 = x^2+2ax+a^2.",
+            "(x-a)^2 = x^2-2ax+a^2.",
+            "Middle term = 2 \u00d7 a \u00d7 x.",
+            "Last term = a squared.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Expand (x+4)^2.",
+                "2. Expand (x-2)^2.",
+                "3. Expand (x+6)^2.",
+            ],
+            "answers": "1) x^2+8x+16    2) x^2-4x+4    3) x^2+12x+36",
+        },
+    },
+
+    # ---- 14F Factorisation ----
+    "14F": {
+        "title": "Factorisation",
+        "intro": [
+            "Factorising is the OPPOSITE of expanding.",
+            "Find the HCF of every term.",
+            "Pull the HCF out front, in brackets.",
+            "6x+9: HCF=3 \u2192 3(2x+3).",
+            "Check by expanding back.",
+        ],
+        "real_life": [
+            {"text": "1. 6x+9 = 3(2x+3)",
+             "diagram": "equation_steps", "steps": ["6x+9", "3(2x)+3(3)", "3(2x+3)"],
+             "caption": "HCF = 3"},
+            {"text": "2. 4x+8 = 4(x+2)",
+             "diagram": "equation_steps", "steps": ["4x+8", "4(x)+4(2)", "4(x+2)"],
+             "caption": "HCF = 4"},
+            {"text": "3. 3x^2+6x = 3x(x+2)",
+             "diagram": "equation_steps", "steps": ["3x^2+6x", "3x(x)+3x(2)", "3x(x+2)"],
+             "caption": "HCF = 3x"},
+        ],
+        "card": card_factorisation,
+        "solved": [
+            {"q": "Ex: Factorise 3x^2 + 6x.",
+             "steps": ["HCF of 3x^2 and 6x is 3x", "3x(x) + 3x(2)", "= 3x(x+2)"]},
+        ],
+        "tips": [
+            "Find the HCF of all terms.",
+            "Pull it out front.",
+            "What's left goes in brackets.",
+            "Check by expanding back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Factorise 5x+10.",
+                "2. Factorise 6x^2+9x.",
+                "3. Factorise 8x+12.",
+            ],
+            "answers": "1) 5(x+2)    2) 3x(2x+3)    3) 4(2x+3)",
+        },
+    },
+
+    # ---- 14CUM2 Mixed D+E+F ----
+    "14CUM2": {
+        "title": "Review: Multiplication, Identities, Factorisation",
+        "intro": [
+            "Multiply: distribute to every term.",
+            "Two brackets: use the area model.",
+            "Identities: (x+a)^2 = x^2+2ax+a^2.",
+            "Factorising undoes expanding (find the HCF).",
+            "Always check by expanding back.",
+        ],
+        "real_life": [
+            {"text": "1. (x+5)(x+2) = x^2+7x+10",
+             "diagram": "area_model", "col_labels": ["x", "2"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "2x"], ["5x", "10"]],
+             "caption": "area model"},
+            {"text": "2. (x+3)^2 = x^2+6x+9",
+             "diagram": "area_model", "col_labels": ["x", "3"], "row_labels": ["x", "3"],
+             "cell_values": [["x^2", "3x"], ["3x", "9"]],
+             "caption": "identity"},
+            {"text": "3. 6x+9 = 3(2x+3)",
+             "diagram": "equation_steps", "steps": ["6x+9", "3(2x+3)"],
+             "caption": "factorise"},
+        ],
+        "card": card_area_model,
+        "solved": [
+            {"q": "Ex: Expand (x+4)(x+1), then factorise 4x+8.",
+             "steps": ["(x+4)(x+1) = x^2+5x+4", "4x+8 = 4(x+2)"]},
+        ],
+        "tips": [
+            "Area model for two brackets.",
+            "Memorise the square identities.",
+            "Factorising: find the HCF.",
+            "Check by expanding back.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Expand (x+2)(x+3).",
+                "2. Expand (x+5)^2.",
+                "3. Factorise 9x+12.",
+            ],
+            "answers": "1) x^2+5x+6    2) x^2+10x+25    3) 3(3x+4)",
+        },
+    },
+
+    # ---- 14G Polynomial problems ----
+    "14G": {
+        "title": "Polynomials in Shapes",
+        "intro": [
+            "Perimeter = add all the sides.",
+            "Area of a rectangle = length \u00d7 width.",
+            "Use the area model for algebraic rectangles.",
+            "length=x+5, width=x+2: Area=(x+5)(x+2).",
+            "Expand to get a single polynomial.",
+        ],
+        "real_life": [
+            {"text": "1. Rectangle l=x+5,w=x+2: Perimeter=2(2x+7)",
+             "diagram": "equation_steps",
+             "steps": ["2(l+w)", "2((x+5)+(x+2))", "2(2x+7) = 4x+14"],
+             "caption": "perimeter formula"},
+            {"text": "2. Same rectangle: Area=(x+5)(x+2)",
+             "diagram": "area_model", "col_labels": ["x", "2"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "2x"], ["5x", "10"]],
+             "caption": "= x^2+7x+10"},
+            {"text": "3. Square side=2x+1: Perimeter=4(2x+1)",
+             "diagram": "equation_steps",
+             "steps": ["4(2x+1)", "8x+4"],
+             "caption": "perimeter of a square"},
+        ],
+        "card": card_area_model,
+        "solved": [
+            {"q": "Ex: Rectangle l=x+5, w=x+2. Find the area.",
+             "steps": ["Area = (x+5)(x+2)", "= x^2+7x+10"]},
+        ],
+        "tips": [
+            "Perimeter: add all sides.",
+            "Area: length \u00d7 width.",
+            "Use the area model to expand.",
+            "Simplify the final expression.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Rectangle l=x+3,w=x+1. Find the area.",
+                "2. Square side=3x+2. Find the perimeter.",
+                "3. Rectangle l=x+4,w=2. Find the perimeter.",
+            ],
+            "answers": "1) x^2+4x+3    2) 12x+8    3) 2x+12",
+        },
+    },
+
+    # ---- 14H Mixed ----
+    "14H": {
+        "title": "Polynomials — Mixed",
+        "intro": [
+            "Mix degree, evaluation, and operations.",
+            "p(x) means a polynomial in x.",
+            "p(1) means substitute x=1.",
+            "Add/subtract by grouping like terms.",
+            "Work carefully through each part.",
+        ],
+        "real_life": [
+            {"text": "1. Degree of 4x^5-3x^3+x is 5",
+             "diagram": "degree_terms",
+             "terms": [("4x^5", "degree 5"), ("-3x^3", "degree 3"), ("x", "degree 1")],
+             "caption": "highest power = 5"},
+            {"text": "2. p(x)=x^2+2x-3. p(1)=0",
+             "diagram": "equation_steps",
+             "steps": ["p(1) = 1^2+2(1)-3", "1+2-3", "0"],
+             "caption": "substitute x=1"},
+            {"text": "3. (3x^2-x+2)+(x^2+4x-1)",
+             "diagram": "equation_steps",
+             "steps": ["(3x^2-x+2)+(x^2+4x-1)", "4x^2+3x+1"],
+             "caption": "group like terms"},
+        ],
+        "card": card_poly_addsub,
+        "solved": [
+            {"q": "Ex: If p(x)=x^2+2x-3, find p(1).",
+             "steps": ["1^2+2(1)-3", "1+2-3", "= 0"]},
+        ],
+        "tips": [
+            "p(x) means a function of x.",
+            "p(a) means substitute x=a.",
+            "Group like terms for + and -.",
+            "Watch the signs carefully.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find the degree of 6x^4-x.",
+                "2. p(x)=x^2-1. Find p(2).",
+                "3. (2x^2+x)+(x^2-3x) = ?",
+            ],
+            "answers": "1) 4    2) 3    3) 3x^2-2x",
+        },
+    },
+
+    # ---- 14I Puzzle algebra ----
+    "14I": {
+        "title": "Polynomial Puzzles",
+        "intro": [
+            "Use the given sum/difference to find the missing one.",
+            "If p+q is known and p is known, find q=(p+q)-p.",
+            "If p-q is known and q is known, find p=(p-q)+q.",
+            "Substitute carefully and simplify.",
+            "Check by adding/subtracting back.",
+        ],
+        "real_life": [
+            {"text": "1. p+q=2x^2+5x+3, p=x^2+2x+1. Find q",
+             "diagram": "equation_steps",
+             "steps": ["q = (p+q) - p", "(2x^2+5x+3)-(x^2+2x+1)", "x^2+3x+2"],
+             "caption": "subtract p from the sum"},
+            {"text": "2. p-q=x^2-1, q=x^2+x+3. Find p",
+             "diagram": "equation_steps",
+             "steps": ["p = (p-q) + q", "(x^2-1)+(x^2+x+3)", "2x^2+x+2"],
+             "caption": "add q to the difference"},
+            {"text": "3. p=3x^2+2x+1, q=x^2-x+2. Find p+q",
+             "diagram": "equation_steps",
+             "steps": ["p+q", "(3x^2+2x+1)+(x^2-x+2)", "4x^2+x+3"],
+             "caption": "add directly"},
+        ],
+        "card": card_poly_addsub,
+        "solved": [
+            {"q": "Ex: p+q=2x^2+5x+3, p=x^2+2x+1. Find q.",
+             "steps": ["q=(p+q)-p", "=(2x^2+5x+3)-(x^2+2x+1)", "=x^2+3x+2"]},
+        ],
+        "tips": [
+            "q = (p+q) - p.",
+            "p = (p-q) + q.",
+            "Flip signs carefully when subtracting.",
+            "Check your final answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. p+q=3x^2+4x, p=x^2+x. Find q.",
+                "2. p-q=2x^2+x-1, q=x^2+2. Find p.",
+                "3. p=x^2+3, q=2x^2-1. Find p+q.",
+            ],
+            "answers": "1) 2x^2+3x    2) 3x^2+x+1    3) 3x^2+2",
+        },
+    },
+
+    # ---- 14CUM3 Mixed G+H+I ----
+    "14CUM3": {
+        "title": "Review: Shapes, Mixed, Puzzles",
+        "intro": [
+            "Area/perimeter use polynomial expressions.",
+            "p(a) means substitute x=a.",
+            "q = (p+q) - p; p = (p-q) + q.",
+            "Group like terms carefully.",
+            "Check answers by substituting back.",
+        ],
+        "real_life": [
+            {"text": "1. Rectangle area = (x+5)(x+2)",
+             "diagram": "area_model", "col_labels": ["x", "2"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "2x"], ["5x", "10"]],
+             "caption": "area model"},
+            {"text": "2. p(x)=x^2+2x-3. p(1)=0",
+             "diagram": "equation_steps", "steps": ["p(1)", "1+2-3", "0"],
+             "caption": "evaluate"},
+            {"text": "3. p+q=2x^2+5x+3, p known. Find q",
+             "diagram": "equation_steps", "steps": ["q=(p+q)-p", "x^2+3x+2"],
+             "caption": "puzzle"},
+        ],
+        "card": card_area_model,
+        "solved": [
+            {"q": "Ex: Square side x+1. Find area, then p(2) for p(x)=x^2.",
+             "steps": ["Area=(x+1)^2=x^2+2x+1", "p(2)=4"]},
+        ],
+        "tips": [
+            "Use the area model for rectangles.",
+            "Substitute carefully for p(a).",
+            "Puzzles: rearrange the given sum/difference.",
+            "Always double-check.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Square side x+2. Find the area.",
+                "2. p(x)=x^2-2x. Find p(3).",
+                "3. p+q=x^2+4x, p=x^2+x. Find q.",
+            ],
+            "answers": "1) x^2+4x+4    2) 3    3) 3x",
+        },
+    },
+
+    # ---- 14J Mixed challenge ----
+    "14J": {
+        "title": "Polynomials — Mixed Challenge",
+        "intro": [
+            "Mix every skill from this level.",
+            "Degree = highest power of x.",
+            "p(a) means substitute x=a.",
+            "Use identities and area models to expand.",
+            "Factorise by finding the HCF.",
+        ],
+        "real_life": [
+            {"text": "1. Degree of 2x^5-3x^3+x-7 is 5",
+             "diagram": "degree_terms",
+             "terms": [("2x^5", "degree 5"), ("-3x^3", "degree 3"), ("x", "degree 1")],
+             "caption": "highest power = 5"},
+            {"text": "2. p(x)=x^2-4x+3. p(1)=0",
+             "diagram": "equation_steps", "steps": ["p(1)", "1-4+3", "0"],
+             "caption": "substitute x=1"},
+            {"text": "3. p(x)=x^2-4x+3. p(3)=0",
+             "diagram": "equation_steps", "steps": ["p(3)", "9-12+3", "0"],
+             "caption": "substitute x=3"},
+        ],
+        "card": card_area_model,
+        "solved": [
+            {"q": "Ex: p(x)=x^2-4x+3. Find p(1) and p(3).",
+             "steps": ["p(1)=1-4+3=0", "p(3)=9-12+3=0"]},
+        ],
+        "tips": [
+            "Find degree from the highest power.",
+            "Substitute carefully for p(a).",
+            "Area model for two brackets.",
+            "Factorise using the HCF.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find the degree of 5x^4-x^2.",
+                "2. p(x)=x^2+x-2. Find p(1).",
+                "3. Factorise 10x+15.",
+            ],
+            "answers": "1) 4    2) 0    3) 5(2x+3)",
+        },
+    },
+
+    # ---- 14REV Revision ----
+    "14REV": {
+        "title": "Level 14 Revision — Polynomials",
+        "intro": [
+            "Degree = highest power of x.",
+            "Add/subtract: group like terms.",
+            "Multiply: distribute, or use the area model.",
+            "(x+a)^2 = x^2+2ax+a^2.",
+            "Factorise: pull out the HCF.",
+        ],
+        "real_life": [
+            {"text": "1. x^2+3x+1 has degree 2",
+             "diagram": "degree_terms",
+             "terms": [("x^2", "degree 2"), ("3x", "degree 1"), ("1", "degree 0")],
+             "caption": "degree from highest power"},
+            {"text": "2. (x+5)(x+2) = x^2+7x+10",
+             "diagram": "area_model", "col_labels": ["x", "2"], "row_labels": ["x", "5"],
+             "cell_values": [["x^2", "2x"], ["5x", "10"]],
+             "caption": "area model"},
+            {"text": "3. 6x+9 = 3(2x+3)",
+             "diagram": "equation_steps", "steps": ["6x+9", "3(2x+3)"],
+             "caption": "factorise"},
+        ],
+        "card": card_identity,
+        "solved": [
+            {"q": "Ex: Expand (x+5)^2, then factorise 8x+12.",
+             "steps": ["(x+5)^2 = x^2+10x+25", "8x+12 = 4(2x+3)"]},
+        ],
+        "tips": [
+            "Degree: highest power present.",
+            "Combine like terms carefully.",
+            "Area model for binomial products.",
+            "Factorising undoes expanding.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Find the degree of 3x^3+2x.",
+                "2. Expand (x+2)(x+6).",
+                "3. Factorise 12x+18.",
+            ],
+            "answers": "1) 3    2) x^2+8x+12    3) 6(2x+3)",
         },
     },
 }
