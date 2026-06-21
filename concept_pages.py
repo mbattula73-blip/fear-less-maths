@@ -118,6 +118,54 @@ def number_line_vec(c, x, y, w, ticks, marks=None, accent=GOLD):
     return 10 * mm
 
 
+def tenths_grid_vec(c, x, y, w, h, shaded, accent=GOLD):
+    """A bar split into 10 equal strips, 'shaded' filled (for tenths)."""
+    cell = w / 10
+    for i in range(10):
+        c.setStrokeColor(BLACK); c.setLineWidth(0.9)
+        c.setFillColor(accent if i < shaded else WHITE)
+        c.rect(x + i * cell, y, cell, h, fill=1, stroke=1)
+
+
+def hundredths_grid_vec(c, x, y, side, shaded, accent=GOLD):
+    """A 10x10 grid, 'shaded' cells filled row by row (for hundredths)."""
+    cell = side / 10
+    k = 0
+    for r in range(10):
+        for col in range(10):
+            c.setStrokeColor(LGRAY); c.setLineWidth(0.5)
+            c.setFillColor(accent if k < shaded else WHITE)
+            c.rect(x + col * cell, y + (9 - r) * cell, cell, cell, fill=1, stroke=1)
+            k += 1
+    # outer border
+    c.setStrokeColor(BLACK); c.setLineWidth(1.1)
+    c.rect(x, y, side, side, fill=0, stroke=1)
+
+
+def place_value_vec(c, x, y, w, headers, digits):
+    """Place-value chart with a decimal point column. headers/digits lists."""
+    n = len(headers)
+    cw = w / n
+    rh = 7 * mm
+    # header row
+    c.setFillColor(LBLUE); c.setStrokeColor(BLUE); c.setLineWidth(0.8)
+    c.rect(x, y - rh, w, rh, fill=1, stroke=1)
+    c.setFillColor(BLUE); c.setFont("Helvetica-Bold", 8)
+    for i, hd in enumerate(headers):
+        c.drawCentredString(x + cw * (i + 0.5), y - rh + 1.8 * mm, hd)
+    # digit row
+    c.setFillColor(WHITE); c.setStrokeColor(BLUE)
+    c.rect(x, y - 2 * rh, w, rh, fill=1, stroke=1)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    for i, dg in enumerate(digits):
+        c.drawCentredString(x + cw * (i + 0.5), y - 2 * rh + 1.6 * mm, dg)
+    # column separators
+    c.setStrokeColor(LGRAY); c.setLineWidth(0.4)
+    for i in range(1, n):
+        c.line(x + cw * i, y - 2 * rh, x + cw * i, y)
+    return 2 * rh + 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # The page renderer (uses host engine's frame helpers passed in)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -265,6 +313,25 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
         return 24 * mm
+    if kind == "tenths_grid":
+        tenths_grid_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 12 * mm,
+                       rl["shaded"], accent=GOLD)
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
+        return 24 * mm
+    if kind == "hundredths_grid":
+        side = 30 * mm
+        hundredths_grid_vec(c, cxm - side / 2, y - 2 * mm - side, side,
+                           rl["shaded"], accent=GOLD)
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - side - 7 * mm, rl.get("caption", ""))
+        return side + 11 * mm
+    if kind == "place_value":
+        used = place_value_vec(c, x + 4 * mm, y, w - 8 * mm,
+                              rl["headers"], rl["digits"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        return used + 7 * mm
     return 0
 
 
@@ -369,12 +436,73 @@ def card_mixed(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_decimal_place(c, x, y, w):
+    """Place-value card: tens . tenths hundredths, with 3.45 example."""
+    card_h = 66 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 4 * mm; bw = w - 8 * mm
+    # place value chart for 3.45
+    place_value_vec(c, bx, y - 4 * mm, bw,
+                    ["Ones", ".", "Tenths", "Hund"], ["3", ".", "4", "5"])
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 12)
+    c.drawString(bx, y - 26 * mm, "3.45")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 33 * mm, "3 ones, 4 tenths, 5 hundredths")
+    c.drawString(bx, y - 39 * mm, "The dot is the DECIMAL POINT.")
+    # tenths bar showing 0.4
+    tenths_grid_vec(c, bx, y - 52 * mm, bw, 9 * mm, 4, accent=GREEN)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10)
+    c.drawString(bx, y - 60 * mm, "0.4 = 4 of 10 strips = 4 tenths")
+    return y - card_h - 2 * mm
+
+
+def card_decimal_grid(c, x, y, w):
+    """Hundredths grid showing 0.30 = 30/100 and tenths equivalence."""
+    card_h = 64 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    side = 38 * mm
+    gx = x + 6 * mm; gy = y - 8 * mm - side
+    hundredths_grid_vec(c, gx, gy, side, 30, accent=GREEN)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    tx = gx + side + 6 * mm
+    c.drawString(tx, y - 16 * mm, "0.30")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(tx, y - 24 * mm, "30 of 100")
+    c.drawString(tx, y - 30 * mm, "small squares")
+    c.setFont("Helvetica-Bold", 11); c.setFillColor(GREEN)
+    c.drawString(tx, y - 40 * mm, "0.30 = 0.3")
+    c.drawString(tx, y - 47 * mm, "= 3/10")
+    return y - card_h - 2 * mm
+
+
+def card_frac_to_dec(c, x, y, w):
+    """Fraction-to-decimal: 1/2 = 0.5 with a half-shaded bar."""
+    card_h = 60 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    fraction_bar_vec(c, bx, y - 16 * mm, bw, 11 * mm, 2, 1, accent=GREEN)
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 23 * mm, "1/2 = 5/10 = 0.5")
+    fraction_bar_vec(c, bx, y - 38 * mm, bw, 11 * mm, 4, 1, accent=GOLD)
+    c.drawString(bx, y - 45 * mm, "1/4 = 25/100 = 0.25")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 53 * mm, "Tip: divide top by bottom (1 \u00f7 2 = 0.5)")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
 def get_concept_page(sublevel_code, level_num, topic):
     """Return a spec dict for the rich concept page, or None if not defined."""
-    return _L6.get(sublevel_code)
+    if level_num == 6:
+        return _L6.get(sublevel_code)
+    if level_num == 7:
+        return _L7.get(sublevel_code)
+    return None
 
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -966,6 +1094,605 @@ _L6 = {
                 "3. 1/2 of 18 = ?",
             ],
             "answers": "1) 2/3    2) 5/7    3) 9",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 7 — Decimals: concept page specs (sheet 1 of each sublevel)
+# ───────────────────────────────────────────────────────────────────────────────
+_L7 = {
+    # ---- 7A Decimal concept ----
+    "7A": {
+        "title": "Decimals — Concept",
+        "intro": [
+            "A decimal shows parts smaller than 1.",
+            "The dot is the DECIMAL POINT.",
+            "Right of the dot: tenths, hundredths...",
+            "0.1 = 1 tenth = 1/10.",
+            "0.01 = 1 hundredth = 1/100.",
+        ],
+        "real_life": [
+            {"text": "1. 3 tenths of a strip = 0.3",
+             "diagram": "tenths_grid", "shaded": 3,
+             "caption": "3 of 10 strips = 0.3 = 3/10"},
+            {"text": "2. 25 hundredths of a square = 0.25",
+             "diagram": "hundredths_grid", "shaded": 25,
+             "caption": "25 of 100 = 0.25"},
+            {"text": "3. Money: 75 paise = Rs 0.75",
+             "diagram": "hundredths_grid", "shaded": 75,
+             "caption": "75 of 100 = 0.75"},
+        ],
+        "card": card_decimal_grid,
+        "solved": [
+            {"q": "Ex: Write 15 hundredths as a decimal.",
+             "steps": ["15 hundredths = 15/100", "Answer = 0.15"]},
+        ],
+        "tips": [
+            "Dot = decimal point.",
+            "1st place after dot = tenths.",
+            "2nd place after dot = hundredths.",
+            "0.5 = 5/10 = half.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 7 tenths as a decimal.",
+                "2. Write 9 hundredths as a decimal.",
+                "3. Write 50 paise in rupees as a decimal.",
+            ],
+            "answers": "1) 0.7    2) 0.09    3) Rs 0.50",
+        },
+    },
+
+    # ---- 7B Decimal place value ----
+    "7B": {
+        "title": "Decimal Place Value",
+        "intro": [
+            "Each place has a value 10 times smaller.",
+            "Ones . tenths hundredths thousandths.",
+            "\u00d710 moves the point ONE place right.",
+            "\u00f710 moves the point ONE place left.",
+            "Example: 5.3 \u00d7 10 = 53.",
+        ],
+        "real_life": [
+            {"text": "1. 3.45 in a place-value chart",
+             "diagram": "place_value",
+             "headers": ["Ones", ".", "Tenths", "Hund"], "digits": ["3", ".", "4", "5"],
+             "caption": "3 ones, 4 tenths, 5 hundredths"},
+            {"text": "2. 5.3 \u00d7 10 = 53 (point moves right)",
+             "diagram": "place_value",
+             "headers": ["Tens", "Ones", ".", "Tenths"], "digits": ["5", "3", ".", "0"],
+             "caption": "53.0"},
+            {"text": "3. 0.47 \u00d7 100 = 47 (two places right)",
+             "diagram": "place_value",
+             "headers": ["Tens", "Ones", ".", "T"], "digits": ["4", "7", ".", "0"],
+             "caption": "47"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 0.47 \u00d7 100 = ?",
+             "steps": ["\u00d7100 \u2192 point moves 2 right", "0.47 \u2192 47", "Answer = 47"]},
+        ],
+        "tips": [
+            "\u00d710 \u2192 point 1 step right.",
+            "\u00f710 \u2192 point 1 step left.",
+            "\u00d7100 \u2192 2 steps; \u00d71000 \u2192 3 steps.",
+            "Add zeros if needed.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 5.3 \u00d7 10 = ?",
+                "2. 5.3 \u00f7 10 = ?",
+                "3. 0.6 \u00d7 100 = ?",
+            ],
+            "answers": "1) 53    2) 0.53    3) 60",
+        },
+    },
+
+    # ---- 7C Decimal comparison ----
+    "7C": {
+        "title": "Comparing Decimals",
+        "intro": [
+            "Compare the whole-number part first.",
+            "Then tenths, then hundredths.",
+            "Add zeros to make equal lengths.",
+            "0.5 = 0.50 (same value).",
+            "More tenths = bigger (if wholes equal).",
+        ],
+        "real_life": [
+            {"text": "1. 0.5 vs 0.3 \u2192 0.5 is bigger",
+             "diagram": "two_bars", "t1": 10, "s1": 5, "t2": 10, "s2": 3,
+             "lab1": "0.5", "lab2": "0.3", "caption": "5 tenths > 3 tenths"},
+            {"text": "2. 0.5 vs 0.47 on a number line",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(5, "0.5")], "caption": "0.47 is just left of 0.5"},
+            {"text": "3. 1.3 vs 1.29 \u2192 1.3 = 1.30 is bigger",
+             "diagram": "two_bars", "t1": 10, "s1": 3, "t2": 10, "s2": 2,
+             "lab1": "1.30", "lab2": "1.29", "caption": "30 > 29 hundredths"},
+        ],
+        "card": card_decimal_grid,
+        "solved": [
+            {"q": "Ex: Compare 1.3 and 1.29.",
+             "steps": ["Make equal: 1.30 vs 1.29", "30 > 29 hundredths", "1.3 > 1.29"]},
+        ],
+        "tips": [
+            "Compare wholes first.",
+            "Then tenths, then hundredths.",
+            "Add zeros to match length.",
+            "0.5 = 0.50 (equal).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Compare 0.7 and 0.6 (use > < =).",
+                "2. Compare 0.45 and 0.5.",
+                "3. Compare 2.30 and 2.3.",
+            ],
+            "answers": "1) 0.7 > 0.6    2) 0.45 < 0.5    3) 2.30 = 2.3",
+        },
+    },
+
+    # ---- 7CUM1 Mixed A+B+C ----
+    "7CUM1": {
+        "title": "Review: Concept, Place Value, Comparison",
+        "intro": [
+            "Decimal = parts smaller than 1.",
+            "Places: tenths, hundredths, thousandths.",
+            "\u00d710 / \u00f710 moves the point one step.",
+            "Compare wholes, then tenths, then hundredths.",
+            "Add zeros to match: 0.5 = 0.50.",
+        ],
+        "real_life": [
+            {"text": "1. 0.3 = 3 tenths",
+             "diagram": "tenths_grid", "shaded": 3,
+             "caption": "3 of 10 = 0.3"},
+            {"text": "2. 3.45 place value",
+             "diagram": "place_value",
+             "headers": ["Ones", ".", "Tenths", "Hund"], "digits": ["3", ".", "4", "5"],
+             "caption": "3 ones, 4 tenths, 5 hundredths"},
+            {"text": "3. 0.5 > 0.3",
+             "diagram": "two_bars", "t1": 10, "s1": 5, "t2": 10, "s2": 3,
+             "lab1": "0.5", "lab2": "0.3", "caption": "5 tenths > 3 tenths"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 0.6 \u00d7 10, then compare with 5.",
+             "steps": ["0.6 \u00d7 10 = 6", "6 > 5"]},
+        ],
+        "tips": [
+            "Know each decimal place.",
+            "\u00d710 right, \u00f710 left.",
+            "Compare wholes first.",
+            "Add zeros to match length.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 6 tenths as a decimal.",
+                "2. 0.8 \u00d7 10 = ?",
+                "3. Compare 0.4 and 0.40.",
+            ],
+            "answers": "1) 0.6    2) 8    3) 0.4 = 0.40",
+        },
+    },
+
+    # ---- 7D Decimal addition ----
+    "7D": {
+        "title": "Adding Decimals",
+        "intro": [
+            "Line up the decimal points.",
+            "Add like normal, column by column.",
+            "Carry over when a column passes 9.",
+            "Keep the point in the same place.",
+            "0.4 + 0.3 = 0.7.",
+        ],
+        "real_life": [
+            {"text": "1. 0.4 + 0.3 = 0.7 (tenths)",
+             "diagram": "tenths_grid", "shaded": 7,
+             "caption": "4 + 3 = 7 tenths"},
+            {"text": "2. Shopping: Rs 3.75 + Rs 4.85 = Rs 8.60",
+             "diagram": "hundredths_grid", "shaded": 60,
+             "caption": "carry the hundredths"},
+            {"text": "3. 1.2 + 2.5 = 3.7",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(7, "0.7")], "caption": "tenths add to 7"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 1.2 + 2.5 = ?",
+             "steps": ["Line up points", "12 + 25 tenths logic", "Answer = 3.7"]},
+        ],
+        "tips": [
+            "Line up the points.",
+            "Add column by column.",
+            "Carry when over 9.",
+            "Point stays in line.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 0.6 + 0.5 = ?",
+                "2. 1.2 + 2.5 = ?",
+                "3. Rs 2.50 + Rs 3.75 = ?",
+            ],
+            "answers": "1) 1.1    2) 3.7    3) Rs 6.25",
+        },
+    },
+
+    # ---- 7E Decimal subtraction ----
+    "7E": {
+        "title": "Subtracting Decimals",
+        "intro": [
+            "Line up the decimal points.",
+            "Add zeros to make equal lengths.",
+            "Subtract column by column.",
+            "Borrow when the top digit is smaller.",
+            "0.8 \u2212 0.3 = 0.5.",
+        ],
+        "real_life": [
+            {"text": "1. 0.8 \u2212 0.3 = 0.5 (tenths)",
+             "diagram": "tenths_grid", "shaded": 5,
+             "caption": "8 \u2212 3 = 5 tenths left"},
+            {"text": "2. Rope: 8.5 m \u2212 3.75 m = 4.75 m",
+             "diagram": "hundredths_grid", "shaded": 75,
+             "caption": "borrow across the point"},
+            {"text": "3. 1.7 \u2212 0.5 = 1.2",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(2, "0.2")], "caption": "1.2 remaining"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 8.5 \u2212 3.75 = ?",
+             "steps": ["Write 8.50 \u2212 3.75", "Borrow as needed", "Answer = 4.75"]},
+        ],
+        "tips": [
+            "Line up the points.",
+            "Add zeros to match.",
+            "Borrow when needed.",
+            "Point stays in line.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 0.9 \u2212 0.4 = ?",
+                "2. 1.7 \u2212 0.5 = ?",
+                "3. 5.0 \u2212 2.35 = ?",
+            ],
+            "answers": "1) 0.5    2) 1.2    3) 2.65",
+        },
+    },
+
+    # ---- 7F Fraction to decimal ----
+    "7F": {
+        "title": "Fractions to Decimals",
+        "intro": [
+            "Divide the top by the bottom.",
+            "1/2 = 1 \u00f7 2 = 0.5.",
+            "Or make the bottom 10 or 100.",
+            "1/4 = 25/100 = 0.25.",
+            "3/4 = 75/100 = 0.75.",
+        ],
+        "real_life": [
+            {"text": "1. Half a bar: 1/2 = 0.5",
+             "diagram": "tenths_grid", "shaded": 5,
+             "caption": "1/2 = 5/10 = 0.5"},
+            {"text": "2. Quarter: 1/4 = 0.25",
+             "diagram": "hundredths_grid", "shaded": 25,
+             "caption": "1/4 = 25/100 = 0.25"},
+            {"text": "3. Three quarters: 3/4 = 0.75",
+             "diagram": "hundredths_grid", "shaded": 75,
+             "caption": "3/4 = 75/100 = 0.75"},
+        ],
+        "card": card_frac_to_dec,
+        "solved": [
+            {"q": "Ex: Convert 3/4 to a decimal.",
+             "steps": ["3 \u00f7 4 = 0.75", "or 3/4 = 75/100", "Answer = 0.75"]},
+        ],
+        "tips": [
+            "Divide top by bottom.",
+            "Or make bottom 10 / 100.",
+            "1/2 = 0.5, 1/4 = 0.25.",
+            "3/4 = 0.75, 1/5 = 0.2.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Convert 1/2 to a decimal.",
+                "2. Convert 1/4 to a decimal.",
+                "3. Convert 2/5 to a decimal.",
+            ],
+            "answers": "1) 0.5    2) 0.25    3) 0.4",
+        },
+    },
+
+    # ---- 7CUM2 Mixed D+E+F ----
+    "7CUM2": {
+        "title": "Review: Add, Subtract, Fraction-to-Decimal",
+        "intro": [
+            "Add/subtract: line up the points.",
+            "Add zeros to match lengths.",
+            "Fraction \u2192 decimal: divide top by bottom.",
+            "1/2 = 0.5, 1/4 = 0.25, 3/4 = 0.75.",
+            "Keep the point in line in answers.",
+        ],
+        "real_life": [
+            {"text": "1. 0.4 + 0.3 = 0.7",
+             "diagram": "tenths_grid", "shaded": 7,
+             "caption": "7 tenths"},
+            {"text": "2. 0.8 \u2212 0.3 = 0.5",
+             "diagram": "tenths_grid", "shaded": 5,
+             "caption": "5 tenths left"},
+            {"text": "3. 1/4 = 0.25",
+             "diagram": "hundredths_grid", "shaded": 25,
+             "caption": "25 of 100"},
+        ],
+        "card": card_frac_to_dec,
+        "solved": [
+            {"q": "Ex: 1/2 + 0.25 = ?",
+             "steps": ["1/2 = 0.5", "0.5 + 0.25 = 0.75"]},
+        ],
+        "tips": [
+            "Line up points for + and \u2212.",
+            "Add zeros to match.",
+            "Fraction \u2192 decimal: divide.",
+            "Know 1/2, 1/4, 3/4 by heart.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 0.6 + 0.7 = ?",
+                "2. 1.5 \u2212 0.8 = ?",
+                "3. Convert 3/4 to a decimal.",
+            ],
+            "answers": "1) 1.3    2) 0.7    3) 0.75",
+        },
+    },
+
+    # ---- 7G Word problems ----
+    "7G": {
+        "title": "Decimal Word Problems",
+        "intro": [
+            "Money and measures use decimals.",
+            "Total \u2192 add. Left over \u2192 subtract.",
+            "Line up the points before working.",
+            "Keep units: Rs, m, km, kg.",
+            "Check the point is in the right place.",
+        ],
+        "real_life": [
+            {"text": "1. Rs 3.75 + Rs 4.85 = Rs 8.60",
+             "diagram": "hundredths_grid", "shaded": 60,
+             "caption": "total cost"},
+            {"text": "2. Rope 8.5 m \u2212 3.75 m = 4.75 m left",
+             "diagram": "tenths_grid", "shaded": 5,
+             "caption": "what remains"},
+            {"text": "3. Walk 2.4 + cycle 3.75 = 6.15 km",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(6, "0.6")], "caption": "total distance"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: Rs 3.75 + Rs 4.85 = ?",
+             "steps": ["Line up points", "375 + 485 paise = 860", "Answer = Rs 8.60"]},
+        ],
+        "tips": [
+            "Total \u2192 add.",
+            "Left over \u2192 subtract.",
+            "Line up the points.",
+            "Keep the units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Rs 5.50 + Rs 2.75 = ?",
+                "2. 6.5 m \u2212 2.25 m = ?",
+                "3. 1.2 kg + 0.85 kg = ?",
+            ],
+            "answers": "1) Rs 8.25    2) 4.25 m    3) 2.05 kg",
+        },
+    },
+
+    # ---- 7H Mixed decimals ----
+    "7H": {
+        "title": "Decimals & Fractions Together",
+        "intro": [
+            "Convert to compare fairly.",
+            "Make both decimals, or both fractions.",
+            "7/8 = 0.875, so compare with 0.87.",
+            "Bigger decimal = bigger value.",
+            "Use hundredths to line up.",
+        ],
+        "real_life": [
+            {"text": "1. 7/8 = 0.875 vs 0.87 \u2192 7/8 bigger",
+             "diagram": "hundredths_grid", "shaded": 87,
+             "caption": "0.875 > 0.87"},
+            {"text": "2. 3/5 = 0.6 vs 0.62 \u2192 0.62 bigger",
+             "diagram": "hundredths_grid", "shaded": 62,
+             "caption": "0.60 < 0.62"},
+            {"text": "3. 9/25 = 0.36 vs 0.34 \u2192 9/25 bigger",
+             "diagram": "hundredths_grid", "shaded": 36,
+             "caption": "0.36 > 0.34"},
+        ],
+        "card": card_frac_to_dec,
+        "solved": [
+            {"q": "Ex: Is 3/5 greater than 0.62?",
+             "steps": ["3/5 = 0.60", "0.60 < 0.62", "No, 0.62 is greater"]},
+        ],
+        "tips": [
+            "Convert to the same form.",
+            "Decimals are easiest to compare.",
+            "Line up hundredths.",
+            "Bigger digits = bigger value.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Convert 7/8 to a decimal.",
+                "2. Which is bigger: 1/2 or 0.45?",
+                "3. Which is bigger: 0.7 or 3/5?",
+            ],
+            "answers": "1) 0.875    2) 1/2 (0.5)    3) 0.7",
+        },
+    },
+
+    # ---- 7I Decimal puzzles ----
+    "7I": {
+        "title": "Decimal Puzzles",
+        "intro": [
+            "Use clues to find the decimal.",
+            "Check the whole part and each digit.",
+            "List all answers that fit.",
+            "Tenths = first digit after the dot.",
+            "Re-read each clue to check.",
+        ],
+        "real_life": [
+            {"text": "1. Between 4 and 5, tenths = 5 \u2192 4.5...",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(5, "0.5")], "caption": "4.5 fits"},
+            {"text": "2. Under 1, 2 places, digits sum 7 \u2192 0.16, 0.25...",
+             "diagram": "hundredths_grid", "shaded": 25,
+             "caption": "0.25 (2+5=7)"},
+            {"text": "3. 0.5 to 0.6, tenths = hundredths \u2192 0.55",
+             "diagram": "hundredths_grid", "shaded": 55,
+             "caption": "0.55 fits"},
+        ],
+        "card": card_decimal_grid,
+        "solved": [
+            {"q": "Ex: Between 0.5 and 0.6, tenths = hundredths.",
+             "steps": ["Tenths digit = 5", "hundredths = 5 too", "Answer = 0.55"]},
+        ],
+        "tips": [
+            "Check the whole part first.",
+            "Then each decimal digit.",
+            "List every option.",
+            "Re-check against all clues.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Between 2 and 3, tenths = 4. Give one answer.",
+                "2. Under 1, 1 place, digit is even. List some.",
+                "3. Between 0.3 and 0.4, tenths = hundredths.",
+            ],
+            "answers": "1) 2.4    2) 0.2, 0.4, 0.6, 0.8    3) 0.33",
+        },
+    },
+
+    # ---- 7CUM3 Mixed G+H+I ----
+    "7CUM3": {
+        "title": "Review: Word Problems, Mixed, Puzzles",
+        "intro": [
+            "Word problems: add or subtract, keep units.",
+            "Convert to compare fractions and decimals.",
+            "Puzzles: list options, check clues.",
+            "Line up the points for + and \u2212.",
+            "1/2 = 0.5, 1/4 = 0.25, 3/4 = 0.75.",
+        ],
+        "real_life": [
+            {"text": "1. Rs 3.75 + Rs 4.85 = Rs 8.60",
+             "diagram": "hundredths_grid", "shaded": 60,
+             "caption": "total"},
+            {"text": "2. 3/5 = 0.6 vs 0.62",
+             "diagram": "hundredths_grid", "shaded": 62,
+             "caption": "0.62 bigger"},
+            {"text": "3. 0.55 fits 0.5\u20130.6, tenths = hundredths",
+             "diagram": "number_line", "ticks": 10,
+             "marks": [(5, "0.5")], "caption": "0.55"},
+        ],
+        "card": card_frac_to_dec,
+        "solved": [
+            {"q": "Ex: 8.5 m \u2212 3.75 m, then convert 1/4.",
+             "steps": ["8.50 \u2212 3.75 = 4.75 m", "1/4 = 0.25"]},
+        ],
+        "tips": [
+            "Add/subtract: keep units.",
+            "Convert to compare.",
+            "Puzzles: list, then check.",
+            "Line up the points.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Rs 6.40 + Rs 1.85 = ?",
+                "2. Which is bigger: 0.6 or 1/2?",
+                "3. Between 0.2 and 0.3, tenths = hundredths.",
+            ],
+            "answers": "1) Rs 8.25    2) 0.6    3) 0.22",
+        },
+    },
+
+    # ---- 7J Mixed challenge ----
+    "7J": {
+        "title": "Decimals — Mixed Challenge",
+        "intro": [
+            "Mix every skill: write, multiply, convert.",
+            "\u00d710 / \u00d7100 / \u00d71000 move the point.",
+            "Hundredths = 2 places after the dot.",
+            "Line up points for + and \u2212.",
+            "Convert fractions to compare.",
+        ],
+        "real_life": [
+            {"text": "1. 8 hundredths = 0.08",
+             "diagram": "hundredths_grid", "shaded": 8,
+             "caption": "8 of 100 = 0.08"},
+            {"text": "2. 5.37 \u00d7 100 = 537",
+             "diagram": "place_value",
+             "headers": ["H", "T", "O", "."], "digits": ["5", "3", "7", "."],
+             "caption": "point moves 2 right"},
+            {"text": "3. 0.048 \u00d7 1000 = 48",
+             "diagram": "tenths_grid", "shaded": 5,
+             "caption": "point moves 3 right"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 0.048 \u00d7 1000 = ?",
+             "steps": ["\u00d71000 \u2192 3 places right", "0.048 \u2192 48", "Answer = 48"]},
+        ],
+        "tips": [
+            "Count places to move the point.",
+            "Hundredths = 2 places.",
+            "Line up points for + and \u2212.",
+            "Convert to compare.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 8 hundredths as a decimal.",
+                "2. 2.5 \u00d7 100 = ?",
+                "3. Convert 3/4 to a decimal.",
+            ],
+            "answers": "1) 0.08    2) 250    3) 0.75",
+        },
+    },
+
+    # ---- 7REV Revision ----
+    "7REV": {
+        "title": "Level 7 Revision — Decimals",
+        "intro": [
+            "Decimal = parts smaller than 1.",
+            "Places: tenths, hundredths, thousandths.",
+            "\u00d710 / \u00f710 move the point one step.",
+            "Add/subtract: line up the points.",
+            "Fraction \u2192 decimal: divide top by bottom.",
+        ],
+        "real_life": [
+            {"text": "1. 0.3 = 3 tenths",
+             "diagram": "tenths_grid", "shaded": 3,
+             "caption": "3 of 10"},
+            {"text": "2. 0.25 = 25 hundredths",
+             "diagram": "hundredths_grid", "shaded": 25,
+             "caption": "25 of 100"},
+            {"text": "3. 0.5 > 0.3",
+             "diagram": "two_bars", "t1": 10, "s1": 5, "t2": 10, "s2": 3,
+             "lab1": "0.5", "lab2": "0.3", "caption": "5 > 3 tenths"},
+        ],
+        "card": card_decimal_place,
+        "solved": [
+            {"q": "Ex: 0.4 + 0.3, then convert 1/2.",
+             "steps": ["0.4 + 0.3 = 0.7", "1/2 = 0.5"]},
+        ],
+        "tips": [
+            "Know the decimal places.",
+            "\u00d710 right, \u00f710 left.",
+            "Line up points for + and \u2212.",
+            "Fraction \u2192 decimal: divide.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Write 4 tenths as a decimal.",
+                "2. 0.6 + 0.5 = ?",
+                "3. Convert 1/4 to a decimal.",
+            ],
+            "answers": "1) 0.4    2) 1.1    3) 0.25",
         },
     },
 }
