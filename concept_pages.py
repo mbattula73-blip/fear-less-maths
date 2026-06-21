@@ -142,6 +142,66 @@ def hundredths_grid_vec(c, x, y, side, shaded, accent=GOLD):
     c.rect(x, y, side, side, fill=0, stroke=1)
 
 
+def int_line_vec(c, x, y, w, lo, hi, marks=None, jump=None):
+    """Integer number line from lo..hi. marks: list of (value,label).
+    jump: optional (start, delta, label) draws an arrow showing movement."""
+    n = hi - lo
+    step = w / n
+    c.setStrokeColor(BLACK); c.setLineWidth(1.3)
+    c.line(x, y, x + w, y)
+    c.line(x, y, x + 2 * mm, y + 1.4 * mm); c.line(x, y, x + 2 * mm, y - 1.4 * mm)
+    c.line(x + w, y, x + w - 2 * mm, y + 1.4 * mm); c.line(x + w, y, x + w - 2 * mm, y - 1.4 * mm)
+    c.setFont("Helvetica", 7.5)
+    for i in range(n + 1):
+        v = lo + i
+        tx = x + i * step
+        c.setStrokeColor(BLACK); c.setLineWidth(1.6 if v == 0 else 1)
+        c.line(tx, y - 1.8 * mm, tx, y + 1.8 * mm)
+        c.setFillColor(BLACK if v == 0 else MGRAY)
+        c.drawCentredString(tx, y - 6 * mm, str(v))
+    if jump:
+        s, d, lab = jump
+        sx = x + (s - lo) * step
+        ex = x + (s + d - lo) * step
+        ay = y + 8 * mm
+        c.setStrokeColor(GOLD); c.setLineWidth(1.4)
+        c.line(sx, ay, ex, ay)
+        dr = 1 if d > 0 else -1
+        c.line(ex, ay, ex - dr * 2 * mm, ay + 1.4 * mm)
+        c.line(ex, ay, ex - dr * 2 * mm, ay - 1.4 * mm)
+        c.setLineWidth(0.5); c.setStrokeColor(LGRAY)
+        c.line(sx, y, sx, ay); c.line(ex, y, ex, ay)
+        c.setFillColor(GOLD); c.setFont("Helvetica-Bold", 8.5)
+        c.drawCentredString((sx + ex) / 2, ay + 1.5 * mm, lab)
+    if marks:
+        for v, label in marks:
+            mx = x + (v - lo) * step
+            c.setFillColor(GOLD)
+            c.circle(mx, y, 1.7 * mm, fill=1, stroke=0)
+            c.setFont("Helvetica-Bold", 9)
+            c.drawCentredString(mx, y + 3 * mm, label)
+    return 12 * mm
+
+
+def sign_rule_vec(c, x, y, w, pairs):
+    """Grid of sign rules: list of (rule_text, result). Returns height used."""
+    rh = 7 * mm
+    cw = w / 2
+    c.setFont("Helvetica-Bold", 10)
+    for i, (rule, res) in enumerate(pairs):
+        col = i % 2; row = i // 2
+        bx = x + col * cw; by = y - (row + 1) * rh
+        pos = res.strip().startswith("+")
+        c.setFillColor(LGREEN if pos else LPINK)
+        c.setStrokeColor(GREEN if pos else PINK)
+        c.setLineWidth(0.8)
+        c.rect(bx, by, cw - 2 * mm, rh - 1.5 * mm, fill=1, stroke=1)
+        c.setFillColor(BLACK)
+        c.drawString(bx + 2.5 * mm, by + 1.8 * mm, f"{rule} = {res}")
+    rows = (len(pairs) + 1) // 2
+    return rows * rh + 2 * mm
+
+
 def place_value_vec(c, x, y, w, headers, digits):
     """Place-value chart with a decimal point column. headers/digits lists."""
     n = len(headers)
@@ -332,6 +392,17 @@ def _draw_example_diagram(c, x, y, w, rl):
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
         c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 7 * mm
+    if kind == "integer_line":
+        used = int_line_vec(c, x + 5 * mm, y - 10 * mm, w - 10 * mm,
+                           rl["lo"], rl["hi"], rl.get("marks"), rl.get("jump"))
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - 24 * mm, rl.get("caption", ""))
+        return 28 * mm
+    if kind == "sign_rule":
+        used = sign_rule_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["pairs"])
+        c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
+        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        return used + 8 * mm
     return 0
 
 
@@ -493,6 +564,57 @@ def card_frac_to_dec(c, x, y, w):
     return y - card_h - 2 * mm
 
 
+def card_integer_line(c, x, y, w):
+    """Big integer number line centred on 0, negatives left, positives right."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    int_line_vec(c, bx, y - 16 * mm, bw, -5, 5, marks=[(-3, "-3"), (4, "+4")])
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 10)
+    c.drawString(bx, y - 26 * mm, "Left of 0 = negative (-)")
+    c.drawString(bx, y - 32 * mm, "Right of 0 = positive (+)")
+    c.drawString(bx, y - 38 * mm, "0 is neither + nor -")
+    c.setFont("Helvetica-Oblique", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 46 * mm, "Bigger number is further RIGHT.")
+    c.drawString(bx, y - 52 * mm, "So -3 < -1 < 0 < 2 < 4")
+    return y - card_h - 2 * mm
+
+
+def card_int_addsub(c, x, y, w):
+    """Add/subtract on a number line: 7 + (-4) = 3."""
+    card_h = 58 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    int_line_vec(c, bx, y - 18 * mm, bw, -2, 8, jump=(7, -4, "-4"), marks=[(3, "3")])
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 30 * mm, "7 + (-4) = 3")
+    c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
+    c.drawString(bx, y - 38 * mm, "Add a positive \u2192 move RIGHT.")
+    c.drawString(bx, y - 44 * mm, "Add a negative \u2192 move LEFT.")
+    c.drawString(bx, y - 50 * mm, "Subtract = add the opposite.")
+    return y - card_h - 2 * mm
+
+
+def card_int_signs(c, x, y, w):
+    """Sign rules for multiply/divide."""
+    card_h = 56 * mm
+    c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
+    c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
+    bx = x + 5 * mm; bw = w - 10 * mm
+    c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
+    c.drawString(bx, y - 8 * mm, "Multiply / Divide sign rules:")
+    sign_rule_vec(c, bx, y - 11 * mm, bw,
+                  [("(+)(+)", "+"), ("(-)(-)", "+"),
+                   ("(+)(-)", "-"), ("(-)(+)", "-")])
+    c.setFont("Helvetica-Bold", 10); c.setFillColor(GREEN)
+    c.drawString(bx, y - 44 * mm, "Same signs \u2192 +")
+    c.setFillColor(PINK)
+    c.drawString(bx, y - 50 * mm, "Different signs \u2192 -")
+    return y - card_h - 2 * mm
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Registry — rich concept content per sublevel (sheet 1 only)
 # ───────────────────────────────────────────────────────────────────────────────
@@ -502,6 +624,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L6.get(sublevel_code)
     if level_num == 7:
         return _L7.get(sublevel_code)
+    if level_num == 8:
+        return _L8.get(sublevel_code)
     return None
 
 
@@ -1693,6 +1817,607 @@ _L7 = {
                 "3. Convert 1/4 to a decimal.",
             ],
             "answers": "1) 0.4    2) 1.1    3) 0.25",
+        },
+    },
+}
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+# LEVEL 8 — Integers: concept page specs (sheet 1 of each sublevel)
+# ───────────────────────────────────────────────────────────────────────────────
+_L8 = {
+    # ---- 8A Integer concept ----
+    "8A": {
+        "title": "Integers — Concept",
+        "intro": [
+            "Integers = whole numbers AND their negatives.",
+            "..., -3, -2, -1, 0, 1, 2, 3, ...",
+            "Positive: right of 0 (1, 2, 3...).",
+            "Negative: left of 0 (-1, -2, -3...).",
+            "0 is an integer, neither + nor -.",
+        ],
+        "real_life": [
+            {"text": "1. Temperature: -5 C is below zero",
+             "diagram": "integer_line", "lo": -6, "hi": 6, "marks": [(-5, "-5")],
+             "caption": "-5 is 5 steps left of 0"},
+            {"text": "2. Lift: +3 is 3 floors up, -2 is basement",
+             "diagram": "integer_line", "lo": -4, "hi": 4,
+             "marks": [(-2, "-2"), (3, "+3")], "caption": "below ground = negative"},
+            {"text": "3. Money: owe Rs 100 = -100; have Rs 100 = +100",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "0 = no money owed or held"},
+        ],
+        "card": card_integer_line,
+        "solved": [
+            {"q": "Ex: Is 0 an integer? Is 7 positive or negative?",
+             "steps": ["Yes, 0 is an integer", "7 is to the right of 0 \u2192 positive"]},
+        ],
+        "tips": [
+            "Integers include negatives and 0.",
+            "Right of 0 = positive.",
+            "Left of 0 = negative.",
+            "0 is neither + nor -.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is -4 an integer?",
+                "2. Is 9 positive or negative?",
+                "3. Is -12 to the left or right of 0?",
+            ],
+            "answers": "1) Yes    2) positive    3) left",
+        },
+    },
+
+    # ---- 8B Number line ----
+    "8B": {
+        "title": "Integers on the Number Line",
+        "intro": [
+            "Numbers grow bigger to the RIGHT.",
+            "Numbers get smaller to the LEFT.",
+            "Move right = add; move left = subtract.",
+            "-3 is left of 0; 5 is right of 0.",
+            "Compare by position: right = bigger.",
+        ],
+        "real_life": [
+            {"text": "1. Mark -3: it is left of 0",
+             "diagram": "integer_line", "lo": -6, "hi": 6, "marks": [(-3, "-3")],
+             "caption": "-3 sits left of zero"},
+            {"text": "2. Start at 0, move 4 right \u2192 4",
+             "diagram": "integer_line", "lo": -2, "hi": 6, "jump": (0, 4, "+4"),
+             "marks": [(4, "4")], "caption": "move right = add"},
+            {"text": "3. Start at 2, move 5 left \u2192 -3",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "jump": (2, -5, "-5"),
+             "marks": [(-3, "-3")], "caption": "move left = subtract"},
+        ],
+        "card": card_integer_line,
+        "solved": [
+            {"q": "Ex: Start at 0 and move 4 right. Where are you?",
+             "steps": ["Right = add", "0 + 4 = 4", "Answer = 4"]},
+        ],
+        "tips": [
+            "Right = bigger, add.",
+            "Left = smaller, subtract.",
+            "0 is the centre.",
+            "Count the steps you move.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is -3 left or right of 0?",
+                "2. Start at 0, move 6 right. Where?",
+                "3. Start at 1, move 4 left. Where?",
+            ],
+            "answers": "1) left    2) 6    3) -3",
+        },
+    },
+
+    # ---- 8C Integer addition ----
+    "8C": {
+        "title": "Adding Integers",
+        "intro": [
+            "Add a positive \u2192 move RIGHT.",
+            "Add a negative \u2192 move LEFT.",
+            "Same signs: add, keep the sign.",
+            "Different signs: subtract, keep bigger sign.",
+            "7 + (-4) = 3; (-5) + (-3) = -8.",
+        ],
+        "real_life": [
+            {"text": "1. 7 + (-4) = 3 (move 4 left from 7)",
+             "diagram": "integer_line", "lo": -2, "hi": 8, "jump": (7, -4, "-4"),
+             "marks": [(3, "3")], "caption": "different signs \u2192 subtract"},
+            {"text": "2. (-5) + (-3) = -8 (both negative)",
+             "diagram": "integer_line", "lo": -9, "hi": 1, "jump": (-5, -3, "-3"),
+             "marks": [(-8, "-8")], "caption": "same signs \u2192 add"},
+            {"text": "3. (-2) + 6 = 4 (move 6 right)",
+             "diagram": "integer_line", "lo": -4, "hi": 6, "jump": (-2, 6, "+6"),
+             "marks": [(4, "4")], "caption": "ends right of 0 \u2192 positive"},
+        ],
+        "card": card_int_addsub,
+        "solved": [
+            {"q": "Ex: 7 + (-4) = ?",
+             "steps": ["Start at 7, add negative \u2192 move left 4", "7 - 4 = 3", "Answer = 3"]},
+        ],
+        "tips": [
+            "Add + \u2192 move right.",
+            "Add - \u2192 move left.",
+            "Same signs: add, keep sign.",
+            "Different signs: subtract, bigger wins.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 5 + 3 = ?",
+                "2. (-5) + (-3) = ?",
+                "3. 7 + (-4) = ?",
+            ],
+            "answers": "1) 8    2) -8    3) 3",
+        },
+    },
+
+    # ---- 8CUM1 Mixed A+B+C ----
+    "8CUM1": {
+        "title": "Review: Concept, Number Line, Addition",
+        "intro": [
+            "Integers include negatives and 0.",
+            "Right = positive/bigger; left = negative/smaller.",
+            "Add + \u2192 right; add - \u2192 left.",
+            "Same signs add; different signs subtract.",
+            "0 is neither + nor -.",
+        ],
+        "real_life": [
+            {"text": "1. -3 is left of 0",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "marks": [(-3, "-3")],
+             "caption": "negative = left"},
+            {"text": "2. Start 0, move 4 right \u2192 4",
+             "diagram": "integer_line", "lo": -2, "hi": 6, "jump": (0, 4, "+4"),
+             "marks": [(4, "4")], "caption": "add = move right"},
+            {"text": "3. 7 + (-4) = 3",
+             "diagram": "integer_line", "lo": -2, "hi": 8, "jump": (7, -4, "-4"),
+             "marks": [(3, "3")], "caption": "different signs subtract"},
+        ],
+        "card": card_int_addsub,
+        "solved": [
+            {"q": "Ex: (-5) + (-3), then say if it is left or right of 0.",
+             "steps": ["Same signs \u2192 add: 5+3 = 8, keep -", "= -8, left of 0"]},
+        ],
+        "tips": [
+            "Negatives sit left of 0.",
+            "Add + right, add - left.",
+            "Same signs add; different subtract.",
+            "Right is always bigger.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is -7 an integer?",
+                "2. Start 0, move 5 left. Where?",
+                "3. 6 + (-2) = ?",
+            ],
+            "answers": "1) Yes    2) -5    3) 4",
+        },
+    },
+
+    # ---- 8D Integer subtraction ----
+    "8D": {
+        "title": "Subtracting Integers",
+        "intro": [
+            "Subtracting = ADD THE OPPOSITE.",
+            "a - b becomes a + (-b).",
+            "5 - (-3) = 5 + 3 = 8.",
+            "3 - 8 = -5 (go below zero).",
+            "Two minuses make a plus.",
+        ],
+        "real_life": [
+            {"text": "1. 8 - 3 = 5 (move 3 left)",
+             "diagram": "integer_line", "lo": 0, "hi": 10, "jump": (8, -3, "-3"),
+             "marks": [(5, "5")], "caption": "ordinary take-away"},
+            {"text": "2. 3 - 8 = -5 (cross below zero)",
+             "diagram": "integer_line", "lo": -6, "hi": 4, "jump": (3, -8, "-8"),
+             "marks": [(-5, "-5")], "caption": "answer goes negative"},
+            {"text": "3. 5 - (-3) = 8 (add the opposite)",
+             "diagram": "integer_line", "lo": 0, "hi": 10, "jump": (5, 3, "+3"),
+             "marks": [(8, "8")], "caption": "minus a minus = plus"},
+        ],
+        "card": card_int_addsub,
+        "solved": [
+            {"q": "Ex: 5 - (-3) = ?",
+             "steps": ["Add the opposite: 5 + 3", "= 8", "Answer = 8"]},
+        ],
+        "tips": [
+            "Subtract = add the opposite.",
+            "Minus a minus = plus.",
+            "Going below 0 gives a negative.",
+            "Then use the addition rules.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 8 - 3 = ?",
+                "2. 3 - 8 = ?",
+                "3. 5 - (-3) = ?",
+            ],
+            "answers": "1) 5    2) -5    3) 8",
+        },
+    },
+
+    # ---- 8E Integer multiplication ----
+    "8E": {
+        "title": "Multiplying Integers",
+        "intro": [
+            "Same signs \u2192 positive answer.",
+            "Different signs \u2192 negative answer.",
+            "4 \u00d7 5 = 20; 4 \u00d7 (-5) = -20.",
+            "(-4) \u00d7 (-5) = +20.",
+            "Multiply the numbers, then fix the sign.",
+        ],
+        "real_life": [
+            {"text": "1. (+)(+) and (-)(-) give +",
+             "diagram": "sign_rule",
+             "pairs": [("(+)(+)", "+"), ("(-)(-)", "+")],
+             "caption": "same signs \u2192 positive"},
+            {"text": "2. (+)(-) and (-)(+) give -",
+             "diagram": "sign_rule",
+             "pairs": [("(+)(-)", "-"), ("(-)(+)", "-")],
+             "caption": "different signs \u2192 negative"},
+            {"text": "3. (-4) \u00d7 5 = -20 on the line (4 jumps of -5)",
+             "diagram": "integer_line", "lo": -22, "hi": 2, "marks": [(-20, "-20")],
+             "caption": "different signs \u2192 negative"},
+        ],
+        "card": card_int_signs,
+        "solved": [
+            {"q": "Ex: (-4) \u00d7 5 = ?",
+             "steps": ["Numbers: 4 \u00d7 5 = 20", "Different signs \u2192 negative", "Answer = -20"]},
+        ],
+        "tips": [
+            "Same signs \u2192 +.",
+            "Different signs \u2192 -.",
+            "Multiply numbers, then sign.",
+            "(-)(-) = +.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 4 \u00d7 5 = ?",
+                "2. 4 \u00d7 (-5) = ?",
+                "3. (-4) \u00d7 (-5) = ?",
+            ],
+            "answers": "1) 20    2) -20    3) 20",
+        },
+    },
+
+    # ---- 8F Integer division ----
+    "8F": {
+        "title": "Dividing Integers",
+        "intro": [
+            "Same sign rules as multiplication.",
+            "Same signs \u2192 positive answer.",
+            "Different signs \u2192 negative answer.",
+            "12 \u00f7 4 = 3; (-12) \u00f7 4 = -3.",
+            "(-12) \u00f7 (-4) = +3.",
+        ],
+        "real_life": [
+            {"text": "1. Same signs \u2192 + (e.g. (-12) \u00f7 (-4) = 3)",
+             "diagram": "sign_rule",
+             "pairs": [("(+)\u00f7(+)", "+"), ("(-)\u00f7(-)", "+")],
+             "caption": "same signs \u2192 positive"},
+            {"text": "2. Different signs \u2192 - (e.g. 12 \u00f7 (-4) = -3)",
+             "diagram": "sign_rule",
+             "pairs": [("(+)\u00f7(-)", "-"), ("(-)\u00f7(+)", "-")],
+             "caption": "different signs \u2192 negative"},
+            {"text": "3. (-12) \u00f7 4 = -3 on the line",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "marks": [(-3, "-3")],
+             "caption": "different signs \u2192 negative"},
+        ],
+        "card": card_int_signs,
+        "solved": [
+            {"q": "Ex: (-12) \u00f7 4 = ?",
+             "steps": ["Numbers: 12 \u00f7 4 = 3", "Different signs \u2192 negative", "Answer = -3"]},
+        ],
+        "tips": [
+            "Same rules as multiply.",
+            "Same signs \u2192 +.",
+            "Different signs \u2192 -.",
+            "Divide numbers, then sign.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 12 \u00f7 4 = ?",
+                "2. (-12) \u00f7 4 = ?",
+                "3. (-12) \u00f7 (-4) = ?",
+            ],
+            "answers": "1) 3    2) -3    3) 3",
+        },
+    },
+
+    # ---- 8CUM2 Mixed D+E+F ----
+    "8CUM2": {
+        "title": "Review: Subtract, Multiply, Divide",
+        "intro": [
+            "Subtract = add the opposite.",
+            "Multiply/divide: same signs \u2192 +.",
+            "Multiply/divide: different signs \u2192 -.",
+            "Minus a minus = plus.",
+            "Work the numbers, then fix the sign.",
+        ],
+        "real_life": [
+            {"text": "1. 5 - (-3) = 8 (add the opposite)",
+             "diagram": "integer_line", "lo": 0, "hi": 10, "jump": (5, 3, "+3"),
+             "marks": [(8, "8")], "caption": "minus a minus = plus"},
+            {"text": "2. Sign rules for \u00d7 and \u00f7",
+             "diagram": "sign_rule",
+             "pairs": [("(+)(+)", "+"), ("(-)(-)", "+"), ("(+)(-)", "-"), ("(-)(+)", "-")],
+             "caption": "same \u2192 +, different \u2192 -"},
+            {"text": "3. (-4) \u00d7 5 = -20",
+             "diagram": "integer_line", "lo": -22, "hi": 2, "marks": [(-20, "-20")],
+             "caption": "different signs \u2192 negative"},
+        ],
+        "card": card_int_signs,
+        "solved": [
+            {"q": "Ex: (-8) \u00f7 4 - (-3) \u00d7 2 = ?",
+             "steps": ["(-8)\u00f74 = -2; (-3)\u00d72 = -6", "-2 - (-6) = -2 + 6", "= 4"]},
+        ],
+        "tips": [
+            "Subtract = add opposite.",
+            "Same signs \u2192 +.",
+            "Different signs \u2192 -.",
+            "Do \u00d7 \u00f7 before + -.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. 4 - (-6) = ?",
+                "2. (-3) \u00d7 4 = ?",
+                "3. (-20) \u00f7 5 = ?",
+            ],
+            "answers": "1) 10    2) -12    3) -4",
+        },
+    },
+
+    # ---- 8G Word problems ----
+    "8G": {
+        "title": "Integer Word Problems",
+        "intro": [
+            "Rise / gain / up \u2192 add.",
+            "Fall / drop / down \u2192 subtract.",
+            "Below zero, below ground = negative.",
+            "Use a number line to picture it.",
+            "Keep units: C, m, Rs.",
+        ],
+        "real_life": [
+            {"text": "1. -8 C rises 12 C \u2192 4 C",
+             "diagram": "integer_line", "lo": -10, "hi": 6, "jump": (-8, 12, "+12"),
+             "marks": [(4, "4")], "caption": "rise = move right"},
+            {"text": "2. 5 C falls 14 C \u2192 -9 C",
+             "diagram": "integer_line", "lo": -10, "hi": 6, "jump": (5, -14, "-14"),
+             "marks": [(-9, "-9")], "caption": "fall = move left"},
+            {"text": "3. Submarine -350 m rises 180 m \u2192 -170 m",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "marks": [(-2, "-170")],
+             "caption": "still below the surface"},
+        ],
+        "card": card_int_addsub,
+        "solved": [
+            {"q": "Ex: -8 C rises 12 C. New temperature?",
+             "steps": ["Rise \u2192 add: -8 + 12", "= 4", "Answer = 4 C"]},
+        ],
+        "tips": [
+            "Up / gain \u2192 add.",
+            "Down / fall \u2192 subtract.",
+            "Below 0 = negative.",
+            "Keep the units.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. -3 C rises 7 C. New temp?",
+                "2. 4 C falls 9 C. New temp?",
+                "3. Diver at -20 m rises 8 m. New depth?",
+            ],
+            "answers": "1) 4 C    2) -5 C    3) -12 m",
+        },
+    },
+
+    # ---- 8H Mixed integers ----
+    "8H": {
+        "title": "Integer Order of Operations",
+        "intro": [
+            "Do \u00d7 and \u00f7 before + and -.",
+            "Keep the sign rules at each step.",
+            "Work left to right within the same level.",
+            "(-3) \u00d7 4 = -12, then add/subtract.",
+            "Brackets first if present.",
+        ],
+        "real_life": [
+            {"text": "1. (-3) \u00d7 4 = -12 first",
+             "diagram": "integer_line", "lo": -14, "hi": 2, "marks": [(-12, "-12")],
+             "caption": "do multiply first"},
+            {"text": "2. Sign rules guide each step",
+             "diagram": "sign_rule",
+             "pairs": [("(+)(+)", "+"), ("(-)(-)", "+"), ("(+)(-)", "-"), ("(-)(+)", "-")],
+             "caption": "same \u2192 +, different \u2192 -"},
+            {"text": "3. (-6) \u00f7 2 = -3 then combine",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "marks": [(-3, "-3")],
+             "caption": "divide before adding"},
+        ],
+        "card": card_int_signs,
+        "solved": [
+            {"q": "Ex: (-3) \u00d7 4 + (-6) \u00f7 2 = ?",
+             "steps": ["(-3)\u00d74 = -12; (-6)\u00f72 = -3", "-12 + (-3)", "= -15"]},
+        ],
+        "tips": [
+            "\u00d7 \u00f7 before + -.",
+            "Apply sign rules each step.",
+            "Brackets first.",
+            "Left to right otherwise.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. (-2) \u00d7 5 + 4 = ?",
+                "2. (-8) \u00f7 4 - 3 = ?",
+                "3. 6 + (-2) \u00d7 3 = ?",
+            ],
+            "answers": "1) -6    2) -5    3) 0",
+        },
+    },
+
+    # ---- 8I Integer puzzles ----
+    "8I": {
+        "title": "Integer Puzzles",
+        "intro": [
+            "Use the two clues together.",
+            "A + B and A - B are given.",
+            "Add the two: 2A = sum of clues.",
+            "Then A is half; find B from A + B.",
+            "Check both clues at the end.",
+        ],
+        "real_life": [
+            {"text": "1. A+B = -6, A-B = 4 \u2192 A = -1, B = -5",
+             "diagram": "integer_line", "lo": -6, "hi": 2,
+             "marks": [(-1, "A"), (-5, "B")], "caption": "add clues: 2A = -2"},
+            {"text": "2. A+B = 3, A-B = -9 \u2192 A = -3, B = 6",
+             "diagram": "integer_line", "lo": -5, "hi": 7,
+             "marks": [(-3, "A"), (6, "B")], "caption": "2A = -6 \u2192 A = -3"},
+            {"text": "3. A+B = 0, A-B = 14 \u2192 A = 7, B = -7",
+             "diagram": "integer_line", "lo": -8, "hi": 8,
+             "marks": [(7, "A"), (-7, "B")], "caption": "opposites sum to 0"},
+        ],
+        "card": card_integer_line,
+        "solved": [
+            {"q": "Ex: A+B = -6 and A-B = 4. Find A, B.",
+             "steps": ["Add clues: 2A = -2 \u2192 A = -1", "A+B = -6 \u2192 B = -5"]},
+        ],
+        "tips": [
+            "Add the two clues \u2192 2A.",
+            "Half of that is A.",
+            "Use A+B to get B.",
+            "Check both clues.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. A+B = 2, A-B = 8. Find A, B.",
+                "2. A+B = -4, A-B = -10. Find A, B.",
+                "3. A+B = 0, A-B = 6. Find A, B.",
+            ],
+            "answers": "1) A=5,B=-3    2) A=-7,B=3    3) A=3,B=-3",
+        },
+    },
+
+    # ---- 8CUM3 Mixed G+H+I ----
+    "8CUM3": {
+        "title": "Review: Word Problems, Order, Puzzles",
+        "intro": [
+            "Rise \u2192 add; fall \u2192 subtract.",
+            "Do \u00d7 \u00f7 before + -.",
+            "Apply sign rules every step.",
+            "Puzzles: add the two clues for 2A.",
+            "Always check your answer.",
+        ],
+        "real_life": [
+            {"text": "1. -8 C rises 12 C \u2192 4 C",
+             "diagram": "integer_line", "lo": -10, "hi": 6, "jump": (-8, 12, "+12"),
+             "marks": [(4, "4")], "caption": "rise = add"},
+            {"text": "2. (-3) \u00d7 4 = -12 (multiply first)",
+             "diagram": "integer_line", "lo": -14, "hi": 2, "marks": [(-12, "-12")],
+             "caption": "do \u00d7 before +"},
+            {"text": "3. A+B = -6, A-B = 4 \u2192 A = -1, B = -5",
+             "diagram": "integer_line", "lo": -6, "hi": 2,
+             "marks": [(-1, "A"), (-5, "B")], "caption": "solve with both clues"},
+        ],
+        "card": card_int_signs,
+        "solved": [
+            {"q": "Ex: 5 C falls 14 C, then (-3) \u00d7 2.",
+             "steps": ["5 - 14 = -9 C", "(-3)\u00d72 = -6"]},
+        ],
+        "tips": [
+            "Up add, down subtract.",
+            "\u00d7 \u00f7 before + -.",
+            "Add clues \u2192 2A in puzzles.",
+            "Check the answer.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. -5 C rises 9 C. New temp?",
+                "2. (-4) \u00d7 3 + 2 = ?",
+                "3. A+B = 4, A-B = 10. Find A, B.",
+            ],
+            "answers": "1) 4 C    2) -10    3) A=7,B=-3",
+        },
+    },
+
+    # ---- 8J Mixed challenge ----
+    "8J": {
+        "title": "Integers — Mixed Challenge",
+        "intro": [
+            "Absolute value |x| = distance from 0.",
+            "|-13| = 13 (always positive).",
+            "Opposite of -8 = 8 (flip the sign).",
+            "Compare: right on the line is bigger.",
+            "-7 < -3 (less negative is bigger).",
+        ],
+        "real_life": [
+            {"text": "1. |-13| = 13 (distance from 0)",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "absolute value is always +"},
+            {"text": "2. Opposite of -8 is +8",
+             "diagram": "integer_line", "lo": -9, "hi": 9,
+             "marks": [(-8, "-8"), (8, "+8")], "caption": "same distance, other side"},
+            {"text": "3. -7 < -3 (further left is smaller)",
+             "diagram": "integer_line", "lo": -9, "hi": 1,
+             "marks": [(-7, "-7"), (-3, "-3")], "caption": "-3 is bigger than -7"},
+        ],
+        "card": card_integer_line,
+        "solved": [
+            {"q": "Ex: Compare -7 and -3.",
+             "steps": ["-3 is further right", "Right = bigger", "So -7 < -3"]},
+        ],
+        "tips": [
+            "|x| = distance from 0 (always +).",
+            "Opposite flips the sign.",
+            "Right on the line = bigger.",
+            "Less negative is bigger.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. |-9| = ?",
+                "2. Opposite of 5 = ?",
+                "3. Compare -2 and -6 (use > < =).",
+            ],
+            "answers": "1) 9    2) -5    3) -2 > -6",
+        },
+    },
+
+    # ---- 8REV Revision ----
+    "8REV": {
+        "title": "Level 8 Revision — Integers",
+        "intro": [
+            "Integers: negatives, 0, positives.",
+            "Right = bigger; left = smaller.",
+            "Add + right, add - left.",
+            "Subtract = add the opposite.",
+            "Multiply/divide: same \u2192 +, different \u2192 -.",
+        ],
+        "real_life": [
+            {"text": "1. -3 is left of 0",
+             "diagram": "integer_line", "lo": -5, "hi": 5, "marks": [(-3, "-3")],
+             "caption": "negative = left"},
+            {"text": "2. 7 + (-4) = 3",
+             "diagram": "integer_line", "lo": -2, "hi": 8, "jump": (7, -4, "-4"),
+             "marks": [(3, "3")], "caption": "add - = move left"},
+            {"text": "3. Sign rules for \u00d7 \u00f7",
+             "diagram": "sign_rule",
+             "pairs": [("(+)(+)", "+"), ("(-)(-)", "+"), ("(+)(-)", "-"), ("(-)(+)", "-")],
+             "caption": "same \u2192 +, different \u2192 -"},
+        ],
+        "card": card_int_addsub,
+        "solved": [
+            {"q": "Ex: 5 - (-3), then (-4) \u00d7 (-5).",
+             "steps": ["5 + 3 = 8", "(-4)\u00d7(-5) = 20"]},
+        ],
+        "tips": [
+            "Right bigger, left smaller.",
+            "Add + right, add - left.",
+            "Subtract = add opposite.",
+            "Same signs +, different -.",
+        ],
+        "try_it": {
+            "questions": [
+                "1. (-6) + (-2) = ?",
+                "2. 4 - (-5) = ?",
+                "3. (-3) \u00d7 (-4) = ?",
+            ],
+            "answers": "1) -8    2) 9    3) 12",
         },
     },
 }
