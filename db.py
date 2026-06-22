@@ -223,6 +223,22 @@ def list_tagged_worksheets():
         return [dict(r) for r in rows]
 
 
+def get_worksheets_tagged_with(topic: str) -> list:
+    """
+    Returns [{"worksheet_id": ..., "count": ...}, ...] sorted by count desc —
+    which worksheets have the most questions explicitly tagged with this
+    exact topic/concept string. Used to find the best worksheet to recommend
+    when a student keeps struggling with one concept.
+    """
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT worksheet_id, COUNT(*) as n FROM worksheet_tags WHERE topic=? "
+            "GROUP BY worksheet_id ORDER BY n DESC",
+            (topic,),
+        ).fetchall()
+        return [{"worksheet_id": r["worksheet_id"], "count": r["n"]} for r in rows]
+
+
 def resolve_topics(worksheet_id: str, wrong_qs: list, fallback_topic: str = None) -> dict:
     """Returns {q_num: topic} for the given wrong question numbers.
     Resolution order per question:
