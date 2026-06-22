@@ -556,6 +556,32 @@ with tab4:
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
+    with st.expander("🧪 Demo / Test Data — temporary, for testing only"):
+        st.caption(
+            "Generates 300 fake students (30 per class, Class 1–10) with a realistic "
+            "worksheet history, so you can try out the Student Profile tab before adding "
+            "your real roster and parent WhatsApp numbers."
+        )
+        col_demo1, col_demo2 = st.columns(2)
+        with col_demo1:
+            if st.button("👥  Generate 300 demo students", key="gen_demo"):
+                with st.spinner("Creating 300 students and their worksheet history… this can take a minute."):
+                    from seed_demo_data import generate_demo_data
+                    demo_result = generate_demo_data()
+                st.success(
+                    f"Created {demo_result['students_created']} students and "
+                    f"{demo_result['sessions_created']} worksheet sessions."
+                )
+                st.rerun()
+        with col_demo2:
+            confirm_wipe = st.checkbox("I understand this deletes ALL students & history", key="confirm_wipe")
+            if st.button("⚠️  Wipe all data", key="wipe_data", disabled=not confirm_wipe):
+                db.wipe_student_data()
+                st.success("All student data wiped. Add your real roster below, or regenerate demo data.")
+                st.rerun()
+
+    st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+
     existing_classes = db.get_classes()
 
     # ── First-run: roster setup ────────────────────────────────────────────────
