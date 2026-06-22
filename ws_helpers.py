@@ -3,6 +3,19 @@ ws_helpers.py — small helpers shared by the analytics module tabs.
 """
 from content import get_questions
 
+# Shared with pages/1_Daily_Entry.py (the dropdown staff pick from) and
+# seed_demo_data.py (so demo data exercises the same categories) — kept in
+# one place so they can't drift out of sync.
+MISTAKE_TYPES = [
+    "Calculation slip",
+    "Concept not understood",
+    "Wrong method/formula used",
+    "Misread the question",
+    "Careless / rushed",
+    "No attempt",
+    "Other",
+]
+
 
 def numbered_questions(sublevel_code: str, sheet_num: str):
     """
