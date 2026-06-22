@@ -1,16 +1,48 @@
 """
 db.py — Storage layer for Fear Less Maths Student Analytics Module.
 
-Uses a local SQLite file. Streamlit Cloud's filesystem is ephemeral across
-redeploys/restarts, so this module also exposes backup_bytes()/restore_from_bytes()
-so the teacher can download a snapshot and re-upload it after a redeploy.
+CONNECTION MODES
+-----------------
+This module can run in two modes, chosen automatically:
+
+1. Remote (Turso) — if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN are set in
+   Streamlit secrets, every connection goes to your Turso database instead
+   of a local file. Turso is a real persistent database (free tier: 100
+   databases, 5GB storage, 500M row reads/mo, 10M row writes/mo — see
+   turso.tech/pricing) that survives Streamlit Cloud's container
+   redeploys/restarts/sleep-wake cycles completely. This is what removes
+   the "app reset wipes all student data" risk for good.
+
+2. Local file (fallback) — if no Turso secrets are configured, this module
+   behaves exactly as before: a local SQLite-compatible file
+   (flm_data.db) next to this script. Streamlit Cloud's filesystem for
+   THIS mode is still ephemeral across redeploys/restarts — see
+   backup_bytes()/restore_from_bytes() below.
+
+Both modes use the `libsql` package (libSQL — Turso's SQLite-compatible
+engine), which speaks the same SQL dialect either way, so every other
+function in this file is identical regardless of which mode is active.
+
+A thin _DictConnection/_DictCursor wrapper makes libsql's plain-tuple rows
+behave like sqlite3.Row (dict(row), row["col"]) — this is the ONLY reason
+the wrapper exists, so nothing else in this codebase had to change.
 """
-import sqlite3
+import libsql
 import os
+import json
 from datetime import datetime, date
 from contextlib import contextmanager
 
+try:
+    import streamlit as st
+except ImportError:  # pragma: no cover — db.py is only ever run inside the app
+    st = None
+
 DB_PATH = os.path.join(os.path.dirname(__file__), "flm_data.db")
+
+# Tables in FK-safe order: parents before children. Used by backup/restore
+# and by the foreign-key-safe wipe order.
+_TABLES_IN_ORDER = ["students", "worksheet_tags", "sessions", "remedial_status", "wrong_answer_details"]
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
@@ -73,16 +105,91 @@ CREATE INDEX IF NOT EXISTS idx_wad_session ON wrong_answer_details(session_id);
 """
 
 
+def _turso_credentials():
+    """Returns (url, token) if Turso secrets are configured, else (None, None)."""
+    if st is None:
+        return None, None
+    try:
+        url = st.secrets.get("TURSO_DATABASE_URL")
+        token = st.secrets.get("TURSO_AUTH_TOKEN")
+    except Exception:
+        # No secrets.toml at all yet — perfectly normal before Turso is set up.
+        return None, None
+    if url and token:
+        return url, token
+    return None, None
+
+
+class _DictCursor:
+    """Wraps a libsql cursor so fetchone()/fetchall() return dict-like rows
+    (matching sqlite3.Row's dict(row) / row['col'] ergonomics), since the
+    libsql DBAPI itself returns plain tuples."""
+
+    def __init__(self, cursor):
+        self._cursor = cursor
+
+    def _row_to_dict(self, row):
+        if row is None:
+            return None
+        cols = [d[0] for d in self._cursor.description]
+        return dict(zip(cols, row))
+
+    def fetchone(self):
+        return self._row_to_dict(self._cursor.fetchone())
+
+    def fetchall(self):
+        return [self._row_to_dict(r) for r in self._cursor.fetchall()]
+
+    @property
+    def lastrowid(self):
+        return self._cursor.lastrowid
+
+    @property
+    def rowcount(self):
+        return self._cursor.rowcount
+
+
+class _DictConnection:
+    """Wraps a libsql connection so every execute()/executemany() call
+    returns a _DictCursor — the rest of this file never needs to know
+    whether it's talking to a local file or a remote Turso database."""
+
+    def __init__(self, raw):
+        self._raw = raw
+
+    def execute(self, sql, params=None):
+        cur = self._raw.execute(sql, params) if params is not None else self._raw.execute(sql)
+        return _DictCursor(cur)
+
+    def executemany(self, sql, seq_of_params):
+        cur = self._raw.executemany(sql, seq_of_params)
+        return _DictCursor(cur)
+
+    def executescript(self, sql):
+        return self._raw.executescript(sql)
+
+    def commit(self):
+        self._raw.commit()
+
+    def close(self):
+        self._raw.close()
+
+
 @contextmanager
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    url, token = _turso_credentials()
+    if url and token:
+        raw = libsql.connect(database=url, auth_token=token)
+    else:
+        raw = libsql.connect(database=DB_PATH)
+    conn = _DictConnection(raw)
     conn.execute("PRAGMA foreign_keys = ON")
     try:
         yield conn
         conn.commit()
     finally:
         conn.close()
+
 
 
 def init_db():
@@ -363,31 +470,80 @@ def wipe_student_data():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BACKUP / RESTORE  (handles Streamlit Cloud's ephemeral filesystem)
+# BACKUP / RESTORE
+#
+# Works as a portable JSON snapshot of every table's data, rather than raw
+# file bytes — this is what lets it work identically whether the live
+# backend is a local file OR a remote Turso database (there's no single
+# "the file" to copy once the data lives on a server). It's also a genuine
+# human-readable, backend-independent archive format, not just a backup.
 # ─────────────────────────────────────────────────────────────────────────────
 
+_BACKUP_FORMAT_VERSION = 2
+
 def backup_bytes() -> bytes:
-    """Return the raw SQLite file bytes for download."""
+    """Returns a JSON snapshot of every table, as UTF-8 bytes, for download."""
     init_db()
-    with open(DB_PATH, "rb") as f:
-        return f.read()
+    snapshot = {"format": "flm_backup", "version": _BACKUP_FORMAT_VERSION, "tables": {}}
+    with get_conn() as conn:
+        for table in _TABLES_IN_ORDER:
+            rows = conn.execute(f"SELECT * FROM {table}").fetchall()
+            snapshot["tables"][table] = [dict(r) for r in rows]
+    return json.dumps(snapshot, indent=None).encode("utf-8")
 
 
 def restore_from_bytes(data: bytes):
     """
-    Overwrite the local DB file with an uploaded backup. Validates the
-    SQLite file header first — a bad upload (wrong file type, corrupted
-    download) would otherwise silently brick the live app on the next read.
-    Raises ValueError if the file doesn't look like a real SQLite database.
+    Restores every table from a backup produced by backup_bytes(). Wipes
+    existing rows first, then reloads from the snapshot in FK-safe order.
+
+    Also accepts the OLD raw-SQLite-file backup format (from before this
+    module supported remote Turso databases) — but ONLY when currently
+    running in local-file mode, since there's no way to replay a raw file
+    onto a remote server. Raises ValueError for anything else unrecognized,
+    or for an old-format file while running against Turso.
     """
-    if not data.startswith(b"SQLite format 3\x00"):
+    # Old format: raw SQLite file bytes (pre-Turso-support backups)
+    if data.startswith(b"SQLite format 3\x00"):
+        url, token = _turso_credentials()
+        if url and token:
+            raise ValueError(
+                "This is an old-format backup file from before this app supported "
+                "Turso — it can't be restored directly into a remote database. "
+                "Restore it on a version of the app running in local-file mode "
+                "first, then download a fresh backup from there to migrate it."
+            )
+        with open(DB_PATH, "wb") as f:
+            f.write(data)
+        return
+
+    # New format: JSON snapshot
+    try:
+        snapshot = json.loads(data.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise ValueError(
+            "This doesn't look like a valid Fear Less Maths backup file. "
+            "Restore cancelled — nothing was changed."
+        ) from e
+
+    if snapshot.get("format") != "flm_backup" or "tables" not in snapshot:
         raise ValueError(
             "This doesn't look like a valid Fear Less Maths backup file "
-            "(missing SQLite file header). Restore cancelled — nothing was changed."
+            "(missing expected structure). Restore cancelled — nothing was changed."
         )
-    with open(DB_PATH, "wb") as f:
-        f.write(data)
 
+    init_db()
+    with get_conn() as conn:
+        for table in reversed(_TABLES_IN_ORDER):
+            conn.execute(f"DELETE FROM {table}")
+        for table in _TABLES_IN_ORDER:
+            for row in snapshot["tables"].get(table, []):
+                cols = list(row.keys())
+                placeholders = ", ".join("?" for _ in cols)
+                conn.execute(
+                    f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})",
+                    [row[c] for c in cols],
+                )
 
 # Ensure DB + schema exist as soon as this module is imported.
 init_db()
