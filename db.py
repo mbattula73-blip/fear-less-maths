@@ -282,6 +282,23 @@ def get_remedial_status(session_id: int):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# RESET  (for clearing demo/test data before loading the real roster)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def wipe_student_data():
+    """
+    Deletes ALL students, sessions, and remedial_status rows — e.g. to clear
+    out demo/test data before loading the real roster. Does NOT touch
+    worksheet_tags, since those are concept tags on the worksheet content
+    itself, not tied to any student.
+    """
+    with get_conn() as conn:
+        conn.execute("DELETE FROM remedial_status")
+        conn.execute("DELETE FROM sessions")
+        conn.execute("DELETE FROM students")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # BACKUP / RESTORE  (handles Streamlit Cloud's ephemeral filesystem)
 # ─────────────────────────────────────────────────────────────────────────────
 
