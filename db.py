@@ -30,6 +30,7 @@ the wrapper exists, so nothing else in this codebase had to change.
 import libsql
 import os
 import json
+from collections import defaultdict
 from datetime import datetime, date
 from contextlib import contextmanager
 
@@ -444,6 +445,24 @@ def get_remedial_status(session_id: int):
         return dict(row) if row else None
 
 
+def get_remedial_status_bulk(session_ids: list) -> dict:
+    """
+    Returns {session_id: {...}} for MANY sessions in ONE query, instead of
+    calling get_remedial_status() once per session in a loop. Over a remote
+    backend (Turso), each separate query is a network round-trip — looping
+    per-session is what makes a page with many sessions feel slow.
+    """
+    if not session_ids:
+        return {}
+    placeholders = ", ".join("?" for _ in session_ids)
+    with get_conn() as conn:
+        rows = conn.execute(
+            f"SELECT * FROM remedial_status WHERE session_id IN ({placeholders})",
+            list(session_ids),
+        ).fetchall()
+        return {r["session_id"]: dict(r) for r in rows}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # WRONG-ANSWER DETAIL  (per-question mistake type + what the student wrote)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -477,6 +496,26 @@ def get_wrong_answer_details(session_id: int) -> dict:
         ).fetchall()
         return {r["q_num"]: {"mistake_type": r["mistake_type"], "student_answer": r["student_answer"]}
                 for r in rows}
+
+
+def get_wrong_answer_details_bulk(session_ids: list) -> dict:
+    """
+    Returns {session_id: {q_num: {...}}} for MANY sessions in ONE query,
+    instead of calling get_wrong_answer_details() once per session in a
+    loop. Same reasoning as get_remedial_status_bulk above.
+    """
+    if not session_ids:
+        return {}
+    placeholders = ", ".join("?" for _ in session_ids)
+    with get_conn() as conn:
+        rows = conn.execute(
+            f"SELECT * FROM wrong_answer_details WHERE session_id IN ({placeholders})",
+            list(session_ids),
+        ).fetchall()
+    out = defaultdict(dict)
+    for r in rows:
+        out[r["session_id"]][r["q_num"]] = {"mistake_type": r["mistake_type"], "student_answer": r["student_answer"]}
+    return dict(out)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
