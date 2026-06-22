@@ -322,6 +322,15 @@ with tab4:
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
     with st.expander("💾 Backup & Restore — read this", expanded=True):
+        conn_status = db.connection_status()
+        if conn_status["mode"] == "turso" and conn_status["ok"]:
+            st.success(f"🟢 **Connected to Turso** — {conn_status['detail']}")
+        elif conn_status["mode"] == "turso" and not conn_status["ok"]:
+            st.error(f"🔴 **Turso secrets found, but connection failed** — {conn_status['detail']} "
+                    f"Falling back to local file for now; double check the secret values.")
+        else:
+            st.warning(f"🟡 **Local file mode** — {conn_status['detail']}")
+
         st.caption(
             "Streamlit Cloud's storage is **temporary**. Every time this app's code is "
             "updated, or it goes to sleep from inactivity and wakes back up, the entire "
