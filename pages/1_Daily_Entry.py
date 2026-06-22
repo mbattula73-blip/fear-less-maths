@@ -70,15 +70,23 @@ with st.expander("👥 Manage Students — add new students, bulk import, or upd
                 st.rerun()
 
     elif mgmt_mode == "Bulk import a class":
-        st.caption("Paste a whole class at once. Format per line:  Name, Class, Grade, Parent WhatsApp number")
+        st.caption("Upload a roster file, or paste directly. Format per line:  Name, Class, Grade, Parent WhatsApp number")
+        roster_file = st.file_uploader("Upload a .txt roster file", type=["txt"], key="roster_file_upload")
         roster_text = st.text_area(
-            "Roster",
+            "Or paste here instead",
             placeholder="Ravi Kumar, Class 7, 7, 7036525875\nMeena, Class 7, 7, 9812345678\nArjun, Class 5, 5, 9876543210",
             height=150, key="roster_text_bulk", label_visibility="collapsed",
         )
+        if roster_file is not None:
+            source_text = roster_file.getvalue().decode("utf-8")
+            st.caption(f"📄 Using uploaded file: {roster_file.name} "
+                      f"({len(source_text.strip().splitlines())} lines)")
+        else:
+            source_text = roster_text
+
         if st.button("📋  Import Roster", type="primary", key="import_roster_bulk"):
             rows, errs = [], []
-            for i, line in enumerate(roster_text.strip().splitlines(), 1):
+            for i, line in enumerate(source_text.strip().splitlines(), 1):
                 if not line.strip():
                     continue
                 parts = [p.strip() for p in line.split(",")]
