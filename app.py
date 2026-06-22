@@ -385,6 +385,7 @@ with tab4:
             cur_level   = current_levels.get(student["id"])
             history     = analytics.student_history(student["id"])
             topic_rows  = analytics.student_topic_breakdown(student["id"])
+            mistake_rows = analytics.student_mistake_breakdown(student["id"])
             remedial    = analytics.student_remedial_summary(student["id"])
 
             today_str      = _date.today().isoformat()
@@ -421,10 +422,21 @@ with tab4:
                 for h in today_sessions:
                     correct = h["total_questions"] - h["wrong_count"]
                     rem_txt = f' · Remedial: {h["remedial_status"]}' if h["remedial_status"] else ""
+                    detail_lines = ""
+                    if h["wrong_details"]:
+                        parts = []
+                        for qn in sorted(h["wrong_details"].keys()):
+                            d = h["wrong_details"][qn]
+                            mt = d.get("mistake_type") or "untagged"
+                            ans = d.get("student_answer")
+                            piece = f"Q{qn}: {mt}" + (f' ("{ans}")' if ans else "")
+                            parts.append(piece)
+                        detail_lines = (f'<div style="font-size:12px;color:#777;margin-top:6px">'
+                                       f'{" &nbsp;·&nbsp; ".join(parts)}</div>')
                     st.markdown(
                         f'<div class="info-cell" style="margin-bottom:8px">'
                         f'<b>{h["worksheet_id"]}</b> — {correct}/{h["total_questions"]} correct '
-                        f'({h["accuracy"]}%){rem_txt}</div>',
+                        f'({h["accuracy"]}%){rem_txt}{detail_lines}</div>',
                         unsafe_allow_html=True,
                     )
             else:
@@ -465,6 +477,19 @@ with tab4:
 
             st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
 
+            # ── How they're thinking ───────────────────────────────────────────
+            st.markdown("###### How they're thinking")
+            st.caption("What KIND of mistake this student tends to make — concept gaps need different "
+                       "follow-up than calculation slips or carelessness.")
+            if mistake_rows:
+                mistake_df = pd.DataFrame({"Times": [m["count"] for m in mistake_rows]},
+                                          index=[m["mistake_type"] for m in mistake_rows])
+                st.bar_chart(mistake_df, horizontal=True, color="#0D0D0D", width='stretch')
+            else:
+                st.caption("No mistake-type data yet — staff can tag this in Daily Entry when marking wrong answers.")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
             # ── Remedial tracking ──────────────────────────────────────────────
             st.markdown("###### Remedial tracking")
             rem_cards = [
@@ -492,6 +517,9 @@ with tab4:
                 "Score": f'{h["total_questions"] - h["wrong_count"]}/{h["total_questions"]}',
                 "Accuracy": f'{h["accuracy"]}%',
                 "Topics missed": h["resolved_topics"] or "—",
+                "Mistake types": ", ".join(sorted({
+                    d.get("mistake_type") for d in h["wrong_details"].values() if d.get("mistake_type")
+                })) or "—",
                 "Remedial": h["remedial_status"] or "—",
             } for h in history])
             st.dataframe(hist_df, hide_index=True, width='stretch')
