@@ -232,16 +232,20 @@ def init_db():
 
 def import_roster(rows: list) -> dict:
     """
-    Bulk import students. rows: list of dicts with keys name, class_name, grade, parent_whatsapp.
+    Bulk import students in ONE connection with batched executemany() calls,
+    instead of one fresh connection per student. The old per-row design
+    opened a new network connection for every single student — fine for a
+    handful, but a 279-student roster meant 279 sequential connections to
+    Turso, which is what made large imports time out partway through.
     Returns {'added': n, 'errors': [...]}.
     """
-    added = 0
+    valid_rows = []
     errors = []
     for i, r in enumerate(rows, 1):
         name = str(r.get("name", "")).strip()
         cls = str(r.get("class_name", "")).strip()
         grade = r.get("grade")
-        wa = r.get("parent_whatsapp", "")
+        wa_raw = r.get("parent_whatsapp", "")
         if not name or not cls:
             errors.append(f"Row {i}: missing name or class")
             continue
@@ -250,9 +254,32 @@ def import_roster(rows: list) -> dict:
         except (TypeError, ValueError):
             errors.append(f"Row {i} ({name}): invalid grade '{grade}'")
             continue
-        add_student(name, cls, grade, wa)
-        added += 1
-    return {"added": added, "errors": errors}
+        wa = _normalize_whatsapp(wa_raw) if wa_raw else None
+        valid_rows.append((name, cls, grade, wa))
+
+    if not valid_rows:
+        return {"added": 0, "errors": errors}
+
+    now = datetime.now().isoformat()
+    with get_conn() as conn:
+        # One batched insert for everyone. Duplicates (same name+class,
+        # already imported) are silently skipped by INSERT OR IGNORE.
+        conn.executemany(
+            "INSERT OR IGNORE INTO students (name, class_name, grade, parent_whatsapp, created_at) "
+            "VALUES (?,?,?,?,?)",
+            [(name, cls, grade, wa, now) for name, cls, grade, wa in valid_rows],
+        )
+        # Rows that already existed (so the insert above was ignored) but
+        # came with a WhatsApp number/grade — apply that update in one more
+        # batch, instead of a per-row SELECT+UPDATE.
+        rows_with_wa = [(wa, grade, name, cls) for name, cls, grade, wa in valid_rows if wa]
+        if rows_with_wa:
+            conn.executemany(
+                "UPDATE students SET parent_whatsapp=?, grade=? WHERE name=? AND class_name=?",
+                rows_with_wa,
+            )
+
+    return {"added": len(valid_rows), "errors": errors}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
