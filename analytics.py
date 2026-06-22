@@ -149,3 +149,74 @@ def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name
     ]
     rows.sort(key=lambda r: (-r["student_count"], -r["occurrence_count"]))
     return rows
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PER-STUDENT DETAIL  (powers the Student Profile tab)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def student_history(student_id: int) -> list:
+    """
+    Every session for one student, most recent first. Each session dict is
+    annotated with accuracy (%), wrong_count, and a human remedial_status
+    ("Completed" / "Pending" / None if no remedial was needed).
+    """
+    sessions = db.get_sessions(student_id=student_id)
+    out = []
+    for sess in sessions:
+        wrong = [q for q in sess["wrong_qs"].split(",") if q.strip()]
+        remedial_status = None
+        if sess["remedial_id"]:
+            rs = db.get_remedial_status(sess["id"])
+            remedial_status = "Completed" if (rs and rs["completed"]) else "Pending"
+        out.append({
+            **sess,
+            "accuracy": round(_session_accuracy(sess) * 100, 1),
+            "wrong_count": len(wrong),
+            "remedial_status": remedial_status,
+        })
+    return out
+
+
+def student_topic_breakdown(student_id: int) -> list:
+    """
+    Returns [{topic, count}, ...] sorted by count desc — how many times this
+    student has gotten each topic wrong, across all sessions.
+    """
+    sessions = db.get_sessions(student_id=student_id)
+    topic_counts = defaultdict(int)
+    for sess in sessions:
+        topics = [t.strip() for t in sess["resolved_topics"].split(",") if t.strip()]
+        for t in topics:
+            if t == "(untagged)":
+                continue
+            topic_counts[t] += 1
+
+    rows = [{"topic": t, "count": c} for t, c in topic_counts.items()]
+    rows.sort(key=lambda r: -r["count"])
+    return rows
+
+
+def student_remedial_summary(student_id: int) -> dict:
+    """
+    Returns {assigned, completed, pending_count, pending_sessions} for one
+    student — pending_sessions is the list of session dicts whose remedial
+    worksheet hasn't been marked completed yet.
+    """
+    sessions = db.get_sessions(student_id=student_id)
+    assigned = [s for s in sessions if s["remedial_id"]]
+    pending = []
+    completed = 0
+    for sess in assigned:
+        rs = db.get_remedial_status(sess["id"])
+        if rs and rs["completed"]:
+            completed += 1
+        else:
+            pending.append(sess)
+
+    return {
+        "assigned": len(assigned),
+        "completed": completed,
+        "pending_count": len(assigned) - completed,
+        "pending_sessions": pending,
+    }
