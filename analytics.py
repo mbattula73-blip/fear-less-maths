@@ -6,6 +6,7 @@ storage layer stays simple and these queries can be tested independently.
 from collections import defaultdict
 from datetime import date as _date
 import db
+from levels_data import SUBLEVELS
 
 
 def _session_accuracy(session: dict) -> float:
@@ -245,3 +246,152 @@ def student_remedial_summary(student_id: int) -> dict:
         "pending_count": len(assigned) - completed,
         "pending_sessions": pending,
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONCEPT ALERTS  (a student stuck on the same concept across DIFFERENT
+# worksheets/levels — flags it and suggests where to send them to fix it)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# {sublevel_code: (level_num, topic_label)} — built once from levels_data.
+_SUBLEVEL_INDEX = {
+    code: (lvl, t)
+    for lvl, subs in SUBLEVELS.items()
+    for code, t in subs
+}
+
+
+def recommend_worksheet_for_concept(concept: str, sample_worksheet_ids: list = None):
+    """
+    Given a concept/topic string (as it appears in resolved_topics), finds
+    the sublevel that teaches it and returns the worksheet best suited to
+    re-teach it — the sublevel's Sheet 2 ("Try it — Concept" tier).
+
+    IMPORTANT: several sublevels share generic topic labels across totally
+    different levels (e.g. every level's cumulative-review sublevel is
+    labelled "Mixed A+B+C") — so a bare string match against the topic
+    label is ambiguous about WHICH level. `sample_worksheet_ids` should be
+    the actual worksheet_ids from the student's own sessions where this
+    concept occurred; we use the most common sublevel among those to anchor
+    the recommendation to the level the student is actually struggling in.
+
+    Falls back to 1) the most-tagged worksheet for this exact concept
+    (handles concept_tagger's specific labels) or 2) the first sublevel
+    whose own topic label matches, if no sample is given.
+
+    Returns None if no match can be found.
+    """
+    sublevel_code = None
+
+    if sample_worksheet_ids:
+        codes = [wid.split("-")[0] for wid in sample_worksheet_ids if "-" in wid]
+        if codes:
+            sublevel_code = max(set(codes), key=codes.count)
+
+    if not sublevel_code:
+        tagged = db.get_worksheets_tagged_with(concept)
+        if tagged:
+            sublevel_code = tagged[0]["worksheet_id"].split("-")[0]
+
+    if not sublevel_code:
+        for code, (lvl, t) in _SUBLEVEL_INDEX.items():
+            if t == concept:
+                sublevel_code = code
+                break
+
+    if not sublevel_code or sublevel_code not in _SUBLEVEL_INDEX:
+        return None
+
+    level_num, sub_topic = _SUBLEVEL_INDEX[sublevel_code]
+    return {
+        "level_num": level_num,
+        "sublevel_code": sublevel_code,
+        "sublevel_topic": sub_topic,
+        "recommended_worksheet_id": f"{sublevel_code}-2",
+    }
+
+
+def concept_mistake_types_for_student(student_id: int, concept: str) -> list:
+    """
+    Returns [{mistake_type, count}, ...] sorted desc, but ONLY for this
+    student's wrong answers that were tagged with this specific concept —
+    e.g. telling you whether their repeated "HCF" mistakes are mostly
+    "Concept not understood" (needs re-teaching) vs "Calculation slip"
+    (just needs more practice). Kept as a standalone utility (concept_alerts
+    computes this itself, in one pass, for efficiency — see below).
+    """
+    sessions = db.get_sessions(student_id=student_id)
+    counts = defaultdict(int)
+    for sess in sessions:
+        topics_in_session = [t.strip() for t in sess["resolved_topics"].split(",") if t.strip()]
+        if concept not in topics_in_session:
+            continue
+        details = db.get_wrong_answer_details(sess["id"])
+        for d in details.values():
+            mt = (d.get("mistake_type") or "").strip()
+            if mt:
+                counts[mt] += 1
+
+    rows = [{"mistake_type": mt, "count": c} for mt, c in counts.items()]
+    rows.sort(key=lambda r: -r["count"])
+    return rows
+
+
+def concept_alerts(threshold: int = 2, class_name: str = None) -> list:
+    """
+    Scans every student (optionally limited to one class) and flags any
+    student+concept pair where that concept caused a wrong answer in MORE
+    THAN `threshold` separate worksheet sessions (default threshold=2, i.e.
+    3 or more times) — even if those sessions span different worksheets and
+    different levels, since the same concept (e.g. "Fractions") can recur
+    across the curriculum.
+
+    Single pass per student (one db.get_sessions call, reused for the count,
+    the mistake-type diagnosis, AND the worksheet recommendation) so this
+    stays fast even across a full school.
+
+    Returns alerts sorted worst-first:
+    [{student_id, student_name, class_name, grade, concept, times,
+      mistake_breakdown: [...], recommendation: {...} or None}, ...]
+    """
+    students = db.get_students(class_name) if class_name else db.get_students()
+    alerts = []
+    for s in students:
+        sessions = db.get_sessions(student_id=s["id"])
+        concept_sessions = defaultdict(list)
+        for sess in sessions:
+            topics = [t.strip() for t in sess["resolved_topics"].split(",") if t.strip()]
+            for t in topics:
+                if t == "(untagged)":
+                    continue
+                concept_sessions[t].append(sess)
+
+        for concept, sess_list in concept_sessions.items():
+            if len(sess_list) <= threshold:
+                continue
+
+            mistake_counts = defaultdict(int)
+            for sess in sess_list:
+                for d in db.get_wrong_answer_details(sess["id"]).values():
+                    mt = (d.get("mistake_type") or "").strip()
+                    if mt:
+                        mistake_counts[mt] += 1
+            mistake_rows = sorted(
+                [{"mistake_type": mt, "count": c} for mt, c in mistake_counts.items()],
+                key=lambda r: -r["count"],
+            )
+
+            worksheet_ids = [sess["worksheet_id"] for sess in sess_list]
+            alerts.append({
+                "student_id": s["id"],
+                "student_name": s["name"],
+                "class_name": s["class_name"],
+                "grade": s["grade"],
+                "concept": concept,
+                "times": len(sess_list),
+                "mistake_breakdown": mistake_rows,
+                "recommendation": recommend_worksheet_for_concept(concept, worksheet_ids),
+            })
+
+    alerts.sort(key=lambda a: (-a["times"], a["class_name"], a["student_name"]))
+    return alerts
