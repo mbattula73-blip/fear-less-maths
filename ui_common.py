@@ -222,11 +222,13 @@ MAIN_CSS = """
 </style>
 """
 
-# Hides Streamlit's auto-generated multipage nav links in the sidebar, so a
-# staff member opened directly on the Daily Entry page has no visible way to
-# wander into the teacher's tabs (and vice versa). This is a UX separation,
-# not an access-control boundary — both pages are still reachable by anyone
-# who has/guesses the URL. Layer on a PIN gate if you need real auth later.
+# Hides Streamlit's auto-generated multipage nav links in the sidebar.
+# Used on the Daily Entry page so staff have no visible way to wander into
+# the teacher's tabs. The main app (app.py) keeps nav visible so you (the
+# teacher) can find/open the Daily Entry page and copy its URL to share.
+# This is a UX separation, not an access-control boundary — both pages are
+# still reachable by anyone who has/guesses the URL. Layer on a PIN gate if
+# you need real auth later.
 HIDE_NAV_CSS = '<style>[data-testid="stSidebarNav"] {display: none;}</style>'
 
 
