@@ -55,9 +55,21 @@ CREATE TABLE IF NOT EXISTS remedial_status (
     FOREIGN KEY(session_id) REFERENCES sessions(id)
 );
 
+CREATE TABLE IF NOT EXISTS wrong_answer_details (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      INTEGER NOT NULL,
+    q_num           INTEGER NOT NULL,
+    mistake_type    TEXT,      -- e.g. 'Concept not understood', 'Calculation slip', ...
+    student_answer  TEXT,      -- optional: what the student actually wrote, free text
+    created_at      TEXT NOT NULL,
+    UNIQUE(session_id, q_num),
+    FOREIGN KEY(session_id) REFERENCES sessions(id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_sessions_student ON sessions(student_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_date ON sessions(session_date);
 CREATE INDEX IF NOT EXISTS idx_tags_worksheet ON worksheet_tags(worksheet_id);
+CREATE INDEX IF NOT EXISTS idx_wad_session ON wrong_answer_details(session_id);
 """
 
 
@@ -282,17 +294,53 @@ def get_remedial_status(session_id: int):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# WRONG-ANSWER DETAIL  (per-question mistake type + what the student wrote)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def save_wrong_answer_details(session_id: int, details: dict):
+    """
+    details: {q_num(int): {"mistake_type": str, "student_answer": str}, ...}
+    Overwrites any existing detail rows for this session.
+    """
+    with get_conn() as conn:
+        conn.execute("DELETE FROM wrong_answer_details WHERE session_id=?", (session_id,))
+        rows = [
+            (session_id, int(q), d.get("mistake_type") or None, d.get("student_answer") or None,
+             datetime.now().isoformat())
+            for q, d in details.items()
+        ]
+        if rows:
+            conn.executemany(
+                "INSERT INTO wrong_answer_details (session_id, q_num, mistake_type, student_answer, created_at) "
+                "VALUES (?,?,?,?,?)",
+                rows,
+            )
+
+
+def get_wrong_answer_details(session_id: int) -> dict:
+    """Returns {q_num: {"mistake_type": str, "student_answer": str}, ...} for one session."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT q_num, mistake_type, student_answer FROM wrong_answer_details WHERE session_id=?",
+            (session_id,),
+        ).fetchall()
+        return {r["q_num"]: {"mistake_type": r["mistake_type"], "student_answer": r["student_answer"]}
+                for r in rows}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # RESET  (for clearing demo/test data before loading the real roster)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def wipe_student_data():
     """
-    Deletes ALL students, sessions, and remedial_status rows — e.g. to clear
-    out demo/test data before loading the real roster. Does NOT touch
-    worksheet_tags, since those are concept tags on the worksheet content
-    itself, not tied to any student.
+    Deletes ALL students, sessions, remedial_status, and wrong_answer_details
+    rows — e.g. to clear out demo/test data before loading the real roster.
+    Does NOT touch worksheet_tags, since those are concept tags on the
+    worksheet content itself, not tied to any student.
     """
     with get_conn() as conn:
+        conn.execute("DELETE FROM wrong_answer_details")
         conn.execute("DELETE FROM remedial_status")
         conn.execute("DELETE FROM sessions")
         conn.execute("DELETE FROM students")
