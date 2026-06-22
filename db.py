@@ -374,7 +374,17 @@ def backup_bytes() -> bytes:
 
 
 def restore_from_bytes(data: bytes):
-    """Overwrite the local DB file with an uploaded backup."""
+    """
+    Overwrite the local DB file with an uploaded backup. Validates the
+    SQLite file header first — a bad upload (wrong file type, corrupted
+    download) would otherwise silently brick the live app on the next read.
+    Raises ValueError if the file doesn't look like a real SQLite database.
+    """
+    if not data.startswith(b"SQLite format 3\x00"):
+        raise ValueError(
+            "This doesn't look like a valid Fear Less Maths backup file "
+            "(missing SQLite file header). Restore cancelled — nothing was changed."
+        )
     with open(DB_PATH, "wb") as f:
         f.write(data)
 
