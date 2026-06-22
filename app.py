@@ -8,6 +8,7 @@ page now (pages/1_Daily_Entry.py) for associate staff — see ui_common.py
 for why both pages safely share the same live database.
 """
 import streamlit as st
+from collections import defaultdict
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
 from pdf_engine import build_pdf
 import db
@@ -32,9 +33,9 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  🏷️ Concept Tags  ", "  👤 Student Profile  ",
+    "  🏷️ Concept Tags  ", "  👤 Student Profile  ", "  🚨 Alerts  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -526,6 +527,88 @@ with tab4:
 
             st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─── TAB 5 — ALERTS ─────────────────────────────────────────────────────────────
+with tab5:
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+
+    st.markdown("##### Concept Alerts")
+    st.caption(
+        "Flags any student who's gotten the SAME concept wrong in more than the threshold "
+        "below, across DIFFERENT worksheets — even across different levels, since concepts "
+        "like \"Fractions\" or \"HCF\" can resurface years apart. Each alert is anchored to "
+        "the level the student actually struggled in, and points to the worksheet built to "
+        "re-teach that exact concept."
+    )
+
+    col_a1, col_a2 = st.columns([1, 1])
+    with col_a1:
+        alert_classes = ["All Classes"] + db.get_classes()
+        alert_class_sel = st.selectbox("Class", alert_classes, key="alert_class")
+    with col_a2:
+        alert_threshold = st.number_input(
+            "Alert after more than this many times", min_value=1, max_value=10, value=2,
+            key="alert_threshold",
+        )
+
+    alert_class_filter = None if alert_class_sel == "All Classes" else alert_class_sel
+    alerts = analytics.concept_alerts(threshold=int(alert_threshold), class_name=alert_class_filter)
+
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+
+    if not alerts:
+        st.success("No recurring concept struggles flagged right now.")
+    else:
+        st.caption(f"{len(alerts)} alert(s)")
+        by_class = defaultdict(list)
+        for a in alerts:
+            by_class[a["class_name"]].append(a)
+
+        for cls in sorted(by_class.keys()):
+            cls_alerts = by_class[cls]
+            st.markdown(f"###### {cls} &nbsp;·&nbsp; {len(cls_alerts)} alert(s)",
+                       unsafe_allow_html=True)
+
+            for a in cls_alerts:
+                rec = a["recommendation"]
+                if rec:
+                    rec_html = (
+                        f'Recommended: <b>{rec["recommended_worksheet_id"]}</b> '
+                        f'(Level {rec["level_num"]} &nbsp;·&nbsp; {rec["sublevel_topic"]} — Concept sheet)'
+                    )
+                else:
+                    rec_html = "No specific worksheet match found for this concept — review manually."
+
+                mistakes = a["mistake_breakdown"]
+                if mistakes:
+                    top = mistakes[0]
+                    mistake_html = (
+                        f'Mostly: <b>{top["mistake_type"]}</b> ({top["count"]}/{sum(m["count"] for m in mistakes)} tagged)'
+                        if len(mistakes) == 1 else
+                        f'Breakdown: ' + ", ".join(f'{m["mistake_type"]} ({m["count"]})' for m in mistakes)
+                    )
+                else:
+                    mistake_html = "No mistake-type tags recorded yet for this concept (staff can add this in Daily Entry)."
+
+                st.markdown(f"""
+                <div class="info-cell" style="margin-bottom:10px;border-left:3px solid #C0392B">
+                    <div style="font-weight:700;font-size:14px;color:#111">
+                        🚨 {a['student_name']} — {a['concept']}
+                    </div>
+                    <div style="font-size:12px;color:#777;margin-top:2px">
+                        Grade {a['grade']} &nbsp;·&nbsp; wrong in {a['times']} different worksheet sessions
+                    </div>
+                    <div style="font-size:12px;color:#555;margin-top:6px">{mistake_html}</div>
+                    <div style="font-size:13px;color:#222;margin-top:6px">{rec_html}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 ui_common.render_footer(level_num, sublevel_code)
