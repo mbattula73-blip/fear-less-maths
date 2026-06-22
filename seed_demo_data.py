@@ -21,7 +21,7 @@ from datetime import date, timedelta
 
 import db
 from levels_data import SUBLEVELS
-from ws_helpers import remedial_id_for
+from ws_helpers import remedial_id_for, MISTAKE_TYPES
 
 FIRST_NAMES = [
     "Aarav", "Vihaan", "Aditya", "Sai", "Reyansh", "Krishna", "Ishaan", "Arjun", "Rohan", "Karthik",
@@ -107,7 +107,7 @@ def generate_demo_data(num_classes: int = NUM_CLASSES, per_class: int = PER_CLAS
                     resolved = db.resolve_topics(ws_id, wrong_qs, fallback_topic=topic) if wrong_qs else {}
                     remedial_id = remedial_id_for(sublevel_code, sheet_num) if wrong_qs else None
 
-                    db.add_session(
+                    new_session_id = db.add_session(
                         session_date=cursor_date.isoformat(),
                         student_id=student_id,
                         class_name=class_name,
@@ -121,11 +121,25 @@ def generate_demo_data(num_classes: int = NUM_CLASSES, per_class: int = PER_CLAS
                     )
                     sessions_created += 1
 
+                    if wrong_qs:
+                        # Weighted toward the two most pedagogically common
+                        # mistake types, with the rest as plausible noise.
+                        weights = [30, 28, 12, 10, 12, 6, 2]
+                        details = {}
+                        for qn in wrong_qs:
+                            mtype = random.choices(MISTAKE_TYPES, weights=weights, k=1)[0]
+                            # Most real entries skip the free-text answer (staff are busy) —
+                            # only fill it in occasionally, like a real classroom would.
+                            ans = "" if random.random() < 0.75 else random.choice(
+                                ["miscounted", "sign error", "wrong table used", "left it blank", "swapped digits"]
+                            )
+                            details[qn] = {"mistake_type": mtype, "student_answer": ans}
+                        db.save_wrong_answer_details(new_session_id, details)
+
                     if remedial_id and random.random() < 0.6:
                         # Mark this just-inserted session's remedial as completed
                         # (simulating the teacher following up a few days later).
-                        latest = db.get_sessions(student_id=student_id)[0]
-                        db.mark_remedial_completed(latest["id"], True)
+                        db.mark_remedial_completed(new_session_id, True)
 
                 sub_idx += 1
                 cursor_date += timedelta(days=random.choice([2, 3, 3, 4, 5]))
