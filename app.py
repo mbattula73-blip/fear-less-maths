@@ -20,6 +20,15 @@ ui_common.setup_page("Fear Less Maths", hide_nav=False)
 ui_common.render_header()
 level_num, sublevel_code, topic = ui_common.render_level_selector()
 
+# ── Staff link — always visible here, regardless of the sidebar toggle ─────
+with st.container():
+    st.markdown('<div style="background:#fff;padding:10px 24px;'
+                'border-bottom:1.5px solid #E5E2DC;display:flex;align-items:center;gap:8px">',
+                unsafe_allow_html=True)
+    st.caption("📋 Give this to your staff — opens **only** the Daily Entry screen, nothing else:")
+    st.page_link("pages/1_Daily_Entry.py", label="Open Daily Entry page", icon="🔗")
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
