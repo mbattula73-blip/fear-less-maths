@@ -1,6 +1,11 @@
 """
 Fear Less Maths — Final Production App
 LA Excellence Schools / IDPS Orchards
+
+This is the TEACHER's full control panel: worksheet generation, concept
+tagging, and the Student Profile dashboard. Daily Entry lives on its own
+page now (pages/1_Daily_Entry.py) for associate staff — see ui_common.py
+for why both pages safely share the same live database.
 """
 import streamlit as st
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
@@ -9,267 +14,18 @@ import db
 import analytics
 import concept_tagger
 from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
+import ui_common
 
-st.set_page_config(
-    page_title="Fear Less Maths",
-    page_icon="📐",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-
-*, html, body { font-family: 'IBM Plex Sans', sans-serif !important; }
-#MainMenu, footer, header { visibility: hidden; }
-.block-container { padding: 0 !important; max-width: 100% !important; }
-
-/* ═══ HEADER BAR ══════════════════════════════════════════ */
-.app-header {
-    background: #0D0D0D;
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-.app-brand {
-    font-family: 'Playfair Display', serif !important;
-    font-size: 22px; font-weight: 700;
-    color: #FFFFFF !important;
-    letter-spacing: -.02em;
-}
-.app-sub {
-    font-size: 10px; color: #555 !important;
-    text-transform: uppercase; letter-spacing: .1em;
-}
-
-/* ═══ SELECTOR STRIP ══════════════════════════════════════ */
-.selector-strip {
-    background: #FFFFFF;
-    border-bottom: 1.5px solid #E5E2DC;
-    padding: 16px 24px;
-}
-
-/* ═══ MAIN CONTENT ════════════════════════════════════════ */
-.main-area {
-    background: #F4F2EE;
-    min-height: 100vh;
-    padding: 0 0 40px;
-}
-
-/* Worksheet ID card */
-.ws-hero {
-    margin: 20px 24px 0;
-    background: #0D0D0D;
-    border-radius: 10px;
-    padding: 20px 24px;
-    display: flex; align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-.ws-hero-id {
-    font-family: 'Playfair Display',serif;
-    font-size: 36px; color: #FFF;
-    letter-spacing: -.03em; line-height: 1;
-}
-.ws-hero-meta { text-align: right; }
-.ws-hero-topic { font-size: 13px; color: #888; margin-bottom: 4px; }
-.ws-hero-tier { font-size: 11px; color: #444;
-                text-transform: uppercase; letter-spacing: .08em; }
-
-/* Tier track */
-.tier-track {
-    display: flex; margin: 14px 24px 0;
-    background: #FFFFFF;
-    border: 1.5px solid #E5E2DC;
-    border-radius: 8px; overflow: hidden;
-}
-.tier-step {
-    flex: 1; padding: 10px 6px; text-align: center;
-    border-right: 1px solid #E5E2DC;
-    font-size: 10px; color: #AAA;
-    background: #FAFAFA;
-}
-.tier-step:last-child { border-right: none; }
-.tier-step.on { background:#0D0D0D; color:#FFF; }
-.tier-step .tn {
-    font-size: 9px; display: block; margin-bottom: 2px;
-    opacity: .5; text-transform: uppercase; letter-spacing: .06em;
-}
-.tier-step .tnm { font-weight: 600; font-size: 11px; }
-
-/* Info row */
-.info-row {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px; margin: 12px 24px 0;
-}
-@media (min-width: 600px) {
-    .info-row { grid-template-columns: 1fr 1fr 1fr 1fr; }
-}
-.info-cell {
-    background: #FFFFFF; border: 1.5px solid #E5E2DC;
-    border-radius: 8px; padding: 12px 14px;
-}
-.info-cell .il { font-size: 10px; color: #AAA;
-                 text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
-.info-cell .iv { font-size: 13px; font-weight: 600; color: #111; }
-
-/* Buttons */
-.stButton > button {
-    font-family: 'IBM Plex Sans',sans-serif !important;
-    background: #0D0D0D !important; color: #FFFFFF !important;
-    border: none !important; border-radius: 8px !important;
-    font-size: 15px !important; font-weight: 600 !important;
-    padding: 14px 40px !important; width: 100% !important;
-    letter-spacing: .01em !important;
-    transition: transform .12s, background .12s !important;
-}
-.stButton > button:hover {
-    background: #222 !important; transform: translateY(-1px) !important;
-}
-
-.stDownloadButton > button {
-    font-family: 'IBM Plex Sans',sans-serif !important;
-    background: #FFFFFF !important; color: #0D0D0D !important;
-    border: 2px solid #0D0D0D !important;
-    border-radius: 8px !important;
-    font-size: 15px !important; font-weight: 600 !important;
-    padding: 14px 0 !important; width: 100% !important;
-    transition: all .12s !important;
-}
-.stDownloadButton > button:hover {
-    background: #0D0D0D !important; color: #FFF !important;
-}
-
-/* Success */
-.success-card {
-    background: #FFF; border: 1.5px solid #0D0D0D;
-    border-radius: 8px; padding: 14px 18px;
-    display: flex; align-items: center; gap: 12px;
-    font-weight: 600; font-size: 14px; color: #111;
-    margin: 12px 0;
-}
-.success-card .ck {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: #0D0D0D; color: #FFF;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
-}
-
-/* Selectbox labels */
-.stSelectbox label {
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: .06em !important;
-    color: #555 !important;
-}
-
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    background: transparent !important;
-    border-bottom: 2px solid #E5E2DC !important;
-    gap: 0; padding: 0 24px;
-}
-.stTabs [data-baseweb="tab"] {
-    background: transparent !important;
-    color: #AAA !important; font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 12px 16px !important;
-    border: none !important; border-radius: 0 !important;
-    border-bottom: 2px solid transparent !important;
-    margin-bottom: -2px !important;
-}
-.stTabs [aria-selected="true"] {
-    color: #0D0D0D !important; font-weight: 700 !important;
-    border-bottom: 2px solid #0D0D0D !important;
-}
-.stTabs [data-baseweb="tab-panel"] { padding: 0 !important; }
-
-/* Progress */
-.stProgress > div > div { background: #0D0D0D !important; }
-
-/* Tier guide strip */
-.tier-guide {
-    margin: 12px 24px 0;
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
-@media (min-width: 600px) {
-    .tier-guide { grid-template-columns: repeat(5, 1fr); }
-}
-.tg-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 10px;
-    background: #FFF; border: 1px solid #E5E2DC;
-    border-radius: 6px; font-size: 11px; color: #888;
-}
-.tg-pip { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
-
-/* Footer */
-.footer-bar {
-    background: #0D0D0D; padding: 12px 24px;
-    display: flex; align-items: center;
-    justify-content: space-between; margin-top: 40px;
-    flex-wrap: wrap; gap: 8px;
-}
-.footer-bar .fl { font-size: 11px; color: #555; }
-.footer-bar .fr { font-size: 11px; color: #333; }
-</style>
-""", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# HEADER
-# ═══════════════════════════════════════════════════════════════════════════════
-st.markdown("""
-<div class="app-header">
-    <div>
-        <div class="app-brand">Fear Less Maths</div>
-        <div class="app-sub">Worksheet Generator · LA Excellence Schools</div>
-    </div>
-    <div style="font-size:11px;color:#444">A4 · B&W · 20 Questions · Print Ready</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SELECTORS — always visible, top of page (works on mobile & desktop)
-# ═══════════════════════════════════════════════════════════════════════════════
-with st.container():
-    st.markdown('<div style="background:#fff;padding:16px 24px 4px;border-bottom:1.5px solid #E5E2DC">', unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([2, 2, 1])
-
-    with col1:
-        lvl_opts = [f"Level {n}  ·  {d['name']}" for n, d in LEVELS.items()]
-        lvl_sel  = st.selectbox("Level", lvl_opts, index=6, key="lvl")
-        level_num = int(lvl_sel.split()[1])
-
-    with col2:
-        subs     = SUBLEVELS.get(level_num, [])
-        sub_opts = [f"{c}  ·  {t}" for c, t in subs]
-        sub_sel  = st.selectbox("Sublevel", sub_opts, key="sub")
-        sublevel_code = sub_sel.split("  ·  ")[0].strip()
-        topic         = sub_sel.split("  ·  ", 1)[1].strip() if "  ·  " in sub_sel else ""
-
-    with col3:
-        st.markdown(f"""
-        <div style="padding-top:28px;font-size:12px;color:#888;line-height:1.6">
-            Level {level_num}<br>
-            <b style="color:#111">{sublevel_code}</b>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+ui_common.setup_page("Fear Less Maths")
+ui_common.render_header()
+level_num, sublevel_code, topic = ui_common.render_level_selector()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  🏷️ Concept Tags  ", "  ✏️ Daily Entry  ", "  👤 Student Profile  ",
+    "  🏷️ Concept Tags  ", "  👤 Student Profile  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -547,11 +303,10 @@ with tab3:
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── TAB 4 — DAILY ENTRY ───────────────────────────────────────────────────────
+# ─── TAB 4 — STUDENT PROFILE ───────────────────────────────────────────────────
 with tab4:
     import pandas as pd
     from datetime import date as _date
-    from ws_helpers import build_whatsapp_link
 
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
@@ -559,8 +314,9 @@ with tab4:
     with st.expander("🧪 Demo / Test Data — temporary, for testing only"):
         st.caption(
             "Generates 300 fake students (30 per class, Class 1–10) with a realistic "
-            "worksheet history, so you can try out the Student Profile tab before adding "
-            "your real roster and parent WhatsApp numbers."
+            "worksheet history, so you can try out this tab before adding your real "
+            "roster and parent WhatsApp numbers. (Kept here, not on the staff Daily "
+            "Entry page, since it can wipe data.)"
         )
         col_demo1, col_demo2 = st.columns(2)
         with col_demo1:
@@ -577,162 +333,14 @@ with tab4:
             confirm_wipe = st.checkbox("I understand this deletes ALL students & history", key="confirm_wipe")
             if st.button("⚠️  Wipe all data", key="wipe_data", disabled=not confirm_wipe):
                 db.wipe_student_data()
-                st.success("All student data wiped. Add your real roster below, or regenerate demo data.")
+                st.success("All student data wiped. Add your real roster on the Daily Entry page, or regenerate demo data.")
                 st.rerun()
 
     st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
 
-    existing_classes = db.get_classes()
-
-    # ── First-run: roster setup ────────────────────────────────────────────────
-    if not existing_classes:
-        st.markdown("##### Set up your class roster (one time)")
-        st.caption("Paste your students once. Format per line:  Name, Class, Grade, Parent WhatsApp number")
-        roster_text = st.text_area(
-            "Roster",
-            placeholder="Ravi Kumar, Class A, 7, 7036525875\nMeena, Class A, 7, 9812345678\nArjun, Class B, 5, 9876543210",
-            height=160, key="roster_text", label_visibility="collapsed",
-        )
-        if st.button("📋  Import Roster", type="primary", key="import_roster"):
-            rows = []
-            errs = []
-            for i, line in enumerate(roster_text.strip().splitlines(), 1):
-                if not line.strip():
-                    continue
-                parts = [p.strip() for p in line.split(",")]
-                if len(parts) < 3:
-                    errs.append(f"Line {i}: need at least Name, Class, Grade")
-                    continue
-                rows.append({
-                    "name": parts[0], "class_name": parts[1], "grade": parts[2],
-                    "parent_whatsapp": parts[3] if len(parts) > 3 else "",
-                })
-            if errs:
-                st.error("\n".join(errs))
-            if rows:
-                res = db.import_roster(rows)
-                if res["errors"]:
-                    st.warning("Some rows skipped:\n\n" + "\n".join(res["errors"]))
-                st.success(f"Imported {res['added']} students. Reloading…")
-                st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        # ── Daily entry flow ───────────────────────────────────────────────────
-        st.markdown("##### Daily Entry")
-        st.caption("Pick a student, the worksheet they did, and type the wrong question numbers. "
-                   "Topics, remedial and the parent report fill in automatically.")
-
-        col_d1, col_d2 = st.columns([1, 1])
-        with col_d1:
-            de_class = st.selectbox("Class", existing_classes, key="de_class")
-        roster = db.get_students(de_class)
-        with col_d2:
-            de_name = st.selectbox("Student", [s["name"] for s in roster], key="de_name")
-        student = next(s for s in roster if s["name"] == de_name)
-
-        # missing-number nudge
-        if not student.get("parent_whatsapp"):
-            wa_in = st.text_input(f"Parent WhatsApp number for {de_name} (not on file)",
-                                  key="de_add_wa", placeholder="e.g. 7036525875")
-            if wa_in.strip():
-                db.update_parent_whatsapp(student["id"], wa_in)
-                st.rerun()
-
-        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-        col_w1, col_w2, col_w3 = st.columns([1, 1, 1])
-        with col_w1:
-            de_date = st.date_input("Date", value=_date.today(), key="de_date")
-        with col_w2:
-            de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
-            de_sheet_sel = st.selectbox("Sheet", de_sheet_lbls, key="de_sheet")
-            de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
-        with col_w3:
-            de_total_q = st.number_input("Total Qs", min_value=1, max_value=50, value=20, key="de_total_q")
-
-        de_ws_id = f"{sublevel_code}-{de_sheet_num}"
-        st.markdown(f"""
-        <div style="font-size:13px;color:#888;margin:4px 0 10px">
-            Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
-        </div>
-        """, unsafe_allow_html=True)
-
-        de_wrong_str = st.text_input(
-            "Wrong question numbers (comma-separated · leave blank if all correct)",
-            key="de_wrong_qs", placeholder="e.g. 17, 18",
-        )
-
-        de_wrong_qs, de_err = [], None
-        if de_wrong_str.strip():
-            for part in de_wrong_str.split(","):
-                part = part.strip()
-                if not part:
-                    continue
-                if not part.isdigit():
-                    de_err = f"'{part}' is not a valid question number"; break
-                qn = int(part)
-                if qn < 1 or qn > de_total_q:
-                    de_err = f"Q{qn} is out of range (1–{de_total_q})"; break
-                de_wrong_qs.append(qn)
-        if de_err:
-            st.error(de_err)
-
-        if not de_err:
-            resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
-            remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
-            whatsapp_msg = build_whatsapp_report(
-                de_name, de_ws_id, int(de_total_q), de_wrong_qs, resolved, remedial_id
-            )
-
-            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-            st.markdown(f"""
-            <div class="info-cell" style="margin-bottom:12px">
-                <div class="il">Parent report preview</div>
-                <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            col_s1, col_s2 = st.columns([1, 1])
-            with col_s1:
-                if st.button("💾  Save Entry", type="primary", key="de_save"):
-                    db.add_session(
-                        session_date=de_date.isoformat(), student_id=student["id"],
-                        class_name=de_class, grade=student["grade"], level_num=level_num,
-                        worksheet_id=de_ws_id, wrong_qs=de_wrong_qs, resolved_topics=resolved,
-                        total_questions=int(de_total_q), remedial_id=remedial_id,
-                    )
-                    st.session_state["de_saved"] = de_name
-                    st.success(f"Saved entry for {de_name}.")
-
-            with col_s2:
-                wa_number = student.get("parent_whatsapp")
-                if wa_number:
-                    wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
-                    st.markdown(f"""
-                    <a href="{wa_link}" target="_blank" style="text-decoration:none">
-                      <div style="background:#25D366;color:#fff;text-align:center;
-                                  padding:14px 0;border-radius:8px;font-weight:600;font-size:15px">
-                        📲 Send to Parent
-                      </div>
-                    </a>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.caption("No parent number on file — add one above to enable sending.")
-
-        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ─── TAB 5 — STUDENT PROFILE ───────────────────────────────────────────────────
-with tab5:
-    import pandas as pd
-    from datetime import date as _date
-
-    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
-    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
-
     all_students = db.get_students()
     if not all_students:
-        st.info("No data yet. Add your roster and log a few entries in the Daily Entry tab first.")
+        st.info("No data yet. Add your roster and log a few entries on the Daily Entry page first.")
         st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.markdown("##### Student Profile")
@@ -883,9 +491,4 @@ with tab5:
             st.markdown('</div>', unsafe_allow_html=True)
 
 
-st.markdown(f"""
-<div class="footer-bar">
-    <div class="fl">LA Excellence Schools / IDPS Orchards &nbsp;·&nbsp; Fear Less Maths</div>
-    <div class="fr">Level {level_num} · {sublevel_code}</div>
-</div>
-""", unsafe_allow_html=True)
+ui_common.render_footer(level_num, sublevel_code)
