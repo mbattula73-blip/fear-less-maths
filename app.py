@@ -269,7 +269,7 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  🏷️ Concept Tags  ", "  ✏️ Daily Entry  ", "  📊 Dashboard  ",
+    "  🏷️ Concept Tags  ", "  ✏️ Daily Entry  ", "  👤 Student Profile  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -696,100 +696,165 @@ with tab4:
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ─── TAB 5 — DASHBOARD ─────────────────────────────────────────────────────────
+# ─── TAB 5 — STUDENT PROFILE ───────────────────────────────────────────────────
 with tab5:
     import pandas as pd
-    from datetime import date as _date, timedelta as _timedelta
+    from datetime import date as _date
 
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
-    students_exist = bool(db.get_classes())
-    if not students_exist:
+    all_students = db.get_students()
+    if not all_students:
         st.info("No data yet. Add your roster and log a few entries in the Daily Entry tab first.")
         st.markdown('</div>', unsafe_allow_html=True)
     else:
-        col_h, col_f = st.columns([2, 1])
-        with col_h:
-            st.markdown("##### Dashboard")
-        with col_f:
-            ad_preset = st.selectbox("Date range", ["Today", "Last 7 days", "Last 30 days", "All time"],
-                                     index=1, key="ad_preset", label_visibility="collapsed")
-        ad_from = ad_to = None
-        if ad_preset == "Today":
-            ad_from = ad_to = _date.today().isoformat()
-        elif ad_preset == "Last 7 days":
-            ad_from = (_date.today() - _timedelta(days=6)).isoformat(); ad_to = _date.today().isoformat()
-        elif ad_preset == "Last 30 days":
-            ad_from = (_date.today() - _timedelta(days=29)).isoformat(); ad_to = _date.today().isoformat()
+        st.markdown("##### Student Profile")
+        st.caption("Search by name and/or pick a class to find a student — then see their full history and growth.")
 
-        # ── Summary metric cards ───────────────────────────────────────────────
-        summary = analytics.school_summary()
-        cards = [
-            ("Students", summary["total_students"]),
-            ("Avg Level", summary["avg_level"]),
-            ("Seen Today", summary["students_seen_today"]),
-            ("Done Today", f'{summary["completion_rate_today"]}%'),
-        ]
-        card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
-        for label, value in cards:
-            card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
-                          f'<div class="iv" style="font-size:22px">{value}</div></div>')
-        card_html += '</div>'
-        st.markdown(card_html, unsafe_allow_html=True)
+        col_sr, col_cl, col_st = st.columns([1.4, 1, 1.6])
+        with col_sr:
+            sp_search = st.text_input("Search by name", key="sp_search", placeholder="Type a name…",
+                                       label_visibility="collapsed")
+        with col_cl:
+            sp_classes = ["All Classes"] + db.get_classes()
+            sp_class = st.selectbox("Class", sp_classes, key="sp_class", label_visibility="collapsed")
 
-        st.markdown('<div style="height:28px"></div>', unsafe_allow_html=True)
+        pool = all_students if sp_class == "All Classes" else [s for s in all_students if s["class_name"] == sp_class]
+        if sp_search.strip():
+            q = sp_search.strip().lower()
+            pool = [s for s in pool if q in s["name"].lower()]
+        pool = sorted(pool, key=lambda s: (s["class_name"], s["name"]))
 
-        # ── Top struggling topics ──────────────────────────────────────────────
-        st.markdown("###### Where students are struggling most")
-        st.caption(f"Topics with the most students struggling · {ad_preset.lower()}")
-        topic_rows = analytics.topic_failure_ranking(ad_from, ad_to)
-        if topic_rows:
-            top = topic_rows[:10]
-            chart_df = pd.DataFrame(
-                {"Students": [r["student_count"] for r in top]},
-                index=[r["topic"] for r in top],
-            )
-            st.bar_chart(chart_df, horizontal=True, color="#0D0D0D", width='stretch')
+        if not pool:
+            with col_st:
+                st.selectbox("Student", ["No matches"], key="sp_pick_empty",
+                             disabled=True, label_visibility="collapsed")
+            st.warning("No students match that name/class. Try a different search.")
+            st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.caption("No wrong-answer data in this range yet.")
+            with col_st:
+                sp_labels = [f'{s["name"]} — {s["class_name"]} (Grade {s["grade"]})' for s in pool]
+                sp_pick = st.selectbox("Student", sp_labels, key="sp_pick", label_visibility="collapsed")
+            student = pool[sp_labels.index(sp_pick)]
 
-        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+            current_levels = analytics.get_current_levels()
+            cur_level   = current_levels.get(student["id"])
+            history     = analytics.student_history(student["id"])
+            topic_rows  = analytics.student_topic_breakdown(student["id"])
+            remedial    = analytics.student_remedial_summary(student["id"])
 
-        # ── Class comparison ───────────────────────────────────────────────────
-        st.markdown("###### Class overview")
-        class_rows = analytics.class_summary(ad_from, ad_to)
-        if class_rows:
-            comp_df = pd.DataFrame([{
-                "Class": c["class_name"],
-                "Students": c["student_count"],
-                "Avg Accuracy": f'{c["avg_accuracy"]}%' if c["avg_accuracy"] is not None else "—",
-                "Sessions": c["sessions_in_range"],
-            } for c in class_rows])
-            st.dataframe(comp_df, hide_index=True, width='stretch')
+            today_str      = _date.today().isoformat()
+            today_sessions = [h for h in history if h["session_date"] == today_str]
+            days_active    = len({h["session_date"] for h in history})
+            last_active    = history[0]["session_date"] if history else "—"
 
-            for c in class_rows:
-                if c["level_distribution"]:
-                    st.caption(f"{c['class_name']} — level distribution")
-                    lvl_df = pd.DataFrame({"Students": list(c["level_distribution"].values())},
-                                          index=[f"L{k}" for k in c["level_distribution"].keys()])
-                    st.bar_chart(lvl_df, color="#0D0D0D", width='stretch')
+            # ── Header ──────────────────────────────────────────────────────────
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div style="font-size:20px;font-weight:700;margin-bottom:6px">{student["name"]}</div>',
+                unsafe_allow_html=True,
+            )
+            header_cards = [
+                ("Class", student["class_name"]),
+                ("Grade", student["grade"]),
+                ("Current Level", cur_level if cur_level is not None else "—"),
+                ("Total Sessions", len(history)),
+                ("Days Active", days_active),
+                ("Last Active", last_active),
+            ]
+            card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+            for label, value in header_cards:
+                card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                              f'<div class="iv" style="font-size:18px">{value}</div></div>')
+            card_html += '</div>'
+            st.markdown(card_html, unsafe_allow_html=True)
 
-        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
 
-        # ── Grade overview ─────────────────────────────────────────────────────
-        st.markdown("###### Grade overview")
-        grade_rows = analytics.grade_rollup(ad_from, ad_to)
-        if grade_rows:
-            grade_df = pd.DataFrame([{
-                "Grade": g["grade"],
-                "Students": g["student_count"],
-                "Avg Accuracy": f'{g["avg_accuracy"]}%' if g["avg_accuracy"] is not None else "—",
-            } for g in grade_rows])
-            st.dataframe(grade_df, hide_index=True, width='stretch')
+            # ── Today's update ─────────────────────────────────────────────────
+            st.markdown("###### Today's update")
+            if today_sessions:
+                for h in today_sessions:
+                    correct = h["total_questions"] - h["wrong_count"]
+                    rem_txt = f' · Remedial: {h["remedial_status"]}' if h["remedial_status"] else ""
+                    st.markdown(
+                        f'<div class="info-cell" style="margin-bottom:8px">'
+                        f'<b>{h["worksheet_id"]}</b> — {correct}/{h["total_questions"]} correct '
+                        f'({h["accuracy"]}%){rem_txt}</div>',
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.caption("No entry logged for today yet.")
 
-        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # ── Growth charts ──────────────────────────────────────────────────
+            st.markdown("###### Growth over time")
+            if len(history) >= 2:
+                chrono = sorted(history, key=lambda h: (h["session_date"], h["id"]))
+                growth_df = pd.DataFrame({
+                    "Level": [h["level_num"] for h in chrono],
+                    "Accuracy %": [h["accuracy"] for h in chrono],
+                }, index=[h["session_date"] for h in chrono])
+
+                col_g1, col_g2 = st.columns(2)
+                with col_g1:
+                    st.caption("Level progression")
+                    st.line_chart(growth_df[["Level"]], color="#0D0D0D", width='stretch')
+                with col_g2:
+                    st.caption("Accuracy trend")
+                    st.line_chart(growth_df[["Accuracy %"]], color="#0D0D0D", width='stretch')
+            else:
+                st.caption("Not enough history yet for growth charts — needs at least 2 sessions.")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # ── Topic weaknesses ───────────────────────────────────────────────
+            st.markdown("###### Topics needing attention")
+            if topic_rows:
+                top_t = topic_rows[:10]
+                topic_df = pd.DataFrame({"Times wrong": [t["count"] for t in top_t]},
+                                        index=[t["topic"] for t in top_t])
+                st.bar_chart(topic_df, horizontal=True, color="#0D0D0D", width='stretch')
+            else:
+                st.caption("No wrong-answer data yet — clean record so far!")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # ── Remedial tracking ──────────────────────────────────────────────
+            st.markdown("###### Remedial tracking")
+            rem_cards = [
+                ("Assigned", remedial["assigned"]),
+                ("Completed", remedial["completed"]),
+                ("Pending", remedial["pending_count"]),
+            ]
+            rcard_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+            for label, value in rem_cards:
+                rcard_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                              f'<div class="iv" style="font-size:18px">{value}</div></div>')
+            rcard_html += '</div>'
+            st.markdown(rcard_html, unsafe_allow_html=True)
+            if remedial["pending_sessions"]:
+                pending_ids = ", ".join(s["remedial_id"] for s in remedial["pending_sessions"])
+                st.caption(f"Pending: {pending_ids}")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # ── Full history ───────────────────────────────────────────────────
+            st.markdown("###### Full history")
+            hist_df = pd.DataFrame([{
+                "Date": h["session_date"],
+                "Worksheet": h["worksheet_id"],
+                "Score": f'{h["total_questions"] - h["wrong_count"]}/{h["total_questions"]}',
+                "Accuracy": f'{h["accuracy"]}%',
+                "Topics missed": h["resolved_topics"] or "—",
+                "Remedial": h["remedial_status"] or "—",
+            } for h in history])
+            st.dataframe(hist_df, hide_index=True, width='stretch')
+
+            st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
 
 st.markdown(f"""
