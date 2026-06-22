@@ -16,7 +16,7 @@ import concept_tagger
 from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
 import ui_common
 
-ui_common.setup_page("Fear Less Maths")
+ui_common.setup_page("Fear Less Maths", hide_nav=False)
 ui_common.render_header()
 level_num, sublevel_code, topic = ui_common.render_level_selector()
 
