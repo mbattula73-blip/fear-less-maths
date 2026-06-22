@@ -28,7 +28,7 @@ from datetime import date as _date
 import db
 import ui_common
 from levels_data import SHEET_OPTIONS
-from ws_helpers import remedial_id_for, build_whatsapp_report, build_whatsapp_link
+from ws_helpers import remedial_id_for, build_whatsapp_report, build_whatsapp_link, MISTAKE_TYPES
 
 ui_common.setup_page("Daily Entry — Fear Less Maths")
 ui_common.render_header(
@@ -205,6 +205,34 @@ else:
     else:
         st.caption("All correct so far.")
 
+    # ── For each wrong answer: WHAT kind of mistake, and what did they write? ──
+    # This is what lets the Student Profile show how a child is thinking
+    # (concept gap vs calculation slip vs carelessness), not just what topic
+    # they got wrong.
+    de_wrong_details = {}
+    if de_wrong_qs:
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
+            'letter-spacing:.06em;color:#555;margin-bottom:6px">'
+            'For each wrong answer — what kind of mistake was it?</div>',
+            unsafe_allow_html=True,
+        )
+        for qn in de_wrong_qs:
+            col_m1, col_m2 = st.columns([1, 1.4])
+            with col_m1:
+                mtype = st.selectbox(
+                    f"Q{qn} mistake type", MISTAKE_TYPES, key=f"de_mtype_{qn}",
+                    label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
+                )
+            with col_m2:
+                sans = st.text_input(
+                    f"Q{qn} — what did they write? (optional)", key=f"de_ans_{qn}",
+                    placeholder=f"Q{qn}: what they actually wrote (optional)",
+                    label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
+                )
+            de_wrong_details[qn] = {"mistake_type": mtype, "student_answer": sans}
+
     resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
     remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
     whatsapp_msg = build_whatsapp_report(
@@ -222,16 +250,20 @@ else:
     col_s1, col_s2 = st.columns([1, 1])
     with col_s1:
         if st.button("💾  Save Entry", type="primary", key="de_save"):
-            db.add_session(
+            new_session_id = db.add_session(
                 session_date=de_date.isoformat(), student_id=student["id"],
                 class_name=de_class, grade=student["grade"], level_num=level_num,
                 worksheet_id=de_ws_id, wrong_qs=de_wrong_qs, resolved_topics=resolved,
                 total_questions=total_q_int, remedial_id=remedial_id,
             )
+            if de_wrong_details:
+                db.save_wrong_answer_details(new_session_id, de_wrong_details)
             st.session_state["de_saved"] = de_name
-            # Clear the wrong-answer grid so the next student starts unchecked.
+            # Clear the wrong-answer grid + mistake details so the next student starts fresh.
             for qn in range(1, 51):
                 st.session_state.pop(f"de_q_{qn}", None)
+                st.session_state.pop(f"de_mtype_{qn}", None)
+                st.session_state.pop(f"de_ans_{qn}", None)
             st.success(f"Saved entry for {de_name}.")
             st.rerun()
 
