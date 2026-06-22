@@ -433,10 +433,11 @@ with tab4:
 
             current_levels = analytics.get_current_levels()
             cur_level   = current_levels.get(student["id"])
-            history     = analytics.student_history(student["id"])
-            topic_rows  = analytics.student_topic_breakdown(student["id"])
-            mistake_rows = analytics.student_mistake_breakdown(student["id"])
-            remedial    = analytics.student_remedial_summary(student["id"])
+            student_sessions = db.get_sessions(student_id=student["id"])
+            history     = analytics.student_history(student["id"], sessions=student_sessions)
+            topic_rows  = analytics.student_topic_breakdown(student["id"], sessions=student_sessions)
+            mistake_rows = analytics.student_mistake_breakdown(student["id"], sessions=student_sessions)
+            remedial    = analytics.student_remedial_summary(student["id"], sessions=student_sessions)
 
             today_str      = _date.today().isoformat()
             today_sessions = [h for h in history if h["session_date"] == today_str]
