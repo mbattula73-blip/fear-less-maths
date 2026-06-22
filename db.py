@@ -120,6 +120,34 @@ def _turso_credentials():
     return None, None
 
 
+def connection_status() -> dict:
+    """
+    Reports which backend is actually active right now, and (for Turso)
+    whether a real query against it succeeds — so the app can show a clear
+    yes/no instead of leaving it to guesswork after configuring secrets.
+    Returns {"mode": "turso"|"local", "ok": bool, "detail": str}.
+    """
+    url, token = _turso_credentials()
+    if not (url and token):
+        return {
+            "mode": "local", "ok": True,
+            "detail": "No Turso secrets found — using the local file (resets on every redeploy/restart).",
+        }
+    try:
+        with get_conn() as conn:
+            conn.execute("SELECT 1")
+        host = url.split("//", 1)[-1].split("?", 1)[0]
+        return {
+            "mode": "turso", "ok": True,
+            "detail": f"Connected to Turso ({host}) — this persists across redeploys/restarts.",
+        }
+    except Exception as e:
+        return {
+            "mode": "turso", "ok": False,
+            "detail": f"Turso secrets are set, but the connection failed: {e}",
+        }
+
+
 class _DictCursor:
     """Wraps a libsql cursor so fetchone()/fetchall() return dict-like rows
     (matching sqlite3.Row's dict(row) / row['col'] ergonomics), since the
