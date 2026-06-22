@@ -321,6 +321,46 @@ with tab4:
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
+    with st.expander("💾 Backup & Restore — read this", expanded=True):
+        st.caption(
+            "Streamlit Cloud's storage is **temporary**. Every time this app's code is "
+            "updated, or it goes to sleep from inactivity and wakes back up, the entire "
+            "student database starts EMPTY again — there is no automatic backup. "
+            "**Download a backup at the end of each school day** and keep it somewhere "
+            "safe (Google Drive, your laptop, email to yourself). If the app ever resets, "
+            "upload your most recent backup below to bring everything back."
+        )
+        col_bk1, col_bk2 = st.columns(2)
+        with col_bk1:
+            st.markdown("**Download a backup**")
+            backup_bytes = db.backup_bytes()
+            st.download_button(
+                "⬇️  Download Backup Now",
+                data=backup_bytes,
+                file_name=f"flm_backup_{_date.today().isoformat()}.db",
+                mime="application/octet-stream",
+                key="backup_download",
+            )
+        with col_bk2:
+            st.markdown("**Restore from a backup**")
+            restore_file = st.file_uploader(
+                "Choose a .db backup file", type=["db"], key="restore_upload",
+                label_visibility="collapsed",
+            )
+            if restore_file is not None:
+                st.warning(f"This will REPLACE all current data with `{restore_file.name}`.")
+                confirm_restore = st.checkbox("I understand this overwrites everything currently in the app",
+                                              key="confirm_restore")
+                if st.button("⚠️  Confirm Restore", key="do_restore", disabled=not confirm_restore):
+                    try:
+                        db.restore_from_bytes(restore_file.getvalue())
+                        st.success("Restored successfully. Reloading…")
+                        st.rerun()
+                    except ValueError as e:
+                        st.error(str(e))
+
+    st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+
     with st.expander("🧪 Demo / Test Data — temporary, for testing only"):
         st.caption(
             "Generates 300 fake students (30 per class, Class 1–10) with a realistic "
