@@ -158,8 +158,10 @@ def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name
 def student_history(student_id: int) -> list:
     """
     Every session for one student, most recent first. Each session dict is
-    annotated with accuracy (%), wrong_count, and a human remedial_status
-    ("Completed" / "Pending" / None if no remedial was needed).
+    annotated with accuracy (%), wrong_count, a human remedial_status
+    ("Completed" / "Pending" / None if no remedial was needed), and
+    wrong_details — {q_num: {"mistake_type", "student_answer"}} for whatever
+    was captured at entry time (may be empty if staff skipped it).
     """
     sessions = db.get_sessions(student_id=student_id)
     out = []
@@ -174,6 +176,7 @@ def student_history(student_id: int) -> list:
             "accuracy": round(_session_accuracy(sess) * 100, 1),
             "wrong_count": len(wrong),
             "remedial_status": remedial_status,
+            "wrong_details": db.get_wrong_answer_details(sess["id"]),
         })
     return out
 
@@ -193,6 +196,28 @@ def student_topic_breakdown(student_id: int) -> list:
             topic_counts[t] += 1
 
     rows = [{"topic": t, "count": c} for t, c in topic_counts.items()]
+    rows.sort(key=lambda r: -r["count"])
+    return rows
+
+
+def student_mistake_breakdown(student_id: int) -> list:
+    """
+    Returns [{mistake_type, count}, ...] sorted by count desc — across every
+    wrong answer this student has had, what KIND of mistake it was (concept
+    gap vs calculation slip vs carelessness, etc.). This is the "how is this
+    child thinking" view, distinct from student_topic_breakdown's "WHAT
+    they're getting wrong" view.
+    """
+    sessions = db.get_sessions(student_id=student_id)
+    counts = defaultdict(int)
+    for sess in sessions:
+        details = db.get_wrong_answer_details(sess["id"])
+        for d in details.values():
+            mt = (d.get("mistake_type") or "").strip()
+            if mt:
+                counts[mt] += 1
+
+    rows = [{"mistake_type": mt, "count": c} for mt, c in counts.items()]
     rows.sort(key=lambda r: -r["count"])
     return rows
 
