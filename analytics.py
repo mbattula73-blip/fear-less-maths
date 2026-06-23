@@ -8,6 +8,41 @@ from datetime import date as _date
 import db
 from levels_data import SUBLEVELS
 
+try:
+    import streamlit as st
+except ImportError:
+    st = None
+
+
+def _cached(*args, **kwargs):
+    """Same reasoning as db._cached — see that docstring. Duplicated here
+    (rather than imported from db) to avoid db.py needing to import
+    analytics.py back, which would create a circular import."""
+    if st is None:
+        def _noop(fn):
+            return fn
+        return _noop
+    return st.cache_data(*args, **kwargs)
+
+
+_CACHED_FUNCS = []
+
+
+def _registered(fn):
+    """Tracks every cached function in this module so clear_caches() can
+    invalidate all of them in one call, without having to remember to list
+    each one by hand as more get added."""
+    _CACHED_FUNCS.append(fn)
+    return fn
+
+
+def clear_caches():
+    """Called by db.py after every write, so the Alerts tab and Student
+    Profile never show stale data just because a TTL hasn't expired yet."""
+    for fn in _CACHED_FUNCS:
+        if hasattr(fn, "clear"):
+            fn.clear()
+
 
 def _session_accuracy(session: dict) -> float:
     wrong = [q for q in session["wrong_qs"].split(",") if q.strip()]
@@ -15,6 +50,8 @@ def _session_accuracy(session: dict) -> float:
     return (total - len(wrong)) / total
 
 
+@_registered
+@_cached(ttl=60, show_spinner=False)
 def get_current_levels() -> dict:
     """
     {student_id: level_num} based on each student's most recent session
@@ -347,6 +384,8 @@ def concept_mistake_types_for_student(student_id: int, concept: str) -> list:
     return rows
 
 
+@_registered
+@_cached(ttl=60, show_spinner=False)
 def concept_alerts(threshold: int = 2, class_name: str = None) -> list:
     """
     Scans every student (optionally limited to one class) and flags any
