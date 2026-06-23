@@ -289,6 +289,39 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
 # you need real auth later.
 HIDE_NAV_CSS = '<style>[data-testid="stSidebarNav"] {display: none;}</style>'
 
+# Streamlit serves files in /static/ at the URL path /app/static/... when
+# server.enableStaticServing=true (see .streamlit/config.toml). manifest.json
+# and the two icon PNGs live there — this is what a TWA/PWA-install check
+# (and Bubblewrap, when building the Android wrapper) reads to know the
+# app's name, icons, and colors.
+#
+# st.markdown()'s HTML doesn't execute <script> tags, so a plain <link> tag
+# there never reaches the real <head> — only components.html() (which runs
+# inside an iframe) executes scripts, and reaching the REAL page's head from
+# inside that iframe needs window.parent.document rather than document.
+# This is a known, slightly hacky pattern; wrapped in try/catch so a future
+# Streamlit change that blocks parent-document access fails silently instead
+# of breaking the page.
+_PWA_MANIFEST_INJECT = """
+<script>
+try {
+    var d = window.parent.document;
+    if (!d.querySelector('link[rel="manifest"]')) {
+        var link = d.createElement('link');
+        link.rel = 'manifest';
+        link.href = '/app/static/manifest.json';
+        d.head.appendChild(link);
+    }
+    if (!d.querySelector('meta[name="theme-color"]')) {
+        var meta = d.createElement('meta');
+        meta.name = 'theme-color';
+        meta.content = '#161616';
+        d.head.appendChild(meta);
+    }
+} catch (e) { /* parent-document access blocked — fail silently */ }
+</script>
+"""
+
 
 def setup_page(page_title: str = "Fear Less Maths", hide_nav: bool = True):
     st.set_page_config(
@@ -300,6 +333,7 @@ def setup_page(page_title: str = "Fear Less Maths", hide_nav: bool = True):
     st.markdown(MAIN_CSS, unsafe_allow_html=True)
     if hide_nav:
         st.markdown(HIDE_NAV_CSS, unsafe_allow_html=True)
+    st.iframe(_PWA_MANIFEST_INJECT, height=1)
 
 
 def render_header(subtitle: str = "Worksheet Generator · LA Excellence Schools",
