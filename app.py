@@ -33,9 +33,9 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  🏷️ Concept Tags  ", "  👤 Student Profile  ", "  🚨 Alerts  ",
+    "  🏷️ Concept Tags  ", "  👤 Student Profile  ", "  🚨 Alerts  ", "  📊 Report  ",
 ])
 
 # ─── TAB 1 ────────────────────────────────────────────────────────────────────
@@ -656,6 +656,149 @@ with tab5:
                 """, unsafe_allow_html=True)
 
             st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ─── TAB 6 — REPORT ──────────────────────────────────────────────────────────────
+with tab6:
+    import pandas as pd
+    from datetime import date as _rdate, timedelta as _rtimedelta
+
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+
+    st.markdown("##### School Report")
+    st.caption("A weekly/monthly snapshot of FLM usage and outcomes — built for sharing with school management.")
+
+    col_r1, col_r2 = st.columns([1.3, 1])
+    with col_r1:
+        report_period = st.radio("Period", ["This Week", "This Month", "Custom"],
+                                 horizontal=True, key="report_period")
+    with col_r2:
+        report_class_sel = st.selectbox("Class", ["All Classes"] + db.get_classes(), key="report_class")
+    report_class = None if report_class_sel == "All Classes" else report_class_sel
+
+    today = _rdate.today()
+    if report_period == "This Week":
+        r_from = today - _rtimedelta(days=today.weekday())  # Monday
+        r_to = today
+        period_label = f"Week of {r_from.strftime('%d %b')} – {r_to.strftime('%d %b %Y')}"
+    elif report_period == "This Month":
+        r_from = today.replace(day=1)
+        r_to = today
+        period_label = today.strftime("%B %Y")
+    else:
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            r_from = st.date_input("From", value=today - _rtimedelta(days=7), key="report_from")
+        with col_d2:
+            r_to = st.date_input("To", value=today, key="report_to")
+        period_label = f"{r_from.strftime('%d %b %Y')} – {r_to.strftime('%d %b %Y')}"
+
+    date_from, date_to = r_from.isoformat(), r_to.isoformat()
+
+    st.markdown(f"""
+    <div style="font-size:13px;color:#888;margin:10px 0 4px">
+        <b style="color:#111">{period_label}</b> &nbsp;·&nbsp; {report_class_sel}
+    </div>
+    """, unsafe_allow_html=True)
+
+    summary = analytics.school_summary(date_from, date_to, report_class)
+
+    if summary["total_students"] == 0:
+        st.info("No students in this class yet.")
+    else:
+        # ── Summary cards ──────────────────────────────────────────────────
+        cards = [
+            ("Total Students", summary["total_students"]),
+            ("Active This Period", summary["active_students"]),
+            ("Completion Rate", f'{summary["completion_rate"]}%'),
+            ("Total Sessions", summary["total_sessions"]),
+            ("Avg Accuracy", f'{summary["avg_accuracy"]}%' if summary["avg_accuracy"] is not None else "—"),
+            ("Avg Current Level", summary["avg_level"]),
+        ]
+        card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+        for label, value in cards:
+            card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                          f'<div class="iv" style="font-size:18px">{value}</div></div>')
+        card_html += '</div>'
+        st.markdown(card_html, unsafe_allow_html=True)
+
+        if summary["inactive_students"] > 0:
+            st.caption(f"⚠️ {summary['inactive_students']} student(s) had no activity logged in this period.")
+
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── Class-wise breakdown (only meaningful for All Classes) ──────────
+        if report_class is None:
+            st.markdown("###### Class-wise breakdown")
+            cls_rows = analytics.class_summary(date_from, date_to)
+            cls_df = pd.DataFrame([{
+                "Class": c["class_name"],
+                "Students": c["student_count"],
+                "Active": c["active_students"],
+                "Sessions": c["sessions_in_range"],
+                "Avg Accuracy": f'{c["avg_accuracy"]}%' if c["avg_accuracy"] is not None else "—",
+            } for c in cls_rows])
+            st.dataframe(cls_df, hide_index=True, width='stretch')
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── Topics needing attention (schoolwide/class) ──────────────────────
+        st.markdown("###### Topics needing attention")
+        topic_rows = analytics.topic_failure_ranking(date_from, date_to, report_class)
+        if topic_rows:
+            top_t = topic_rows[:10]
+            topic_df = pd.DataFrame({"Students affected": [t["student_count"] for t in top_t]},
+                                    index=[t["topic"] for t in top_t])
+            st.bar_chart(topic_df, horizontal=True, color="#0D0D0D", width='stretch')
+        else:
+            st.caption("No wrong-answer data in this period.")
+
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── How the school is thinking (mistake types) ───────────────────────
+        st.markdown("###### How students are thinking (mistake types)")
+        mistake_rows = analytics.school_mistake_breakdown(date_from, date_to, report_class)
+        if mistake_rows:
+            mistake_df = pd.DataFrame({"Times": [m["count"] for m in mistake_rows]},
+                                      index=[m["mistake_type"] for m in mistake_rows])
+            st.bar_chart(mistake_df, horizontal=True, color="#2E6B5E", width='stretch')
+        else:
+            st.caption("No mistake-type data tagged in this period yet.")
+
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── Remedial completion ───────────────────────────────────────────────
+        st.markdown("###### Remedial follow-up")
+        rem = analytics.remedial_completion_summary(date_from, date_to, report_class)
+        rem_cards = [
+            ("Assigned", rem["assigned"]),
+            ("Completed", rem["completed"]),
+            ("Pending", rem["pending"]),
+            ("Completion Rate", f'{rem["completion_rate"]}%' if rem["completion_rate"] is not None else "—"),
+        ]
+        rcard_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+        for label, value in rem_cards:
+            rcard_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                          f'<div class="iv" style="font-size:18px">{value}</div></div>')
+        rcard_html += '</div>'
+        st.markdown(rcard_html, unsafe_allow_html=True)
+
+        st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+        # ── Currently open alerts (standing fact, not period-bound) ──────────
+        st.markdown("###### Currently flagged for follow-up")
+        st.caption("Students stuck on the same concept across 3+ different worksheets — see the Alerts tab for detail.")
+        open_alerts = analytics.concept_alerts(threshold=2, class_name=report_class)
+        flagged_students = len({a["student_id"] for a in open_alerts})
+        st.markdown(f"""
+        <div class="info-cell" style="display:inline-block;padding:13px 24px">
+            <div class="il">Open Alerts</div>
+            <div class="iv" style="font-size:22px">{len(open_alerts)} <span style="font-size:13px;color:#888">across {flagged_students} student(s)</span></div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
