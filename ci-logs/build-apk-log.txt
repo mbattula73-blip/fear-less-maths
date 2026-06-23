@@ -8,7 +8,7 @@
 + head -5
 HTTP/2 303 
 server: nginx/1.29.5
-date: Tue, 23 Jun 2026 11:38:45 GMT
+date: Tue, 23 Jun 2026 11:53:58 GMT
 content-type: text/html; charset=utf-8
 location: https://share.streamlit.io/-/auth/app?redirect_uri=https%3A%2F%2Ffear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app%2Fapp%2Fstatic%2Ficon-512.png
 + echo '=== Step: JDK environment diagnostics ==='
@@ -59,7 +59,7 @@ Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) wi
 + mkdir -p /tmp/twa-project
 + cd /tmp/twa-project
 + echo No
-+ echo ''
++ echo /usr/lib/jvm/java-17-openjdk-amd64
 + echo No
 + echo ''
 + echo com.idps.fearlessmaths
@@ -164,7 +164,7 @@ Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) wi
   (Enter "No" to use your own JDK 17 installation) (Y/n) N[58D[58C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
   (Enter "No" to use your own JDK 17 installation) (Y/n) No[59D[59C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
   (Enter "No" to use your own JDK 17 installation) No[53D[53C
-
+/usr/lib/jvm/java-17-openjdk-amd64
 No
 
 com.idps.fearlessmaths
