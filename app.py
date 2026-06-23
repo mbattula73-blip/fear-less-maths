@@ -14,7 +14,7 @@ from pdf_engine import build_pdf
 import db
 import analytics
 import concept_tagger
-from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report
+from ws_helpers import numbered_questions, remedial_id_for, build_whatsapp_report, build_school_whatsapp_report
 import ui_common
 
 ui_common.setup_page("Fear Less Maths", hide_nav=False)
@@ -799,6 +799,19 @@ with tab6:
             <div class="iv" style="font-size:22px">{len(open_alerts)} <span style="font-size:13px;color:#888">across {flagged_students} student(s)</span></div>
         </div>
         """, unsafe_allow_html=True)
+
+        st.markdown('<div style="height:32px"></div>', unsafe_allow_html=True)
+
+        # ── WhatsApp-ready text version, for sending to school management ────
+        st.markdown("###### Send to chairman / management")
+        st.caption("Tap the copy icon in the corner of the box below, then paste straight into WhatsApp.")
+        wa_report_text = build_school_whatsapp_report(
+            period_label=period_label, class_label=report_class_sel, summary=summary,
+            class_rows=cls_rows if report_class is None else [], topic_rows=topic_rows,
+            mistake_rows=mistake_rows, remedial=rem, num_alerts=len(open_alerts),
+            num_flagged_students=flagged_students,
+        )
+        st.code(wa_report_text, language=None)
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
