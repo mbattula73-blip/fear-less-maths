@@ -31,6 +31,14 @@ jobs:
           cat /tmp/manifest.json
           curl -sfI "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/icon-512.png" | head -5
 
+          echo "=== Step: JDK environment diagnostics ==="
+          echo "JAVA_HOME=$JAVA_HOME"
+          which java || echo "java not on PATH"
+          java -version 2>&1 || true
+          ls -la /opt/*jdk* 2>/dev/null || true
+          ls -la /usr/lib/jvm/ 2>/dev/null || true
+          find / -maxdepth 4 -iname "*jdk*" -type d 2>/dev/null || true
+
           echo "=== Step: generate signing keystore ==="
           keytool -genkeypair -v \
             -keystore /tmp/android.keystore \
@@ -47,6 +55,10 @@ jobs:
           mkdir -p /tmp/twa-project
           cd /tmp/twa-project
           { \
+            echo "No"; \
+            echo "$JAVA_HOME"; \
+            echo "No"; \
+            echo "$ANDROID_HOME"; \
             echo "com.idps.fearlessmaths"; \
             for i in $(seq 1 30); do echo ""; done; \
             echo "Fear Less Maths"; \
