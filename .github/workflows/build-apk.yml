@@ -1,0 +1,101 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/googlechromelabs/bubblewrap:latest
+      options: --user root
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify the live app's manifest is reachable
+        run: |
+          echo "Fetching manifest..."
+          curl -sf "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json" -o /tmp/manifest.json
+          echo "--- manifest.json contents ---"
+          cat /tmp/manifest.json
+          echo ""
+          echo "--- icon reachability ---"
+          curl -sfI "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/icon-512.png" | head -5
+
+      - name: Generate signing keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore /tmp/android.keystore \
+            -alias flm-key \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}" \
+            -keypass "${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}" \
+            -dname "CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN"
+
+      - name: Bubblewrap doctor (diagnostic only, continues either way)
+        run: bubblewrap doctor || true
+
+      - name: Init Bubblewrap project (non-interactive, answers piped in)
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}
+        run: |
+          mkdir -p /tmp/twa-project
+          cd /tmp/twa-project
+          # Pipe blank lines (accept every derivable default from the manifest)
+          # plus explicit values for fields that have no sensible default —
+          # in the typical prompt order: packageId, then a long run of
+          # accept-defaults, then signing key org details, then passwords.
+          { \
+            echo "com.idps.fearlessmaths"; \
+            for i in $(seq 1 30); do echo ""; done; \
+            echo "Fear Less Maths"; \
+            echo "IDPS Singarayakonda"; \
+            echo "Singarayakonda"; \
+            echo "Andhra Pradesh"; \
+            echo "IN"; \
+            echo "$BUBBLEWRAP_KEYSTORE_PASSWORD"; \
+            echo "$BUBBLEWRAP_KEY_PASSWORD"; \
+            for i in $(seq 1 10); do echo ""; done; \
+          } | bubblewrap init --manifest="https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json" || true
+          echo "--- twa-project directory after init ---"
+          ls -la /tmp/twa-project || echo "directory empty or init failed"
+          if [ -f /tmp/twa-project/twa-manifest.json ]; then
+            echo "--- twa-manifest.json generated ---"
+            cat /tmp/twa-project/twa-manifest.json
+          fi
+
+      - name: Build APK
+        if: always()
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}
+        run: |
+          cd /tmp/twa-project
+          if [ -f twa-manifest.json ]; then
+            bubblewrap build --skipPwaValidation || echo "BUILD_FAILED"
+          else
+            echo "No twa-manifest.json present — init did not complete successfully."
+          fi
+          echo "--- twa-project contents after build attempt ---"
+          find /tmp/twa-project -maxdepth 2 -type f -name "*.apk" -o -name "*.aab" 2>/dev/null
+          ls -la /tmp/twa-project
+
+      - name: Upload APK artifact (if it exists)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fear-less-maths-apk
+          path: |
+            /tmp/twa-project/*.apk
+            /tmp/twa-project/app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
+
+      - name: Upload full project for debugging
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: twa-project-debug
+          path: /tmp/twa-project
+          if-no-files-found: warn
