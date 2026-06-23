@@ -88,3 +88,57 @@ def build_whatsapp_report(student_name: str, worksheet_id: str, total_questions:
     lines.append("Please encourage them to revise this at home. Thank you! 🙏")
     return " ".join(lines)
 
+
+def build_school_whatsapp_report(period_label: str, class_label: str, summary: dict,
+                                   class_rows: list, topic_rows: list, mistake_rows: list,
+                                   remedial: dict, num_alerts: int, num_flagged_students: int) -> str:
+    """
+    Builds a WhatsApp-ready text report for school management, from the
+    same data the Report tab already computed and displays — no separate
+    document format, just plain text using WhatsApp's own *bold* markdown
+    so it renders properly once pasted into a chat.
+    """
+    lines = [
+        "📊 *Fear Less Maths — School Report*",
+        f"*{period_label}* · {class_label}",
+        "",
+        "*Overview*",
+        f"👥 Students: {summary['total_students']} ({summary['active_students']} active)",
+        f"✅ Completion: {summary['completion_rate']}%",
+        f"📝 Sessions logged: {summary['total_sessions']}",
+        f"🎯 Avg Accuracy: {summary['avg_accuracy']}%" if summary['avg_accuracy'] is not None
+            else "🎯 Avg Accuracy: —",
+        f"📈 Avg Current Level: {summary['avg_level']}",
+    ]
+
+    if class_rows:
+        lines.append("")
+        lines.append("*Class-wise Accuracy*")
+        for c in class_rows:
+            acc_c = f"{c['avg_accuracy']}%" if c["avg_accuracy"] is not None else "—"
+            lines.append(f"• {c['class_name']}: {c['student_count']} students, {acc_c}")
+
+    if topic_rows:
+        lines.append("")
+        lines.append("*Top Concepts Needing Attention*")
+        for i, t in enumerate(topic_rows[:5], 1):
+            lines.append(f"{i}. {t['topic']} — {t['student_count']} student(s)")
+
+    if mistake_rows:
+        lines.append("")
+        lines.append("*How Students Are Thinking*")
+        for m in mistake_rows[:5]:
+            lines.append(f"• {m['mistake_type']}: {m['count']}")
+
+    if remedial.get("assigned"):
+        lines.append("")
+        lines.append("*Remedial Follow-up*")
+        rate = f"{remedial['completion_rate']}%" if remedial["completion_rate"] is not None else "—"
+        lines.append(f"Assigned: {remedial['assigned']} · Completed: {remedial['completed']} "
+                     f"({rate}) · Pending: {remedial['pending']}")
+
+    lines.append("")
+    lines.append(f"🚨 *Flagged for Attention:* {num_alerts} alert(s) across {num_flagged_students} student(s)")
+
+    return "\n".join(lines)
+
