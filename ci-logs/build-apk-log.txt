@@ -1,0 +1,204 @@
++ echo '=== Step: verify manifest reachable ==='
+=== Step: verify manifest reachable ===
++ curl -sf https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json -o /tmp/manifest.json
++ cat /tmp/manifest.json
+<a href="https://share.streamlit.io/-/auth/app?redirect_uri=https%3A%2F%2Ffear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app%2Fapp%2Fstatic%2Fmanifest.json">See Other</a>.
+
++ curl -sfI https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/icon-512.png
++ head -5
+HTTP/2 303 
+server: nginx/1.29.5
+date: Tue, 23 Jun 2026 11:32:16 GMT
+content-type: text/html; charset=utf-8
+location: https://share.streamlit.io/-/auth/app?redirect_uri=https%3A%2F%2Ffear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app%2Fapp%2Fstatic%2Ficon-512.png
++ echo '=== Step: generate signing keystore ==='
+=== Step: generate signing keystore ===
++ keytool -genkeypair -v -keystore /tmp/android.keystore -alias flm-key -keyalg RSA -keysize 2048 -validity 10000 -storepass 'flmTempPass2026!' -keypass 'flmTempPass2026!' -dname 'CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN'
+Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
+	for: CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN
+[Storing /tmp/android.keystore]
++ echo '=== Step: bubblewrap doctor ==='
+=== Step: bubblewrap doctor ===
++ bubblewrap doctor
+,-----.        ,--.  ,--.  ,--.
+|  |) /_,--.,--|  |-.|  |-.|  |,---.,--.   ,--,--.--.,--,--.,---.
+|  .-.  |  ||  | .-. | .-. |  | .-. |  |.'.|  |  .--' ,-.  | .-. |
+|  '--' '  ''  | `-' | `-' |  \   --|   .'.   |  |  \ '-'  | '-' '
+`------' `----' `---' `---'`--'`----'--'   '--`--'   `--`--|  |-'
+                                                           `--'    
+? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) [57D[57C+ true
++ echo '=== Step: bubblewrap init ==='
+=== Step: bubblewrap init ===
++ mkdir -p /tmp/twa-project
++ cd /tmp/twa-project
++ bubblewrap init --manifest=https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json
++ echo com.idps.fearlessmaths
+++ seq 1 30
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ for i in $(seq 1 30)
++ echo ''
++ echo 'Fear Less Maths'
++ echo 'IDPS Singarayakonda'
++ echo Singarayakonda
++ echo 'Andhra Pradesh'
++ echo IN
++ echo 'flmTempPass2026!'
++ echo 'flmTempPass2026!'
+++ seq 1 10
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
++ for i in $(seq 1 10)
++ echo ''
+,-----.        ,--.  ,--.  ,--.
+|  |) /_,--.,--|  |-.|  |-.|  |,---.,--.   ,--,--.--.,--,--.,---.
+|  .-.  |  ||  | .-. | .-. |  | .-. |  |.'.|  |  .--' ,-.  | .-. |
+|  '--' '  ''  | `-' | `-' |  \   --|   .'.   |  |  \ '-'  | '-' '
+`------' `----' `---' `---'`--'`----'--'   '--`--'   `--`--|  |-'
+                                                           `--'    
+? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) [57D[57C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) c[58D[58C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) co[59D[59C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com[60D[60C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.[61D[61C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.i[62D[62C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.id[63D[63C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idp[64D[64C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps[65D[65C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.[66D[66C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.f[67D[67C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fe[68D[68C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fea[69D[69C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fear[70D[70C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearl[71D[71C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearle[72D[72C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearles[73D[73C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearless[74D[74C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessm[75D[75C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessma[76D[76C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmat[77D[77C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmath[78D[78C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmaths[79D[79C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) No[53D[53C
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Fear Less Maths
+IDPS Singarayakonda
+Singarayakonda
+Andhra Pradesh
+IN
+flmTempPass2026!
+flmTempPass2026!
+
+
+
+
+
+
+
+
+
+
+? Path to your existing JDK 17: [32D[32C
