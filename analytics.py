@@ -74,26 +74,42 @@ def get_current_levels() -> dict:
         return {r["student_id"]: r["level_num"] for r in rows}
 
 
-def school_summary(date_from: str = None, date_to: str = None) -> dict:
-    all_students = db.get_students()
+@_registered
+@_cached(ttl=60, show_spinner=False)
+def school_summary(date_from: str = None, date_to: str = None, class_name: str = None) -> dict:
+    """
+    Whole-school (or one class) summary for a date range — total roster,
+    how many were actually active in that range, completion rate, average
+    accuracy, and current average level. Powers both the old "today" quick
+    glance and the Report tab's weekly/monthly view (pass a real range).
+    """
+    all_students = db.get_students(class_name) if class_name else db.get_students()
     total_students = len(all_students)
     current_levels = get_current_levels()
 
-    avg_level = (sum(current_levels.values()) / len(current_levels)) if current_levels else 0.0
+    relevant_levels = [current_levels[s["id"]] for s in all_students if s["id"] in current_levels]
+    avg_level = (sum(relevant_levels) / len(relevant_levels)) if relevant_levels else 0.0
 
-    today = _date.today().isoformat()
-    today_sessions = db.get_sessions(date_from=today, date_to=today)
-    students_today = len({s["student_id"] for s in today_sessions})
-    completion_rate_today = (students_today / total_students * 100) if total_students else 0.0
+    sessions = db.get_sessions(date_from=date_from, date_to=date_to, class_name=class_name)
+    active_ids = {s["student_id"] for s in sessions}
+    completion_rate = (len(active_ids) / total_students * 100) if total_students else 0.0
+
+    accuracies = [_session_accuracy(s) for s in sessions]
+    avg_accuracy = (sum(accuracies) / len(accuracies) * 100) if accuracies else None
 
     return {
         "total_students": total_students,
         "avg_level": round(avg_level, 1),
-        "students_seen_today": students_today,
-        "completion_rate_today": round(completion_rate_today, 1),
+        "active_students": len(active_ids),
+        "inactive_students": total_students - len(active_ids),
+        "completion_rate": round(completion_rate, 1),
+        "total_sessions": len(sessions),
+        "avg_accuracy": round(avg_accuracy, 1) if avg_accuracy is not None else None,
     }
 
 
+@_registered
+@_cached(ttl=60, show_spinner=False)
 def class_summary(date_from: str = None, date_to: str = None) -> list:
     """
     Returns a list of dicts, one per class:
@@ -125,10 +141,13 @@ def class_summary(date_from: str = None, date_to: str = None) -> list:
             "level_distribution": dict(sorted(level_dist.items())),
             "avg_accuracy": round(avg_acc, 1) if avg_acc is not None else None,
             "sessions_in_range": len(sessions),
+            "active_students": len({s["student_id"] for s in sessions}),
         })
     return out
 
 
+@_registered
+@_cached(ttl=60, show_spinner=False)
 def grade_rollup(date_from: str = None, date_to: str = None) -> list:
     """
     Returns a list of dicts, one per grade (1-10 that have students):
@@ -140,6 +159,8 @@ def grade_rollup(date_from: str = None, date_to: str = None) -> list:
     for s in students:
         by_grade[s["grade"]].append(s)
 
+    all_sessions = db.get_sessions(date_from=date_from, date_to=date_to)  # fetched once, not per grade
+
     out = []
     for grade, roster in sorted(by_grade.items()):
         level_dist = defaultdict(int)
@@ -149,7 +170,6 @@ def grade_rollup(date_from: str = None, date_to: str = None) -> list:
                 level_dist[lvl] += 1
 
         student_ids = {s["id"] for s in roster}
-        all_sessions = db.get_sessions(date_from=date_from, date_to=date_to)
         grade_sessions = [s for s in all_sessions if s["student_id"] in student_ids]
         accuracies = [_session_accuracy(sess) for sess in grade_sessions]
         avg_acc = (sum(accuracies) / len(accuracies) * 100) if accuracies else None
@@ -163,6 +183,8 @@ def grade_rollup(date_from: str = None, date_to: str = None) -> list:
     return out
 
 
+@_registered
+@_cached(ttl=60, show_spinner=False)
 def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name: str = None) -> list:
     """
     Returns [{topic, student_count, occurrence_count}, ...] sorted by
@@ -187,6 +209,47 @@ def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name
     ]
     rows.sort(key=lambda r: (-r["student_count"], -r["occurrence_count"]))
     return rows
+
+
+@_registered
+@_cached(ttl=60, show_spinner=False)
+def school_mistake_breakdown(date_from: str = None, date_to: str = None, class_name: str = None) -> list:
+    """
+    Schoolwide (or one class) mistake-type breakdown for a date range —
+    the aggregate "how is the school thinking" view, for the Report tab.
+    Distinct from student_mistake_breakdown, which is one student only.
+    """
+    sessions = db.get_sessions(date_from=date_from, date_to=date_to, class_name=class_name)
+    details_map = db.get_wrong_answer_details_bulk([s["id"] for s in sessions])
+    counts = defaultdict(int)
+    for details in details_map.values():
+        for d in details.values():
+            mt = (d.get("mistake_type") or "").strip()
+            if mt:
+                counts[mt] += 1
+    rows = [{"mistake_type": mt, "count": c} for mt, c in counts.items()]
+    rows.sort(key=lambda r: -r["count"])
+    return rows
+
+
+@_registered
+@_cached(ttl=60, show_spinner=False)
+def remedial_completion_summary(date_from: str = None, date_to: str = None, class_name: str = None) -> dict:
+    """
+    How many remedial worksheets were assigned (sessions with a remedial_id)
+    within this date range, and how many have since been marked completed —
+    schoolwide or for one class. For the Report tab.
+    """
+    sessions = db.get_sessions(date_from=date_from, date_to=date_to, class_name=class_name)
+    assigned = [s for s in sessions if s["remedial_id"]]
+    remedial_map = db.get_remedial_status_bulk([s["id"] for s in assigned])
+    completed = sum(1 for s in assigned if remedial_map.get(s["id"], {}).get("completed"))
+    return {
+        "assigned": len(assigned),
+        "completed": completed,
+        "pending": len(assigned) - completed,
+        "completion_rate": round(completed / len(assigned) * 100, 1) if assigned else None,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
