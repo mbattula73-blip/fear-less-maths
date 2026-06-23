@@ -45,6 +45,45 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "flm_data.db")
 # and by the foreign-key-safe wipe order.
 _TABLES_IN_ORDER = ["students", "worksheet_tags", "sessions", "remedial_status", "wrong_answer_details"]
 
+
+def _cached(*args, **kwargs):
+    """
+    st.cache_data, but a no-op if streamlit isn't available (e.g. a
+    standalone test script importing this module directly).
+
+    WHY THIS EXISTS: Streamlit reruns the ENTIRE script on every single
+    click anywhere in the app — including the code inside every tab, not
+    just the one currently visible. Without caching, every click anywhere
+    re-fetches and recomputes things like the full-school Alerts scan and
+    the selected student's whole history, even when nothing relevant
+    changed. Caching means repeated calls with the same arguments reuse the
+    last result instead of re-querying Turso and recomputing from scratch.
+    A short TTL is a safety net; explicit .clear() calls after every write
+    (below) are what actually keep this from ever showing stale data.
+    """
+    if st is None:
+        def _noop(fn):
+            return fn
+        return _noop
+    return st.cache_data(*args, **kwargs)
+
+
+def _clear_read_caches():
+    """
+    Call after ANY write so the next read is guaranteed fresh — this is
+    what prevents the caching above from ever showing stale data, rather
+    than just waiting out a TTL. Cheap and safe to over-call.
+    """
+    for fn in (get_sessions, get_students, get_classes, get_remedial_status_bulk, get_wrong_answer_details_bulk):
+        if hasattr(fn, "clear"):
+            fn.clear()
+    try:
+        import analytics
+        analytics.clear_caches()
+    except ImportError:
+        pass  # analytics.py imports db.py, not the other way around — avoid a cycle on first load
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -279,6 +318,7 @@ def import_roster(rows: list) -> dict:
                 rows_with_wa,
             )
 
+    _clear_read_caches()
     return {"added": len(valid_rows), "errors": errors}
 
 
@@ -307,22 +347,27 @@ def add_student(name: str, class_name: str, grade: int, parent_whatsapp: str = N
             (name.strip(), class_name.strip(), grade, wa, datetime.now().isoformat()),
         )
         if cur.lastrowid:
-            return cur.lastrowid
-        # Already exists — update grade/parent if provided
-        row = conn.execute(
-            "SELECT id FROM students WHERE name=? AND class_name=?", (name.strip(), class_name.strip())
-        ).fetchone()
-        if wa:
-            conn.execute("UPDATE students SET parent_whatsapp=?, grade=? WHERE id=?", (wa, grade, row["id"]))
-        return row["id"]
+            result_id = cur.lastrowid
+        else:
+            # Already exists — update grade/parent if provided
+            row = conn.execute(
+                "SELECT id FROM students WHERE name=? AND class_name=?", (name.strip(), class_name.strip())
+            ).fetchone()
+            if wa:
+                conn.execute("UPDATE students SET parent_whatsapp=?, grade=? WHERE id=?", (wa, grade, row["id"]))
+            result_id = row["id"]
+    _clear_read_caches()
+    return result_id
 
 
 def update_parent_whatsapp(student_id: int, parent_whatsapp: str):
     with get_conn() as conn:
         conn.execute("UPDATE students SET parent_whatsapp=? WHERE id=?",
                      (_normalize_whatsapp(parent_whatsapp), student_id))
+    _clear_read_caches()
 
 
+@_cached(ttl=60, show_spinner=False)
 def get_students(class_name: str = None):
     with get_conn() as conn:
         if class_name:
@@ -334,6 +379,7 @@ def get_students(class_name: str = None):
         return [dict(r) for r in rows]
 
 
+@_cached(ttl=60, show_spinner=False)
 def get_classes():
     with get_conn() as conn:
         rows = conn.execute("SELECT DISTINCT class_name FROM students ORDER BY class_name").fetchall()
@@ -437,9 +483,11 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
         session_id = cur.lastrowid
         if remedial_id:
             conn.execute("INSERT INTO remedial_status (session_id, completed) VALUES (?,0)", (session_id,))
-        return session_id
+    _clear_read_caches()
+    return session_id
 
 
+@_cached(ttl=60, show_spinner=False)
 def get_sessions(student_id: int = None, date_from: str = None, date_to: str = None,
                   class_name: str = None):
     q = "SELECT * FROM sessions WHERE 1=1"
@@ -464,6 +512,7 @@ def mark_remedial_completed(session_id: int, completed: bool = True):
             "UPDATE remedial_status SET completed=?, completed_at=? WHERE session_id=?",
             (1 if completed else 0, datetime.now().isoformat() if completed else None, session_id),
         )
+    _clear_read_caches()
 
 
 def get_remedial_status(session_id: int):
@@ -472,6 +521,7 @@ def get_remedial_status(session_id: int):
         return dict(row) if row else None
 
 
+@_cached(ttl=60, show_spinner=False)
 def get_remedial_status_bulk(session_ids: list) -> dict:
     """
     Returns {session_id: {...}} for MANY sessions in ONE query, instead of
@@ -512,6 +562,7 @@ def save_wrong_answer_details(session_id: int, details: dict):
                 "VALUES (?,?,?,?,?)",
                 rows,
             )
+    _clear_read_caches()
 
 
 def get_wrong_answer_details(session_id: int) -> dict:
@@ -525,6 +576,7 @@ def get_wrong_answer_details(session_id: int) -> dict:
                 for r in rows}
 
 
+@_cached(ttl=60, show_spinner=False)
 def get_wrong_answer_details_bulk(session_ids: list) -> dict:
     """
     Returns {session_id: {q_num: {...}}} for MANY sessions in ONE query,
@@ -561,6 +613,7 @@ def wipe_student_data():
         conn.execute("DELETE FROM remedial_status")
         conn.execute("DELETE FROM sessions")
         conn.execute("DELETE FROM students")
+    _clear_read_caches()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -609,6 +662,7 @@ def restore_from_bytes(data: bytes):
             )
         with open(DB_PATH, "wb") as f:
             f.write(data)
+        _clear_read_caches()
         return
 
     # New format: JSON snapshot
@@ -638,6 +692,7 @@ def restore_from_bytes(data: bytes):
                     f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})",
                     [row[c] for c in cols],
                 )
+    _clear_read_caches()
 
 # Ensure DB + schema exist as soon as this module is imported.
 init_db()
