@@ -3,6 +3,9 @@ name: Build Android APK
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -13,40 +16,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify the live app's manifest is reachable
-        run: |
-          echo "Fetching manifest..."
-          curl -sf "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json" -o /tmp/manifest.json
-          echo "--- manifest.json contents ---"
-          cat /tmp/manifest.json
-          echo ""
-          echo "--- icon reachability ---"
-          curl -sfI "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/icon-512.png" | head -5
-
-      - name: Generate signing keystore
-        run: |
-          keytool -genkeypair -v \
-            -keystore /tmp/android.keystore \
-            -alias flm-key \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass "${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}" \
-            -keypass "${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}" \
-            -dname "CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN"
-
-      - name: Bubblewrap doctor (diagnostic only, continues either way)
-        run: bubblewrap doctor || true
-
-      - name: Init Bubblewrap project (non-interactive, answers piped in)
+      - name: Run build and capture full log
+        shell: bash
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}
         run: |
+          set -x
+          LOG=/tmp/build-log.txt
+          exec > >(tee -a "$LOG") 2>&1
+
+          echo "=== Step: verify manifest reachable ==="
+          curl -sf "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json" -o /tmp/manifest.json
+          cat /tmp/manifest.json
+          curl -sfI "https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/icon-512.png" | head -5
+
+          echo "=== Step: generate signing keystore ==="
+          keytool -genkeypair -v \
+            -keystore /tmp/android.keystore \
+            -alias flm-key \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" \
+            -keypass "$BUBBLEWRAP_KEY_PASSWORD" \
+            -dname "CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN"
+
+          echo "=== Step: bubblewrap doctor ==="
+          bubblewrap doctor || true
+
+          echo "=== Step: bubblewrap init ==="
           mkdir -p /tmp/twa-project
           cd /tmp/twa-project
-          # Pipe blank lines (accept every derivable default from the manifest)
-          # plus explicit values for fields that have no sensible default —
-          # in the typical prompt order: packageId, then a long run of
-          # accept-defaults, then signing key org details, then passwords.
           { \
             echo "com.idps.fearlessmaths"; \
             for i in $(seq 1 30); do echo ""; done; \
@@ -58,44 +57,47 @@ jobs:
             echo "$BUBBLEWRAP_KEYSTORE_PASSWORD"; \
             echo "$BUBBLEWRAP_KEY_PASSWORD"; \
             for i in $(seq 1 10); do echo ""; done; \
-          } | bubblewrap init --manifest="https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json" || true
+          } | bubblewrap init --manifest="https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json"
+          INIT_EXIT=$?
+          echo "init exit code: $INIT_EXIT"
           echo "--- twa-project directory after init ---"
-          ls -la /tmp/twa-project || echo "directory empty or init failed"
+          ls -la /tmp/twa-project
           if [ -f /tmp/twa-project/twa-manifest.json ]; then
-            echo "--- twa-manifest.json generated ---"
+            echo "--- twa-manifest.json ---"
             cat /tmp/twa-project/twa-manifest.json
           fi
 
-      - name: Build APK
-        if: always()
-        env:
-          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.BUBBLEWRAP_KEYSTORE_PASSWORD || 'flmTempPass2026!' }}
-          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.BUBBLEWRAP_KEY_PASSWORD || 'flmTempPass2026!' }}
-        run: |
-          cd /tmp/twa-project
-          if [ -f twa-manifest.json ]; then
-            bubblewrap build --skipPwaValidation || echo "BUILD_FAILED"
+          echo "=== Step: bubblewrap build ==="
+          if [ -f /tmp/twa-project/twa-manifest.json ]; then
+            cd /tmp/twa-project
+            bubblewrap build --skipPwaValidation
+            echo "build exit code: $?"
           else
-            echo "No twa-manifest.json present — init did not complete successfully."
+            echo "SKIPPED — no twa-manifest.json (init did not complete)"
           fi
-          echo "--- twa-project contents after build attempt ---"
-          find /tmp/twa-project -maxdepth 2 -type f -name "*.apk" -o -name "*.aab" 2>/dev/null
-          ls -la /tmp/twa-project
 
-      - name: Upload APK artifact (if it exists)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: fear-less-maths-apk
-          path: |
-            /tmp/twa-project/*.apk
-            /tmp/twa-project/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          echo "=== Step: search for output files ==="
+          find /tmp/twa-project -type f \( -name "*.apk" -o -name "*.aab" \) 2>/dev/null
+          echo "=== Full twa-project listing ==="
+          find /tmp/twa-project -maxdepth 4 2>/dev/null
 
-      - name: Upload full project for debugging
+      - name: Commit log and any APK back to the repo
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: twa-project-debug
-          path: /tmp/twa-project
-          if-no-files-found: warn
+        shell: bash
+        run: |
+          mkdir -p ci-logs
+          cp /tmp/build-log.txt ci-logs/build-apk-log.txt || echo "no log found" > ci-logs/build-apk-log.txt
+          APK=$(find /tmp/twa-project -type f -name "*.apk" 2>/dev/null | head -1)
+          if [ -n "$APK" ]; then
+            cp "$APK" ci-logs/fear-less-maths.apk
+            echo "APK committed: $APK"
+          else
+            echo "No APK was produced." > ci-logs/no-apk-produced.txt
+          fi
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git add ci-logs/
+          git commit -m "CI: build-apk run output [skip ci]" || echo "nothing to commit"
+          git push "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:main
+
