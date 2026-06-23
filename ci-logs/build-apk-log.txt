@@ -8,9 +8,35 @@
 + head -5
 HTTP/2 303 
 server: nginx/1.29.5
-date: Tue, 23 Jun 2026 11:32:16 GMT
+date: Tue, 23 Jun 2026 11:38:45 GMT
 content-type: text/html; charset=utf-8
 location: https://share.streamlit.io/-/auth/app?redirect_uri=https%3A%2F%2Ffear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app%2Fapp%2Fstatic%2Ficon-512.png
++ echo '=== Step: JDK environment diagnostics ==='
+=== Step: JDK environment diagnostics ===
++ echo JAVA_HOME=
+JAVA_HOME=
++ which java
+/usr/bin/java
++ java -version
+openjdk version "17.0.16" 2025-07-15
+OpenJDK Runtime Environment (build 17.0.16+8-Debian-1deb11u1)
+OpenJDK 64-Bit Server VM (build 17.0.16+8-Debian-1deb11u1, mixed mode, sharing)
++ ls -la '/opt/*jdk*'
++ true
++ ls -la /usr/lib/jvm/
+total 24
+drwxr-xr-x 4 root root 4096 Sep 29  2025 .
+drwxr-xr-x 1 root root 4096 Sep 29  2025 ..
+-rw-r--r-- 1 root root 1773 Jul 22  2025 .java-1.17.0-openjdk-amd64.jinfo
+lrwxrwxrwx 1 root root   21 Jul 22  2025 java-1.17.0-openjdk-amd64 -> java-17-openjdk-amd64
+drwxr-xr-x 9 root root 4096 Sep 29  2025 java-17-openjdk-amd64
+drwxr-xr-x 2 root root 4096 Sep 29  2025 openjdk-17
++ find / -maxdepth 4 -iname '*jdk*' -type d
+/usr/lib/jvm/java-17-openjdk-amd64
+/usr/lib/jvm/openjdk-17
+/usr/share/doc/openjdk-17-jre-headless
+/etc/java-17-openjdk
+/__t/Java_Temurin-Hotspot_jdk
 + echo '=== Step: generate signing keystore ==='
 === Step: generate signing keystore ===
 + keytool -genkeypair -v -keystore /tmp/android.keystore -alias flm-key -keyalg RSA -keysize 2048 -validity 10000 -storepass 'flmTempPass2026!' -keypass 'flmTempPass2026!' -dname 'CN=Fear Less Maths, OU=IDPS Singarayakonda, O=LA Excellence Schools, L=Singarayakonda, ST=Andhra Pradesh, C=IN'
@@ -32,8 +58,12 @@ Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) wi
 === Step: bubblewrap init ===
 + mkdir -p /tmp/twa-project
 + cd /tmp/twa-project
-+ bubblewrap init --manifest=https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json
++ echo No
++ echo ''
++ echo No
++ echo ''
 + echo com.idps.fearlessmaths
++ bubblewrap init --manifest=https://fear-less-maths-ratx69zligsaxwtsudwppa.streamlit.app/app/static/manifest.json
 ++ seq 1 30
 + for i in $(seq 1 30)
 + echo ''
@@ -131,29 +161,13 @@ Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) wi
                                                            `--'    
 ? Do you want Bubblewrap to install the JDK (recommended)?
   (Enter "No" to use your own JDK 17 installation) (Y/n) [57D[57C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) c[58D[58C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) co[59D[59C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com[60D[60C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.[61D[61C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.i[62D[62C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.id[63D[63C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idp[64D[64C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps[65D[65C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.[66D[66C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.f[67D[67C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fe[68D[68C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fea[69D[69C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fear[70D[70C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearl[71D[71C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearle[72D[72C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearles[73D[73C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearless[74D[74C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessm[75D[75C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessma[76D[76C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmat[77D[77C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmath[78D[78C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
-  (Enter "No" to use your own JDK 17 installation) (Y/n) com.idps.fearlessmaths[79D[79C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) N[58D[58C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) (Y/n) No[59D[59C[2K[1A[2K[G? Do you want Bubblewrap to install the JDK (recommended)?
   (Enter "No" to use your own JDK 17 installation) No[53D[53C
+
+No
+
+com.idps.fearlessmaths
 
 
 
