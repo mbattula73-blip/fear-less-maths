@@ -33,13 +33,25 @@ with st.container():
 # ═══════════════════════════════════════════════════════════════════════════════
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "  Generate Single Worksheet  ", "  Batch — All 8 Sheets  ",
-    "  🏷️ Concept Tags  ", "  👤 Student Profile  ", "  🚨 Alerts  ", "  📊 Report  ",
-])
+SECTIONS = [
+    "Generate Single Worksheet", "Batch — All 8 Sheets",
+    "🏷️ Concept Tags", "👤 Student Profile", "🚨 Alerts", "📊 Report",
+]
+# A radio-based section switcher, not st.tabs(). This matters for more than
+# looks: Streamlit re-runs the WHOLE script on every single click anywhere
+# in the app, and with st.tabs() that means the code inside EVERY tab runs
+# on every rerun too (Streamlit just hides the non-active ones with CSS) —
+# so the full-school Alerts scan and the Report tab's queries were silently
+# recomputing on every click, even while looking at a completely different
+# tab. With this radio + if/elif structure, only the SELECTED section's
+# code actually executes each rerun.
+st.markdown('<div class="section-switcher">', unsafe_allow_html=True)
+section = st.radio("Section", SECTIONS, horizontal=True, key="active_section",
+                   label_visibility="collapsed")
+st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── TAB 1 ────────────────────────────────────────────────────────────────────
-with tab1:
+# ─── SECTION: GENERATE SINGLE WORKSHEET ────────────────────────────────────────
+if section == "Generate Single Worksheet":
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
 
     # Sheet selector
@@ -152,8 +164,8 @@ with tab1:
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
 
-# ─── TAB 2 ────────────────────────────────────────────────────────────────────
-with tab2:
+# ─── SECTION: BATCH ─────────────────────────────────────────────────────────────
+elif section == "Batch — All 8 Sheets":
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
 
     st.markdown(f"""
@@ -232,8 +244,8 @@ with tab2:
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
-# ─── TAB 3 — CONCEPT TAGS ───────────────────────────────────────────────────────
-with tab3:
+# ─── SECTION: CONCEPT TAGS ──────────────────────────────────────────────────────
+elif section == "🏷️ Concept Tags":
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
@@ -313,8 +325,8 @@ with tab3:
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ─── TAB 4 — STUDENT PROFILE ───────────────────────────────────────────────────
-with tab4:
+# ─── SECTION: STUDENT PROFILE ───────────────────────────────────────────────────
+elif section == "👤 Student Profile":
     import pandas as pd
     from datetime import date as _date
 
@@ -579,8 +591,8 @@ with tab4:
             st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ─── TAB 5 — ALERTS ─────────────────────────────────────────────────────────────
-with tab5:
+# ─── SECTION: ALERTS ────────────────────────────────────────────────────────────
+elif section == "🚨 Alerts":
     st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
     st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
@@ -661,8 +673,8 @@ with tab5:
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ─── TAB 6 — REPORT ──────────────────────────────────────────────────────────────
-with tab6:
+# ─── SECTION: REPORT ────────────────────────────────────────────────────────────
+elif section == "📊 Report":
     import pandas as pd
     from datetime import date as _rdate, timedelta as _rtimedelta
 
