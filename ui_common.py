@@ -218,28 +218,43 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
     color: var(--muted) !important;
 }
 
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {
-    background: transparent !important;
-    border-bottom: 1px solid var(--hairline) !important;
-    gap: 0; padding: 0 24px;
+/* Section switcher — a radio group styled to look like the old tab bar.
+   Using st.radio() instead of st.tabs() so only the selected section's
+   Python code runs each rerun (see app.py for why this matters). */
+.section-switcher div[data-testid="stRadio"] > div {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 0;
+    border-bottom: 1px solid var(--hairline);
+    padding: 0 24px;
+    background: var(--card);
 }
-.stTabs [data-baseweb="tab"] {
+.section-switcher div[data-testid="stRadio"] label {
     background: transparent !important;
-    color: #AFA89A !important; font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 12px 16px !important;
-    border: none !important; border-radius: 0 !important;
+    border: none !important;
     border-bottom: 2px solid transparent !important;
-    margin-bottom: -1px !important;
-    transition: color .12s !important;
+    padding: 12px 16px !important;
+    margin: 0 !important;
+    cursor: pointer;
+    transition: color .12s, border-color .12s;
 }
-.stTabs [data-baseweb="tab"]:hover { color: var(--ink) !important; }
-.stTabs [aria-selected="true"] {
-    color: var(--ink) !important; font-weight: 700 !important;
+.section-switcher div[data-testid="stRadio"] label > div:first-child {
+    display: none !important; /* hide the native radio circle */
+}
+.section-switcher div[data-testid="stRadio"] label p {
+    color: #AFA89A !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+}
+.section-switcher div[data-testid="stRadio"] label:hover p { color: var(--ink) !important; }
+.section-switcher div[data-testid="stRadio"] label:has(input:checked) {
     border-bottom: 2px solid var(--slate) !important;
 }
-.stTabs [data-baseweb="tab-panel"] { padding: 0 !important; }
+.section-switcher div[data-testid="stRadio"] label:has(input:checked) p {
+    color: var(--ink) !important;
+    font-weight: 700 !important;
+}
 
 /* Progress */
 .stProgress > div > div { background: var(--slate) !important; }
