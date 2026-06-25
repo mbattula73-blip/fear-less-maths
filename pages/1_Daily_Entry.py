@@ -242,7 +242,7 @@ else:
             de_wrong_details[qn] = {"mistake_type": mtype, "student_answer": sans}
 
     resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
-    remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if de_wrong_qs else None
+    remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if len(de_wrong_qs) > 3 else None
     whatsapp_msg = build_whatsapp_report(
         de_name, de_ws_id, total_q_int, de_wrong_qs, resolved, remedial_id
     )
