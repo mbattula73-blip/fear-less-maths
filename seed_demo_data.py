@@ -105,7 +105,7 @@ def generate_demo_data(num_classes: int = NUM_CLASSES, per_class: int = PER_CLAS
 
                     ws_id = f"{sublevel_code}-{sheet_num}"
                     resolved = db.resolve_topics(ws_id, wrong_qs, fallback_topic=topic) if wrong_qs else {}
-                    remedial_id = remedial_id_for(sublevel_code, sheet_num) if wrong_qs else None
+                    remedial_id = remedial_id_for(sublevel_code, sheet_num) if len(wrong_qs) > 3 else None
 
                     new_session_id = db.add_session(
                         session_date=cursor_date.isoformat(),
