@@ -459,9 +459,9 @@ def base10_blocks(tens=3, ones=4, **kw) -> BytesIO:
     cols_per_row_ones = 5
     rows_ones = (ones + cols_per_row_ones - 1) // cols_per_row_ones if ones else 0
     w = max(cols_per_row_tens * (rod_w + gap), cols_per_row_ones * (unit + gap)) * 2 + 40
-    h = max(rows_tens * (rod_h + gap), rows_ones * (unit + gap)) + 50
+    h = max(rows_tens * (rod_h + gap), rows_ones * (unit + gap)) + 20
     img, d = _blank(w, h)
-    # Draw tens rods on the left half
+    # Draw tens rods on the left half (blue = tens, by consistent color convention)
     for i in range(tens):
         row, col = divmod(i, cols_per_row_tens)
         x = 15 + col * (rod_w + gap)
@@ -470,15 +470,176 @@ def base10_blocks(tens=3, ones=4, **kw) -> BytesIO:
         for seg in range(1, 10):
             sy = y + seg * (rod_h / 10)
             d.line([x, sy, x + rod_w, sy], fill=C_BG, width=1)
-    # Draw ones units on the right half
+    # Draw ones units on the right half (red = ones, by consistent color convention)
     ones_x_off = w // 2 + 10
     for i in range(ones):
         row, col = divmod(i, cols_per_row_ones)
         x = ones_x_off + col * (unit + gap)
         y = 15 + row * (unit + gap)
         d.rectangle([x, y, x + unit, y + unit], fill=C_RED_D, outline=C_BORDER, width=2)
-    d.text((15, h - 22), "Tens", fill=C_TEXT, font=_font_reg(12))
-    d.text((ones_x_off, h - 22), "Ones", fill=C_TEXT, font=_font_reg(12))
+    return _to_bytes(img)
+
+
+def _draw_big_symbol(d, x, y, size, symbol):
+    """Draw a big +, -, or = symbol centered at (x,y)."""
+    t = size * 0.18
+    if symbol == "+":
+        d.rectangle([x - t/2, y - size/2, x + t/2, y + size/2], fill=C_BORDER)
+        d.rectangle([x - size/2, y - t/2, x + size/2, y + t/2], fill=C_BORDER)
+    elif symbol == "-":
+        d.rectangle([x - size/2, y - t/2, x + size/2, y + t/2], fill=C_BORDER)
+    elif symbol == "=":
+        gap = size * 0.22
+        d.rectangle([x - size/2, y - gap - t/2, x + size/2, y - gap + t/2], fill=C_BORDER)
+        d.rectangle([x - size/2, y + gap - t/2, x + size/2, y + gap + t/2], fill=C_BORDER)
+
+
+def visual_equation(left=3, right=2, kind="apple", op="+", **kw) -> BytesIO:
+    """Fully self-contained visual equation with NO text required to solve:
+    [objects] [+ or -] [objects, or crossed-out for subtraction] [=] [blank box]
+    Used for zero-literacy addition/subtraction questions (Pre-Level / Level 21).
+    For op='-', `right` objects out of `left` are shown crossed out instead of
+    a second group."""
+    r = 14
+    cell = r*2 + 8
+    cols = 5
+    sym_w = 50
+    box_w, box_h = 60, 60
+
+    def group_dims(n):
+        rows = (n + cols - 1) // cols if n else 1
+        return cols*cell, rows*cell
+
+    if op == "+":
+        gw1, gh1 = group_dims(left)
+        gw2, gh2 = group_dims(right)
+    else:
+        gw1, gh1 = group_dims(left)
+        gw2, gh2 = 0, 0
+
+    h = max(gh1, gh2, box_h) + 30
+    w = gw1 + sym_w + (gw2 if op == "+" else 0) + sym_w + box_w + 40
+    img, d = _blank(w, h)
+    cy = h // 2
+
+    x = 15
+    # First group
+    for i in range(left):
+        row, col = divmod(i, cols)
+        cx, cy_obj = x + r + col*cell, 15 + r + row*cell
+        crossed = (op == "-" and i >= left - right)
+        _draw_object(d, cx, cy_obj, r, kind)
+        if crossed:
+            d.line([cx-r, cy_obj-r, cx+r, cy_obj+r], fill=C_MARK, width=3)
+            d.line([cx-r, cy_obj+r, cx+r, cy_obj-r], fill=C_MARK, width=3)
+    x += gw1 + 10
+
+    # Operator symbol
+    _draw_big_symbol(d, x + sym_w/2, cy, 26, "+" if op == "+" else "-")
+    x += sym_w
+
+    # Second group (only for addition; subtraction shows crossing-out instead)
+    if op == "+":
+        for i in range(right):
+            row, col = divmod(i, cols)
+            cx, cy_obj = x + r + col*cell, 15 + r + row*cell
+            _draw_object(d, cx, cy_obj, r, kind)
+        x += gw2 + 10
+
+    # Equals symbol
+    _draw_big_symbol(d, x + sym_w/2, cy, 26, "=")
+    x += sym_w
+
+    # Answer box
+    d.rectangle([x, cy - box_h/2, x + box_w, cy + box_h/2], outline=C_BORDER, width=3)
+
+    return _to_bytes(img)
+
+
+def compare_choice(left_count=4, right_count=6, kind="apple", **kw) -> BytesIO:
+    """Two object groups side by side PLUS three tick-boxes (>, <, =) at the
+    bottom for the child to mark — fully wordless comparison question."""
+    r = 13
+    cell = r*2 + 8
+    cols_each = 5
+    rows_l = (left_count + cols_each - 1)//cols_each
+    rows_r = (right_count + cols_each - 1)//cols_each
+    rows = max(rows_l, rows_r, 1)
+    half_w = cols_each*cell + 10
+    w = half_w*2 + 30
+    h = rows*cell + 70
+    img, d = _blank(w, h)
+    d.line([half_w+15, 5, half_w+15, rows*cell+15], fill=C_GRAY_D, width=2)
+    for i in range(left_count):
+        row, col = divmod(i, cols_each)
+        _draw_object(d, 10+r+col*cell, 10+r+row*cell, r, kind)
+    for i in range(right_count):
+        row, col = divmod(i, cols_each)
+        _draw_object(d, half_w+30+r+col*cell, 10+r+row*cell, r, kind)
+    # Tick boxes for >, <, = drawn as actual symbols (no words)
+    box_y = rows*cell + 25
+    box_size = 30
+    gap = 20
+    start_x = (w - (box_size*3 + gap*2)) / 2
+    symbols = [">", "<", "="]
+    for i, sym in enumerate(symbols):
+        bx = start_x + i*(box_size+gap)
+        d.rectangle([bx, box_y, bx+box_size, box_y+box_size], outline=C_BORDER, width=2)
+        cx, cy_s = bx+box_size/2, box_y+box_size/2
+        if sym == "=":
+            d.line([cx-8, cy_s-5, cx+8, cy_s-5], fill=C_BORDER, width=3)
+            d.line([cx-8, cy_s+5, cx+8, cy_s+5], fill=C_BORDER, width=3)
+        elif sym == ">":
+            d.line([cx-7, cy_s-8, cx+7, cy_s], fill=C_BORDER, width=3)
+            d.line([cx-7, cy_s+8, cx+7, cy_s], fill=C_BORDER, width=3)
+        else:
+            d.line([cx+7, cy_s-8, cx-7, cy_s], fill=C_BORDER, width=3)
+            d.line([cx+7, cy_s+8, cx-7, cy_s], fill=C_BORDER, width=3)
+    return _to_bytes(img)
+
+
+def number_card(n=4, **kw) -> BytesIO:
+    """Big numeral on the left + an empty box on the right for the child to
+    draw that many objects. No words anywhere on the image."""
+    w, h = 220, 90
+    img, d = _blank(w, h)
+    d.rectangle([5, 5, 75, h-5], outline=C_BORDER, width=2)
+    d.text((25, 15), str(n), fill=C_BLUE_D, font=_font(48))
+    d.rectangle([90, 5, w-5, h-5], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def numline_jump(start=0, end=10, mark=5, hop_by=1, **kw) -> BytesIO:
+    """Number line with unlabeled tick marks (so the answer is never leaked),
+    one labeled starting point, a hop arrow showing +1/-1/+2 etc, and an
+    empty answer box at the destination tick. Fully wordless."""
+    w, h = 420, 110
+    img, d = _blank(w, h)
+    pad = 30
+    line_y = 60
+    total = end - start
+    scale = (w - 2*pad) / max(total, 1)
+    d.line([(pad, line_y), (w - pad, line_y)], fill=C_BORDER, width=3)
+    for i in range(total + 1):
+        val = start + i
+        x = int(pad + (val - start) * scale)
+        d.line([(x, line_y - 7), (x, line_y + 7)], fill=C_BORDER, width=2)
+    d.polygon([(w-pad, line_y), (w-pad-9, line_y-5), (w-pad-9, line_y+5)], fill=C_BORDER)
+    d.polygon([(pad, line_y), (pad+9, line_y-5), (pad+9, line_y+5)], fill=C_BORDER)
+
+    mx = int(pad + (mark - start) * scale)
+    d.ellipse([mx-7, line_y-7, mx+7, line_y+7], fill=C_MARK)
+    d.text((mx-7, line_y-26), str(mark), fill=C_MARK, font=_font(14))
+
+    dest = mark + hop_by
+    dx = int(pad + (dest - start) * scale)
+    arc_y = line_y - 26
+    d.arc([min(mx,dx), arc_y, max(mx,dx), line_y-8], 0, 180, fill=C_HOP, width=2)
+    sym = "+" if hop_by > 0 else "-"
+    d.text(((mx+dx)//2 - 8, arc_y - 16), f"{sym}{abs(hop_by)}", fill=C_HOP, font=_font(12))
+
+    box = 22
+    d.rectangle([dx-box//2, line_y+14, dx+box//2, line_y+14+box], outline=C_BORDER, width=2)
     return _to_bytes(img)
 
 
@@ -502,6 +663,10 @@ DIAGRAM_FUNCTIONS = {
     "object_group": object_group,
     "object_compare": object_compare,
     "base10_blocks": base10_blocks,
+    "visual_equation": visual_equation,
+    "compare_choice": compare_choice,
+    "number_card": number_card,
+    "numline_jump": numline_jump,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

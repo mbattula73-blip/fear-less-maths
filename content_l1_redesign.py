@@ -45,42 +45,46 @@ def _kind(i):
 # ───────────────────────── shared question builders ─────────────────────────
 
 def _count_obj_q(n, kind, group_size=5):
-    return q("Count the objects and write the number.", "diagram",
-              "Number = ____", "", "object_group",
+    return q("", "diagram", "____", "", "object_group",
               {"count": n, "kind": kind, "group_size": group_size})
 
 
 def _count_frame_q(n):
-    return q("Count the objects in the ten-frames and write the total.", "diagram",
-              "Number = ____", "", "ten_frames", {"count": n})
+    return q("", "diagram", "____", "", "ten_frames", {"count": n})
 
 
 def _numline_after_q(n, lo, hi):
-    if hi - lo < 5:
-        hi = lo + 5
-    span = hi - lo
-    return q(f"Look at the number line. What number comes just AFTER {n}?", "diagram",
-              "Answer = ____", "", "number_line",
-              {"start": lo, "end": hi, "divisions": span, "mark": n})
+    span = max(5, min(10, hi - lo if hi - lo >= 5 else 5))
+    start = max(0, n - span // 2)
+    return q("", "diagram", "____", "", "numline_jump",
+              {"start": start, "end": start + span, "mark": n, "hop_by": 1})
 
 
 def _numline_before_q(n, lo, hi):
-    if hi - lo < 5:
-        hi = lo + 5
-    span = hi - lo
-    return q(f"Look at the number line. What number comes just BEFORE {n}?", "diagram",
-              "Answer = ____", "", "number_line",
-              {"start": lo, "end": hi, "divisions": span, "mark": n})
+    span = max(5, min(10, hi - lo if hi - lo >= 5 else 5))
+    start = max(0, n - span // 2)
+    return q("", "diagram", "____", "", "numline_jump",
+              {"start": start, "end": start + span, "mark": n, "hop_by": -1})
 
 
-def _base10_q(tens, ones):
-    return q("Look at the blocks. Write the number they show.", "diagram",
-              "Number = ____", "", "base10_blocks", {"tens": tens, "ones": ones})
+def _eq_q(left, right, kind, op):
+    """Visual addition/subtraction equation, zero text."""
+    return q("", "diagram", "____", "", "visual_equation",
+              {"left": left, "right": right, "kind": kind, "op": op})
 
 
 def _compare_obj_q(left, right, kind):
-    return q("Circle the group with MORE objects.", "diagram",
-              "Bigger group = Left / Right", "", "object_compare",
+    """Wordless comparison with >/</= tick-boxes baked into the image."""
+    return q("", "diagram", "____", "", "compare_choice",
+              {"left_count": left, "right_count": right, "kind": kind})
+
+
+def _base10_q(tens, ones):
+    return q("", "diagram", "____", "", "base10_blocks", {"tens": tens, "ones": ones})
+
+
+def _compare_obj_q(left, right, kind):
+    return q("", "diagram", "____", "", "compare_choice",
               {"left_count": left, "right_count": right, "kind": kind})
 
 
@@ -126,7 +130,7 @@ def _counting_l1_block(lo, hi, sheet):
                  ["You can now count without pictures.",
                   f"After {hi-1} comes {hi}."], "")]
     for n in picks:
-        items.append(q(f"Write the number that comes just AFTER {n}.", "fill", "Answer = ____"))
+        items.append(q(f"{n} + 1 = ____", "fill", "____"))
     return items
 
 
@@ -147,7 +151,7 @@ def _1CUM1_s(sheet):
         elif sheet == 3:
             items.append(_numline_after_q(n, max(0, n - 5), min(100, n + 5)))
         else:
-            items.append(q(f"Write the number that comes just AFTER {n}.", "fill", "Answer = ____"))
+            items.append(q(f"{n} + 1 = ____", "fill", "____"))
     return items
 
 
@@ -189,20 +193,21 @@ def _before_after_block(lo, hi, mode, sheet):
                       "Double-check by counting on your fingers."])]
         for n in picks:
             if mode == "after":
-                items.append(q(f"What comes just after {n}?", "fill", "Answer = ____"))
+                items.append(q(f"{n} + 1 = ____", "fill", "____"))
             elif mode == "before":
-                items.append(q(f"What comes just before {n}?", "fill", "Answer = ____"))
+                items.append(q(f"{n} - 1 = ____", "fill", "____"))
             else:
-                items.append(q(f"What comes just before AND just after {n}?", "fill",
-                                "Before = ____  After = ____"))
+                items.append(q(f"___, {n}, ___", "fill", "____"))
         return items
 
     items = [cb(f"{title} — Numbers Only", ["Apply +1 or -1 directly."], "")]
     for n in picks:
         if mode == "both":
-            items.append(q(f"{n}: before = ____, after = ____.", "fill", "Before=____ After=____"))
+            items.append(q(f"___, {n}, ___", "fill", "____"))
+        elif mode == "after":
+            items.append(q(f"{n} + 1 = ____", "fill", "____"))
         else:
-            items.append(q(f"{title} of {n} is ____.", "fill", "Answer = ____"))
+            items.append(q(f"{n} - 1 = ____", "fill", "____"))
     return items
 
 
@@ -217,7 +222,7 @@ def _1CUM2_s(sheet):
     picks = [random.choice(range(1, 101)) for _ in range(19)]
     items = [cb("Review: Before & After", ["Mix of small and big numbers, both directions."], "")]
     for n in picks:
-        items.append(q(f"{n}: before = ____, after = ____.", "fill", "Before=____ After=____"))
+        items.append(q(f"___, {n}, ___", "fill", "____"))
     return items
 
 
@@ -240,11 +245,11 @@ def _1H_s(sheet):
     if sheet == 3:
         items = [tb("Comparing Tips", ["Always count fully before deciding which is bigger."])]
         for l, r in pairs:
-            items.append(q(f"Which is bigger: {l} or {r}?", "fill", "Bigger = ____"))
+            items.append(q(f"{l} ___ {r}", "fill", "____"))
         return items
     items = [cb("Comparing Numbers", ["Compare directly without pictures."], "")]
     for l, r in pairs:
-        items.append(q(f"Fill in: {l} ___ {r}  (>, < or =)", "fill", "Answer = ____"))
+        items.append(q(f"{l} ___ {r}", "fill", "____"))
     return items
 
 
@@ -264,7 +269,7 @@ def _1I_s(sheet):
     else:
         items = [cb("Comparing — Speed Round", ["Apply the tens-digit rule quickly."], "")]
     for l, r in pairs:
-        items.append(q(f"Fill in: {l} ___ {r}  (>, < or =)", "fill", "Answer = ____"))
+        items.append(q(f"{l} ___ {r}", "fill", "____"))
     return items
 
 
@@ -273,7 +278,7 @@ def _1CUM3_s(sheet):
     pairs = [(random.randint(1, 100), random.randint(1, 100)) for _ in range(19)]
     items = [cb("Review: Greater & Smaller", ["Mix of small and large numbers."], "")]
     for l, r in pairs:
-        items.append(q(f"Fill in: {l} ___ {r}  (>, < or =)", "fill", "Answer = ____"))
+        items.append(q(f"{l} ___ {r}", "fill", "____"))
     return items
 
 
@@ -303,7 +308,7 @@ def _missing_numbers_block(lo, hi, sheet):
         seq = list(range(start, start + 3 + gap_size))
         hide_idx = random.randint(1, len(seq) - 2)
         display = [str(x) if i != hide_idx else "___" for i, x in enumerate(seq)]
-        items_out.append(q(f"Fill in the missing number: {', '.join(display)}.", "fill", "Answer = ____"))
+        items_out.append(q(f"{', '.join(display)}", "fill", "____"))
     return items_out
 
 
@@ -330,12 +335,7 @@ def _pattern_block(step_options, sheet, label):
         seq = [start + step * k for k in range(5)]
         hide_idx = random.choice([3, 4]) if sheet in (1, 2) else random.randint(1, 4)
         display = [str(x) if j != hide_idx else "___" for j, x in enumerate(seq)]
-        if sheet == 4:
-            items.append(q(f"Continue the pattern: {', '.join(display)}.", "fill", "Answer = ____"))
-        else:
-            tag = "diagram" if False else "fill"  # patterns kept numeric; no dedicated diagram needed
-            items.append(q(f"Find the missing number in this pattern: {', '.join(display)}.",
-                            "fill", "Answer = ____"))
+        items.append(q(f"{', '.join(display)}", "fill", "____"))
     return items
 
 
@@ -392,9 +392,9 @@ def _1O_s(sheet):
     for n in nums:
         tens, ones = divmod(n, 10)
         if sheet == 2:
-            items.append(q(f"{tens} tens and {ones} ones = ____.", "fill", "Answer = ____"))
+            items.append(q(f"____ x 10 + ____ = {n}", "fill", "____"))
         else:
-            items.append(q(f"{n} = ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"))
+            items.append(q(f"{tens} x 10 + {ones} = ____", "fill", "____"))
     return items
 
 
@@ -407,7 +407,7 @@ def _1CUM6_s(sheet):
         if i % 2 == 0 and sheet in (1, 2):
             items.append(_base10_q(tens, ones))
         else:
-            items.append(q(f"{n} = ____ tens and ____ ones.", "fill", "Tens = ____  Ones = ____"))
+            items.append(q(f"{tens} x 10 + {ones} = ____", "fill", "____"))
     return items
 
 
@@ -417,42 +417,28 @@ def _1P_s(sheet):
     random.seed(1400 + sheet)
     if sheet == 1:
         items = [cb("Counting & Simple Puzzles",
-                     ["Read carefully and picture the objects in your head."], "")]
-        riddles = [
-            ("There are 12 apples. 7 are eaten. How many are left?", 5),
-            ("8 stars and 9 more appear. How many now?", 17),
-            ("15 balloons, 6 pop. How many are left?", 9),
-            ("There are 23 flowers. 14 are picked. How many remain?", 9),
-        ]
+                     ["Each picture shows objects, a + or - sign, and a blank box to fill."], "")]
+        fixed = [(12,7,"-","apple"), (8,9,"+","star"), (15,6,"-","balloon"), (23,14,"-","flower")]
     elif sheet == 2:
-        items = [cb("Picture Puzzles — Groups", ["Use tens-and-ones thinking to solve faster."], "")]
-        riddles = [
-            ("A basket has 3 tens and 4 ones of apples. How many apples?", 34),
-            ("There are 45 stars, 20 fly away. How many are left?", 25),
-            ("6 tens and 7 ones of balloons are tied. How many balloons?", 67),
-            ("There are 58 flowers, 9 more bloom. How many now?", 67),
-        ]
+        items = [cb("Picture Puzzles — Groups", [""], "")]
+        fixed = [(34,0,"+","apple"), (45,20,"-","star"), (67,0,"+","balloon"), (58,9,"+","flower")]
     elif sheet == 3:
-        items = [tb("Puzzle Tips", ["Underline the numbers, decide add or subtract, then solve."])]
-        riddles = [
-            ("There were 72 apples, 35 were sold. How many are left?", 37),
-            ("48 stars plus 26 more stars. How many now?", 74),
-            ("There were 90 balloons, 47 popped. How many left?", 43),
-        ]
+        items = [tb("Puzzle Tips", ["+ joins groups together. - takes a group away."])]
+        fixed = [(72,35,"-","apple"), (48,26,"+","star"), (90,47,"-","balloon")]
     else:
-        items = [cb("Number Puzzles — No Pictures", ["Solve like a riddle, using numbers only."], "")]
-        riddles = [
-            ("A number is 1 more than 49. What is it?", 50),
-            ("A number has 7 tens and 3 ones. What is it?", 73),
-            ("A number is 10 less than 100. What is it?", 90),
-        ]
-    for text, ans in riddles:
-        items.append(q(text, "word", f"Answer = ____ (Answer: {ans})"))
-    # Top up to 19 real items with simple generated fill questions
+        items = [cb("Number Puzzles — No Pictures", ["Solve using numbers only."], "")]
+        fixed = []
+    for l, r, op, kind in fixed:
+        if r == 0:
+            items.append(q(f"{l} = ____", "fill", "____"))
+        else:
+            items.append(q("", "diagram", "____", "", "visual_equation",
+                            {"left": l, "right": r, "kind": kind, "op": op}))
+    # Top up to 19 real items with symbolic +1 equations (no sentences)
     random.seed(1450 + sheet)
-    while len([i for i in items if i["type"] != "concept_box" and i["type"] != "tips_box"]) < 19:
+    while len([i for i in items if i["type"] not in ("concept_box", "tips_box")]) < 19:
         n = random.randint(10, 99)
-        items.append(q(f"Write the number that is 1 more than {n}.", "fill", "Answer = ____"))
+        items.append(q(f"{n} + 1 = ____", "fill", "____"))
     return items
 
 
@@ -463,11 +449,11 @@ def _1Q_s(sheet):
                  ["This sheet mixes counting, before/after, comparing, missing numbers, patterns and place value."],
                  "")]
     builders = [
-        lambda: q(f"What comes just after {random.randint(1,99)}?", "fill", "Answer = ____"),
-        lambda: q(f"What comes just before {random.randint(2,100)}?", "fill", "Answer = ____"),
-        lambda: q(f"Fill in: {random.randint(1,100)} ___ {random.randint(1,100)} (>, < or =)", "fill", "Answer = ____"),
-        lambda: q(f"{random.randint(10,99)} = ____ tens and ____ ones.", "fill", "Tens=____ Ones=____"),
-        lambda: q(f"Continue: {(s:=random.randint(1,40))}, {s+2}, {s+4}, ___.", "fill", "Answer = ____"),
+        lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
+        lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),
+        lambda: q(f"{random.randint(1,100)} ___ {random.randint(1,100)}", "fill", "____"),
+        lambda: (lambda n: q(f"{n//10} x 10 + {n%10} = ____", "fill", "____"))(random.randint(10,99)),
+        lambda: q(f"{(s:=random.randint(1,40))}, {s+2}, {s+4}, ___", "fill", "____"),
     ]
     for i in range(19):
         items.append(builders[i % len(builders)]())
@@ -480,12 +466,12 @@ def _1REV_s(sheet):
                  ["This sheet tests everything from Level 1: counting to 100, before/after, "
                   "greater/smaller, missing numbers, patterns and place value."], "")]
     builders = [
-        lambda: q(f"What comes just after {random.randint(1,99)}?", "fill", "Answer = ____"),
-        lambda: q(f"What comes just before {random.randint(2,100)}?", "fill", "Answer = ____"),
-        lambda: q(f"Fill in: {random.randint(1,100)} ___ {random.randint(1,100)} (>, < or =)", "fill", "Answer = ____"),
-        lambda: q(f"{random.randint(10,99)} = ____ tens and ____ ones.", "fill", "Tens=____ Ones=____"),
-        lambda: q(f"Continue: {(s:=random.randint(1,40))}, {s+5}, {s+10}, ___.", "fill", "Answer = ____"),
-        lambda: q(f"Fill in the missing number: {(s2:=random.randint(1,90))}, ___, {s2+2}.", "fill", "Answer = ____"),
+        lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
+        lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),
+        lambda: q(f"{random.randint(1,100)} ___ {random.randint(1,100)}", "fill", "____"),
+        lambda: (lambda n: q(f"{n//10} x 10 + {n%10} = ____", "fill", "____"))(random.randint(10,99)),
+        lambda: q(f"{(s:=random.randint(1,40))}, {s+5}, {s+10}, ___", "fill", "____"),
+        lambda: q(f"{(s2:=random.randint(1,90))}, ___, {s2+2}", "fill", "____"),
     ]
     if sheet == 1:
         for n in random.sample(range(1, 21), 6):

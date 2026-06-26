@@ -25,51 +25,48 @@ def _kind(i):
 
 
 def _count_q(n, kind, group_size=5):
-    """One counting question: show n objects, ask the student to count & write."""
-    return q("Count the objects and write the number.", "diagram",
-              "Number = ____", "", "object_group",
+    """One counting question: pure image + blank box, zero text."""
+    return q("", "diagram", "____", "", "object_group",
               {"count": n, "kind": kind, "group_size": group_size})
 
 
 def _compare_q(left, right, kind):
-    return q("Look at both groups. Circle the group with MORE objects.", "diagram",
-              "Bigger group = Left / Right", "", "object_compare",
+    """Wordless comparison: two groups + >/</= tick-boxes baked into the image."""
+    return q("", "diagram", "____", "", "compare_choice",
               {"left_count": left, "right_count": right, "kind": kind})
 
 
 def _draw_q(n):
-    """Reverse-direction question: given a number, child draws that many objects.
-    Printed worksheet leaves a blank box; no diagram needed."""
-    return q(f"Draw {n} circles (●) in the box below.", "fill", "(draw in the box)")
+    """Reverse-direction question: big numeral + empty box for the child to
+    draw that many objects. Zero words on the page."""
+    return q("", "diagram", "____", "", "number_card", {"n": n})
 
 
 def _one_more_q(n, kind):
-    return q(f"Look at the {n} {kind}s. Draw ONE MORE and write the new total.",
-             "diagram", "New total = ____", "", "object_group",
-             {"count": n, "kind": kind, "group_size": 5})
+    """Visual '+1' equation: n objects + 1 object = blank box. No sentence."""
+    return q("", "diagram", "____", "", "visual_equation",
+              {"left": n, "right": 1, "kind": kind, "op": "+"})
 
 
 def _one_less_q(n, kind):
-    return q(f"Look at the {n} {kind}s. Cross out ONE and write what is left.",
-             "diagram", "Now there are = ____", "", "object_group",
-             {"count": n, "kind": kind, "group_size": 5})
+    """Visual '-1' equation: n objects, 1 crossed out = blank box. No sentence."""
+    return q("", "diagram", "____", "", "visual_equation",
+              {"left": n, "right": 1, "kind": kind, "op": "-"})
+
 
 
 def _gen_riddle(lo_start, hi_start, lo_change, hi_change, kind, op="more"):
-    """Programmatically generate a simple addition/subtraction riddle to top up
-    PreI sheets without hand-writing every single line."""
+    """Generates a wordless addition/subtraction visual equation
+    (objects + symbol + objects/crossed-out = blank box)."""
     start = random.randint(lo_start, hi_start)
     change = random.randint(lo_change, hi_change)
     if op == "more":
-        ans = start + change
-        verb = "come" if kind in ("balloon", "star") else "are added"
-        text = f"There are {start} {kind}s. {change} more {verb}. How many now?"
+        return q("", "diagram", "____", "", "visual_equation",
+                  {"left": start, "right": change, "kind": kind, "op": "+"})
     else:
         change = min(change, start - 1) if start > 1 else 1
-        ans = start - change
-        verb = "fly away" if kind in ("balloon", "star") else "are taken away"
-        text = f"There are {start} {kind}s. {change} {verb}. How many are left?"
-    return q(text, "word", f"Answer = ____ (Answer: {ans})")
+        return q("", "diagram", "____", "", "visual_equation",
+                  {"left": start, "right": change, "kind": kind, "op": "-"})
 
 
 # ───────────────────────── Counting blocks: PreA-PreD (1-20) ─────────────────────────
@@ -111,16 +108,16 @@ def _counting_block(lo, hi, sheet, label):
             items.append(_draw_q(n))
         return items
 
-    # sheet == 4: Abstract — numbers only, no images
+    # sheet == 4: Abstract — numbers/symbols only, zero words
     items = [cb(f"Numbers {lo} to {hi}",
                  ["We can also count using number words, without pictures.",
                   "Numbers go up by 1 each time.",
                   f"After {hi-1} comes {hi}."],
                  f"{hi-2}, {hi-1}, {hi}")]
     for n in picks[:10]:
-        items.append(q(f"Write the number that comes just AFTER {n}.", "fill", "Answer = ____"))
+        items.append(q(f"{n} + 1 = ____", "fill", "____"))
     for n in picks[10:19]:
-        items.append(q(f"Write the number that comes just BEFORE {n}.", "fill", "Answer = ____"))
+        items.append(q(f"{n} - 1 = ____", "fill", "____"))
     return items
 
 
@@ -161,7 +158,7 @@ def _CUM1_s(sheet):
                   "Practice writing numbers in order."],
                  "1, 2, 3 ... 20")]
     for n in counts:
-        items.append(q(f"What number comes right after {n}?", "fill", "Answer = ____"))
+        items.append(q(f"{n} + 1 = ____", "fill", "____"))
     return items
 
 
@@ -197,7 +194,7 @@ def _E_s(sheet):
                 "Which is bigger, 12 or 15? -> 15")]
     for _ in range(19):
         a, b = random.sample(range(1, 21), 2)
-        items.append(q(f"Which number is bigger: {a} or {b}?", "fill", "Bigger = ____"))
+        items.append(q(f"{a} ___ {b}", "fill", "____"))
     return items
 
 
@@ -225,13 +222,13 @@ def _F_s(sheet):
                      ["'One more' always means add 1.",
                       "The new number is always 1 bigger than before."])]
         for n in nums:
-            items.append(q(f"What is one more than {n}?", "fill", "Answer = ____"))
+            items.append(q(f"{n} + 1 = ____", "fill", "____"))
         return items
     items = [cb("One More — Numbers Only",
                  ["You no longer need pictures — just add 1 to the number."],
                  "One more than 9 is 10")]
     for n in [random.choice(range(1, 21)) for _ in range(19)]:
-        items.append(q(f"One more than {n} is ____.", "fill", "Answer = ____"))
+        items.append(q(f"{n} + 1 = ____", "fill", "____"))
     return items
 
 
@@ -259,13 +256,13 @@ def _G_s(sheet):
                      ["'One less' always means subtract 1.",
                       "The new number is always 1 smaller than before."])]
         for n in nums:
-            items.append(q(f"What is one less than {n}?", "fill", "Answer = ____"))
+            items.append(q(f"{n} - 1 = ____", "fill", "____"))
         return items
     items = [cb("One Less — Numbers Only",
                  ["Subtract 1 from the number directly — no pictures needed."],
                  "One less than 10 is 9")]
     for n in [random.choice(range(2, 21)) for _ in range(19)]:
-        items.append(q(f"One less than {n} is ____.", "fill", "Answer = ____"))
+        items.append(q(f"{n} - 1 = ____", "fill", "____"))
     return items
 
 
@@ -296,12 +293,12 @@ def _CUM2_s(sheet):
         items = [tb("Review Tips", ["Look for the words 'more' or 'less' before answering.",
                                      "More = bigger number. Less = smaller number."])]
         for n in nums:
-            items.append(q(f"Is 'one more than {n}' bigger or smaller than {n}?", "fill", "Answer = ____"))
+            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
         return items
     items = [cb("Numbers Only — One More / One Less",
                  ["Apply +1 or -1 directly to the number."], "")]
     for n in nums:
-        items.append(q(f"One more than {n} = ____, one less than {n} = ____.", "fill", "Answers = ____ , ____"))
+        items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
     return items
 
 
@@ -330,11 +327,11 @@ def _H_s(sheet):
                      ["Count both groups fully before deciding.",
                       "Do not guess by size of the picture — always count."])]
         for l, r in pairs:
-            items.append(q(f"Which is bigger: {l} or {r}?", "fill", "Bigger = ____"))
+            items.append(q(f"{l} ___ {r}", "fill", "____"))
         return items
     items = [cb("Comparing Numbers", ["Compare numbers directly without pictures."], "7 > 5")]
     for l, r in pairs:
-        items.append(q(f"Fill in: {l} ___ {r}  (write > , < or =)", "fill", "Answer = ____"))
+        items.append(q(f"{l} ___ {r}", "fill", "____"))
     return items
 
 
@@ -344,94 +341,56 @@ def _I_s(sheet):
     random.seed(700 + sheet)
     if sheet == 1:
         items = [cb("Picture Riddles",
-                     ["Read the riddle and picture it in your head.",
-                      "Count using your fingers if needed."],
-                     "I have 3 apples. I get 1 more. How many now? -> 4")]
-        riddles = [
-            ("I see 2 balloons. 2 more come. How many now?", 4),
-            ("I have 5 stars. 1 flies away. How many are left?", 4),
-            ("There are 3 flowers. I plant 2 more. How many now?", 5),
-            ("I have 4 apples. I eat 1. How many are left?", 3),
-            ("I see 1 balloon. 4 more come. How many now?", 5),
-            ("I have 2 apples. I get 2 more. How many now?", 4),
-            ("There are 4 stars. 1 falls. How many are left?", 3),
-            ("I see 3 balloons. 1 more comes. How many now?", 4),
-            ("There are 2 flowers. I pick 1. How many are left?", 1),
-            ("I have 1 apple. I get 3 more. How many now?", 4),
-            ("I see 5 stars. 2 fly away. How many are left?", 3),
-            ("There are 1 balloon. 1 more comes. How many now?", 2),
-        ]
-        for text, ans in riddles:
-            items.append(q(text, "word", f"Answer = ____ (Answer: {ans})"))
-        for i in range(19 - len(riddles)):
+                     ["Each picture shows a small story: a group, a + or - sign, and a blank box.",
+                      "Count, then add or subtract to fill the blank."],
+                     "3 apples + 1 more = 4 apples")]
+        fixed = [(2,2,"+","balloon"), (5,1,"-","star"), (3,2,"+","flower"), (4,1,"-","apple"),
+                 (1,4,"+","balloon"), (2,2,"+","apple"), (4,1,"-","star"), (3,1,"+","balloon"),
+                 (2,1,"-","flower"), (1,3,"+","apple"), (5,2,"-","star"), (1,1,"+","balloon")]
+        for l, r, op, kind in fixed:
+            items.append(q("", "diagram", "____", "", "visual_equation",
+                            {"left": l, "right": r, "kind": kind, "op": op}))
+        for i in range(19 - len(fixed)):
             items.append(_gen_riddle(1, 5, 1, 4, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
     if sheet == 2:
         items = [cb("Riddles with Groups",
-                     ["Draw the objects in groups of 5 to solve faster."], "")]
-        riddles = [
-            ("There are 6 apples in a basket. 3 more are added. How many now?", 9),
-            ("I have 8 stars. I give away 2. How many are left?", 6),
-            ("7 balloons are tied. 2 burst. How many are left?", 5),
-            ("There are 5 flowers. 5 more grow. How many now?", 10),
-            ("9 apples on a tree. 4 fall down. How many are left?", 5),
-            ("6 stars in the sky. 4 more appear. How many now?", 10),
-            ("There are 10 balloons. 3 fly away. How many are left?", 7),
-            ("8 flowers in a pot. 2 more are planted. How many now?", 10),
-            ("There are 7 apples. 5 are eaten. How many are left?", 2),
-            ("6 balloons, 6 more come. How many now?", 12),
-            ("9 stars, 3 fall. How many are left?", 6),
-        ]
-        for text, ans in riddles:
-            items.append(q(text, "word", f"Answer = ____ (Answer: {ans})"))
-        for i in range(19 - len(riddles)):
+                     ["Use the rows of 5 to count each group faster."], "")]
+        fixed = [(6,3,"+","apple"), (8,2,"-","star"), (7,2,"-","balloon"), (5,5,"+","flower"),
+                 (9,4,"-","apple"), (6,4,"+","star"), (10,3,"-","balloon"), (8,2,"+","flower"),
+                 (7,5,"-","apple"), (6,6,"+","balloon"), (9,3,"-","star")]
+        for l, r, op, kind in fixed:
+            items.append(q("", "diagram", "____", "", "visual_equation",
+                            {"left": l, "right": r, "kind": kind, "op": op}))
+        for i in range(19 - len(fixed)):
             items.append(_gen_riddle(4, 9, 1, 5, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
     if sheet == 3:
         items = [tb("Riddle-Solving Tips",
-                     ["Underline the starting number and the change number.",
-                      "Decide if the riddle means 'more' (add) or 'less' (subtract)."])]
-        riddles = [
-            ("I had 10 stars, I lost 3. How many now?", 7),
-            ("I had 6 apples, I got 6 more. How many now?", 12),
-            ("There were 14 balloons, 5 popped. How many now?", 9),
-            ("8 flowers bloomed, then 7 more bloomed. How many now?", 15),
-            ("I had 12 stars, I lost 4. How many now?", 8),
-            ("There were 9 apples, 6 more were picked. How many now?", 15),
-            ("16 balloons, 7 popped. How many now?", 9),
-            ("There were 11 flowers, 3 were picked. How many left?", 8),
-            ("I had 13 stars, I got 2 more. How many now?", 15),
-        ]
-        for text, ans in riddles:
-            items.append(q(text, "word", f"Answer = ____ (Answer: {ans})"))
-        for i in range(19 - len(riddles)):
+                     ["+ means a group is joining — count both groups together.",
+                      "- means a group is leaving — count what is crossed out, then what remains."])]
+        fixed = [(10,3,"-","star"), (6,6,"+","apple"), (14,5,"-","balloon"), (8,7,"+","flower"),
+                 (12,4,"-","star"), (9,6,"+","apple"), (16,7,"-","balloon"), (11,3,"-","flower"),
+                 (13,2,"+","star")]
+        for l, r, op, kind in fixed:
+            items.append(q("", "diagram", "____", "", "visual_equation",
+                            {"left": l, "right": r, "kind": kind, "op": op}))
+        for i in range(19 - len(fixed)):
             items.append(_gen_riddle(8, 16, 2, 7, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
+    # sheet 4: abstract — pure symbolic equations, zero words
     items = [cb("Number Riddles — No Pictures",
-                 ["Solve using numbers only, just like a story problem."], "")]
-    riddles = [
-        ("A number is 1 more than 9. What is it?", 10),
-        ("A number is 1 less than 15. What is it?", 14),
-        ("Start at 12, count 3 more. Where do you land?", 15),
-        ("Start at 18, count 4 less. Where do you land?", 14),
-        ("A number is 1 more than 16. What is it?", 17),
-        ("A number is 1 less than 20. What is it?", 19),
-        ("Start at 5, count 6 more. Where do you land?", 11),
-        ("Start at 19, count 5 less. Where do you land?", 14),
-        ("A number is 1 more than 13. What is it?", 14),
-    ]
-    for text, ans in riddles:
-        items.append(q(text, "fill", f"Answer = ____ (Answer: {ans})"))
-    extra_templates = [
-        ("A number is {c} more than {s}. What is it?", lambda s, c: s + c),
-        ("A number is {c} less than {s}. What is it?", lambda s, c: s - c),
-    ]
+                 ["Solve the equation using numbers only."], "")]
+    fixed = [(9,1,"+",10), (15,1,"-",14), (12,3,"+",15), (18,4,"-",14),
+             (16,1,"+",17), (20,1,"-",19), (5,6,"+",11), (19,5,"-",14), (13,1,"+",14)]
+    for s, c, op, ans in fixed:
+        items.append(q(f"{s} {op} {c} = ____", "fill", "____"))
     random.seed(701)
-    for i in range(19 - len(riddles)):
+    for i in range(19 - len(fixed)):
         s = random.randint(5, 19)
         c = random.randint(1, min(5, s - 1))
-        tpl, fn = extra_templates[i % 2]
-        items.append(q(tpl.format(s=s, c=c), "fill", f"Answer = ____ (Answer: {fn(s, c)})"))
+        op = "+" if i % 2 == 0 else "-"
+        items.append(q(f"{s} {op} {c} = ____", "fill", "____"))
     return items
 
 
@@ -462,13 +421,12 @@ def _CUM3_s(sheet):
                      ["Read each question type carefully — counting, more, less, or compare.",
                       "Take your time — there is no rush."])]
         for n in [random.choice(range(1, 20)) for _ in range(19)]:
-            items.append(q(f"What is one more than {n} and one less than {n}?",
-                            "fill", "More = ____  Less = ____"))
+            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
         return items
     items = [cb("Pre-Level Full Review — Abstract",
                  ["No pictures this time — numbers only."], "")]
     for n in [random.choice(range(1, 20)) for _ in range(19)]:
-        items.append(q(f"Write the number before and after {n}.", "fill", "Before = ____  After = ____"))
+        items.append(q(f"___, {n}, ___", "fill", "____"))
     return items
 
 
@@ -489,14 +447,16 @@ def _REV_s(sheet):
             items.append(_one_more_q(random.randint(1, 14), _kind(i)))
     elif sheet == 3:
         for n in [random.choice(range(1, 20)) for _ in range(16)]:
-            items.append(q(f"What comes before and after {n}?", "fill", "Before=____ After=____"))
-        items.append(q("I have 4 stars and get 3 more. How many now?", "word", "Answer = ____ (Answer: 7)"))
-        items.append(q("I have 9 apples and eat 2. How many are left?", "word", "Answer = ____ (Answer: 7)"))
-        items.append(q("There are 6 balloons and 4 more come. How many now?", "word", "Answer = ____ (Answer: 10)"))
+            items.append(q(f"___, {n}, ___", "fill", "____"))
+        items.append(q("", "diagram", "____", "", "visual_equation",
+                        {"left": 4, "right": 3, "kind": "star", "op": "+"}))
+        items.append(q("", "diagram", "____", "", "visual_equation",
+                        {"left": 9, "right": 2, "kind": "apple", "op": "-"}))
+        items.append(q("", "diagram", "____", "", "visual_equation",
+                        {"left": 6, "right": 4, "kind": "balloon", "op": "+"}))
     else:
         for n in [random.choice(range(1, 20)) for _ in range(19)]:
-            items.append(q(f"Write the number that is one more than {n} and one less than {n}.",
-                            "fill", "More=____ Less=____"))
+            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
     return items
 
 
