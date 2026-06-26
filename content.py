@@ -17495,6 +17495,14 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 1 REDESIGN (smaller step sizes, Class 1-2) — overrides the
+# original 1A-1J entries defined earlier in this file.
+try:
+    from content_l1_redesign import LEVEL1_DISPATCH
+    _DISPATCH.update(LEVEL1_DISPATCH)
+except Exception as _e:
+    pass
+
 
 def get_questions(sublevel_code: str, sheet_num: str) -> list:
     """

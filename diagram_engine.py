@@ -447,6 +447,41 @@ def object_compare(left_count=4, right_count=6, kind="apple", **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def base10_blocks(tens=3, ones=4, **kw) -> BytesIO:
+    """Singapore-style base-10 blocks: tall rods = tens, small squares = ones.
+    Used for concrete place-value teaching (Grade 1-2), distinct from the
+    decimal-oriented place_value_chart used at higher levels."""
+    rod_w, rod_h = 18, 90
+    unit = 18
+    gap = 8
+    cols_per_row_tens = 5
+    rows_tens = (tens + cols_per_row_tens - 1) // cols_per_row_tens if tens else 0
+    cols_per_row_ones = 5
+    rows_ones = (ones + cols_per_row_ones - 1) // cols_per_row_ones if ones else 0
+    w = max(cols_per_row_tens * (rod_w + gap), cols_per_row_ones * (unit + gap)) * 2 + 40
+    h = max(rows_tens * (rod_h + gap), rows_ones * (unit + gap)) + 50
+    img, d = _blank(w, h)
+    # Draw tens rods on the left half
+    for i in range(tens):
+        row, col = divmod(i, cols_per_row_tens)
+        x = 15 + col * (rod_w + gap)
+        y = 15 + row * (rod_h + gap)
+        d.rectangle([x, y, x + rod_w, y + rod_h], fill=C_BLUE_D, outline=C_BORDER, width=2)
+        for seg in range(1, 10):
+            sy = y + seg * (rod_h / 10)
+            d.line([x, sy, x + rod_w, sy], fill=C_BG, width=1)
+    # Draw ones units on the right half
+    ones_x_off = w // 2 + 10
+    for i in range(ones):
+        row, col = divmod(i, cols_per_row_ones)
+        x = ones_x_off + col * (unit + gap)
+        y = 15 + row * (unit + gap)
+        d.rectangle([x, y, x + unit, y + unit], fill=C_RED_D, outline=C_BORDER, width=2)
+    d.text((15, h - 22), "Tens", fill=C_TEXT, font=_font_reg(12))
+    d.text((ones_x_off, h - 22), "Ones", fill=C_TEXT, font=_font_reg(12))
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -466,6 +501,7 @@ DIAGRAM_FUNCTIONS = {
     "labeled_triangle": labeled_triangle,
     "object_group": object_group,
     "object_compare": object_compare,
+    "base10_blocks": base10_blocks,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
