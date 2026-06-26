@@ -2,7 +2,7 @@
 
 LEVELS = {
     0:  {"name": "Pre-Level — Counting & Number Sense (Pre-Primary)"},
-    21: {"name": "Counting & Numbers — Foundation (Class 1-2, Small Steps)"},
+    21: {"name": "Pre Level 1 — Counting & Numbers (Class 1-2, Small Steps)"},
     1:  {"name": "Counting & Numbers"},
     2:  {"name": "Even, Odd & Primes"},
     3:  {"name": "Addition & Subtraction"},
