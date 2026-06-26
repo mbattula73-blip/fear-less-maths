@@ -23,7 +23,8 @@ def remedialise(items, seed=0):
     random.seed(seed)
     out = []
     for item in items:
-        if item["type"] == "concept_box": out.append(item); continue
+        if item["type"] in ("concept_box", "tips_box"):
+            out.append(item); continue
         ni = dict(item)
         def sw(m):
             v = int(float(m.group()))
@@ -32,6 +33,24 @@ def remedialise(items, seed=0):
             nv = v + d if random.random() > 0.5 else max(1, v - d)
             return str(nv)
         ni["text"] = re.sub(r'\b\d+\.?\d*\b', sw, ni.get("text",""))
+
+        # Object-count diagrams (Pre-Level CPA sheets): make remedial EASIER by
+        # shrinking the object count toward a smaller, simpler range rather than
+        # randomly perturbing it like text numbers above.
+        dpar = ni.get("diagram_params")
+        if dpar:
+            dpar = dict(dpar)
+            if ni.get("diagram_type") == "object_group" and "count" in dpar:
+                c = dpar["count"]
+                dpar["count"] = max(1, min(c, random.randint(max(1, c - 3), c)))
+                dpar["group_size"] = 5  # always simplify to rows of 5 in remedial
+            elif ni.get("diagram_type") == "object_compare":
+                for key in ("left_count", "right_count"):
+                    if key in dpar:
+                        c = dpar[key]
+                        dpar[key] = max(1, min(c, random.randint(max(1, c - 2), c)))
+            ni["diagram_params"] = dpar
+
         out.append(ni)
     return out
 
@@ -17466,6 +17485,13 @@ except Exception as _e:
 try:
     from content_l19 import DISPATCH_L19
     _DISPATCH.update(DISPATCH_L19)
+except Exception as _e:
+    pass
+
+# Merge in Pre-Level (Pre-Primary counting & number sense) content from content_pre.py
+try:
+    from content_pre import PRE_DISPATCH
+    _DISPATCH.update(PRE_DISPATCH)
 except Exception as _e:
     pass
 

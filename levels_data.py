@@ -1,6 +1,7 @@
 """Fear Less Maths — Level metadata (names, sublevel lists, tier names)."""
 
 LEVELS = {
+    0:  {"name": "Pre-Level — Counting & Number Sense (Pre-Primary)"},
     1:  {"name": "Counting & Numbers"},
     2:  {"name": "Even, Odd & Primes"},
     3:  {"name": "Addition & Subtraction"},
@@ -24,6 +25,13 @@ LEVELS = {
 }
 
 SUBLEVELS = {
+    0:  [("PreA","Counting 1-5 (objects)"),("PreB","Counting 6-10 (objects)"),
+         ("PreC","Counting 11-15 (objects)"),("PreD","Counting 16-20 (objects)"),
+         ("PreCUM1","Review: Counting 1-20"),
+         ("PreE","Number-to-picture matching"),("PreF","One more"),("PreG","One less"),
+         ("PreCUM2","Review: One more / One less"),
+         ("PreH","Comparing groups (more/fewer)"),("PreI","Picture riddles"),
+         ("PreCUM3","Mixed Pre-Level review"),("PreREV","Pre-Level Revision")],
     1:  [("1A","Counting 1–50"),("1B","Counting 1–100"),("1C","Before / After numbers"),
          ("1CUM1","Mixed A+B+C"),("1D","Greater / Smaller"),("1E","Missing numbers"),
          ("1F","Number patterns"),("1CUM2","Mixed D+E+F"),("1G","Counting objects"),

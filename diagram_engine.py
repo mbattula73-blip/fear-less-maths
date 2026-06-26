@@ -372,6 +372,81 @@ def labeled_triangle(a=5, b=7, c=6, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def _draw_object(d, x, y, r, kind):
+    """Draw one kid-friendly object icon centered at (x,y) with radius r."""
+    if kind == "balloon":
+        d.ellipse([x-r, y-r, x+r, y+r*1.15], fill=C_BLUE_D, outline=C_BORDER, width=2)
+        d.line([x, y+r*1.15, x, y+r*1.15+10], fill=C_GRAY_D, width=1)
+    elif kind == "star":
+        import math
+        pts = []
+        for i in range(10):
+            ang = math.pi/2 + i*math.pi/5
+            rad = r if i % 2 == 0 else r*0.45
+            pts.append((x+rad*math.cos(ang), y-rad*math.sin(ang)))
+        d.polygon(pts, fill=C_AMBER_D, outline=C_BORDER)
+    elif kind == "flower":
+        petal_r = r*0.55
+        import math
+        for i in range(5):
+            ang = i*(2*math.pi/5)
+            px, py = x+petal_r*math.cos(ang), y+petal_r*math.sin(ang)
+            d.ellipse([px-petal_r, py-petal_r, px+petal_r, py+petal_r],
+                      fill="#F1948A", outline=C_BORDER)
+        d.ellipse([x-r*0.4, y-r*0.4, x+r*0.4, y+r*0.4], fill=C_AMBER_D, outline=C_BORDER)
+    elif kind == "leaf":
+        d.ellipse([x-r*0.6, y-r, x+r*0.6, y+r], fill=C_TEAL_D, outline=C_BORDER)
+    else:  # "apple" default — circle with stem + leaf dot
+        d.ellipse([x-r, y-r, x+r, y+r], fill=C_RED_D, outline=C_BORDER, width=2)
+        d.line([x, y-r, x, y-r-8], fill="#6E4A2E", width=2)
+        d.ellipse([x+2, y-r-9, x+7, y-r-4], fill=C_TEAL_D)
+
+
+def object_group(count=5, kind="apple", group_size=5, **kw) -> BytesIO:
+    """Concrete/Pictorial counting diagram: real-world objects in rows,
+    grouped by `group_size` (default 5) with a visible gap between groups
+    to support subitizing. Used for Pre-Level / CPA 'Intro' and 'Concept' sheets.
+    No answer text is ever rendered on the image."""
+    r = 16
+    cell = r*2 + 14
+    gap = 22
+    cols = group_size
+    rows = (count + group_size - 1) // group_size
+    w = cols * cell + gap
+    h = rows * cell + 20
+    img, d = _blank(w, h)
+    for row in range(rows):
+        in_row = min(group_size, count - row*group_size)
+        for c in range(in_row):
+            x = 10 + r + c * cell
+            y = 10 + r + row * cell
+            _draw_object(d, x, y, r, kind)
+    return _to_bytes(img)
+
+
+def object_compare(left_count=4, right_count=6, kind="apple", **kw) -> BytesIO:
+    """Two object groups side-by-side for visual greater/smaller comparison
+    (no symbols, no numbers shown)."""
+    r = 14
+    cell = r*2 + 10
+    cols_each = 5
+    rows_l = (left_count + cols_each - 1)//cols_each
+    rows_r = (right_count + cols_each - 1)//cols_each
+    rows = max(rows_l, rows_r)
+    half_w = cols_each*cell + 10
+    w = half_w*2 + 30
+    h = rows*cell + 20
+    img, d = _blank(w, h)
+    d.line([half_w+15, 5, half_w+15, h-5], fill=C_GRAY_D, width=2)
+    for i in range(left_count):
+        row, col = divmod(i, cols_each)
+        _draw_object(d, 10+r+col*cell, 10+r+row*cell, r, kind)
+    for i in range(right_count):
+        row, col = divmod(i, cols_each)
+        _draw_object(d, half_w+30+r+col*cell, 10+r+row*cell, r, kind)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -389,6 +464,8 @@ DIAGRAM_FUNCTIONS = {
     "labeled_rectangle": labeled_rectangle,
     "labeled_square": labeled_square,
     "labeled_triangle": labeled_triangle,
+    "object_group": object_group,
+    "object_compare": object_compare,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
