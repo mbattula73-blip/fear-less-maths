@@ -402,24 +402,29 @@ def _draw_object(d, x, y, r, kind):
         d.ellipse([x+2, y-r-9, x+7, y-r-4], fill=C_TEAL_D)
 
 
-def object_group(count=5, kind="apple", group_size=5, **kw) -> BytesIO:
+def object_group(count=5, kind="apple", group_size=5, show_icon=True, **kw) -> BytesIO:
     """Concrete/Pictorial counting diagram: real-world objects in rows,
     grouped by `group_size` (default 5) with a visible gap between groups
     to support subitizing. Used for Pre-Level / CPA 'Intro' and 'Concept' sheets.
-    No answer text is ever rendered on the image."""
+    No answer text is ever rendered on the image. A COUNT mascot+flag is
+    drawn above by default (set show_icon=False to omit, e.g. when this
+    is reused as a sub-component of another diagram)."""
     r = 16
     cell = r*2 + 14
     gap = 22
     cols = group_size
     rows = (count + group_size - 1) // group_size
     w = cols * cell + gap
-    h = rows * cell + 20
+    icon_h = 70 if show_icon else 0
+    h = rows * cell + 20 + icon_h
     img, d = _blank(w, h)
+    if show_icon:
+        _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "count")
     for row in range(rows):
         in_row = min(group_size, count - row*group_size)
         for c in range(in_row):
             x = 10 + r + c * cell
-            y = 10 + r + row * cell
+            y = 10 + r + row * cell + icon_h
             _draw_object(d, x, y, r, kind)
     return _to_bytes(img)
 
@@ -494,57 +499,91 @@ def _draw_big_symbol(d, x, y, size, symbol):
         d.rectangle([x - size/2, y + gap - t/2, x + size/2, y + gap + t/2], fill=C_BORDER)
 
 
+def _draw_mini_mascot_flag(d, cx, top_y, r, op_or_label):
+    """Compact OUTLINE-ONLY (ink-saving) mascot holding a flag-on-a-stick.
+    Accepts either a known op key ('+','-','>','<','=') which is mapped to
+    its keyword via _OP_LABELS, or any literal label string directly."""
+    label = _OP_LABELS.get(op_or_label, op_or_label)
+    cy = top_y + r
+
+    # Stick (thin line up from the mascot's head)
+    stick_top = top_y - 22
+    d.line([cx + r*0.6, cy - r*0.7, cx + r*0.6, stick_top], fill=C_BORDER, width=2)
+
+    # Flag (outline only, no fill) with small label
+    fnt = _font(10)
+    tw = d.textlength(label, font=fnt) if label else 14
+    flag_w, flag_h = tw + 10, 18
+    fx0, fy0 = cx + r*0.6, stick_top
+    fx1, fy1 = fx0 + flag_w, fy0 + flag_h
+    d.polygon([(fx0, fy0), (fx1, fy0+flag_h*0.2), (fx1, fy1), (fx0, fy1-flag_h*0.2)],
+              outline=C_BORDER, width=2)
+    d.text((fx0 + 5, fy0 + 2), label, fill=C_BORDER, font=fnt)
+
+    # Body (outline circle, no fill)
+    d.ellipse([cx-r, cy-r*0.95, cx+r, cy+r*1.05], outline=C_BORDER, width=2)
+
+    # Eyes (outline circles + tiny filled pupil -- negligible ink)
+    eye_w, eye_h = r*0.26, r*0.32
+    for dx in (-r*0.32, r*0.32):
+        ex, ey = cx+dx, cy-r*0.15
+        d.ellipse([ex-eye_w, ey-eye_h, ex+eye_w, ey+eye_h], outline=C_BORDER, width=1)
+        pr = eye_w*0.4
+        d.ellipse([ex-pr, ey-pr+1, ex+pr, ey+pr+1], fill=C_BORDER)
+
+    # Smile (outline arc)
+    d.arc([cx-r*0.32, cy+r*0.05, cx+r*0.32, cy+r*0.5], 20, 160, fill=C_BORDER, width=2)
+    return fy1 - top_y + (cy + r*1.05 - top_y)  # total height used
+
+
 def visual_equation(left=3, right=2, kind="apple", op="+", **kw) -> BytesIO:
     """Fully self-contained visual equation with NO text required to solve:
-    [objects] [+ or -] [objects, or crossed-out for subtraction] [=] [blank box]
-    Used for zero-literacy addition/subtraction questions (Pre-Level / Level 21).
-    For op='-', `right` objects out of `left` are shown crossed out instead of
-    a second group."""
+    (mascot+flag above, centered)
+    [objects] [+ or -] [objects] [=] [blank box]
+    Both addition AND subtraction show TWO separate object groups (same
+    layout) -- subtraction no longer crosses out objects within one group,
+    it shows a second group being taken away, exactly mirroring addition."""
     r = 14
     cell = r*2 + 8
     cols = 5
     sym_w = 50
     box_w, box_h = 60, 60
+    mascot_r = 22
+    mascot_area_h = 70
 
     def group_dims(n):
         rows = (n + cols - 1) // cols if n else 1
         return cols*cell, rows*cell
 
-    if op == "+":
-        gw1, gh1 = group_dims(left)
-        gw2, gh2 = group_dims(right)
-    else:
-        gw1, gh1 = group_dims(left)
-        gw2, gh2 = 0, 0
+    gw1, gh1 = group_dims(left)
+    gw2, gh2 = group_dims(right)
 
-    h = max(gh1, gh2, box_h) + 30
-    w = gw1 + sym_w + (gw2 if op == "+" else 0) + sym_w + box_w + 40
+    row_h = max(gh1, gh2, box_h)
+    h = mascot_area_h + row_h + 30
+    w = max(gw1 + sym_w + gw2 + sym_w + box_w + 30, 160)
     img, d = _blank(w, h)
-    cy = h // 2
+    cy = mascot_area_h + row_h/2 + 8
+
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, mascot_r, op)
 
     x = 15
     # First group
     for i in range(left):
         row, col = divmod(i, cols)
-        cx, cy_obj = x + r + col*cell, 15 + r + row*cell
-        crossed = (op == "-" and i >= left - right)
-        _draw_object(d, cx, cy_obj, r, kind)
-        if crossed:
-            d.line([cx-r, cy_obj-r, cx+r, cy_obj+r], fill=C_MARK, width=3)
-            d.line([cx-r, cy_obj+r, cx+r, cy_obj-r], fill=C_MARK, width=3)
+        cx_obj, cy_obj = x + r + col*cell, (mascot_area_h+8) + r + row*cell
+        _draw_object(d, cx_obj, cy_obj, r, kind)
     x += gw1 + 10
 
     # Operator symbol
-    _draw_big_symbol(d, x + sym_w/2, cy, 26, "+" if op == "+" else "-")
+    _draw_big_symbol(d, x + sym_w/2, cy, 22, "+" if op == "+" else "-")
     x += sym_w
 
-    # Second group (only for addition; subtraction shows crossing-out instead)
-    if op == "+":
-        for i in range(right):
-            row, col = divmod(i, cols)
-            cx, cy_obj = x + r + col*cell, 15 + r + row*cell
-            _draw_object(d, cx, cy_obj, r, kind)
-        x += gw2 + 10
+    # Second group (always shown as a separate group, for BOTH + and -)
+    for i in range(right):
+        row, col = divmod(i, cols)
+        cx_obj, cy_obj = x + r + col*cell, (mascot_area_h+8) + r + row*cell
+        _draw_object(d, cx_obj, cy_obj, r, kind)
+    x += gw2 + 10
 
     # Equals symbol
     _draw_big_symbol(d, x + sym_w/2, cy, 26, "=")
@@ -567,17 +606,19 @@ def compare_choice(left_count=4, right_count=6, kind="apple", **kw) -> BytesIO:
     rows = max(rows_l, rows_r, 1)
     half_w = cols_each*cell + 10
     w = half_w*2 + 30
-    h = rows*cell + 70
+    icon_h = 70
+    h = rows*cell + 70 + icon_h
     img, d = _blank(w, h)
-    d.line([half_w+15, 5, half_w+15, rows*cell+15], fill=C_GRAY_D, width=2)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "compare")
+    d.line([half_w+15, 5+icon_h, half_w+15, rows*cell+15+icon_h], fill=C_GRAY_D, width=2)
     for i in range(left_count):
         row, col = divmod(i, cols_each)
-        _draw_object(d, 10+r+col*cell, 10+r+row*cell, r, kind)
+        _draw_object(d, 10+r+col*cell, 10+r+row*cell+icon_h, r, kind)
     for i in range(right_count):
         row, col = divmod(i, cols_each)
-        _draw_object(d, half_w+30+r+col*cell, 10+r+row*cell, r, kind)
+        _draw_object(d, half_w+30+r+col*cell, 10+r+row*cell+icon_h, r, kind)
     # Tick boxes for >, <, = drawn as actual symbols (no words)
-    box_y = rows*cell + 25
+    box_y = rows*cell + 25 + icon_h
     box_size = 30
     gap = 20
     start_x = (w - (box_size*3 + gap*2)) / 2
@@ -612,11 +653,15 @@ def number_card(n=4, **kw) -> BytesIO:
 def numline_jump(start=0, end=10, mark=5, hop_by=1, **kw) -> BytesIO:
     """Number line with unlabeled tick marks (so the answer is never leaked),
     one labeled starting point, a hop arrow showing +1/-1/+2 etc, and an
-    empty answer box at the destination tick. Fully wordless."""
+    empty answer box at the destination tick. Fully wordless, with a
+    BEFORE/AFTER mascot+flag above indicating direction."""
     w, h = 420, 110
-    img, d = _blank(w, h)
+    icon_h = 70
+    img, d = _blank(w, h + icon_h)
+    label = "after" if hop_by > 0 else "before"
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, label)
     pad = 30
-    line_y = 60
+    line_y = 60 + icon_h
     total = end - start
     scale = (w - 2*pad) / max(total, 1)
     d.line([(pad, line_y), (w - pad, line_y)], fill=C_BORDER, width=3)
@@ -628,18 +673,116 @@ def numline_jump(start=0, end=10, mark=5, hop_by=1, **kw) -> BytesIO:
     d.polygon([(pad, line_y), (pad+9, line_y-5), (pad+9, line_y+5)], fill=C_BORDER)
 
     mx = int(pad + (mark - start) * scale)
-    d.ellipse([mx-7, line_y-7, mx+7, line_y+7], fill=C_MARK)
-    d.text((mx-7, line_y-26), str(mark), fill=C_MARK, font=_font(14))
+    d.ellipse([mx-7, line_y-7, mx+7, line_y+7], outline=C_BORDER, width=2)
+    d.text((mx-7, line_y-26), str(mark), fill=C_BORDER, font=_font(14))
 
     dest = mark + hop_by
     dx = int(pad + (dest - start) * scale)
     arc_y = line_y - 26
-    d.arc([min(mx,dx), arc_y, max(mx,dx), line_y-8], 0, 180, fill=C_HOP, width=2)
+    d.arc([min(mx,dx), arc_y, max(mx,dx), line_y-8], 0, 180, fill=C_BORDER, width=2)
     sym = "+" if hop_by > 0 else "-"
-    d.text(((mx+dx)//2 - 8, arc_y - 16), f"{sym}{abs(hop_by)}", fill=C_HOP, font=_font(12))
+    d.text(((mx+dx)//2 - 8, arc_y - 16), f"{sym}{abs(hop_by)}", fill=C_BORDER, font=_font(12))
 
     box = 22
     d.rectangle([dx-box//2, line_y+14, dx+box//2, line_y+14+box], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+_MASCOT_COLORS = {
+    "+": ("#F5A623", "#D88A0E"),   # orange body, darker orange shadow/limbs
+    "-": ("#5DADE2", "#2E86C1"),   # blue body
+    "=": ("#52BE80", "#27884B"),   # green body
+    ">": ("#AF7AC5", "#7D3C98"),   # purple body
+    "<": ("#AF7AC5", "#7D3C98"),
+}
+_OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LESS",
+              "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE"}
+
+
+def _draw_mascot(d, cx, cy, r, op):
+    """Rounded cartoon mascot character: blob body, big eyes, blush cheeks,
+    smile, two simple arms, and the operation symbol held on its belly."""
+    body, shadow = _MASCOT_COLORS.get(op, _MASCOT_COLORS["+"])
+
+    # Arms (simple rounded limbs behind the body)
+    d.ellipse([cx-r*1.35, cy+r*0.1, cx-r*0.75, cy+r*0.55], fill=shadow)
+    d.ellipse([cx+r*0.75, cy+r*0.1, cx+r*1.35, cy+r*0.55], fill=shadow)
+
+    # Body (slightly squashed circle for a friendly blob look)
+    d.ellipse([cx-r, cy-r*0.95, cx+r, cy+r*1.05], fill=body, outline=shadow, width=3)
+
+    # Feet
+    foot_r = r*0.28
+    d.ellipse([cx-r*0.5-foot_r, cy+r*0.95, cx-r*0.5+foot_r, cy+r*0.95+foot_r*1.4], fill=shadow)
+    d.ellipse([cx+r*0.5-foot_r, cy+r*0.95, cx+r*0.5+foot_r, cy+r*0.95+foot_r*1.4], fill=shadow)
+
+    # Eyes (big white ovals + black pupils, slight squash for charm)
+    eye_w, eye_h = r*0.28, r*0.34
+    for dx in (-r*0.32, r*0.32):
+        ex, ey = cx+dx, cy-r*0.15
+        d.ellipse([ex-eye_w, ey-eye_h, ex+eye_w, ey+eye_h], fill="#FFFFFF", outline=C_BORDER, width=2)
+        pr = eye_w*0.45
+        d.ellipse([ex-pr, ey-pr+2, ex+pr, ey+pr+2], fill=C_BORDER)
+
+    # Blush cheeks
+    blush_r = r*0.14
+    for dx in (-r*0.55, r*0.55):
+        d.ellipse([cx+dx-blush_r, cy+r*0.18-blush_r, cx+dx+blush_r, cy+r*0.18+blush_r],
+                  fill="#FFFFFF", outline=None)
+        d.ellipse([cx+dx-blush_r, cy+r*0.18-blush_r, cx+dx+blush_r, cy+r*0.18+blush_r],
+                  fill="#F1948A")
+
+    # Smile
+    d.arc([cx-r*0.32, cy+r*0.05, cx+r*0.32, cy+r*0.5], 20, 160, fill=C_BORDER, width=3)
+
+    # Operation symbol on the belly (white badge + symbol)
+    badge_r = r*0.4
+    d.ellipse([cx-badge_r, cy+r*0.42-badge_r, cx+badge_r, cy+r*0.42+badge_r], fill="#FFFFFF", outline=shadow, width=2)
+    sym_t, sym_s = badge_r*0.22, badge_r*0.55
+    bx, by = cx, cy+r*0.42
+    if op == "+":
+        d.rectangle([bx-sym_t, by-sym_s, bx+sym_t, by+sym_s], fill=shadow)
+        d.rectangle([bx-sym_s, by-sym_t, bx+sym_s, by+sym_t], fill=shadow)
+    elif op == "-":
+        d.rectangle([bx-sym_s, by-sym_t, bx+sym_s, by+sym_t], fill=shadow)
+    elif op == "=":
+        d.rectangle([bx-sym_s, by-sym_t-4, bx+sym_s, by+sym_t-4], fill=shadow)
+        d.rectangle([bx-sym_s, by-sym_t+4, bx+sym_s, by+sym_t+4], fill=shadow)
+    elif op in (">", "<"):
+        pts = ([(bx-sym_s, by-sym_s), (bx+sym_s, by), (bx-sym_s, by+sym_s)] if op == "<"
+               else [(bx+sym_s, by-sym_s), (bx-sym_s, by), (bx+sym_s, by+sym_s)])
+        d.line(pts, fill=shadow, width=int(sym_t*1.6), joint="curve")
+
+
+def _draw_banner(d, cx, top_y, w, text, color):
+    """Ribbon-style banner: rounded rect body + small triangular ribbon tails
+    at each end, with bold white text centered."""
+    h = 26
+    tail = 10
+    x0, x1 = cx - w/2, cx + w/2
+    y0, y1 = top_y, top_y + h
+    # Ribbon tails (small notched triangles)
+    d.polygon([(x0-tail, y0), (x0, y0), (x0, y1), (x0-tail, y1), (x0-tail+5, (y0+y1)/2)], fill=color)
+    d.polygon([(x1+tail, y0), (x1, y0), (x1, y1), (x1+tail, y1), (x1+tail-5, (y0+y1)/2)], fill=color)
+    d.rounded_rectangle([x0, y0, x1, y1], radius=6, fill=color)
+    fnt = _font(13)
+    tw = d.textlength(text, font=fnt)
+    d.text((cx - tw/2, y0 + (h-13)/2 - 1), text, fill="#FFFFFF", font=fnt)
+
+
+def instruction_icon(symbols=("+", "-"), **kw) -> BytesIO:
+    """Black-and-white, outline-only (ink-saving) instruction card per
+    symbol: a friendly line-art mascot face with a flag-on-a-stick
+    spelling out the keyword (ADD / SUBTRACT / MORE / LESS / EQUALS)."""
+    card_w = 90
+    gap = 10
+    n = len(symbols)
+    w = n * card_w + (n - 1) * gap + 20
+    h = 110
+    img, d = _blank(w, h)
+    for i, sym in enumerate(symbols):
+        cx = 10 + i * (card_w + gap) + card_w/2
+        _draw_mini_mascot_flag(d, cx - 14, 26, 28, sym)
     return _to_bytes(img)
 
 
@@ -667,6 +810,7 @@ DIAGRAM_FUNCTIONS = {
     "compare_choice": compare_choice,
     "number_card": number_card,
     "numline_jump": numline_jump,
+    "instruction_icon": instruction_icon,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

@@ -6,9 +6,10 @@ Remedial variants replace numbers using remedialise().
 """
 import random, re
 
-def cb(title, bullets, example=""):
+def cb(title, bullets, example="", icon_diagram=None, icon_params=None):
     return {"type":"concept_box","section_title":title,
-            "section_bullets":bullets,"example":example}
+            "section_bullets":bullets,"example":example,
+            "icon_diagram":icon_diagram,"icon_params":icon_params or {}}
 
 def tb(title, tips):
     """Tips box — shown INSTEAD of concept boxes on sheet 3.

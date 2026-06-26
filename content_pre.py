@@ -340,9 +340,8 @@ def _H_s(sheet):
 def _I_s(sheet):
     random.seed(700 + sheet)
     if sheet == 1:
-        items = [cb("PUZZLE TIME",
-                     ["JOIN = MORE", "CROSS OUT = LESS"],
-                     "3 + 1 = ?")]
+        items = [cb("", [], "",
+                     icon_diagram="instruction_icon", icon_params={"symbols": ["+", "-"]})]
         fixed = [(2,2,"+","balloon"), (5,1,"-","star"), (3,2,"+","flower"), (4,1,"-","apple"),
                  (1,4,"+","balloon"), (2,2,"+","apple"), (4,1,"-","star"), (3,1,"+","balloon"),
                  (2,1,"-","flower"), (1,3,"+","apple"), (5,2,"-","star"), (1,1,"+","balloon")]

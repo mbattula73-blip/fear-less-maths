@@ -148,7 +148,10 @@ def _est(item, cw=None):
         ex_lines=0
         if example:
             ex_lines=len(_wrap(f"e.g. {example}","Helvetica-Oblique",12,avail))
-        h=4*mm+n_lines*4.5*mm+ex_lines*4.5*mm+5*mm; return h
+        h=4*mm+n_lines*4.5*mm+ex_lines*4.5*mm+5*mm
+        if item.get("icon_diagram"):
+            h=max(h, 24*mm)
+        return h
     if item.get("type")=="tips_box":
         tips=item.get("tips",[])
         avail=(cw or 60*mm)-4*mm
@@ -171,15 +174,25 @@ class Col:
     def _cb(self,item):
         c=self.c; x=self.x; cw=self.cw
         title=item.get("section_title",""); bullets=item.get("section_bullets",[]); example=item.get("example","")
+        icon_dtype=item.get("icon_diagram"); icon_dparm=item.get("icon_params",{})
         self.y-=3.5*mm
         bh=_est(item,cw)-3.5*mm
         c.setFillColor(colors.HexColor("#F5F5F5")); c.setStrokeColor(BLACK); c.setLineWidth(0)
         c.rect(x-1*mm,self.y-bh+1*mm,cw+1*mm,bh,fill=1,stroke=0)
         c.setStrokeColor(BLACK); c.setLineWidth(1.5)
         c.line(x-1*mm,self.y-bh+1*mm,x-1*mm,self.y+1*mm); c.setLineWidth(0.3)
+        icon_w = 0
+        if icon_dtype:
+            path=_diag(icon_dtype,icon_dparm)
+            if path:
+                try:
+                    ih=20*mm; iw=ih*1.45
+                    c.drawImage(path,x+cw-iw,self.y-ih+2*mm,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
+                    icon_w = iw + 2*mm
+                except: pass
         c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
         c.drawString(x,self.y,title[:52]); self.y-=4.5*mm
-        avail=cw-4*mm
+        avail=cw-4*mm-icon_w
         for b in bullets:
             c.setFont("Helvetica",12); c.setFillColor(BLACK)
             for ln in _wrap(f"\u2022 {b}","Helvetica",12,avail):
