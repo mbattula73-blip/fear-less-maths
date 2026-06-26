@@ -416,17 +416,16 @@ def _1CUM6_s(sheet):
 def _1P_s(sheet):
     random.seed(1400 + sheet)
     if sheet == 1:
-        items = [cb("Counting & Simple Puzzles",
-                     ["Each picture shows objects, a + or - sign, and a blank box to fill."], "")]
+        items = [cb("PUZZLE TIME", ["PLUS = JOIN, MINUS = AWAY"], "")]
         fixed = [(12,7,"-","apple"), (8,9,"+","star"), (15,6,"-","balloon"), (23,14,"-","flower")]
     elif sheet == 2:
-        items = [cb("Picture Puzzles — Groups", [""], "")]
+        items = [cb("GROUP PUZZLES", ["COUNT SMART"], "")]
         fixed = [(34,0,"+","apple"), (45,20,"-","star"), (67,0,"+","balloon"), (58,9,"+","flower")]
     elif sheet == 3:
-        items = [tb("Puzzle Tips", ["+ joins groups together. - takes a group away."])]
+        items = [tb("PUZZLE TIPS", ["PLUS = TOGETHER, MINUS = AWAY"])]
         fixed = [(72,35,"-","apple"), (48,26,"+","star"), (90,47,"-","balloon")]
     else:
-        items = [cb("Number Puzzles — No Pictures", ["Solve using numbers only."], "")]
+        items = [cb("NUMBER PUZZLES", ["JUST NUMBERS!"], "")]
         fixed = []
     for l, r, op, kind in fixed:
         if r == 0:
@@ -445,9 +444,7 @@ def _1P_s(sheet):
 def _1Q_s(sheet):
     """Mixed challenge — pulls from every Level 1 skill."""
     random.seed(1500 + sheet)
-    items = [cb("Level 1 Mixed Challenge",
-                 ["This sheet mixes counting, before/after, comparing, missing numbers, patterns and place value."],
-                 "")]
+    items = [cb("MIXED CHALLENGE", ["MIX IT UP!"], "")]
     builders = [
         lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
         lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),
@@ -462,9 +459,7 @@ def _1Q_s(sheet):
 
 def _1REV_s(sheet):
     random.seed(1600 + sheet)
-    items = [cb("Level 1 Revision — All Topics",
-                 ["This sheet tests everything from Level 1: counting to 100, before/after, "
-                  "greater/smaller, missing numbers, patterns and place value."], "")]
+    items = [cb("FINAL CHALLENGE!", ["YOU CAN DO IT!"], "")]
     builders = [
         lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
         lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),

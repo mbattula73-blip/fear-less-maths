@@ -17543,7 +17543,11 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
 
     # Pad if fewer than 20 questions
     while len(question_items) < 20:
-        question_items.append(q(f"{sublevel_code} Q{len(question_items)+1}: solve carefully.", "fill", "Answer = ____"))
+        if level_num in (0, 21):
+            # Wordless levels: pad with a plain symbolic filler, never a sentence
+            question_items.append(q("___ + 1 = ____", "fill", "____"))
+        else:
+            question_items.append(q(f"{sublevel_code} Q{len(question_items)+1}: solve carefully.", "fill", "Answer = ____"))
 
     # Keep exactly 20 questions
     question_items = question_items[:20]

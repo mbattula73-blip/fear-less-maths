@@ -340,10 +340,9 @@ def _H_s(sheet):
 def _I_s(sheet):
     random.seed(700 + sheet)
     if sheet == 1:
-        items = [cb("Picture Riddles",
-                     ["Each picture shows a small story: a group, a + or - sign, and a blank box.",
-                      "Count, then add or subtract to fill the blank."],
-                     "3 apples + 1 more = 4 apples")]
+        items = [cb("PUZZLE TIME",
+                     ["JOIN = MORE", "CROSS OUT = LESS"],
+                     "3 + 1 = ?")]
         fixed = [(2,2,"+","balloon"), (5,1,"-","star"), (3,2,"+","flower"), (4,1,"-","apple"),
                  (1,4,"+","balloon"), (2,2,"+","apple"), (4,1,"-","star"), (3,1,"+","balloon"),
                  (2,1,"-","flower"), (1,3,"+","apple"), (5,2,"-","star"), (1,1,"+","balloon")]
@@ -354,8 +353,7 @@ def _I_s(sheet):
             items.append(_gen_riddle(1, 5, 1, 4, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
     if sheet == 2:
-        items = [cb("Riddles with Groups",
-                     ["Use the rows of 5 to count each group faster."], "")]
+        items = [cb("GROUP PUZZLES", ["ROWS OF 5 = FAST"], "")]
         fixed = [(6,3,"+","apple"), (8,2,"-","star"), (7,2,"-","balloon"), (5,5,"+","flower"),
                  (9,4,"-","apple"), (6,4,"+","star"), (10,3,"-","balloon"), (8,2,"+","flower"),
                  (7,5,"-","apple"), (6,6,"+","balloon"), (9,3,"-","star")]
@@ -366,9 +364,7 @@ def _I_s(sheet):
             items.append(_gen_riddle(4, 9, 1, 5, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
     if sheet == 3:
-        items = [tb("Riddle-Solving Tips",
-                     ["+ means a group is joining — count both groups together.",
-                      "- means a group is leaving — count what is crossed out, then what remains."])]
+        items = [tb("PUZZLE TIPS", ["PLUS = TOGETHER", "MINUS = TAKE AWAY"])]
         fixed = [(10,3,"-","star"), (6,6,"+","apple"), (14,5,"-","balloon"), (8,7,"+","flower"),
                  (12,4,"-","star"), (9,6,"+","apple"), (16,7,"-","balloon"), (11,3,"-","flower"),
                  (13,2,"+","star")]
@@ -379,8 +375,7 @@ def _I_s(sheet):
             items.append(_gen_riddle(8, 16, 2, 7, _kind(i), "more" if i % 2 == 0 else "less"))
         return items
     # sheet 4: abstract — pure symbolic equations, zero words
-    items = [cb("Number Riddles — No Pictures",
-                 ["Solve the equation using numbers only."], "")]
+    items = [cb("NUMBER PUZZLES", ["JUST NUMBERS NOW"], "")]
     fixed = [(9,1,"+",10), (15,1,"-",14), (12,3,"+",15), (18,4,"-",14),
              (16,1,"+",17), (20,1,"-",19), (5,6,"+",11), (19,5,"-",14), (13,1,"+",14)]
     for s, c, op, ans in fixed:
@@ -399,8 +394,8 @@ def _I_s(sheet):
 def _CUM3_s(sheet):
     random.seed(800 + sheet)
     if sheet == 1:
-        items = [cb("Pre-Level Full Review — Concrete",
-                     ["This sheet mixes counting, one more, one less and comparing."], "")]
+        items = [cb("MIX-UP REVIEW",
+                     ["MIX IT UP!"], "")]
         for i in range(5):
             items.append(_count_q(random.randint(1, 20), _kind(i)))
         for i in range(5):
@@ -411,20 +406,16 @@ def _CUM3_s(sheet):
             items.append(_compare_q(random.randint(1, 8), random.randint(1, 8), _kind(i)))
         return items
     if sheet == 2:
-        items = [cb("Pre-Level Full Review — Pictorial",
-                     ["Use rows of 5 to help with every question."], "")]
+        items = [cb("REVIEW TIME", ["ROWS OF 5 = FAST"], "")]
         for i in range(19):
             items.append(_count_q(random.randint(1, 20), _kind(i), group_size=5))
         return items
     if sheet == 3:
-        items = [tb("Final Review Tips",
-                     ["Read each question type carefully — counting, more, less, or compare.",
-                      "Take your time — there is no rush."])]
+        items = [tb("REVIEW TIPS", ["SLOW AND STEADY"])]
         for n in [random.choice(range(1, 20)) for _ in range(19)]:
             items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
         return items
-    items = [cb("Pre-Level Full Review — Abstract",
-                 ["No pictures this time — numbers only."], "")]
+    items = [cb("NUMBERS ROUND", ["NO PICTURES NOW"], "")]
     for n in [random.choice(range(1, 20)) for _ in range(19)]:
         items.append(q(f"___, {n}, ___", "fill", "____"))
     return items
@@ -434,10 +425,7 @@ def _CUM3_s(sheet):
 
 def _REV_s(sheet):
     random.seed(900 + sheet)
-    items = [cb("Pre-Level Revision — All Topics",
-                 ["This sheet tests everything from the Pre-Level: counting 1-20, one more/less, comparing, and simple riddles.",
-                  "Show your counting clearly."],
-                 "Take it one question at a time")]
+    items = [cb("FINAL CHALLENGE!", ["YOU CAN DO IT!"], "")]
     if sheet in (1, 2):
         for i in range(13):
             items.append(_count_q(random.randint(1, 20), _kind(i), group_size=5 if sheet == 2 else 10))
