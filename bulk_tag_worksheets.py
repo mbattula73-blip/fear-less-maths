@@ -41,7 +41,7 @@ def tag_all(level_filter=None, dry_run=False, verbose=False):
             for sheet in ["1", "2", "3", "4"]:
                 ws_id = f"{code}-{sheet}"
                 try:
-                    nq = numbered_questions(code, sheet)
+                    nq = numbered_questions(code, sheet, lvl)
                     if not nq:
                         continue
                     tags = auto_tag_worksheet(nq, topic)

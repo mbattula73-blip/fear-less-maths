@@ -17,12 +17,12 @@ MISTAKE_TYPES = [
 ]
 
 
-def numbered_questions(sublevel_code: str, sheet_num: str):
+def numbered_questions(sublevel_code: str, sheet_num: str, level_num: int = None):
     """
     Returns [(q_num, preview_text), ...] for a worksheet, matching the same
     numbering pdf_engine.py uses (concept_box/tips_box items are not numbered).
     """
-    items = get_questions(sublevel_code, sheet_num)
+    items = get_questions(sublevel_code, sheet_num, level_num)
     out = []
     n = 0
     for it in items:

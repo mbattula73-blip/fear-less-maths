@@ -17495,8 +17495,10 @@ try:
 except Exception as _e:
     pass
 
-# Merge in Level 1 REDESIGN (smaller step sizes, Class 1-2) — overrides the
-# original 1A-1J entries defined earlier in this file.
+# Merge in Level 21 (new, separate level — "Counting & Numbers Foundation",
+# smaller step sizes for Class 1-2). Uses namespaced plain-letter codes
+# (__L21__A, __L21__B...) so it never collides with Pre-Level's plain
+# letters or with the ORIGINAL, UNTOUCHED Level 1 (1A, 1B... still intact).
 try:
     from content_l1_redesign import LEVEL1_DISPATCH
     _DISPATCH.update(LEVEL1_DISPATCH)
@@ -17504,17 +17506,31 @@ except Exception as _e:
     pass
 
 
-def get_questions(sublevel_code: str, sheet_num: str) -> list:
+def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> list:
     """
     Main entry point. Returns a list of question dicts.
-    sublevel_code: e.g. '1A', '2E', '1CUM1', '2REV'
+    sublevel_code: e.g. '1A', '2E', '1CUM1', '2REV' — or a plain letter ('A','B'...)
+                   for levels that opt into namespaced lookup (see below).
     sheet_num: '1','2','3','4' or '1R','2R','3R','4R' for remedial
+    level_num: optional. Existing levels (1-20) already use globally-unique
+               prefixed codes (1A, 2A...) and don't need this. Pre-Level (0)
+               and any future level using plain letters (A, B, C...) MUST
+               pass level_num so the lookup is namespaced as f"__L{level}__{code}"
+               internally — this lets multiple levels reuse the same plain
+               letters without overwriting each other's content.
     """
     is_remedial = str(sheet_num).endswith("R")
     base_sheet = int(str(sheet_num).replace("R", ""))
 
-    # Look up the function
-    sublevel_map = _DISPATCH.get(sublevel_code)
+    # Look up the function — try namespaced key first (for levels that opted
+    # into plain-letter codes via level_num), then fall back to the plain
+    # code (existing levels, which already use globally-unique prefixes).
+    sublevel_map = None
+    if level_num is not None:
+        sublevel_map = _DISPATCH.get(f"__L{level_num}__{sublevel_code}")
+    if sublevel_map is None:
+        sublevel_map = _DISPATCH.get(sublevel_code)
+
     if sublevel_map:
         fn = sublevel_map.get(base_sheet)
         items = fn() if fn else _fallback(sublevel_code, base_sheet)

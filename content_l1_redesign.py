@@ -499,18 +499,32 @@ def _1REV_s(sheet):
 
 
 # ───────────────────────── Dispatcher ─────────────────────────
+# Registered as a brand-new level (Level 21 — display name "Counting &
+# Numbers — Foundation, Class 1-2, Small Steps") using PLAIN letter codes,
+# namespaced internally as "__L21__<code>" so they never collide with
+# Pre-Level's own plain letters (A, B, C...) or with the original,
+# untouched Level 1 (1A, 1B... still intact, unaffected by this file).
 
 def _wrap(fn):
     return {1: lambda: fn(1), 2: lambda: fn(2), 3: lambda: fn(3), 4: lambda: fn(4)}
 
 
+LEVEL21_NS = "__L21__"
+
 LEVEL1_DISPATCH = {
-    "1A": _wrap(_1A_s), "1B": _wrap(_1B_s), "1C": _wrap(_1C_s), "1CUM1": _wrap(_1CUM1_s),
-    "1D": _wrap(_1D_s), "1E": _wrap(_1E_s), "1F": _wrap(_1F_s), "1G": _wrap(_1G_s),
-    "1CUM2": _wrap(_1CUM2_s),
-    "1H": _wrap(_1H_s), "1I": _wrap(_1I_s), "1CUM3": _wrap(_1CUM3_s),
-    "1J": _wrap(_1J_s), "1K": _wrap(_1K_s), "1CUM4": _wrap(_1CUM4_s),
-    "1L": _wrap(_1L_s), "1M": _wrap(_1M_s), "1CUM5": _wrap(_1CUM5_s),
-    "1N": _wrap(_1N_s), "1O": _wrap(_1O_s), "1CUM6": _wrap(_1CUM6_s),
-    "1P": _wrap(_1P_s), "1Q": _wrap(_1Q_s), "1REV": _wrap(_1REV_s),
+    f"{LEVEL21_NS}A": _wrap(_1A_s), f"{LEVEL21_NS}B": _wrap(_1B_s),
+    f"{LEVEL21_NS}C": _wrap(_1C_s), f"{LEVEL21_NS}CUM1": _wrap(_1CUM1_s),
+    f"{LEVEL21_NS}D": _wrap(_1D_s), f"{LEVEL21_NS}E": _wrap(_1E_s),
+    f"{LEVEL21_NS}F": _wrap(_1F_s), f"{LEVEL21_NS}G": _wrap(_1G_s),
+    f"{LEVEL21_NS}CUM2": _wrap(_1CUM2_s),
+    f"{LEVEL21_NS}H": _wrap(_1H_s), f"{LEVEL21_NS}I": _wrap(_1I_s),
+    f"{LEVEL21_NS}CUM3": _wrap(_1CUM3_s),
+    f"{LEVEL21_NS}J": _wrap(_1J_s), f"{LEVEL21_NS}K": _wrap(_1K_s),
+    f"{LEVEL21_NS}CUM4": _wrap(_1CUM4_s),
+    f"{LEVEL21_NS}L": _wrap(_1L_s), f"{LEVEL21_NS}M": _wrap(_1M_s),
+    f"{LEVEL21_NS}CUM5": _wrap(_1CUM5_s),
+    f"{LEVEL21_NS}N": _wrap(_1N_s), f"{LEVEL21_NS}O": _wrap(_1O_s),
+    f"{LEVEL21_NS}CUM6": _wrap(_1CUM6_s),
+    f"{LEVEL21_NS}P": _wrap(_1P_s), f"{LEVEL21_NS}Q": _wrap(_1Q_s),
+    f"{LEVEL21_NS}REV": _wrap(_1REV_s),
 }

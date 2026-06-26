@@ -275,7 +275,7 @@ elif section == "🏷️ Concept Tags":
         </div>
         """, unsafe_allow_html=True)
 
-    ct_nq = numbered_questions(sublevel_code, ct_sheet_num)
+    ct_nq = numbered_questions(sublevel_code, ct_sheet_num, level_num)
     ct_existing = db.get_worksheet_tags(ct_ws_id)
 
     if not ct_nq:

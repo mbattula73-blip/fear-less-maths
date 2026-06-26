@@ -298,7 +298,7 @@ def _concept_page(c, concept_items, ws_id, tier, topic, level_num, sublevel_code
 def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     ws_id=f"{sublevel_code}-{sheet_num}"; tier=get_tier(sheet_num)
     topic=dict(SUBLEVELS.get(level_num,[])).get(sublevel_code,"")
-    raw=get_questions(sublevel_code,sheet_num)
+    raw=get_questions(sublevel_code,sheet_num,level_num)
 
     # For Level 7+: separate concept/tips from questions
     # Questions go on pages 1-2. Concept+tips go on page 3.
