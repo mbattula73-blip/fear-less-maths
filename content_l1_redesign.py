@@ -33,7 +33,7 @@ in the app):
   1REV Level 1 Revision
 """
 import random
-from content import cb, tb, q
+from content import cb, tb, q, q_eq1, q_cmp, q_seq, q_cmp_big, q_place
 
 OBJ_KINDS = ["apple", "star", "balloon", "flower"]
 
@@ -130,7 +130,7 @@ def _counting_l1_block(lo, hi, sheet):
                  ["You can now count without pictures.",
                   f"After {hi-1} comes {hi}."], "")]
     for n in picks:
-        items.append(q(f"{n} + 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "+", _kind(n)))
     return items
 
 
@@ -151,7 +151,7 @@ def _1CUM1_s(sheet):
         elif sheet == 3:
             items.append(_numline_after_q(n, max(0, n - 5), min(100, n + 5)))
         else:
-            items.append(q(f"{n} + 1 = ____", "fill", "____"))
+            items.append(q_eq1(n, "+", _kind(n)))
     return items
 
 
@@ -193,21 +193,21 @@ def _before_after_block(lo, hi, mode, sheet):
                       "Double-check by counting on your fingers."])]
         for n in picks:
             if mode == "after":
-                items.append(q(f"{n} + 1 = ____", "fill", "____"))
+                items.append(q_eq1(n, "+", _kind(n)))
             elif mode == "before":
-                items.append(q(f"{n} - 1 = ____", "fill", "____"))
+                items.append(q_eq1(n, "-", _kind(n)))
             else:
-                items.append(q(f"___, {n}, ___", "fill", "____"))
+                items.append(q_seq([n-1, None, n+1], "missing"))
         return items
 
     items = [cb(f"{title} — Numbers Only", ["Apply +1 or -1 directly."], "")]
     for n in picks:
         if mode == "both":
-            items.append(q(f"___, {n}, ___", "fill", "____"))
+            items.append(q_seq([n-1, None, n+1], "missing"))
         elif mode == "after":
-            items.append(q(f"{n} + 1 = ____", "fill", "____"))
+            items.append(q_eq1(n, "+", _kind(n)))
         else:
-            items.append(q(f"{n} - 1 = ____", "fill", "____"))
+            items.append(q_eq1(n, "-", _kind(n)))
     return items
 
 
@@ -222,7 +222,7 @@ def _1CUM2_s(sheet):
     picks = [random.choice(range(1, 101)) for _ in range(19)]
     items = [cb("Review: Before & After", ["Mix of small and big numbers, both directions."], "")]
     for n in picks:
-        items.append(q(f"___, {n}, ___", "fill", "____"))
+        items.append(q_seq([n-1, None, n+1], "missing"))
     return items
 
 
@@ -245,11 +245,11 @@ def _1H_s(sheet):
     if sheet == 3:
         items = [tb("Comparing Tips", ["Always count fully before deciding which is bigger."])]
         for l, r in pairs:
-            items.append(q(f"{l} ___ {r}", "fill", "____"))
+            items.append(q_cmp(l, r, _kind(l)) if l <= 20 and r <= 20 else q_cmp_big(l, r))
         return items
     items = [cb("Comparing Numbers", ["Compare directly without pictures."], "")]
     for l, r in pairs:
-        items.append(q(f"{l} ___ {r}", "fill", "____"))
+        items.append(q_cmp(l, r, _kind(l)) if l <= 20 and r <= 20 else q_cmp_big(l, r))
     return items
 
 
@@ -269,7 +269,7 @@ def _1I_s(sheet):
     else:
         items = [cb("Comparing — Speed Round", ["Apply the tens-digit rule quickly."], "")]
     for l, r in pairs:
-        items.append(q(f"{l} ___ {r}", "fill", "____"))
+        items.append(q_cmp(l, r, _kind(l)) if l <= 20 and r <= 20 else q_cmp_big(l, r))
     return items
 
 
@@ -278,7 +278,7 @@ def _1CUM3_s(sheet):
     pairs = [(random.randint(1, 100), random.randint(1, 100)) for _ in range(19)]
     items = [cb("Review: Greater & Smaller", ["Mix of small and large numbers."], "")]
     for l, r in pairs:
-        items.append(q(f"{l} ___ {r}", "fill", "____"))
+        items.append(q_cmp(l, r, _kind(l)) if l <= 20 and r <= 20 else q_cmp_big(l, r))
     return items
 
 
@@ -307,8 +307,8 @@ def _missing_numbers_block(lo, hi, sheet):
         start = random.randint(lo, max(lo, hi - 4 - gap_size))
         seq = list(range(start, start + 3 + gap_size))
         hide_idx = random.randint(1, len(seq) - 2)
-        display = [str(x) if i != hide_idx else "___" for i, x in enumerate(seq)]
-        items_out.append(q(f"{', '.join(display)}", "fill", "____"))
+        seq_display = [x if i != hide_idx else None for i, x in enumerate(seq)]
+        items_out.append(q_seq(seq_display, "missing"))
     return items_out
 
 
@@ -334,8 +334,8 @@ def _pattern_block(step_options, sheet, label):
         start = start - (start % step) if start % step else start
         seq = [start + step * k for k in range(5)]
         hide_idx = random.choice([3, 4]) if sheet in (1, 2) else random.randint(1, 4)
-        display = [str(x) if j != hide_idx else "___" for j, x in enumerate(seq)]
-        items.append(q(f"{', '.join(display)}", "fill", "____"))
+        seq_display = [x if j != hide_idx else None for j, x in enumerate(seq)]
+        items.append(q_seq(seq_display, "pattern"))
     return items
 
 
@@ -392,9 +392,9 @@ def _1O_s(sheet):
     for n in nums:
         tens, ones = divmod(n, 10)
         if sheet == 2:
-            items.append(q(f"____ x 10 + ____ = {n}", "fill", "____"))
+            items.append(q_place(tens, ones))
         else:
-            items.append(q(f"{tens} x 10 + {ones} = ____", "fill", "____"))
+            items.append(q_place(tens, ones))
     return items
 
 
@@ -407,7 +407,7 @@ def _1CUM6_s(sheet):
         if i % 2 == 0 and sheet in (1, 2):
             items.append(_base10_q(tens, ones))
         else:
-            items.append(q(f"{tens} x 10 + {ones} = ____", "fill", "____"))
+            items.append(q_place(tens, ones))
     return items
 
 
@@ -429,7 +429,7 @@ def _1P_s(sheet):
         fixed = []
     for l, r, op, kind in fixed:
         if r == 0:
-            items.append(q(f"{l} = ____", "fill", "____"))
+            items.append(q_eq1(l-1, "+", kind))
         else:
             items.append(q("", "diagram", "____", "", "visual_equation",
                             {"left": l, "right": r, "kind": kind, "op": op}))
@@ -437,7 +437,7 @@ def _1P_s(sheet):
     random.seed(1450 + sheet)
     while len([i for i in items if i["type"] not in ("concept_box", "tips_box")]) < 19:
         n = random.randint(10, 99)
-        items.append(q(f"{n} + 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "+", _kind(n)))
     return items
 
 
@@ -446,11 +446,11 @@ def _1Q_s(sheet):
     random.seed(1500 + sheet)
     items = [cb("MIXED CHALLENGE", ["MIX IT UP!"], "")]
     builders = [
-        lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
-        lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),
-        lambda: q(f"{random.randint(1,100)} ___ {random.randint(1,100)}", "fill", "____"),
-        lambda: (lambda n: q(f"{n//10} x 10 + {n%10} = ____", "fill", "____"))(random.randint(10,99)),
-        lambda: q(f"{(s:=random.randint(1,40))}, {s+2}, {s+4}, ___", "fill", "____"),
+        lambda: q_eq1(random.randint(1,99), "+", _kind(random.randint(0,3))),
+        lambda: q_eq1(random.randint(2,100), "-", _kind(random.randint(0,3))),
+        lambda: q_cmp_big(random.randint(1,100), random.randint(1,100)),
+        lambda: (lambda n: q_place(n//10, n%10))(random.randint(10,99)),
+        lambda: q_seq([(s:=random.randint(1,40)), s+2, s+4, None], "pattern"),
     ]
     for i in range(19):
         items.append(builders[i % len(builders)]())
@@ -461,12 +461,12 @@ def _1REV_s(sheet):
     random.seed(1600 + sheet)
     items = [cb("FINAL CHALLENGE!", ["YOU CAN DO IT!"], "")]
     builders = [
-        lambda: q(f"{random.randint(1,99)} + 1 = ____", "fill", "____"),
-        lambda: q(f"{random.randint(2,100)} - 1 = ____", "fill", "____"),
-        lambda: q(f"{random.randint(1,100)} ___ {random.randint(1,100)}", "fill", "____"),
-        lambda: (lambda n: q(f"{n//10} x 10 + {n%10} = ____", "fill", "____"))(random.randint(10,99)),
-        lambda: q(f"{(s:=random.randint(1,40))}, {s+5}, {s+10}, ___", "fill", "____"),
-        lambda: q(f"{(s2:=random.randint(1,90))}, ___, {s2+2}", "fill", "____"),
+        lambda: q_eq1(random.randint(1,99), "+", _kind(random.randint(0,3))),
+        lambda: q_eq1(random.randint(2,100), "-", _kind(random.randint(0,3))),
+        lambda: q_cmp_big(random.randint(1,100), random.randint(1,100)),
+        lambda: (lambda n: q_place(n//10, n%10))(random.randint(10,99)),
+        lambda: q_seq([(s:=random.randint(1,40)), s+5, s+10, None], "pattern"),
+        lambda: q_seq([(s2:=random.randint(1,90)), None, s2+2], "missing"),
     ]
     if sheet == 1:
         for n in random.sample(range(1, 21), 6):

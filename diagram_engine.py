@@ -543,9 +543,10 @@ def visual_equation(left=3, right=2, kind="apple", op="+", **kw) -> BytesIO:
     Both addition AND subtraction show TWO separate object groups (same
     layout) -- subtraction no longer crosses out objects within one group,
     it shows a second group being taken away, exactly mirroring addition."""
-    r = 14
-    cell = r*2 + 8
-    cols = 5
+    big = max(left, right) > 20
+    r = 7 if big else 14
+    cell = r*2 + (4 if big else 8)
+    cols = 10 if big else 5
     sym_w = 50
     box_w, box_h = 60, 60
     mascot_r = 22
@@ -696,7 +697,8 @@ _MASCOT_COLORS = {
     "<": ("#AF7AC5", "#7D3C98"),
 }
 _OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LESS",
-              "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE"}
+              "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE",
+              "pattern": "PATTERN", "missing": "MISSING"}
 
 
 def _draw_mascot(d, cx, cy, r, op):
@@ -786,6 +788,87 @@ def instruction_icon(symbols=("+", "-"), **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def sequence_boxes(seq=None, blank_indices=None, label="pattern", **kw) -> BytesIO:
+    """Row of boxes showing a number sequence -- known numbers printed
+    inside their box, blank positions left empty. Used to replace plain
+    'n, ___, m' text with a pictorial box-row + mascot instruction.
+    seq: list of ints/None where None marks a blank position (alternative
+    to passing blank_indices)."""
+    if seq is None:
+        seq = [1, 2, 3]
+    if blank_indices is None:
+        blank_indices = [i for i, v in enumerate(seq) if v is None]
+    box = 40
+    gap = 10
+    n = len(seq)
+    icon_h = 70
+    w = n*box + (n-1)*gap + 20
+    h = box + 20 + icon_h
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, label)
+    fnt = _font(16)
+    for i, val in enumerate(seq):
+        x0 = 10 + i*(box+gap)
+        y0 = icon_h + 10
+        d.rectangle([x0, y0, x0+box, y0+box], outline=C_BORDER, width=2)
+        if i not in blank_indices and val is not None:
+            text = str(val)
+            tw = d.textlength(text, font=fnt)
+            d.text((x0 + box/2 - tw/2, y0 + box/2 - 10), text, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def compare_blocks(left=47, right=52, **kw) -> BytesIO:
+    """Compare two numbers using base-10 blocks side by side (for numbers
+    too large to draw as individual dots, e.g. 1-100 range), plus the
+    same >/</= tick-boxes as compare_choice. Wordless, with COMPARE mascot."""
+    icon_h = 70
+    block_area_h = 90
+    half_w = 140
+    w = half_w*2 + 30
+    h = icon_h + block_area_h + 60
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "compare")
+    d.line([half_w+15, icon_h+5, half_w+15, icon_h+block_area_h], fill=C_GRAY_D, width=2)
+
+    def draw_side(n, x_off):
+        tens, ones = divmod(n, 10)
+        rod_w, rod_h, unit, gap = 10, 50, 10, 4
+        for i in range(min(tens, 10)):
+            row, col = divmod(i, 5)
+            x = x_off + 10 + col*(rod_w+gap)
+            y = icon_h + 10 + row*(rod_h+gap)
+            d.rectangle([x, y, x+rod_w, y+rod_h], outline=C_BORDER, width=2)
+        ones_x = x_off + 70
+        for i in range(ones):
+            row, col = divmod(i, 5)
+            x = ones_x + col*(unit+gap)
+            y = icon_h + 10 + row*(unit+gap)
+            d.rectangle([x, y, x+unit, y+unit], outline=C_BORDER, width=2)
+
+    draw_side(left, 0)
+    draw_side(right, half_w+30)
+
+    box_y = icon_h + block_area_h + 10
+    box_size = 26
+    gap = 16
+    start_x = (w - (box_size*3 + gap*2)) / 2
+    for i, sym in enumerate([">", "<", "="]):
+        bx = start_x + i*(box_size+gap)
+        d.rectangle([bx, box_y, bx+box_size, box_y+box_size], outline=C_BORDER, width=2)
+        cx, cy_s = bx+box_size/2, box_y+box_size/2
+        if sym == "=":
+            d.line([cx-7, cy_s-4, cx+7, cy_s-4], fill=C_BORDER, width=2)
+            d.line([cx-7, cy_s+4, cx+7, cy_s+4], fill=C_BORDER, width=2)
+        elif sym == ">":
+            d.line([cx-6, cy_s-7, cx+6, cy_s], fill=C_BORDER, width=2)
+            d.line([cx-6, cy_s+7, cx+6, cy_s], fill=C_BORDER, width=2)
+        else:
+            d.line([cx+6, cy_s-7, cx-6, cy_s], fill=C_BORDER, width=2)
+            d.line([cx+6, cy_s+7, cx-6, cy_s], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -811,6 +894,8 @@ DIAGRAM_FUNCTIONS = {
     "number_card": number_card,
     "numline_jump": numline_jump,
     "instruction_icon": instruction_icon,
+    "sequence_boxes": sequence_boxes,
+    "compare_blocks": compare_blocks,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

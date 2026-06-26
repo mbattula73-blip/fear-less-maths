@@ -20,6 +20,44 @@ def q(text, qtype="fill", ans="Answer = ____", bold="", diag=None, dpar=None):
     return {"type":qtype,"text":text,"answer_label":ans,
             "bold_phrase":bold,"diagram_type":diag,"diagram_params":dpar or {}}
 
+
+# ───────────────────────── shared pictorial-question helpers ─────────────────────────
+# Used by content_pre.py (Pre-Level) and content_l1_redesign.py (Level 21) to avoid
+# any plain-text-only questions -- every question gets a diagram, never bare numbers.
+
+def q_eq1(n, op, kind="apple"):
+    """n+1 or n-1 as a visual equation (mascot + objects + symbol + box),
+    replacing plain text like '9 + 1 = ____'."""
+    right = 1
+    return q("", "diagram", "____", "", "visual_equation",
+              {"left": n, "right": right, "kind": kind, "op": op})
+
+
+def q_cmp(l, r, kind="apple"):
+    """Number comparison as a wordless picture (two object groups +
+    >/</= tick-boxes), replacing plain text like '47 ___ 52'."""
+    return q("", "diagram", "____", "", "compare_choice",
+              {"left_count": min(l, 20), "right_count": min(r, 20), "kind": kind})
+
+
+def q_seq(seq, label="pattern"):
+    """Number sequence with one blank shown as a row of boxes (mascot +
+    boxes), replacing plain text like '5, ___, 7'."""
+    return q("", "diagram", "____", "", "sequence_boxes",
+              {"seq": seq, "label": label})
+
+
+def q_cmp_big(l, r):
+    """Comparison for larger numbers (e.g. 1-100) using base-10 blocks
+    instead of individual object dots, since drawing 80+ dots is impractical."""
+    return q("", "diagram", "____", "", "compare_blocks", {"left": l, "right": r})
+
+
+def q_place(tens, ones):
+    """Place value as base-10 blocks, replacing plain text like
+    '3 x 10 + 4 = ____'."""
+    return q("", "diagram", "____", "", "base10_blocks", {"tens": tens, "ones": ones})
+
 def remedialise(items, seed=0):
     random.seed(seed)
     out = []
@@ -17546,7 +17584,8 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
     while len(question_items) < 20:
         if level_num in (0, 21):
             # Wordless levels: pad with a plain symbolic filler, never a sentence
-            question_items.append(q("___ + 1 = ____", "fill", "____"))
+            question_items.append(q("", "diagram", "____", "", "visual_equation",
+                                     {"left": 1, "right": 1, "kind": "apple", "op": "+"}))
         else:
             question_items.append(q(f"{sublevel_code} Q{len(question_items)+1}: solve carefully.", "fill", "Answer = ____"))
 

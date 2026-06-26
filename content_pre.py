@@ -15,7 +15,7 @@ CPA <-> Sheet mapping used in every PreLevel sub-level:
 Object kinds cycle through: apple, star, balloon, flower  (matches diagram_engine.py)
 """
 import random
-from content import cb, tb, q, remedialise  # reuse existing helpers
+from content import cb, tb, q, remedialise, q_eq1, q_cmp, q_seq, q_cmp_big, q_place
 
 OBJ_KINDS = ["apple", "star", "balloon", "flower"]
 
@@ -115,9 +115,9 @@ def _counting_block(lo, hi, sheet, label):
                   f"After {hi-1} comes {hi}."],
                  f"{hi-2}, {hi-1}, {hi}")]
     for n in picks[:10]:
-        items.append(q(f"{n} + 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "+", _kind(n)))
     for n in picks[10:19]:
-        items.append(q(f"{n} - 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "-", _kind(n)))
     return items
 
 
@@ -158,7 +158,7 @@ def _CUM1_s(sheet):
                   "Practice writing numbers in order."],
                  "1, 2, 3 ... 20")]
     for n in counts:
-        items.append(q(f"{n} + 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "+", _kind(n)))
     return items
 
 
@@ -194,7 +194,7 @@ def _E_s(sheet):
                 "Which is bigger, 12 or 15? -> 15")]
     for _ in range(19):
         a, b = random.sample(range(1, 21), 2)
-        items.append(q(f"{a} ___ {b}", "fill", "____"))
+        items.append(q_cmp(a, b, _kind(a)))
     return items
 
 
@@ -222,13 +222,13 @@ def _F_s(sheet):
                      ["'One more' always means add 1.",
                       "The new number is always 1 bigger than before."])]
         for n in nums:
-            items.append(q(f"{n} + 1 = ____", "fill", "____"))
+            items.append(q_eq1(n, "+", _kind(n)))
         return items
     items = [cb("One More — Numbers Only",
                  ["You no longer need pictures — just add 1 to the number."],
                  "One more than 9 is 10")]
     for n in [random.choice(range(1, 21)) for _ in range(19)]:
-        items.append(q(f"{n} + 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "+", _kind(n)))
     return items
 
 
@@ -256,13 +256,13 @@ def _G_s(sheet):
                      ["'One less' always means subtract 1.",
                       "The new number is always 1 smaller than before."])]
         for n in nums:
-            items.append(q(f"{n} - 1 = ____", "fill", "____"))
+            items.append(q_eq1(n, "-", _kind(n)))
         return items
     items = [cb("One Less — Numbers Only",
                  ["Subtract 1 from the number directly — no pictures needed."],
                  "One less than 10 is 9")]
     for n in [random.choice(range(2, 21)) for _ in range(19)]:
-        items.append(q(f"{n} - 1 = ____", "fill", "____"))
+        items.append(q_eq1(n, "-", _kind(n)))
     return items
 
 
@@ -293,12 +293,12 @@ def _CUM2_s(sheet):
         items = [tb("Review Tips", ["Look for the words 'more' or 'less' before answering.",
                                      "More = bigger number. Less = smaller number."])]
         for n in nums:
-            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
+            items.append(q_seq([n-1, None, n+1], "pattern"))
         return items
     items = [cb("Numbers Only — One More / One Less",
                  ["Apply +1 or -1 directly to the number."], "")]
     for n in nums:
-        items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
+        items.append(q_seq([n-1, None, n+1], "pattern"))
     return items
 
 
@@ -327,11 +327,11 @@ def _H_s(sheet):
                      ["Count both groups fully before deciding.",
                       "Do not guess by size of the picture — always count."])]
         for l, r in pairs:
-            items.append(q(f"{l} ___ {r}", "fill", "____"))
+            items.append(q_cmp(l, r, _kind(l)))
         return items
     items = [cb("Comparing Numbers", ["Compare numbers directly without pictures."], "7 > 5")]
     for l, r in pairs:
-        items.append(q(f"{l} ___ {r}", "fill", "____"))
+        items.append(q_cmp(l, r, _kind(l)))
     return items
 
 
@@ -378,13 +378,13 @@ def _I_s(sheet):
     fixed = [(9,1,"+",10), (15,1,"-",14), (12,3,"+",15), (18,4,"-",14),
              (16,1,"+",17), (20,1,"-",19), (5,6,"+",11), (19,5,"-",14), (13,1,"+",14)]
     for s, c, op, ans in fixed:
-        items.append(q(f"{s} {op} {c} = ____", "fill", "____"))
+        items.append(q("", "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
     random.seed(701)
     for i in range(19 - len(fixed)):
         s = random.randint(5, 19)
         c = random.randint(1, min(5, s - 1))
         op = "+" if i % 2 == 0 else "-"
-        items.append(q(f"{s} {op} {c} = ____", "fill", "____"))
+        items.append(q("", "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
     return items
 
 
@@ -412,11 +412,11 @@ def _CUM3_s(sheet):
     if sheet == 3:
         items = [tb("REVIEW TIPS", ["SLOW AND STEADY"])]
         for n in [random.choice(range(1, 20)) for _ in range(19)]:
-            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
+            items.append(q_seq([n-1, None, n+1], "pattern"))
         return items
     items = [cb("NUMBERS ROUND", ["NO PICTURES NOW"], "")]
     for n in [random.choice(range(1, 20)) for _ in range(19)]:
-        items.append(q(f"___, {n}, ___", "fill", "____"))
+        items.append(q_seq([n-1, None, n+1], "pattern"))
     return items
 
 
@@ -434,7 +434,7 @@ def _REV_s(sheet):
             items.append(_one_more_q(random.randint(1, 14), _kind(i)))
     elif sheet == 3:
         for n in [random.choice(range(1, 20)) for _ in range(16)]:
-            items.append(q(f"___, {n}, ___", "fill", "____"))
+            items.append(q_seq([n-1, None, n+1], "pattern"))
         items.append(q("", "diagram", "____", "", "visual_equation",
                         {"left": 4, "right": 3, "kind": "star", "op": "+"}))
         items.append(q("", "diagram", "____", "", "visual_equation",
@@ -443,7 +443,7 @@ def _REV_s(sheet):
                         {"left": 6, "right": 4, "kind": "balloon", "op": "+"}))
     else:
         for n in [random.choice(range(1, 20)) for _ in range(19)]:
-            items.append(q(f"{n} + 1 = ____      {n} - 1 = ____", "fill", "____"))
+            items.append(q_seq([n-1, None, n+1], "pattern"))
     return items
 
 
