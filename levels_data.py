@@ -25,13 +25,13 @@ LEVELS = {
 }
 
 SUBLEVELS = {
-    0:  [("PreA","Counting 1-5 (objects)"),("PreB","Counting 6-10 (objects)"),
-         ("PreC","Counting 11-15 (objects)"),("PreD","Counting 16-20 (objects)"),
-         ("PreCUM1","Review: Counting 1-20"),
-         ("PreE","Number-to-picture matching"),("PreF","One more"),("PreG","One less"),
-         ("PreCUM2","Review: One more / One less"),
-         ("PreH","Comparing groups (more/fewer)"),("PreI","Picture riddles"),
-         ("PreCUM3","Mixed Pre-Level review"),("PreREV","Pre-Level Revision")],
+    0:  [("A","Counting 1-5 (objects)"),("B","Counting 6-10 (objects)"),
+         ("C","Counting 11-15 (objects)"),("D","Counting 16-20 (objects)"),
+         ("CUM1","Review: Counting 1-20"),
+         ("E","Number-to-picture matching"),("F","One more"),("G","One less"),
+         ("CUM2","Review: One more / One less"),
+         ("H","Comparing groups (more/fewer)"),("I","Picture riddles"),
+         ("CUM3","Mixed Pre-Level review"),("REV","Pre-Level Revision")],
     1:  [("1A","Counting 1–50"),("1B","Counting 1–100"),("1C","Before / After numbers"),
          ("1CUM1","Mixed A+B+C"),("1D","Greater / Smaller"),("1E","Missing numbers"),
          ("1F","Number patterns"),("1CUM2","Mixed D+E+F"),("1G","Counting objects"),

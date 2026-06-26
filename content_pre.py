@@ -124,15 +124,15 @@ def _counting_block(lo, hi, sheet, label):
     return items
 
 
-def _PreA_s(sheet): return _counting_block(1, 5, sheet, "PreA")
-def _PreB_s(sheet): return _counting_block(6, 10, sheet, "PreB")
-def _PreC_s(sheet): return _counting_block(11, 15, sheet, "PreC")
-def _PreD_s(sheet): return _counting_block(16, 20, sheet, "PreD")
+def _A_s(sheet): return _counting_block(1, 5, sheet, "A")
+def _B_s(sheet): return _counting_block(6, 10, sheet, "B")
+def _C_s(sheet): return _counting_block(11, 15, sheet, "C")
+def _D_s(sheet): return _counting_block(16, 20, sheet, "D")
 
 
 # ───────────────────────── PreCUM1: cumulative review 1-20 ─────────────────────────
 
-def _PreCUM1_s(sheet):
+def _CUM1_s(sheet):
     random.seed(100 + sheet)
     counts = [random.choice(range(1, 21)) for _ in range(19)]
     if sheet == 1:
@@ -167,7 +167,7 @@ def _PreCUM1_s(sheet):
 
 # ───────────────────────── PreE: Number-to-picture matching (reverse) ─────────────────────────
 
-def _PreE_s(sheet):
+def _E_s(sheet):
     random.seed(200 + sheet)
     if sheet == 1:
         items = [cb("From Number to Picture",
@@ -203,7 +203,7 @@ def _PreE_s(sheet):
 
 # ───────────────────────── PreF: One More ─────────────────────────
 
-def _PreF_s(sheet):
+def _F_s(sheet):
     random.seed(300 + sheet)
     nums = [random.choice(range(1, 15)) for _ in range(19)]
     if sheet == 1:
@@ -237,7 +237,7 @@ def _PreF_s(sheet):
 
 # ───────────────────────── PreG: One Less ─────────────────────────
 
-def _PreG_s(sheet):
+def _G_s(sheet):
     random.seed(400 + sheet)
     nums = [random.choice(range(2, 16)) for _ in range(19)]
     if sheet == 1:
@@ -271,7 +271,7 @@ def _PreG_s(sheet):
 
 # ───────────────────────── PreCUM2: One more / one less combined ─────────────────────────
 
-def _PreCUM2_s(sheet):
+def _CUM2_s(sheet):
     random.seed(500 + sheet)
     nums = [random.choice(range(2, 19)) for _ in range(19)]
     if sheet == 1:
@@ -307,7 +307,7 @@ def _PreCUM2_s(sheet):
 
 # ───────────────────────── PreH: Comparing groups (more/fewer) ─────────────────────────
 
-def _PreH_s(sheet):
+def _H_s(sheet):
     random.seed(600 + sheet)
     pairs = [(random.randint(1, 8), random.randint(1, 8)) for _ in range(19)]
     if sheet == 1:
@@ -340,7 +340,7 @@ def _PreH_s(sheet):
 
 # ───────────────────────── PreI: Simple picture puzzles ─────────────────────────
 
-def _PreI_s(sheet):
+def _I_s(sheet):
     random.seed(700 + sheet)
     if sheet == 1:
         items = [cb("Picture Riddles",
@@ -437,7 +437,7 @@ def _PreI_s(sheet):
 
 # ───────────────────────── PreCUM3: all Pre-Level skills mixed ─────────────────────────
 
-def _PreCUM3_s(sheet):
+def _CUM3_s(sheet):
     random.seed(800 + sheet)
     if sheet == 1:
         items = [cb("Pre-Level Full Review — Concrete",
@@ -474,7 +474,7 @@ def _PreCUM3_s(sheet):
 
 # ───────────────────────── PreREV: Full Pre-Level revision ─────────────────────────
 
-def _PreREV_s(sheet):
+def _REV_s(sheet):
     random.seed(900 + sheet)
     items = [cb("Pre-Level Revision — All Topics",
                  ["This sheet tests everything from the Pre-Level: counting 1-20, one more/less, comparing, and simple riddles.",
@@ -503,17 +503,17 @@ def _PreREV_s(sheet):
 # ───────────────────────── Dispatcher for Pre-Level ─────────────────────────
 
 PRE_DISPATCH = {
-    "PreA":    {1: lambda: _PreA_s(1), 2: lambda: _PreA_s(2), 3: lambda: _PreA_s(3), 4: lambda: _PreA_s(4)},
-    "PreB":    {1: lambda: _PreB_s(1), 2: lambda: _PreB_s(2), 3: lambda: _PreB_s(3), 4: lambda: _PreB_s(4)},
-    "PreC":    {1: lambda: _PreC_s(1), 2: lambda: _PreC_s(2), 3: lambda: _PreC_s(3), 4: lambda: _PreC_s(4)},
-    "PreD":    {1: lambda: _PreD_s(1), 2: lambda: _PreD_s(2), 3: lambda: _PreD_s(3), 4: lambda: _PreD_s(4)},
-    "PreCUM1": {1: lambda: _PreCUM1_s(1), 2: lambda: _PreCUM1_s(2), 3: lambda: _PreCUM1_s(3), 4: lambda: _PreCUM1_s(4)},
-    "PreE":    {1: lambda: _PreE_s(1), 2: lambda: _PreE_s(2), 3: lambda: _PreE_s(3), 4: lambda: _PreE_s(4)},
-    "PreF":    {1: lambda: _PreF_s(1), 2: lambda: _PreF_s(2), 3: lambda: _PreF_s(3), 4: lambda: _PreF_s(4)},
-    "PreG":    {1: lambda: _PreG_s(1), 2: lambda: _PreG_s(2), 3: lambda: _PreG_s(3), 4: lambda: _PreG_s(4)},
-    "PreCUM2": {1: lambda: _PreCUM2_s(1), 2: lambda: _PreCUM2_s(2), 3: lambda: _PreCUM2_s(3), 4: lambda: _PreCUM2_s(4)},
-    "PreH":    {1: lambda: _PreH_s(1), 2: lambda: _PreH_s(2), 3: lambda: _PreH_s(3), 4: lambda: _PreH_s(4)},
-    "PreI":    {1: lambda: _PreI_s(1), 2: lambda: _PreI_s(2), 3: lambda: _PreI_s(3), 4: lambda: _PreI_s(4)},
-    "PreCUM3": {1: lambda: _PreCUM3_s(1), 2: lambda: _PreCUM3_s(2), 3: lambda: _PreCUM3_s(3), 4: lambda: _PreCUM3_s(4)},
-    "PreREV":  {1: lambda: _PreREV_s(1), 2: lambda: _PreREV_s(2), 3: lambda: _PreREV_s(3), 4: lambda: _PreREV_s(4)},
+    "A":    {1: lambda: _A_s(1), 2: lambda: _A_s(2), 3: lambda: _A_s(3), 4: lambda: _A_s(4)},
+    "B":    {1: lambda: _B_s(1), 2: lambda: _B_s(2), 3: lambda: _B_s(3), 4: lambda: _B_s(4)},
+    "C":    {1: lambda: _C_s(1), 2: lambda: _C_s(2), 3: lambda: _C_s(3), 4: lambda: _C_s(4)},
+    "D":    {1: lambda: _D_s(1), 2: lambda: _D_s(2), 3: lambda: _D_s(3), 4: lambda: _D_s(4)},
+    "CUM1": {1: lambda: _CUM1_s(1), 2: lambda: _CUM1_s(2), 3: lambda: _CUM1_s(3), 4: lambda: _CUM1_s(4)},
+    "E":    {1: lambda: _E_s(1), 2: lambda: _E_s(2), 3: lambda: _E_s(3), 4: lambda: _E_s(4)},
+    "F":    {1: lambda: _F_s(1), 2: lambda: _F_s(2), 3: lambda: _F_s(3), 4: lambda: _F_s(4)},
+    "G":    {1: lambda: _G_s(1), 2: lambda: _G_s(2), 3: lambda: _G_s(3), 4: lambda: _G_s(4)},
+    "CUM2": {1: lambda: _CUM2_s(1), 2: lambda: _CUM2_s(2), 3: lambda: _CUM2_s(3), 4: lambda: _CUM2_s(4)},
+    "H":    {1: lambda: _H_s(1), 2: lambda: _H_s(2), 3: lambda: _H_s(3), 4: lambda: _H_s(4)},
+    "I":    {1: lambda: _I_s(1), 2: lambda: _I_s(2), 3: lambda: _I_s(3), 4: lambda: _I_s(4)},
+    "CUM3": {1: lambda: _CUM3_s(1), 2: lambda: _CUM3_s(2), 3: lambda: _CUM3_s(3), 4: lambda: _CUM3_s(4)},
+    "REV":  {1: lambda: _REV_s(1), 2: lambda: _REV_s(2), 3: lambda: _REV_s(3), 4: lambda: _REV_s(4)},
 }
