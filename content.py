@@ -17589,6 +17589,55 @@ except Exception as _e:
     pass
 
 
+PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
+
+
+def _diagram_to_numeral(item):
+    """Converts a diagram-based question into a plain, simple numeral
+    question (no image) -- the CPA 'Abstract' stage. Used for the last
+    5 of every 20 questions on pictorial levels, so each worksheet moves
+    Concrete/Pictorial (15 image questions) -> Abstract (5 number
+    questions), instead of staying pictorial for all 20."""
+    dt = item.get("diagram_type")
+    p = item.get("diagram_params", {}) or {}
+    text = None
+    if dt == "visual_equation":
+        text = f"{p.get('left')} {p.get('op')} {p.get('right')} = ____"
+    elif dt == "multiply_grid":
+        text = f"{p.get('rows')} x {p.get('cols')} = ____"
+    elif dt == "repeated_groups":
+        text = f"{p.get('groups')} x {p.get('size')} = ____"
+    elif dt == "object_group":
+        if p.get("icon_label") == "divide":
+            text = f"{p.get('count')} / {p.get('group_size')} = ____"
+        else:
+            n = p.get("count", 1)
+            text = f"{n} + 1 = ____"
+    elif dt in ("compare_choice", "compare_blocks"):
+        l = p.get("left_count", p.get("left"))
+        r = p.get("right_count", p.get("right"))
+        text = f"{l} ___ {r}"
+    elif dt == "sequence_boxes":
+        seq = p.get("seq", [])
+        text = ", ".join(str(v) if v is not None else "___" for v in seq)
+    elif dt == "base10_blocks":
+        text = f"{p.get('tens')} x 10 + {p.get('ones')} = ____"
+    elif dt == "numline_jump":
+        hop = p.get("hop_by", 1)
+        sym = "+" if hop > 0 else "-"
+        text = f"{p.get('mark')} {sym} {abs(hop)} = ____"
+    else:
+        # pair_grouping, array_grid, number_card, and any future diagram
+        # type without a clean numeral equivalent: simple +1 fallback.
+        n = p.get("count", p.get("n", 1))
+        text = f"{n} + 1 = ____"
+    new_item = dict(item)
+    new_item["text"] = text
+    new_item["diagram_type"] = None
+    new_item["diagram_params"] = {}
+    return new_item
+
+
 def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> list:
     """
     Main entry point. Returns a list of question dicts.
@@ -17635,6 +17684,14 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
 
     # Keep exactly 20 questions
     question_items = question_items[:20]
+
+    # CPA structure for pictorial levels: questions 16-20 of every sheet
+    # become simple numeral (Abstract) questions instead of staying
+    # Pictorial for all 20 -- 15 image questions, then 5 number questions.
+    if level_num in PICTORIAL_LEVELS:
+        for i in range(15, 20):
+            if question_items[i].get("diagram_type"):
+                question_items[i] = _diagram_to_numeral(question_items[i])
 
     # Rebuild in original order: concept boxes stay, questions fill in
     result = []
