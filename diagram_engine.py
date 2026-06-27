@@ -1124,6 +1124,232 @@ def division_bar_model(total=12, parts=3, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def fraction_area_blank(den1=3, den2=4, **kw) -> BytesIO:
+    """EMPTY grid (den1 columns x den2 rows), outline only, no shading,
+    no colour -- the child shades it themselves by hand. Black-and-white,
+    ink-saving (just grid lines)."""
+    w, h = 280, 200
+    img, d = _blank(w, h)
+    gx0, gy0 = 30, 20
+    gw, gh = 220, 160
+    col_w = gw / den1
+    row_h = gh / den2
+    for c in range(den1+1):
+        x = gx0 + c*col_w
+        d.line([x, gy0, x, gy0+gh], fill=C_BORDER, width=2)
+    for r in range(den2+1):
+        y = gy0 + r*row_h
+        d.line([gx0, y, gx0+gw, y], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def fraction_area_example(num1=2, den1=3, num2=3, den2=4, **kw) -> BytesIO:
+    """The ONE worked example shown step by step, using black-and-white
+    HATCHING patterns instead of flat colour fills (vertical hatch =
+    first fraction's columns, horizontal hatch = second fraction's rows,
+    cross-hatch = the overlap/product) -- ink-saving and colour-free."""
+    w, h = 300, 240
+    img, d = _blank(w, h)
+    gx0, gy0 = 30, 15
+    gw, gh = 220, 160
+    col_w = gw / den1
+    row_h = gh / den2
+
+    def hatch_vert(x0, y0, x1, y1, step=6):
+        x = x0
+        while x < x1:
+            d.line([x, y0, x, y1], fill=C_BORDER, width=1)
+            x += step
+
+    def hatch_horiz(x0, y0, x1, y1, step=6):
+        y = y0
+        while y < y1:
+            d.line([x0, y, x1, y], fill=C_BORDER, width=1)
+            y += step
+
+    for r in range(den2):
+        for c in range(den1):
+            x0, y0 = gx0 + c*col_w, gy0 + r*row_h
+            x1, y1 = x0+col_w, y0+row_h
+            in_col = c < num1
+            in_row = r < num2
+            if in_col and in_row:
+                hatch_vert(x0, y0, x1, y1)
+                hatch_horiz(x0, y0, x1, y1)
+            elif in_col:
+                hatch_vert(x0, y0, x1, y1)
+            elif in_row:
+                hatch_horiz(x0, y0, x1, y1)
+
+    for c in range(den1+1):
+        x = gx0 + c*col_w
+        d.line([x, gy0, x, gy0+gh], fill=C_BORDER, width=2)
+    for r in range(den2+1):
+        y = gy0 + r*row_h
+        d.line([gx0, y, gx0+gw, y], fill=C_BORDER, width=2)
+
+    fnt = _font_reg(13)
+    d.text((gx0, gy0+gh+10),
+            f"{num1}/{den1} x {num2}/{den2} = {num1*num2}/{den1*den2}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+
+
+def fraction_bar(num=3, den=4, kind="rect", **kw) -> BytesIO:
+    """Simple fraction bar model: a rectangle split into `den` equal
+    parts, `num` of them shaded -- the core Singapore pictorial tool
+    for fraction concept/comparison/addition at any grade."""
+    w, h = max(den*36, 160), 70
+    img, d = _blank(w, h)
+    x0, y0 = 10, 10
+    seg_w = (w - 20) / den
+    seg_h = 40
+    for i in range(den):
+        x = x0 + i*seg_w
+        fill = "#AED6F1" if i < num else "#FFFFFF"
+        d.rectangle([x, y0, x+seg_w, y0+seg_h], fill=fill, outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def _hatch_cell(d, x0, y0, x1, y1, style, step=6):
+    """style: 'v' vertical, 'h' horizontal, 'x' cross, '' blank."""
+    if style in ("v", "x"):
+        x = x0
+        while x < x1:
+            d.line([x, y0, x, y1], fill=C_BORDER, width=1)
+            x += step
+    if style in ("h", "x"):
+        y = y0
+        while y < y1:
+            d.line([x0, y, x1, y], fill=C_BORDER, width=1)
+            y += step
+
+
+def fraction_bar_blank(den=4, segments=1, **kw) -> BytesIO:
+    """One or more EMPTY bars stacked, each split into `den` equal
+    segments -- for the child to shade themselves. `segments`>1 is used
+    for mixed numbers (one bar per whole + a final partial bar)."""
+    seg_w = 36
+    bar_w = seg_w * den
+    bar_h = 40
+    gap = 10
+    w = bar_w + 20
+    h = segments*(bar_h+gap) + 10
+    img, d = _blank(max(w, 160), h)
+    for s in range(segments):
+        y0 = 10 + s*(bar_h+gap)
+        for i in range(den):
+            x0 = 10 + i*seg_w
+            d.rectangle([x0, y0, x0+seg_w, y0+bar_h], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def fraction_bar_example(num=3, den=4, label=None, **kw) -> BytesIO:
+    """ONE worked-example bar: `num` of `den` segments hatched (B&W),
+    with the fraction labeled underneath."""
+    seg_w = 36
+    bar_w = seg_w * den
+    bar_h = 40
+    w = bar_w + 20
+    h = bar_h + 35
+    img, d = _blank(max(w, 160), h)
+    for i in range(den):
+        x0 = 10 + i*seg_w
+        if i < num:
+            _hatch_cell(d, x0, 10, x0+seg_w, 10+bar_h, "v")
+        d.rectangle([x0, 10, x0+seg_w, 10+bar_h], outline=C_BORDER, width=2)
+    fnt = _font_reg(13)
+    txt = label if label else f"{num}/{den}"
+    d.text((10, 10+bar_h+8), txt, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def two_bars_blank(den1=3, den2=4, **kw) -> BytesIO:
+    """Two EMPTY bars stacked (different denominators) -- for
+    comparing, finding equivalents, or adding/subtracting unlike
+    fractions. The child shades and/or re-partitions them by hand."""
+    seg_w = 30
+    bar_h = 36
+    gap = 14
+    w = max(den1, den2) * seg_w + 20
+    h = bar_h*2 + gap + 10
+    img, d = _blank(max(w, 160), h)
+    for i in range(den1):
+        x0 = 10 + i*seg_w
+        d.rectangle([x0, 10, x0+seg_w, 10+bar_h], outline=C_BORDER, width=2)
+    y2 = 10 + bar_h + gap
+    for i in range(den2):
+        x0 = 10 + i*seg_w
+        d.rectangle([x0, y2, x0+seg_w, y2+bar_h], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def two_bars_example(num1=1, den1=3, num2=2, den2=4, op="compare", **kw) -> BytesIO:
+    """Worked example: two hatched bars (different hatch direction per
+    bar) stacked for comparison, or shown with a +/- label between them."""
+    seg_w = 30
+    bar_h = 36
+    gap = 20
+    w = max(den1, den2) * seg_w + 20
+    h = bar_h*2 + gap + 35
+    img, d = _blank(max(w, 160), h)
+    for i in range(den1):
+        x0 = 10 + i*seg_w
+        if i < num1:
+            _hatch_cell(d, x0, 10, x0+seg_w, 10+bar_h, "v")
+        d.rectangle([x0, 10, x0+seg_w, 10+bar_h], outline=C_BORDER, width=2)
+    fnt = _font_reg(12)
+    d.text((10, 10+bar_h+2), f"{num1}/{den1}", fill=C_BORDER, font=fnt)
+    y2 = 10 + bar_h + gap
+    for i in range(den2):
+        x0 = 10 + i*seg_w
+        if i < num2:
+            _hatch_cell(d, x0, y2, x0+seg_w, y2+bar_h, "h")
+        d.rectangle([x0, y2, x0+seg_w, y2+bar_h], outline=C_BORDER, width=2)
+    d.text((10, y2+bar_h+2), f"{num2}/{den2}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def fraction_numberline_blank(den=4, **kw) -> BytesIO:
+    """A 0-to-1 number line split into `den` equal ticks, unlabeled --
+    for placing/estimating fractions (benchmark 0, 1/2, 1 reasoning)."""
+    w, h = 260, 70
+    img, d = _blank(w, h)
+    pad = 20
+    y = 35
+    d.line([pad, y, w-pad, y], fill=C_BORDER, width=2)
+    for i in range(den+1):
+        x = pad + i*(w-2*pad)/den
+        d.line([x, y-8, x, y+8], fill=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    d.text((pad-4, y+12), "0", fill=C_BORDER, font=fnt)
+    d.text((w-pad-6, y+12), "1", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def fraction_numberline_example(num=1, den=2, **kw) -> BytesIO:
+    """Worked example: a marked point on the 0-1 number line at num/den."""
+    w, h = 260, 80
+    img, d = _blank(w, h)
+    pad = 20
+    y = 35
+    d.line([pad, y, w-pad, y], fill=C_BORDER, width=2)
+    for i in range(den+1):
+        x = pad + i*(w-2*pad)/den
+        d.line([x, y-8, x, y+8], fill=C_BORDER, width=2)
+    mx = pad + num*(w-2*pad)/den
+    d.ellipse([mx-5, y-5, mx+5, y+5], outline=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    d.text((pad-4, y+12), "0", fill=C_BORDER, font=fnt)
+    d.text((w-pad-6, y+12), "1", fill=C_BORDER, font=fnt)
+    fnt2 = _font(12)
+    lbl = f"{num}/{den}"
+    tw = d.textlength(lbl, font=fnt2)
+    d.text((mx-tw/2, y-26), lbl, fill=C_BORDER, font=fnt2)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1157,6 +1383,15 @@ DIAGRAM_FUNCTIONS = {
     "repeated_groups": repeated_groups,
     "sharing_baskets": sharing_baskets,
     "division_bar_model": division_bar_model,
+    "fraction_area_blank": fraction_area_blank,
+    "fraction_area_example": fraction_area_example,
+    "fraction_bar_blank": fraction_bar_blank,
+    "fraction_bar_example": fraction_bar_example,
+    "two_bars_blank": two_bars_blank,
+    "two_bars_example": two_bars_example,
+    "fraction_numberline_blank": fraction_numberline_blank,
+    "fraction_numberline_example": fraction_numberline_example,
+    "fraction_bar": fraction_bar,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

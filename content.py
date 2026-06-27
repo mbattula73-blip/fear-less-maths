@@ -17588,6 +17588,16 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 6 (Fractions) in place with the research-based
+# redesign -- adds GCF/LCM, fraction multiplication, and fraction division,
+# none of which existed in the original. Overrides the 6A-6REV entries
+# defined earlier in the main _DISPATCH literal above.
+try:
+    from content_l6_redesign import LEVEL6_DISPATCH
+    _DISPATCH.update(LEVEL6_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
