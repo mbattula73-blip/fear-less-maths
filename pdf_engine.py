@@ -159,7 +159,9 @@ def _est(item, cw=None):
         for t in tips:
             n_lines+=len(_wrap(f"\u27a4 {t}","Helvetica",12,avail))
         return 6*mm+n_lines*4.5*mm+4*mm
-    return 2*mm+9*mm+(20*mm if item.get("diagram_type") else 0)+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
+    big_diag = item.get("diagram_type") in ("base10_blocks", "compare_blocks")
+    diag_h = (34*mm if big_diag else 20*mm) if item.get("diagram_type") else 0
+    return 2*mm+9*mm+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
 
 class Col:
     def __init__(self,c,x,cw,top,bot):
@@ -251,7 +253,9 @@ class Col:
             path=_diag(dtype,dparm)
             if path:
                 try:
-                    iw=min(cw-3*mm,68*mm); ih=18*mm
+                    big_diag = dtype in ("base10_blocks", "compare_blocks")
+                    iw=min(cw-3*mm, 78*mm if big_diag else 68*mm)
+                    ih=32*mm if big_diag else 18*mm
                     c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
                     self.y-=ih+1.5*mm
                 except: pass

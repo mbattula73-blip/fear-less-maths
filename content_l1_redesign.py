@@ -45,46 +45,38 @@ def _kind(i):
 # ───────────────────────── shared question builders ─────────────────────────
 
 def _count_obj_q(n, kind, group_size=5):
-    return q("", "diagram", "____", "", "object_group",
+    return q("Count the objects.", "diagram", "____", "", "object_group",
               {"count": n, "kind": kind, "group_size": group_size})
 
 
 def _count_frame_q(n):
-    return q("", "diagram", "____", "", "ten_frames", {"count": n})
+    return q("Count the objects.", "diagram", "____", "", "ten_frames", {"count": n})
 
 
 def _numline_after_q(n, lo, hi):
     span = max(5, min(10, hi - lo if hi - lo >= 5 else 5))
     start = max(0, n - span // 2)
-    return q("", "diagram", "____", "", "numline_jump",
+    return q("Find the number after.", "diagram", "____", "", "numline_jump",
               {"start": start, "end": start + span, "mark": n, "hop_by": 1})
 
 
 def _numline_before_q(n, lo, hi):
     span = max(5, min(10, hi - lo if hi - lo >= 5 else 5))
     start = max(0, n - span // 2)
-    return q("", "diagram", "____", "", "numline_jump",
+    return q("Find the number before.", "diagram", "____", "", "numline_jump",
               {"start": start, "end": start + span, "mark": n, "hop_by": -1})
 
 
 def _eq_q(left, right, kind, op):
-    """Visual addition/subtraction equation, zero text."""
-    return q("", "diagram", "____", "", "visual_equation",
+    """Visual addition/subtraction equation with a short instruction."""
+    text = "Add the numbers." if op == "+" else "Subtract the numbers."
+    return q(text, "diagram", "____", "", "visual_equation",
               {"left": left, "right": right, "kind": kind, "op": op})
 
 
 def _compare_obj_q(left, right, kind):
-    """Wordless comparison with >/</= tick-boxes baked into the image."""
-    return q("", "diagram", "____", "", "compare_choice",
-              {"left_count": left, "right_count": right, "kind": kind})
-
-
-def _base10_q(tens, ones):
-    return q("", "diagram", "____", "", "base10_blocks", {"tens": tens, "ones": ones})
-
-
-def _compare_obj_q(left, right, kind):
-    return q("", "diagram", "____", "", "compare_choice",
+    """Comparison with >/</= tick-boxes baked into the image."""
+    return q("Compare the groups.", "diagram", "____", "", "compare_choice",
               {"left_count": left, "right_count": right, "kind": kind})
 
 
@@ -369,7 +361,7 @@ def _1N_s(sheet):
         items = [cb("Tens and Ones — Quick Practice", ["Read the blocks and write the number fast."], "")]
     for n in nums:
         tens, ones = divmod(n, 10)
-        items.append(_base10_q(tens, ones))
+        items.append(q_place(tens, ones))
     return items
 
 
@@ -405,7 +397,7 @@ def _1CUM6_s(sheet):
     for i, n in enumerate(nums):
         tens, ones = divmod(n, 10)
         if i % 2 == 0 and sheet in (1, 2):
-            items.append(_base10_q(tens, ones))
+            items.append(q_place(tens, ones))
         else:
             items.append(q_place(tens, ones))
     return items
@@ -431,7 +423,8 @@ def _1P_s(sheet):
         if r == 0:
             items.append(q_eq1(l-1, "+", kind))
         else:
-            items.append(q("", "diagram", "____", "", "visual_equation",
+            txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+            items.append(q(txt, "diagram", "____", "", "visual_equation",
                             {"left": l, "right": r, "kind": kind, "op": op}))
     # Top up to 19 real items with symbolic +1 equations (no sentences)
     random.seed(1450 + sheet)

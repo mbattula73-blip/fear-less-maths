@@ -25,47 +25,47 @@ def _kind(i):
 
 
 def _count_q(n, kind, group_size=5):
-    """One counting question: pure image + blank box, zero text."""
-    return q("", "diagram", "____", "", "object_group",
+    """One counting question: image + short instruction + blank box."""
+    return q("Count the objects.", "diagram", "____", "", "object_group",
               {"count": n, "kind": kind, "group_size": group_size})
 
 
 def _compare_q(left, right, kind):
-    """Wordless comparison: two groups + >/</= tick-boxes baked into the image."""
-    return q("", "diagram", "____", "", "compare_choice",
+    """Comparison: two groups + >/</= tick-boxes baked into the image."""
+    return q("Compare the groups.", "diagram", "____", "", "compare_choice",
               {"left_count": left, "right_count": right, "kind": kind})
 
 
 def _draw_q(n):
     """Reverse-direction question: big numeral + empty box for the child to
-    draw that many objects. Zero words on the page."""
-    return q("", "diagram", "____", "", "number_card", {"n": n})
+    draw that many objects."""
+    return q("Draw that many objects.", "diagram", "____", "", "number_card", {"n": n})
 
 
 def _one_more_q(n, kind):
-    """Visual '+1' equation: n objects + 1 object = blank box. No sentence."""
-    return q("", "diagram", "____", "", "visual_equation",
+    """Visual '+1' equation: n objects + 1 object = blank box."""
+    return q("Add one more.", "diagram", "____", "", "visual_equation",
               {"left": n, "right": 1, "kind": kind, "op": "+"})
 
 
 def _one_less_q(n, kind):
-    """Visual '-1' equation: n objects, 1 crossed out = blank box. No sentence."""
-    return q("", "diagram", "____", "", "visual_equation",
+    """Visual '-1' equation: n objects, second group taken away = blank box."""
+    return q("Take one away.", "diagram", "____", "", "visual_equation",
               {"left": n, "right": 1, "kind": kind, "op": "-"})
 
 
 
 def _gen_riddle(lo_start, hi_start, lo_change, hi_change, kind, op="more"):
-    """Generates a wordless addition/subtraction visual equation
-    (objects + symbol + objects/crossed-out = blank box)."""
+    """Generates an addition/subtraction visual equation with a short
+    instruction (objects + symbol + objects/crossed-out = blank box)."""
     start = random.randint(lo_start, hi_start)
     change = random.randint(lo_change, hi_change)
     if op == "more":
-        return q("", "diagram", "____", "", "visual_equation",
+        return q("Add the numbers.", "diagram", "____", "", "visual_equation",
                   {"left": start, "right": change, "kind": kind, "op": "+"})
     else:
         change = min(change, start - 1) if start > 1 else 1
-        return q("", "diagram", "____", "", "visual_equation",
+        return q("Subtract the numbers.", "diagram", "____", "", "visual_equation",
                   {"left": start, "right": change, "kind": kind, "op": "-"})
 
 
@@ -346,7 +346,8 @@ def _I_s(sheet):
                  (1,4,"+","balloon"), (2,2,"+","apple"), (4,1,"-","star"), (3,1,"+","balloon"),
                  (2,1,"-","flower"), (1,3,"+","apple"), (5,2,"-","star"), (1,1,"+","balloon")]
         for l, r, op, kind in fixed:
-            items.append(q("", "diagram", "____", "", "visual_equation",
+            txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+            items.append(q(txt, "diagram", "____", "", "visual_equation",
                             {"left": l, "right": r, "kind": kind, "op": op}))
         for i in range(19 - len(fixed)):
             items.append(_gen_riddle(1, 5, 1, 4, _kind(i), "more" if i % 2 == 0 else "less"))
@@ -357,7 +358,8 @@ def _I_s(sheet):
                  (9,4,"-","apple"), (6,4,"+","star"), (10,3,"-","balloon"), (8,2,"+","flower"),
                  (7,5,"-","apple"), (6,6,"+","balloon"), (9,3,"-","star")]
         for l, r, op, kind in fixed:
-            items.append(q("", "diagram", "____", "", "visual_equation",
+            txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+            items.append(q(txt, "diagram", "____", "", "visual_equation",
                             {"left": l, "right": r, "kind": kind, "op": op}))
         for i in range(19 - len(fixed)):
             items.append(_gen_riddle(4, 9, 1, 5, _kind(i), "more" if i % 2 == 0 else "less"))
@@ -368,7 +370,8 @@ def _I_s(sheet):
                  (12,4,"-","star"), (9,6,"+","apple"), (16,7,"-","balloon"), (11,3,"-","flower"),
                  (13,2,"+","star")]
         for l, r, op, kind in fixed:
-            items.append(q("", "diagram", "____", "", "visual_equation",
+            txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+            items.append(q(txt, "diagram", "____", "", "visual_equation",
                             {"left": l, "right": r, "kind": kind, "op": op}))
         for i in range(19 - len(fixed)):
             items.append(_gen_riddle(8, 16, 2, 7, _kind(i), "more" if i % 2 == 0 else "less"))
@@ -378,13 +381,15 @@ def _I_s(sheet):
     fixed = [(9,1,"+",10), (15,1,"-",14), (12,3,"+",15), (18,4,"-",14),
              (16,1,"+",17), (20,1,"-",19), (5,6,"+",11), (19,5,"-",14), (13,1,"+",14)]
     for s, c, op, ans in fixed:
-        items.append(q("", "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
+        txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+        items.append(q(txt, "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
     random.seed(701)
     for i in range(19 - len(fixed)):
         s = random.randint(5, 19)
         c = random.randint(1, min(5, s - 1))
         op = "+" if i % 2 == 0 else "-"
-        items.append(q("", "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
+        txt = "Add the numbers." if op == "+" else "Subtract the numbers."
+        items.append(q(txt, "diagram", "____", "", "visual_equation", {"left": s, "right": c, "kind": _kind(s), "op": op}))
     return items
 
 
@@ -435,11 +440,11 @@ def _REV_s(sheet):
     elif sheet == 3:
         for n in [random.choice(range(1, 20)) for _ in range(16)]:
             items.append(q_seq([n-1, None, n+1], "pattern"))
-        items.append(q("", "diagram", "____", "", "visual_equation",
+        items.append(q("Add the numbers.", "diagram", "____", "", "visual_equation",
                         {"left": 4, "right": 3, "kind": "star", "op": "+"}))
-        items.append(q("", "diagram", "____", "", "visual_equation",
+        items.append(q("Subtract the numbers.", "diagram", "____", "", "visual_equation",
                         {"left": 9, "right": 2, "kind": "apple", "op": "-"}))
-        items.append(q("", "diagram", "____", "", "visual_equation",
+        items.append(q("Add the numbers.", "diagram", "____", "", "visual_equation",
                         {"left": 6, "right": 4, "kind": "balloon", "op": "+"}))
     else:
         for n in [random.choice(range(1, 20)) for _ in range(19)]:

@@ -455,36 +455,47 @@ def object_compare(left_count=4, right_count=6, kind="apple", **kw) -> BytesIO:
 def base10_blocks(tens=3, ones=4, **kw) -> BytesIO:
     """Singapore-style base-10 blocks: tall rods = tens, small squares = ones.
     Black-and-white outline-only (shape distinguishes tens/ones, not color),
-    with a VALUE mascot+flag above, for consistency with every other
-    instructional diagram in Pre-Level / Pre Level 1."""
-    rod_w, rod_h = 18, 90
-    unit = 18
-    gap = 8
+    with a VALUE mascot+flag, a short 'Find the total value' caption, AND
+    small TENS/ONES text labels under each group."""
+    rod_w, rod_h = 32, 150
+    unit = 32
+    gap = 12
     cols_per_row_tens = 5
     rows_tens = (tens + cols_per_row_tens - 1) // cols_per_row_tens if tens else 0
     cols_per_row_ones = 5
     rows_ones = (ones + cols_per_row_ones - 1) // cols_per_row_ones if ones else 0
     icon_h = 70
-    w = max(cols_per_row_tens * (rod_w + gap), cols_per_row_ones * (unit + gap)) * 2 + 40
-    h = max(rows_tens * (rod_h + gap), rows_ones * (unit + gap)) + 20 + icon_h
+    label_h = 20
+    w = max(cols_per_row_tens * (rod_w + gap), cols_per_row_ones * (unit + gap)) * 2 + 50
+    h = max(rows_tens * (rod_h + gap), rows_ones * (unit + gap)) + 20 + icon_h + label_h
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "value")
+    top = icon_h
+
+    tens_block_w = cols_per_row_tens * (rod_w + gap)
     # Draw tens rods on the left half (outline only, tall shape = tens)
     for i in range(tens):
         row, col = divmod(i, cols_per_row_tens)
         x = 15 + col * (rod_w + gap)
-        y = 15 + row * (rod_h + gap) + icon_h
-        d.rectangle([x, y, x + rod_w, y + rod_h], outline=C_BORDER, width=2)
+        y = 15 + row * (rod_h + gap) + top
+        d.rectangle([x, y, x + rod_w, y + rod_h], outline=C_BORDER, width=3)
         for seg in range(1, 10):
             sy = y + seg * (rod_h / 10)
             d.line([x, sy, x + rod_w, sy], fill=C_BORDER, width=1)
+    tens_bottom = 15 + max(rows_tens, 1) * (rod_h + gap) + top
+    fnt = _font_reg(14)
+    tw = d.textlength("TENS", font=fnt)
+    d.text((15 + tens_block_w/2 - tw/2, tens_bottom + 2), "TENS", fill=C_BORDER, font=fnt)
     # Draw ones units on the right half (outline only, small shape = ones)
-    ones_x_off = w // 2 + 10
+    ones_x_off = w // 2 + 15
     for i in range(ones):
         row, col = divmod(i, cols_per_row_ones)
         x = ones_x_off + col * (unit + gap)
-        y = 15 + row * (unit + gap) + icon_h
-        d.rectangle([x, y, x + unit, y + unit], outline=C_BORDER, width=2)
+        y = 15 + row * (unit + gap) + top
+        d.rectangle([x, y, x + unit, y + unit], outline=C_BORDER, width=3)
+    ones_block_w = cols_per_row_ones * (unit + gap)
+    tw2 = d.textlength("ONES", font=fnt)
+    d.text((ones_x_off + ones_block_w/2 - tw2/2, tens_bottom + 2), "ONES", fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -826,33 +837,38 @@ def compare_blocks(left=47, right=52, **kw) -> BytesIO:
     too large to draw as individual dots, e.g. 1-100 range), plus the
     same >/</= tick-boxes as compare_choice. Wordless, with COMPARE mascot."""
     icon_h = 70
-    block_area_h = 90
-    half_w = 165
+    block_area_h = 190   # fits up to 2 rows of bigger rods (tens digit 0-9) + TENS/ONES labels
+    half_w = 235
     w = half_w*2 + 30
-    h = icon_h + block_area_h + 60
+    h = icon_h + block_area_h + 50
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "compare")
-    d.line([half_w+15, icon_h+5, half_w+15, icon_h+block_area_h], fill=C_GRAY_D, width=2)
+    d.line([half_w+15, icon_h+5, half_w+15, icon_h+block_area_h-15], fill=C_GRAY_D, width=2)
 
     def draw_side(n, x_off):
         tens, ones = divmod(n, 10)
-        rod_w, rod_h, unit, gap = 10, 50, 10, 4
-        for i in range(min(tens, 10)):
+        rod_w, rod_h, unit, gap = 14, 70, 14, 6
+        for i in range(tens):
             row, col = divmod(i, 5)
             x = x_off + 10 + col*(rod_w+gap)
             y = icon_h + 10 + row*(rod_h+gap)
             d.rectangle([x, y, x+rod_w, y+rod_h], outline=C_BORDER, width=2)
-        ones_x = x_off + 95
+        fnt = _font_reg(11)
+        tw = d.textlength("TENS", font=fnt)
+        d.text((x_off + 10 + 50 - tw/2, icon_h + 165), "TENS", fill=C_BORDER, font=fnt)
+        ones_x = x_off + 125
         for i in range(ones):
             row, col = divmod(i, 5)
             x = ones_x + col*(unit+gap)
             y = icon_h + 10 + row*(unit+gap)
             d.rectangle([x, y, x+unit, y+unit], outline=C_BORDER, width=2)
+        tw2 = d.textlength("ONES", font=fnt)
+        d.text((ones_x + 50 - tw2/2, icon_h + 165), "ONES", fill=C_BORDER, font=fnt)
 
     draw_side(left, 0)
     draw_side(right, half_w+30)
 
-    box_y = icon_h + block_area_h + 10
+    box_y = icon_h + block_area_h + 8
     box_size = 26
     gap = 16
     start_x = (w - (box_size*3 + gap*2)) / 2
