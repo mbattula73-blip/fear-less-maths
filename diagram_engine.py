@@ -713,7 +713,8 @@ _MASCOT_COLORS = {
 _OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LESS",
               "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE",
               "pattern": "PATTERN", "missing": "MISSING", "value": "VALUE",
-              "evenodd": "EVEN OR ODD?", "primecomp": "PRIME OR NOT?", "group": "GROUP"}
+              "evenodd": "EVEN OR ODD?", "primecomp": "PRIME OR NOT?", "group": "GROUP",
+              "multiply": "MULTIPLY"}
 
 
 def _draw_mascot(d, cx, cy, r, op):
@@ -972,6 +973,34 @@ def array_grid(n=6, rows=2, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def multiply_grid(rows=3, cols=4, kind="apple", **kw) -> BytesIO:
+    """Objects arranged in `rows` rows of `cols` each, MULTIPLY mascot
+    above, blank answer box below -- visualizes rows x cols as repeated
+    equal groups. Shrinks object size automatically for big totals so
+    the grid never gets squeezed illegibly."""
+    n = rows * cols
+    big = n > 30
+    r = 8 if big else 13
+    cell = r*2 + (4 if big else 8)
+    icon_h = 70
+    grid_w = cols * cell
+    w = max(grid_w + 30, 200)
+    h = icon_h + rows*cell + 70
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "multiply")
+    x_start = (w - grid_w) / 2
+    for i in range(n):
+        row, col = divmod(i, cols)
+        cx = x_start + r + col*cell
+        cy = icon_h + 10 + r + row*cell
+        _draw_object(d, cx, cy, r, kind)
+    box_w, box_h = 60, 40
+    bx = w/2 - box_w/2
+    by = icon_h + rows*cell + 20
+    d.rectangle([bx, by, bx+box_w, by+box_h], outline=C_BORDER, width=3)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1001,6 +1030,7 @@ DIAGRAM_FUNCTIONS = {
     "compare_blocks": compare_blocks,
     "pair_grouping": pair_grouping,
     "array_grid": array_grid,
+    "multiply_grid": multiply_grid,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
