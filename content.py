@@ -17623,6 +17623,20 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 4 (Multiplication) in place with a redesign
+# following the internationally-consistent times-table teaching order
+# (0/1 -> 2 -> 10 -> 5 -> 3/4 -> 6/9 -> 8 -> 7), with each new table
+# explicitly taught as a connection to one already known (4=double 2,
+# 8=double 4, 9=x10 minus a group), "square numbers" properly defined
+# before use, the split method taught with a concept box instead of
+# shown cold, word problems split into one-step/two-step tiers, and
+# LCM/factor-pair puzzles explicitly taught rather than dropped in cold.
+try:
+    from content_l4_v2_redesign import LEVEL4_V2_DISPATCH
+    _DISPATCH.update(LEVEL4_V2_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

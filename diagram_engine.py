@@ -1589,6 +1589,82 @@ def make_ten_frame_blank(given=7, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def equal_groups_blank(groups=3, size=4, **kw) -> BytesIO:
+    """`groups` separate clusters of `size` empty unit squares each --
+    for repeated-addition/equal-groups multiplication concept and word
+    problems. Outline only, no colour."""
+    r = 10
+    cell = r*2+4
+    cols = min(size, 5)
+    rows = (size+cols-1)//cols
+    cluster_w, cluster_h = cols*cell, rows*cell
+    gap = 18
+    w = groups*cluster_w + (groups-1)*gap + 20
+    h = cluster_h + 20
+    img, d = _blank(max(w, 160), h)
+    for g in range(groups):
+        x0 = 10 + g*(cluster_w+gap)
+        for i in range(size):
+            row, col = divmod(i, cols)
+            cx, cy = x0+r+col*cell, 10+r+row*cell
+            d.rectangle([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def equal_groups_example(groups=3, size=4, **kw) -> BytesIO:
+    """Worked example: `groups` clusters of `size` units, hatched, with
+    the repeated-addition expression labeled underneath."""
+    r = 10
+    cell = r*2+4
+    cols = min(size, 5)
+    rows = (size+cols-1)//cols
+    cluster_w, cluster_h = cols*cell, rows*cell
+    gap = 18
+    w = groups*cluster_w + (groups-1)*gap + 20
+    h = cluster_h + 35
+    img, d = _blank(max(w, 160), h)
+    for g in range(groups):
+        x0 = 10 + g*(cluster_w+gap)
+        for i in range(size):
+            row, col = divmod(i, cols)
+            cx, cy = x0+r+col*cell, 10+r+row*cell
+            _hatch_cell(d, cx-r, cy-r, cx+r, cy+r, "v", step=4)
+            d.rectangle([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    label = " + ".join([str(size)]*groups) + f" = {groups} x {size} = {groups*size}"
+    d.text((10, h-20), label, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def array_blank(rows=3, cols=4, **kw) -> BytesIO:
+    """Empty rows x cols grid -- the array model for multiplication,
+    outline only, for the child to count/fill themselves."""
+    cell = 26
+    w, h = cols*cell+20, rows*cell+20
+    img, d = _blank(max(w,120), max(h,80))
+    for r in range(rows):
+        for c in range(cols):
+            x0, y0 = 10+c*cell, 10+r*cell
+            d.rectangle([x0, y0, x0+cell, y0+cell], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def array_example(rows=3, cols=4, **kw) -> BytesIO:
+    """Worked example: a fully-hatched rows x cols grid, with the
+    multiplication fact labeled underneath."""
+    cell = 26
+    w, h = cols*cell+20, rows*cell+35
+    img, d = _blank(max(w,120), max(h,95))
+    for r in range(rows):
+        for c in range(cols):
+            x0, y0 = 10+c*cell, 10+r*cell
+            _hatch_cell(d, x0, y0, x0+cell, y0+cell, "x", step=5)
+            d.rectangle([x0, y0, x0+cell, y0+cell], outline=C_BORDER, width=2)
+    fnt = _font_reg(12)
+    d.text((10, h-22), f"{rows} x {cols} = {rows*cols}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1641,6 +1717,10 @@ DIAGRAM_FUNCTIONS = {
     "regroup_break_blank": regroup_break_blank,
     "number_bond_blank": number_bond_blank,
     "make_ten_frame_blank": make_ten_frame_blank,
+    "equal_groups_blank": equal_groups_blank,
+    "equal_groups_example": equal_groups_example,
+    "array_blank": array_blank,
+    "array_example": array_example,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
