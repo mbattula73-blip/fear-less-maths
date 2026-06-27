@@ -716,7 +716,8 @@ _OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LES
               "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE",
               "pattern": "PATTERN", "missing": "MISSING", "value": "VALUE",
               "evenodd": "EVEN OR ODD?", "primecomp": "PRIME OR NOT?", "group": "GROUP",
-              "multiply": "MULTIPLY", "divide": "DIVIDE"}
+              "multiply": "MULTIPLY", "divide": "DIVIDE", "share": "SHARE EQUALLY",
+              "barmodel": "BAR MODEL", "factfamily": "FACT FAMILY"}
 
 
 def _draw_mascot(d, cx, cy, r, op):
@@ -1041,6 +1042,88 @@ def repeated_groups(groups=3, size=4, kind="apple", **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def sharing_baskets(total=12, num_baskets=3, kind="apple", **kw) -> BytesIO:
+    """EQUAL SHARING (distinct from equal GROUPING): objects are shown
+    as a loose, SCATTERED pile (not pre-arranged into rows), with a
+    fixed number of empty basket outlines below. The child must mentally
+    share the pile evenly among the baskets -- unlike object_group's
+    grouping view, this picture does NOT pre-arrange the answer for them.
+    Per Singapore Math research, equal sharing ('how many in each
+    basket?') is a distinct concept from equal grouping ('how many
+    groups?') and should be taught as its own visual."""
+    import random as _r
+    rnd = _r.Random(total * 31 + num_baskets * 7)
+    r = 11
+    icon_h = 70
+    pile_w, pile_h = 220, 90
+    basket_w, basket_h = 60, 44
+    basket_gap = 16
+    baskets_w = num_baskets * basket_w + (num_baskets - 1) * basket_gap
+    w = max(pile_w, baskets_w) + 30
+    h = icon_h + pile_h + 30 + basket_h + 20
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "share")
+
+    # Scattered pile (jittered positions within the pile area, no grid)
+    pile_x0 = (w - pile_w) / 2
+    pile_y0 = icon_h
+    placed = []
+    attempts = 0
+    while len(placed) < total and attempts < total * 30:
+        attempts += 1
+        cx = pile_x0 + r + rnd.uniform(0, pile_w - 2*r)
+        cy = pile_y0 + r + rnd.uniform(0, pile_h - 2*r)
+        if all((cx-px)**2 + (cy-py)**2 > (r*1.7)**2 for px, py in placed):
+            placed.append((cx, cy))
+    for cx, cy in placed:
+        _draw_object(d, cx, cy, r, kind)
+
+    # Empty baskets in a row below the pile
+    by0 = icon_h + pile_h + 25
+    bx0 = (w - baskets_w) / 2
+    for i in range(num_baskets):
+        x0 = bx0 + i*(basket_w + basket_gap)
+        d.line([x0, by0, x0+basket_w*0.15, by0+basket_h], fill=C_BORDER, width=2)
+        d.line([x0+basket_w, by0, x0+basket_w*0.85, by0+basket_h], fill=C_BORDER, width=2)
+        d.line([x0+basket_w*0.15, by0+basket_h, x0+basket_w*0.85, by0+basket_h], fill=C_BORDER, width=2)
+        d.line([x0, by0, x0+basket_w, by0], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def division_bar_model(total=12, parts=3, **kw) -> BytesIO:
+    """Singapore Math's signature BAR MODEL: a single rectangle bar
+    split into `parts` equal segments by vertical lines, with the total
+    value labeled above the whole bar and a '?' in one segment --
+    the abstract/bridge representation of division as splitting a whole
+    into equal parts."""
+    icon_h = 70
+    bar_w, bar_h = max(40*parts, 200), 50
+    w = bar_w + 40
+    h = icon_h + bar_h + 60
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "barmodel")
+    bx0 = (w - bar_w) / 2
+    by0 = icon_h + 30
+    d.rectangle([bx0, by0, bx0+bar_w, by0+bar_h], outline=C_BORDER, width=3)
+    seg_w = bar_w / parts
+    for i in range(1, parts):
+        x = bx0 + i*seg_w
+        d.line([x, by0, x, by0+bar_h], fill=C_BORDER, width=2)
+    # Total label above the bar, with brackets showing it spans the whole bar
+    fnt = _font(14)
+    total_str = str(total)
+    tw = d.textlength(total_str, font=fnt)
+    d.text((bx0 + bar_w/2 - tw/2, by0 - 24), total_str, fill=C_BORDER, font=fnt)
+    d.line([bx0, by0-8, bx0+bar_w, by0-8], fill=C_BORDER, width=1)
+    d.line([bx0, by0-8, bx0, by0-2], fill=C_BORDER, width=1)
+    d.line([bx0+bar_w, by0-8, bx0+bar_w, by0-2], fill=C_BORDER, width=1)
+    # Question mark in the first segment (every segment is equal, so one suffices)
+    qfnt = _font(16)
+    qtw = d.textlength("?", font=qfnt)
+    d.text((bx0 + seg_w/2 - qtw/2, by0 + bar_h/2 - 11), "?", fill=C_BORDER, font=qfnt)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1072,6 +1155,8 @@ DIAGRAM_FUNCTIONS = {
     "array_grid": array_grid,
     "multiply_grid": multiply_grid,
     "repeated_groups": repeated_groups,
+    "sharing_baskets": sharing_baskets,
+    "division_bar_model": division_bar_model,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

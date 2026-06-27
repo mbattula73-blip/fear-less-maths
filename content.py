@@ -17626,6 +17626,10 @@ def _diagram_to_numeral(item):
         hop = p.get("hop_by", 1)
         sym = "+" if hop > 0 else "-"
         text = f"{p.get('mark')} {sym} {abs(hop)} = ____"
+    elif dt == "sharing_baskets":
+        text = f"{p.get('total')} / {p.get('num_baskets')} = ____"
+    elif dt == "division_bar_model":
+        text = f"{p.get('total')} / {p.get('parts')} = ____"
     else:
         # pair_grouping, array_grid, number_card, and any future diagram
         # type without a clean numeral equivalent: simple +1 fallback.
