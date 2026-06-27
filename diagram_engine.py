@@ -402,13 +402,15 @@ def _draw_object(d, x, y, r, kind):
         d.ellipse([x+2, y-r-9, x+7, y-r-4], fill=C_TEAL_D)
 
 
-def object_group(count=5, kind="apple", group_size=5, show_icon=True, **kw) -> BytesIO:
+def object_group(count=5, kind="apple", group_size=5, show_icon=True, icon_label="count", **kw) -> BytesIO:
     """Concrete/Pictorial counting diagram: real-world objects in rows,
     grouped by `group_size` (default 5) with a visible gap between groups
     to support subitizing. Used for Pre-Level / CPA 'Intro' and 'Concept' sheets.
-    No answer text is ever rendered on the image. A COUNT mascot+flag is
-    drawn above by default (set show_icon=False to omit, e.g. when this
-    is reused as a sub-component of another diagram)."""
+    No answer text is ever rendered on the image. A mascot+flag is drawn
+    above by default (set show_icon=False to omit). icon_label lets
+    other levels reuse this same grouping layout with a different
+    mascot keyword (e.g. 'divide' for division-as-sharing) without
+    affecting any existing caller, which all still default to 'count'."""
     r = 16
     cell = r*2 + 14
     gap = 22
@@ -419,7 +421,7 @@ def object_group(count=5, kind="apple", group_size=5, show_icon=True, **kw) -> B
     h = rows * cell + 20 + icon_h
     img, d = _blank(w, h)
     if show_icon:
-        _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "count")
+        _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, icon_label)
     for row in range(rows):
         in_row = min(group_size, count - row*group_size)
         for c in range(in_row):
@@ -714,7 +716,7 @@ _OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LES
               "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE",
               "pattern": "PATTERN", "missing": "MISSING", "value": "VALUE",
               "evenodd": "EVEN OR ODD?", "primecomp": "PRIME OR NOT?", "group": "GROUP",
-              "multiply": "MULTIPLY"}
+              "multiply": "MULTIPLY", "divide": "DIVIDE"}
 
 
 def _draw_mascot(d, cx, cy, r, op):

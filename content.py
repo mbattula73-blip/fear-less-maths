@@ -17578,6 +17578,16 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 25 (new, separate level — "Pre Level 5", Division with
+# smaller step sizes for Class 1-2). Namespaced plain-letter codes
+# (__L25__A, __L25__B...), never colliding with the ORIGINAL, UNTOUCHED
+# Level 5 (5A, 5B... still intact) or any other level.
+try:
+    from content_l5_redesign import LEVEL5_DISPATCH
+    _DISPATCH.update(LEVEL5_DISPATCH)
+except Exception as _e:
+    pass
+
 
 def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> list:
     """
@@ -17616,7 +17626,7 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
 
     # Pad if fewer than 20 questions
     while len(question_items) < 20:
-        if level_num in (0, 21, 22, 23, 24):
+        if level_num in (0, 21, 22, 23, 24, 25):
             # Wordless levels: pad with a plain symbolic filler, never a sentence
             question_items.append(q("Add the numbers.", "diagram", "____", "", "visual_equation",
                                      {"left": 1, "right": 1, "kind": "apple", "op": "+"}))
