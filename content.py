@@ -17680,9 +17680,14 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
     # Pad if fewer than 20 questions
     while len(question_items) < 20:
         if level_num in (0, 21, 22, 23, 24, 25):
-            # Wordless levels: pad with a plain symbolic filler, never a sentence
-            question_items.append(q("Add the numbers.", "diagram", "____", "", "visual_equation",
-                                     {"left": 1, "right": 1, "kind": "apple", "op": "+"}))
+            # Wordless levels: pad with a plain symbolic filler, never a sentence,
+            # using varied random numbers so it's not the identical question every time
+            _a, _b = random.randint(2, 9), random.randint(1, 5)
+            _op = random.choice(["+", "-"]) if _a > _b else "+"
+            _kinds = ["apple", "star", "balloon", "flower"]
+            question_items.append(q("Add the numbers." if _op == "+" else "Subtract the numbers.",
+                                     "diagram", "____", "", "visual_equation",
+                                     {"left": _a, "right": _b, "kind": random.choice(_kinds), "op": _op}))
         else:
             question_items.append(q(f"{sublevel_code} Q{len(question_items)+1}: solve carefully.", "fill", "Answer = ____"))
 
