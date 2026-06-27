@@ -1474,6 +1474,121 @@ def decimal_numberline_example(value=0.5, lo=0.0, hi=1.0, divisions=10, **kw) ->
     return _to_bytes(img)
 
 
+def regroup_ones_blank(ones1=7, ones2=5, **kw) -> BytesIO:
+    """CARRYING (concrete): two loose clusters of ones units (one per
+    addend) shown separately with a + between them, plus an empty
+    'trade' area below (a blank rod outline + blank ones row) for the
+    child to combine the ones, see if they reach 10+, and draw the
+    regrouped result themselves. Outline only, no colour."""
+    r = 10
+    cell = r*2+4
+    cols = 5
+    def cluster_dims(n):
+        rows = (n+cols-1)//cols if n else 1
+        return cols*cell, rows*cell
+    w1, h1 = cluster_dims(ones1)
+    w2, h2 = cluster_dims(ones2)
+    top_h = max(h1, h2) + 20
+    w = w1 + 40 + w2 + 30
+    h = top_h + 110
+    img, d = _blank(max(w, 240), h)
+    x = 10
+    for i in range(ones1):
+        row, col = divmod(i, cols)
+        cx, cy = x+r+col*cell, 10+r+row*cell
+        d.rectangle([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+    x += w1 + 10
+    _draw_big_symbol(d, x+15, top_h/2, 18, "+")
+    x += 40
+    for i in range(ones2):
+        row, col = divmod(i, cols)
+        cx, cy = x+r+col*cell, 10+r+row*cell
+        d.rectangle([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+
+    # Trade area below: blank rod outline + blank ones row
+    ty = top_h + 20
+    rod_w, rod_h = 22, 70
+    d.rectangle([15, ty, 15+rod_w, ty+rod_h], outline=C_GRAY_D, width=2)
+    ox = 15+rod_w+20
+    for i in range(4):
+        d.rectangle([ox+i*(r*2+4), ty+rod_h-2*r, ox+i*(r*2+4)+2*r, ty+rod_h], outline=C_GRAY_D, width=2)
+    fnt = _font_reg(10)
+    d.text((15, ty+rod_h+6), "If 10 or more ones, trade for a ten.", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def regroup_break_blank(tens=4, ones=3, **kw) -> BytesIO:
+    """BORROWING (concrete): `tens` rod outlines + `ones` unit outlines
+    for the minuend, with the LAST rod marked with a dashed break-line
+    (so the child can mentally/physically break it into 10 loose ones),
+    plus a blank area below for the regrouped redraw."""
+    rod_w, rod_h = 20, 90
+    unit = 16
+    gap = 8
+    w = max(tens*(rod_w+gap) + ones*(unit+gap) + 40, 240)
+    h = rod_h + 90
+    img, d = _blank(w, h)
+    for i in range(tens):
+        x0 = 15 + i*(rod_w+gap)
+        d.rectangle([x0, 10, x0+rod_w, 10+rod_h], outline=C_BORDER, width=2)
+        if i == tens-1:
+            # dashed break line across the middle of the last rod
+            yseg = 10 + rod_h/2
+            xx = x0
+            while xx < x0+rod_w:
+                d.line([xx, yseg, min(xx+4, x0+rod_w), yseg], fill=C_BORDER, width=2)
+                xx += 7
+    ox = 15 + tens*(rod_w+gap) + 15
+    for i in range(ones):
+        x0 = ox + i*(unit+gap)
+        d.rectangle([x0, 10+rod_h-unit, x0+unit, 10+rod_h], outline=C_BORDER, width=2)
+    fnt = _font_reg(10)
+    d.text((15, rod_h+20), "Break one ten into 10 ones if you need more.", fill=C_BORDER, font=fnt)
+    # Blank redraw area
+    d.rectangle([15, rod_h+40, w-15, rod_h+85], outline=C_GRAY_D, width=1)
+    return _to_bytes(img)
+
+
+def number_bond_blank(known=7, **kw) -> BytesIO:
+    """Number bond: a top circle (the whole, blank) connected to two
+    bottom circles (one shows the known part, one is blank) -- the
+    classic 'make ten' decomposition diagram."""
+    w, h = 160, 140
+    img, d = _blank(w, h)
+    top_r = 22
+    bot_r = 20
+    tx, ty = w/2, 25
+    lx, ly = w/2-40, h-35
+    rx, ry = w/2+40, h-35
+    d.line([tx, ty, lx, ly], fill=C_BORDER, width=2)
+    d.line([tx, ty, rx, ry], fill=C_BORDER, width=2)
+    d.ellipse([tx-top_r, ty-top_r, tx+top_r, ty+top_r], outline=C_BORDER, width=2)
+    d.ellipse([lx-bot_r, ly-bot_r, lx+bot_r, ly+bot_r], outline=C_BORDER, width=2)
+    d.ellipse([rx-bot_r, ry-bot_r, rx+bot_r, ry+bot_r], outline=C_BORDER, width=2)
+    fnt = _font(16)
+    ks = str(known)
+    tw = d.textlength(ks, font=fnt)
+    d.text((lx-tw/2, ly-9), ks, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def make_ten_frame_blank(given=7, **kw) -> BytesIO:
+    """A 10-frame (2 rows of 5) with `given` boxes pre-marked (small dot,
+    outline only) and the rest empty -- for the 'how many more to make
+    10?' bond-to-10 strategy."""
+    cell = 30
+    w, h = 5*cell+20, 2*cell+20
+    img, d = _blank(w, h)
+    for i in range(10):
+        row, col = divmod(i, 5)
+        x0, y0 = 10+col*cell, 10+row*cell
+        d.rectangle([x0, y0, x0+cell-4, y0+cell-4], outline=C_BORDER, width=2)
+        if i < given:
+            cx, cy = x0+(cell-4)/2, y0+(cell-4)/2
+            d.ellipse([cx-5, cy-5, cx+5, cy+5], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1522,6 +1637,10 @@ DIAGRAM_FUNCTIONS = {
     "decimal_place_example": decimal_place_example,
     "decimal_numberline_blank": decimal_numberline_blank,
     "decimal_numberline_example": decimal_numberline_example,
+    "regroup_ones_blank": regroup_ones_blank,
+    "regroup_break_blank": regroup_break_blank,
+    "number_bond_blank": number_bond_blank,
+    "make_ten_frame_blank": make_ten_frame_blank,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

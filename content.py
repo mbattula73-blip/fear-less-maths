@@ -17608,6 +17608,21 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 3 (Addition & Subtraction) in place with a
+# smaller-step-size redesign. Analysis of the original found it jumped
+# straight from single-digit to 2-digit+2-digit addition with no bridge,
+# introduced borrowing with only one scaffolded hint question, and used
+# mental-math strategy labels ("bond to 10", "compensation") without ever
+# teaching the strategy. This redesign adds explicit bridge sub-levels,
+# a proper concrete -> expanded-form -> algorithm progression for
+# carrying/borrowing (showing the actual regrouping TRADE, not just
+# static blocks), and teaches mental math strategies before drilling them.
+try:
+    from content_l3_v2_redesign import LEVEL3_V2_DISPATCH
+    _DISPATCH.update(LEVEL3_V2_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
