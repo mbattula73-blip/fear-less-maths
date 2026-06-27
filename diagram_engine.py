@@ -712,7 +712,8 @@ _MASCOT_COLORS = {
 }
 _OP_LABELS = {"+": "ADD", "-": "SUBTRACT", "=": "EQUALS", ">": "MORE", "<": "LESS",
               "count": "COUNT", "compare": "COMPARE", "after": "AFTER", "before": "BEFORE",
-              "pattern": "PATTERN", "missing": "MISSING", "value": "VALUE"}
+              "pattern": "PATTERN", "missing": "MISSING", "value": "VALUE",
+              "evenodd": "EVEN OR ODD?", "primecomp": "PRIME OR NOT?", "group": "GROUP"}
 
 
 def _draw_mascot(d, cx, cy, r, op):
@@ -888,6 +889,89 @@ def compare_blocks(left=47, right=52, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
+    """Objects grouped into pairs with a loop drawn around each pair; if
+    count is odd, the last object stands alone with no loop (visually
+    showing 'leftover'). EVEN OR ODD? mascot above + EVEN/ODD tick boxes
+    at the bottom. Wordless except the two tick-box keywords."""
+    r = 14
+    cell = r*2 + 10
+    pair_gap = 26
+    cols = 5  # pairs per row
+    n_pairs = count // 2
+    has_leftover = count % 2 == 1
+    icon_h = 70
+    w = cols * (cell*2 + pair_gap) + 30
+    rows = (n_pairs + (1 if has_leftover else 0) + cols - 1) // cols
+    rows = max(rows, 1)
+    h = icon_h + rows*(cell+20) + 60
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
+
+    idx = 0
+    for p in range(n_pairs):
+        row, col = divmod(p, cols)
+        x0 = 15 + col*(cell*2+pair_gap)
+        y0 = icon_h + 10 + row*(cell+20)
+        cx1, cy1 = x0+r, y0+r
+        cx2, cy2 = x0+cell+r, y0+r
+        _draw_object(d, cx1, cy1, r, kind)
+        _draw_object(d, cx2, cy2, r, kind)
+        d.ellipse([x0-6, y0-6, x0+cell*2-2, y0+cell+2], outline=C_BORDER, width=2)
+        idx += 1
+    if has_leftover:
+        row, col = divmod(n_pairs, cols)
+        x0 = 15 + col*(cell*2+pair_gap)
+        y0 = icon_h + 10 + row*(cell+20)
+        _draw_object(d, x0+r, y0+r, r, kind)
+
+    box_y = h - 45
+    box_w, box_h = 70, 30
+    gap = 20
+    start_x = (w - (box_w*2 + gap)) / 2
+    fnt = _font_reg(13)
+    for i, label in enumerate(["EVEN", "ODD"]):
+        bx = start_x + i*(box_w+gap)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], outline=C_BORDER, width=2)
+        tw = d.textlength(label, font=fnt)
+        d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def array_grid(n=6, rows=2, **kw) -> BytesIO:
+    """Dots arranged in a grid (rows x cols=n/rows) to visually teach
+    prime vs composite: a single straight LINE (1 row) = PRIME, a
+    rectangular GRID (2+ rows) = COMPOSITE. PRIME OR NOT? mascot above +
+    PRIME/COMPOSITE tick boxes at the bottom."""
+    cols = max(1, n // max(rows, 1))
+    r = 12
+    cell = r*2 + 10
+    icon_h = 70
+    w = max(cols*cell + 30, 260)
+    grid_w = cols * cell
+    x_start = (w - grid_w) / 2
+    h = icon_h + rows*cell + 80
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "primecomp")
+    for i in range(n):
+        row, col = divmod(i, cols)
+        cx = x_start + r + col*cell
+        cy = icon_h + 10 + r + row*cell
+        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+
+    box_y = h - 45
+    box_w, box_h = 95, 30
+    gap = 20
+    start_x = (w - (box_w*2 + gap)) / 2
+    fnt = _font_reg(12)
+    for i, label in enumerate(["PRIME", "COMPOSITE"]):
+        bx = start_x + i*(box_w+gap)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], outline=C_BORDER, width=2)
+        tw = d.textlength(label, font=fnt)
+        d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -915,6 +999,8 @@ DIAGRAM_FUNCTIONS = {
     "instruction_icon": instruction_icon,
     "sequence_boxes": sequence_boxes,
     "compare_blocks": compare_blocks,
+    "pair_grouping": pair_grouping,
+    "array_grid": array_grid,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
