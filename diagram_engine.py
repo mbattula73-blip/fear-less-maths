@@ -1003,6 +1003,44 @@ def multiply_grid(rows=3, cols=4, kind="apple", **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def repeated_groups(groups=3, size=4, kind="apple", **kw) -> BytesIO:
+    """Multiplication as REPEATED EQUAL GROUPS, visually distinct from
+    multiply_grid: each group is a separate cluster with a gap between
+    them (like looking at 3 separate baskets of 4 apples each), with a
+    small x{size} label under each cluster -- bridges the addition
+    concept (separate piles) into multiplication (groups x size)."""
+    r = 11
+    cell = r*2 + 6
+    cluster_cols = min(size, 5)
+    cluster_rows = (size + cluster_cols - 1) // cluster_cols
+    cluster_w = cluster_cols * cell
+    cluster_h = cluster_rows * cell
+    gap_between = 22
+    icon_h = 70
+    label_h = 18
+    w = groups * cluster_w + (groups - 1) * gap_between + 20
+    h = icon_h + cluster_h + label_h + 60
+    img, d = _blank(max(w, 200), h)
+    _draw_mini_mascot_flag(d, max(w, 200)/2 - 14, 26, 22, "multiply")
+    fnt = _font_reg(11)
+    for g in range(groups):
+        x0 = 10 + g*(cluster_w + gap_between)
+        for i in range(size):
+            row, col = divmod(i, cluster_cols)
+            cx = x0 + r + col*cell
+            cy = icon_h + 10 + r + row*cell
+            _draw_object(d, cx, cy, r, kind)
+        label = f"x {size}"
+        tw = d.textlength(label, font=fnt)
+        d.rectangle([x0-4, icon_h+8, x0+cluster_w+4, icon_h+cluster_h+8], outline=C_GRAY_D, width=1)
+        d.text((x0 + cluster_w/2 - tw/2, icon_h + cluster_h + 14), label, fill=C_BORDER, font=fnt)
+    box_w, box_h = 60, 36
+    bx = max(w, 200)/2 - box_w/2
+    by = h - 45
+    d.rectangle([bx, by, bx+box_w, by+box_h], outline=C_BORDER, width=3)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1033,6 +1071,7 @@ DIAGRAM_FUNCTIONS = {
     "pair_grouping": pair_grouping,
     "array_grid": array_grid,
     "multiply_grid": multiply_grid,
+    "repeated_groups": repeated_groups,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
