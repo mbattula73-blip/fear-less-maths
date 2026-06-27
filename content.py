@@ -17637,6 +17637,21 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 5 (Division) in place with a redesign
+# following the easiest-divisor-first order (/2,/5,/10 -> /3,/4,/6,/9 ->
+# /7,/8 last), teaching the multiply-back CHECK step explicitly, giving
+# long division a real visual model (the partial-quotients "Big 7" box
+# plus an area-model bridge) instead of cramped inline text, splitting
+# word problems into no-remainder/with-remainder tiers, teaching the
+# missing-number strategy explicitly, separating basic-fact recall from
+# the different /10-/100 place-value skill, and teaching the LCM/digit
+# puzzle strategy instead of dropping it in cold.
+try:
+    from content_l5_v2_redesign import LEVEL5_V2_DISPATCH
+    _DISPATCH.update(LEVEL5_V2_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

@@ -1665,6 +1665,60 @@ def array_example(rows=3, cols=4, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def division_box_blank(dividend=158, divisor=4, **kw) -> BytesIO:
+    """The 'Big 7' / partial-quotients division frame: divisor outside a
+    bracket, dividend inside, a blank scratch column on the right for
+    the child to jot partial quotients (multiples of the divisor
+    subtracted), and a blank line on top for the final quotient."""
+    w, h = 280, 140
+    img, d = _blank(w, h)
+    bx, by = 60, 30
+    bw, bh = 110, 70
+    fnt = _font(16)
+    fnt_s = _font_reg(11)
+    # quotient blank line
+    d.line([bx, by-8, bx+bw, by-8], fill=C_GRAY_D, width=1)
+    d.text((bx+bw/2-15, by-30), "____", fill=C_BORDER, font=fnt_s)
+    # bracket: vertical + top horizontal (the "7" shape)
+    d.line([bx, by, bx, by+bh], fill=C_BORDER, width=3)
+    d.line([bx, by, bx+bw, by], fill=C_BORDER, width=3)
+    d.text((bx-35, by+bh/2-10), str(divisor), fill=C_BORDER, font=fnt)
+    d.text((bx+10, by+5), str(dividend), fill=C_BORDER, font=fnt)
+    # scratch column for partial quotients, to the right
+    d.line([bx+bw+15, by, bx+bw+15, by+bh], fill=C_GRAY_D, width=1)
+    d.text((bx+bw+20, by+5), "partial", fill=C_GRAY_D, font=fnt_s)
+    d.text((bx+bw+20, by+20), "quotients", fill=C_GRAY_D, font=fnt_s)
+    return _to_bytes(img)
+
+
+def division_box_example(dividend=158, divisor=4, partials=None, **kw) -> BytesIO:
+    """Worked example: the same frame, but with actual partial-quotient
+    steps filled in on the scratch column (e.g. subtract 100, then 25,
+    then 8...), and the final quotient written on top."""
+    if partials is None:
+        partials = [(100, dividend - 100*divisor if dividend >= 100*divisor else 0)]
+    w, h = 290, 150
+    img, d = _blank(w, h)
+    bx, by = 60, 35
+    bw, bh = 120, 75
+    fnt = _font(15)
+    fnt_s = _font_reg(10)
+    quotient = sum(p[0] for p in partials)
+    qtxt = str(quotient)
+    qtw = d.textlength(qtxt, font=fnt)
+    d.text((bx+bw/2-qtw/2, by-22), qtxt, fill=C_BORDER, font=fnt)
+    d.line([bx, by, bx, by+bh], fill=C_BORDER, width=3)
+    d.line([bx, by, bx+bw, by], fill=C_BORDER, width=3)
+    d.text((bx-35, by+bh/2-10), str(divisor), fill=C_BORDER, font=fnt)
+    d.text((bx+10, by+5), str(dividend), fill=C_BORDER, font=fnt)
+    d.line([bx+bw+15, by, bx+bw+15, by+bh], fill=C_GRAY_D, width=1)
+    yy = by
+    for mult, rem in partials:
+        d.text((bx+bw+20, yy), f"{mult} (x{divisor}={mult*divisor})", fill=C_BORDER, font=fnt_s)
+        yy += 16
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1721,6 +1775,8 @@ DIAGRAM_FUNCTIONS = {
     "equal_groups_example": equal_groups_example,
     "array_blank": array_blank,
     "array_example": array_example,
+    "division_box_blank": division_box_blank,
+    "division_box_example": division_box_example,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
