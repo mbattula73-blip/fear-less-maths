@@ -1350,6 +1350,130 @@ def fraction_numberline_example(num=1, den=2, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def hundredths_grid_blank(**kw) -> BytesIO:
+    """EMPTY 10x10 grid (100 squares), outline only -- for the child to
+    shade hundredths themselves. No answer leaked."""
+    cell = 18
+    w, h = 10*cell + 20, 10*cell + 20
+    img, d = _blank(w, h)
+    for row in range(10):
+        for col in range(10):
+            x0, y0 = 10+col*cell, 10+row*cell
+            d.rectangle([x0, y0, x0+cell, y0+cell], outline=C_BORDER, width=1)
+    return _to_bytes(img)
+
+
+def hundredths_grid_example(shaded=25, **kw) -> BytesIO:
+    """Worked example: `shaded` of 100 squares hatched (B&W), labeled."""
+    cell = 18
+    w, h = 10*cell + 20, 10*cell + 35
+    img, d = _blank(w, h)
+    for row in range(10):
+        for col in range(10):
+            idx = row*10 + col
+            x0, y0 = 10+col*cell, 10+row*cell
+            if idx < shaded:
+                _hatch_cell(d, x0, y0, x0+cell, y0+cell, "v", step=4)
+            d.rectangle([x0, y0, x0+cell, y0+cell], outline=C_BORDER, width=1)
+    fnt = _font_reg(12)
+    d.text((10, h-22), f"{shaded}/100 = 0.{str(shaded).zfill(2)}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_place_blank(has_ones=True, n_decimal=2, **kw) -> BytesIO:
+    """EMPTY place-value chart: column headers only (Ones | . | Tenths |
+    Hundredths...), boxes left blank for the child to fill in digits."""
+    labels = (["Ones"] if has_ones else []) + ["."] + \
+             ["Tenths", "Hundredths", "Thousandths"][:n_decimal]
+    col_w = 60
+    w = col_w * len(labels) + 20
+    h = 90
+    img, d = _blank(w, h)
+    fnt = _font_reg(10)
+    for i, lbl in enumerate(labels):
+        x0 = 10 + i*col_w
+        if lbl == ".":
+            d.text((x0+col_w/2-4, 35), ".", fill=C_BORDER, font=_font(20))
+            continue
+        d.rectangle([x0, 30, x0+col_w-6, 30+40], outline=C_BORDER, width=2)
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0+(col_w-6)/2-tw/2, 8), lbl, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_place_example(number="3.47", **kw) -> BytesIO:
+    """Worked example: a place-value chart with the digits of `number`
+    actually filled in, B&W, for the ONE worked instance per sub-level."""
+    parts = number.split(".")
+    whole = parts[0]
+    dec = parts[1] if len(parts) > 1 else ""
+    dec_labels = ["Tenths", "Hundredths", "Thousandths"][:max(len(dec), 1)]
+    labels = ["Ones", "."] + dec_labels
+    col_w = 60
+    w = col_w * len(labels) + 20
+    h = 95
+    img, d = _blank(w, h)
+    fnt = _font_reg(10)
+    fnt_big = _font(18)
+    digit_idx = 0
+    for i, lbl in enumerate(labels):
+        x0 = 10 + i*col_w
+        if lbl == ".":
+            d.text((x0+col_w/2-4, 38), ".", fill=C_BORDER, font=_font(20))
+            continue
+        d.rectangle([x0, 30, x0+col_w-6, 30+40], outline=C_BORDER, width=2)
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0+(col_w-6)/2-tw/2, 8), lbl, fill=C_BORDER, font=fnt)
+        if lbl == "Ones":
+            digit = whole[-1] if whole else "0"
+        else:
+            di = dec_labels.index(lbl)
+            digit = dec[di] if di < len(dec) else "0"
+        tw2 = d.textlength(digit, font=fnt_big)
+        d.text((x0+(col_w-6)/2-tw2/2, 38), digit, fill=C_BORDER, font=fnt_big)
+    return _to_bytes(img)
+
+
+def decimal_numberline_blank(lo=0.0, hi=1.0, divisions=10, **kw) -> BytesIO:
+    """A blank decimal number line from lo to hi with unlabeled ticks
+    (except the endpoints) -- for placing/comparing/ordering decimals."""
+    w, h = 280, 70
+    img, d = _blank(w, h)
+    pad = 25
+    y = 35
+    d.line([pad, y, w-pad, y], fill=C_BORDER, width=2)
+    for i in range(divisions+1):
+        x = pad + i*(w-2*pad)/divisions
+        d.line([x, y-7, x, y+7], fill=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    d.text((pad-6, y+12), str(lo), fill=C_BORDER, font=fnt)
+    d.text((w-pad-10, y+12), str(hi), fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_numberline_example(value=0.5, lo=0.0, hi=1.0, divisions=10, **kw) -> BytesIO:
+    """Worked example: a marked point at `value` on the lo-hi number line."""
+    w, h = 280, 80
+    img, d = _blank(w, h)
+    pad = 25
+    y = 35
+    d.line([pad, y, w-pad, y], fill=C_BORDER, width=2)
+    for i in range(divisions+1):
+        x = pad + i*(w-2*pad)/divisions
+        d.line([x, y-7, x, y+7], fill=C_BORDER, width=2)
+    frac = (value-lo)/(hi-lo) if hi != lo else 0
+    mx = pad + frac*(w-2*pad)
+    d.ellipse([mx-5, y-5, mx+5, y+5], outline=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    d.text((pad-6, y+12), str(lo), fill=C_BORDER, font=fnt)
+    d.text((w-pad-10, y+12), str(hi), fill=C_BORDER, font=fnt)
+    fnt2 = _font(12)
+    lbl = str(value)
+    tw = d.textlength(lbl, font=fnt2)
+    d.text((mx-tw/2, y-26), lbl, fill=C_BORDER, font=fnt2)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1392,6 +1516,12 @@ DIAGRAM_FUNCTIONS = {
     "fraction_numberline_blank": fraction_numberline_blank,
     "fraction_numberline_example": fraction_numberline_example,
     "fraction_bar": fraction_bar,
+    "hundredths_grid_blank": hundredths_grid_blank,
+    "hundredths_grid_example": hundredths_grid_example,
+    "decimal_place_blank": decimal_place_blank,
+    "decimal_place_example": decimal_place_example,
+    "decimal_numberline_blank": decimal_numberline_blank,
+    "decimal_numberline_example": decimal_numberline_example,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

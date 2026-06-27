@@ -17598,6 +17598,16 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 7 (Decimals) in place with the research-based
+# redesign -- adds explicit misconception-correction sub-levels (trailing
+# zeros, place-value comparison, "Spot the Mistake") based on documented
+# persistent decimal errors, none of which existed in the original.
+try:
+    from content_l7_redesign import LEVEL7_DISPATCH
+    _DISPATCH.update(LEVEL7_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
