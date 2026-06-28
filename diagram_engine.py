@@ -1859,6 +1859,193 @@ def magic_square_blank(size=3, given=None, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
+    """Proper VERTICAL matching layout: numbered items stacked in a left
+    column, lettered items stacked (shuffled) in a right column, each
+    with a small connector dot -- the child draws a line or writes the
+    matching letter in the blank box. This is the standard elementary
+    matching-exercise format (two vertical columns), not a single
+    cramped line of text."""
+    if lefts is None: lefts = ["1", "2", "3"]
+    if rights is None: rights = ["A", "B", "C"]
+    n = len(lefts)
+    row_h = 46
+    w = 360
+    h = n * row_h + 25
+    img, d = _blank(w, h)
+    fnt = _font_reg(17)
+    box = 24
+    for i, item in enumerate(lefts):
+        y = 12 + i*row_h + row_h/2
+        d.text((12, y-11), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
+        d.ellipse([190-5, y-5, 190+5, y+5], outline=C_BORDER, width=2)
+        # small answer box for writing the matching letter
+        d.rectangle([206, y-12, 206+box, y-12+24], outline=C_BORDER, width=2)
+    for i, item in enumerate(rights):
+        y = 12 + i*row_h + row_h/2
+        d.ellipse([255-5, y-5, 255+5, y+5], outline=C_BORDER, width=2)
+        d.text((275, y-11), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def matching_vertical_example(lefts=None, rights=None, lines=None, **kw) -> BytesIO:
+    """Worked example: same vertical layout, with the correct lines
+    already drawn connecting matched pairs."""
+    if lefts is None: lefts = ["1+1", "2+2", "3+3"]
+    if rights is None: rights = ["6", "2", "4"]
+    if lines is None: lines = [0, 2, 1]  # left index i connects to right index lines[i]
+    n = len(lefts)
+    row_h = 46
+    w = 360
+    h = n * row_h + 25
+    img, d = _blank(w, h)
+    fnt = _font_reg(17)
+    for i, item in enumerate(lefts):
+        y = 12 + i*row_h + row_h/2
+        d.text((12, y-11), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
+        d.ellipse([190-5, y-5, 190+5, y+5], outline=C_BORDER, width=2)
+    for i, item in enumerate(rights):
+        y = 12 + i*row_h + row_h/2
+        d.ellipse([255-5, y-5, 255+5, y+5], outline=C_BORDER, width=2)
+        d.text((275, y-11), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+    for li, ri in enumerate(lines):
+        y1 = 12 + li*row_h + row_h/2
+        y2 = 12 + ri*row_h + row_h/2
+        d.line([195, y1, 250, y2], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def math_maze_blank(start=5, step1=3, step2_even=2, step2_odd=4, **kw) -> BytesIO:
+    """A genuinely VISUAL math maze with a real fork: START -> add step1
+    -> the path PHYSICALLY splits into an EVEN branch (top) and an ODD
+    branch (bottom), each leading to its own final step box, both
+    converging on FINISH. The child solves step 1, follows whichever
+    branch matches (even/odd), then solves that branch's step to reach
+    the finish -- the geometry itself shows the decision, not just a
+    text label on a straight line."""
+    w, h = 520, 220
+    img, d = _blank(w, h)
+    fnt = _font_reg(13)
+    fnt_b = _font(13)
+    box_w, box_h = 80, 44
+    mid_y = h/2
+
+    def draw_box(cx, cy, text, sub=""):
+        d.rectangle([cx-box_w/2, cy-box_h/2, cx+box_w/2, cy+box_h/2], outline=C_BORDER, width=2)
+        tw = d.textlength(text, font=fnt_b)
+        d.text((cx-tw/2, cy-box_h/2+6), text, fill=C_BORDER, font=fnt_b)
+        if sub:
+            tw2 = d.textlength(sub, font=fnt)
+            d.text((cx-tw2/2, cy+2), sub, fill=C_BORDER, font=fnt)
+
+    def arrow(x0, y0, x1, y1):
+        d.line([x0, y0, x1, y1], fill=C_BORDER, width=2)
+        import math as _m
+        ang = _m.atan2(y1-y0, x1-x0)
+        ax, ay = x1 - 9*_m.cos(ang), y1 - 9*_m.sin(ang)
+        d.polygon([(x1, y1), (ax-5*_m.sin(ang), ay-5*_m.cos(ang)), (ax+5*_m.sin(ang), ay+5*_m.cos(ang))], fill=C_BORDER)
+
+    x_start = 50
+    x_step1 = 180
+    x_branch = 340
+    x_finish = 470
+
+    draw_box(x_start, mid_y, "START", f"= {start}")
+    arrow(x_start+box_w/2, mid_y, x_step1-box_w/2-4, mid_y)
+    d.text((x_start+box_w/2+8, mid_y-box_h/2-16), f"+ {step1}", fill=C_BORDER, font=fnt)
+    draw_box(x_step1, mid_y, "STEP 1", "= ____")
+
+    top_y = mid_y - 55
+    bot_y = mid_y + 55
+    arrow(x_step1+box_w/2, mid_y-8, x_branch-box_w/2-4, top_y)
+    arrow(x_step1+box_w/2, mid_y+8, x_branch-box_w/2-4, bot_y)
+    d.text(((x_step1+x_branch)/2-30, top_y-22), "if EVEN", fill=C_BORDER, font=fnt)
+    d.text(((x_step1+x_branch)/2-30, bot_y+8), "if ODD", fill=C_BORDER, font=fnt)
+    draw_box(x_branch, top_y, "EVEN PATH", f"+ {step2_even}")
+    draw_box(x_branch, bot_y, "ODD PATH", f"+ {step2_odd}")
+
+    arrow(x_branch+box_w/2, top_y, x_finish-box_w/2-4, mid_y-8)
+    arrow(x_branch+box_w/2, bot_y, x_finish-box_w/2-4, mid_y+8)
+    draw_box(x_finish, mid_y, "FINISH", "= ____")
+    return _to_bytes(img)
+
+
+def function_machine_blank(input_val=5, ops=None, mode="forward", **kw) -> BytesIO:
+    """A chain of 'machine' boxes: INPUT -> [operation] -> [operation] ->
+    OUTPUT. Forward mode shows the input, leaves output blank. Reverse
+    mode shows the output, leaves input blank -- specifically targets
+    the documented mistake where kids apply the same operation forward
+    instead of undoing it."""
+    if ops is None:
+        ops = ["+ 3"]
+    n = len(ops)
+    box_w, box_h = 70, 50
+    gap = 55
+    w = box_w*2 + n*(box_w+gap) + gap + 20
+    h = 90
+    img, d = _blank(w, h)
+    fnt = _font(14)
+    fnt_s = _font_reg(12)
+    mid_y = h/2
+
+    def draw_box(cx, cy, top, bottom, double=False):
+        if double:
+            d.rectangle([cx-box_w/2-3, cy-box_h/2-3, cx+box_w/2+3, cy+box_h/2+3], outline=C_BORDER, width=2)
+        d.rectangle([cx-box_w/2, cy-box_h/2, cx+box_w/2, cy+box_h/2], outline=C_BORDER, width=2)
+        tw = d.textlength(top, font=fnt)
+        d.text((cx-tw/2, cy-box_h/2+8), top, fill=C_BORDER, font=fnt)
+        if bottom:
+            tw2 = d.textlength(bottom, font=fnt_s)
+            d.text((cx-tw2/2, cy+2), bottom, fill=C_BORDER, font=fnt_s)
+
+    def arrow(x0, x1, y):
+        d.line([x0, y, x1, y], fill=C_BORDER, width=2)
+        d.polygon([(x1, y-5), (x1+8, y), (x1, y+5)], fill=C_BORDER)
+
+    x = 30
+    in_label = str(input_val) if mode == "forward" else "____"
+    draw_box(x+box_w/2, mid_y, "IN", in_label)
+    x += box_w
+    for op in ops:
+        arrow(x, x+gap-8, mid_y)
+        x += gap
+        draw_box(x+box_w/2, mid_y, "MACHINE", op, double=True)
+        x += box_w
+    arrow(x, x+gap-8, mid_y)
+    x += gap
+    out_label = "____" if mode == "forward" else str(input_val)
+    draw_box(x+box_w/2, mid_y, "OUT", out_label)
+    return _to_bytes(img)
+
+
+def number_pyramid_blank(rows=4, given=None, **kw) -> BytesIO:
+    """A triangular number pyramid: each brick = sum of the two bricks
+    directly below it. Some bricks are pre-filled (given), the rest are
+    blank for the child to work out."""
+    if given is None:
+        given = {}
+    cell = 46
+    w = rows * cell + 20
+    h = rows * cell + 20
+    img, d = _blank(w, h)
+    fnt = _font(15)
+    for r in range(rows):
+        # row r (0 = top) has r+1 cells, centered
+        n_cells = r + 1
+        row_w = n_cells * cell
+        x0 = (w - row_w) / 2
+        y0 = 10 + r*cell
+        for c in range(n_cells):
+            cx0 = x0 + c*cell
+            d.rectangle([cx0, y0, cx0+cell-4, y0+cell-4], outline=C_BORDER, width=2)
+            val = given.get((r, c))
+            if val is not None:
+                txt = str(val)
+                tw = d.textlength(txt, font=fnt)
+                d.text((cx0+(cell-4)/2-tw/2, y0+(cell-4)/2-10), txt, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1922,6 +2109,11 @@ DIAGRAM_FUNCTIONS = {
     "vertical_numberline_blank": vertical_numberline_blank,
     "vertical_numberline_example": vertical_numberline_example,
     "magic_square_blank": magic_square_blank,
+    "matching_vertical_blank": matching_vertical_blank,
+    "matching_vertical_example": matching_vertical_example,
+    "math_maze_blank": math_maze_blank,
+    "function_machine_blank": function_machine_blank,
+    "number_pyramid_blank": number_pyramid_blank,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

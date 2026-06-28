@@ -160,7 +160,10 @@ def _est(item, cw=None):
             n_lines+=len(_wrap(f"\u27a4 {t}","Helvetica",12,avail))
         return 6*mm+n_lines*4.5*mm+4*mm
     big_diag = item.get("diagram_type") in ("base10_blocks", "compare_blocks",
-                                             "vertical_numberline_blank", "vertical_numberline_example")
+                                             "vertical_numberline_blank", "vertical_numberline_example",
+                                             "matching_vertical_blank", "matching_vertical_example",
+                                             "math_maze_blank", "function_machine_blank",
+                                             "number_pyramid_blank")
     diag_h = (34*mm if big_diag else 20*mm) if item.get("diagram_type") else 0
     text = item.get("text", "")
     avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
@@ -259,7 +262,10 @@ class Col:
             if path:
                 try:
                     big_diag = dtype in ("base10_blocks", "compare_blocks",
-                                          "vertical_numberline_blank", "vertical_numberline_example")
+                                          "vertical_numberline_blank", "vertical_numberline_example",
+                                          "matching_vertical_blank", "matching_vertical_example",
+                                          "math_maze_blank", "function_machine_blank",
+                                          "number_pyramid_blank")
                     iw=min(cw-3*mm, 78*mm if big_diag else 68*mm)
                     ih=32*mm if big_diag else 18*mm
                     c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
