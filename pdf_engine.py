@@ -323,14 +323,25 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     topic=dict(SUBLEVELS.get(level_num,[])).get(sublevel_code,"")
     raw=get_questions(sublevel_code,sheet_num,level_num)
 
-    # For Level 7+: separate concept/tips from questions
-    # Questions go on pages 1-2. Concept+tips go on page 3.
-    if level_num >= 7:
-        concept_items = [x for x in raw if x.get("type") in ("concept_box","tips_box")]
-        questions     = [x for x in raw if x.get("type") not in ("concept_box","tips_box")]
-    else:
-        concept_items = []
-        questions     = raw  # L1-L6: keep original mixed format
+    # Decide whether a RICH concept page will be added (sheet 1 + spec exists)
+    # BEFORE deciding what to do with inline concept/tips boxes, so we only
+    # ever pull them off the worksheet when something is actually replacing
+    # them -- otherwise every worked-example/instructions box stays inline
+    # on the worksheet itself, exactly like Levels 1-6.
+    rich_spec = None
+    if str(sheet_num) == "1":
+        try:
+            from concept_pages import get_concept_page
+            rich_spec = get_concept_page(sublevel_code, level_num, topic)
+        except Exception:
+            rich_spec = None
+
+    # Worked-example/instructions boxes ALWAYS stay inline on the worksheet
+    # itself, on every sheet -- never pulled onto a separate page. The rich
+    # "Concept & Tips" page (sheet 1 only, when an existing spec is found)
+    # is an ADDITIONAL bonus page, not a replacement for the inline boxes.
+    concept_items = []
+    questions     = raw
 
     n=0
     for item in questions:
@@ -338,12 +349,12 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
             n+=1; item["_num"]=n
 
     buf=BytesIO(); c=canvas.Canvas(buf,pagesize=A4)
-    # Page 1 — questions only (L7+) or mixed (L1-L6)
+    # Page 1 — questions only (when rich page will replace concept) or mixed
     _outer(c); _header(c,ws_id,tier,topic,level_num)
     _sidebar(c,P1_TOP,P1_BOT,page=1); _divider(c,P1_TOP,P1_BOT)
     rl=Col(c,LX,CW,P1_TOP,P1_BOT); rr=Col(c,RX,CW,P1_TOP,P1_BOT)
     p2=[]
-    for item in questions if level_num>=7 else raw:
+    for item in questions:
         if not rl.render(item): p2.append(item)
     p3=[]
     for item in p2:
@@ -357,14 +368,6 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
         if not rl2.render(item): p4.append(item)
     for item in p4: rr2.render(item)
     _rough_work(c,rl2); _rough_work(c,rr2)
-    # Decide whether a RICH concept page will be added (sheet 1 + spec exists).
-    rich_spec = None
-    if str(sheet_num) == "1":
-        try:
-            from concept_pages import get_concept_page
-            rich_spec = get_concept_page(sublevel_code, level_num, topic)
-        except Exception:
-            rich_spec = None
 
     # Page 3 — concept & tips (Level 7+). Skipped when the rich concept page
     # will be shown (it replaces this), to avoid a redundant page.

@@ -200,8 +200,8 @@ def _C_s(sheet):
         missing_diagram_fn="vertical_numberline_blank",
         missing_params_fn=lambda a, b: {"lo": min(a, a+b)-3, "hi": max(a, a+b)+3})
     return _make_rotated_sheet(
-        "Worked Example — Discover the Zero Pair Rule",
-        ["A (+) and a (-) together cancel out -- a ZERO PAIR.",
+        "Worked Example",
+        ["Discover the Zero Pair Rule: a (+) and a (-) together cancel out -- a ZERO PAIR.",
          "Whatever is left over (no partner) gives the answer."],
         "integer_chips_example", {"pos": 5, "neg": 3},
         "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
@@ -217,8 +217,8 @@ def _D_s(sheet):
     fmt = make_format_builders(
         gen, "vertical_numberline_blank", lambda a, b: {"lo": a-b-3, "hi": a+3}, "-", lambda a, b: a-b)
     return _make_rotated_sheet(
-        "Worked Example — Keep, Change, Change",
-        ["KEEP the first number, CHANGE subtraction to addition, CHANGE the sign of the second number.",
+        "Worked Example",
+        ["Keep, Change, Change: KEEP the first number, CHANGE subtraction to addition, CHANGE the sign of the second number.",
          "(-3) - (5) becomes (-3) + (-5) = -8."],
         "vertical_numberline_example", {"value": -8, "lo": -12, "hi": 4},
         "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
@@ -342,8 +342,8 @@ def _E_s(sheet):
         return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
     return _make_rotated_sheet(
-        "Worked Example — Discover the Sign Rule",
-        ["Pattern: 3x2=6, 3x1=3, 3x0=0, 3x(-1)=?, 3x(-2)=? What rule do you notice?",
+        "Worked Example",
+        ["Discover the Sign Rule. Pattern: 3x2=6, 3x1=3, 3x0=0, 3x(-1)=?, 3x(-2)=? What rule do you notice?",
          "Same signs give POSITIVE. Different signs give NEGATIVE."],
         "array_example", {"rows": 3, "cols": 4},
         "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
