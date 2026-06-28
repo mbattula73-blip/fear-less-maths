@@ -17652,6 +17652,20 @@ try:
 except Exception as _e:
     pass
 
+# Replace the original Level 8 (Integers) in place. Reuses the EXACT
+# same 14 sub-level codes (8A-8J, 8CUM1-3, 8REV) so the existing rich
+# "Concept & Tips" study pages (concept_pages.py) stay untouched and
+# correctly matched to their topics. Adds: zero-pair discovery (chips),
+# Keep-Change-Change for subtraction, sign-rule discovery for
+# multiplication, integer magic squares, a self-scored speed round, and
+# the question-orientation rotation (4 blocks of 5: standard computation
+# -> True/False -> missing-number -> numeral) applied to every sheet.
+try:
+    from content_l8_redesign import LEVEL8_DISPATCH
+    _DISPATCH.update(LEVEL8_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

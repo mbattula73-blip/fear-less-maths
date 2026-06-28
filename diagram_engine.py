@@ -1719,6 +1719,146 @@ def division_box_example(dividend=158, divisor=4, partials=None, **kw) -> BytesI
     return _to_bytes(img)
 
 
+def integer_chips_blank(pos=5, neg=3, **kw) -> BytesIO:
+    """Positive and negative counter chips, SCATTERED and MIXED together
+    (not pre-paired) -- for the discovery task: 'find the zero pairs
+    yourself, then see what's left over.' + chips are plain circles,
+    - chips are circles with a minus inside (shape-coded, not colour-
+    coded, since this stays B&W)."""
+    import random as _r
+    rnd = _r.Random(pos*13 + neg*7)
+    r = 14
+    total = pos + neg
+    cols = min(total, 6)
+    rows = (total + cols - 1) // cols
+    w = cols*(r*2+10) + 20
+    h = rows*(r*2+10) + 30
+    img, d = _blank(max(w,160), h)
+    chips = ["+"]*pos + ["-"]*neg
+    rnd.shuffle(chips)
+    for i, sym in enumerate(chips):
+        row, col = divmod(i, cols)
+        cx, cy = 15+r+col*(r*2+10), 15+r+row*(r*2+10)
+        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+        if sym == "+":
+            d.line([cx-6, cy, cx+6, cy], fill=C_BORDER, width=2)
+            d.line([cx, cy-6, cx, cy+6], fill=C_BORDER, width=2)
+        else:
+            d.line([cx-6, cy, cx+6, cy], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def integer_chips_example(pos=5, neg=3, **kw) -> BytesIO:
+    """Worked example: same chips, but with zero pairs circled (a loop
+    drawn around each matched +/- pair) so the child sees how pairing
+    works before trying it themselves."""
+    import random as _r
+    rnd = _r.Random(pos*13 + neg*7)
+    r = 14
+    total = pos + neg
+    cols = min(total, 6)
+    rows = (total + cols - 1) // cols
+    w = cols*(r*2+10) + 20
+    h = rows*(r*2+10) + 50
+    img, d = _blank(max(w,160), h)
+    chips = ["+"]*pos + ["-"]*neg
+    rnd.shuffle(chips)
+    positions = []
+    for i, sym in enumerate(chips):
+        row, col = divmod(i, cols)
+        cx, cy = 15+r+col*(r*2+10), 15+r+row*(r*2+10)
+        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+        if sym == "+":
+            d.line([cx-6, cy, cx+6, cy], fill=C_BORDER, width=2)
+            d.line([cx, cy-6, cx, cy+6], fill=C_BORDER, width=2)
+        else:
+            d.line([cx-6, cy, cx+6, cy], fill=C_BORDER, width=2)
+        positions.append((cx, cy, sym))
+    # Loop a dashed circle around each matched +/- zero pair found greedily
+    pos_list = [p for p in positions if p[2] == "+"]
+    neg_list = [p for p in positions if p[2] == "-"]
+    n_pairs = min(len(pos_list), len(neg_list))
+    for k in range(n_pairs):
+        x1, y1, _ = pos_list[k]
+        x2, y2, _ = neg_list[k]
+        mx, my = (x1+x2)/2, (y1+y2)/2
+        rad = max(abs(x1-x2), abs(y1-y2))/2 + r + 4
+        d.ellipse([mx-rad, my-rad, mx+rad, my+rad], outline=C_GRAY_D, width=1)
+    leftover = abs(pos - neg)
+    sign = "+" if pos > neg else "-"
+    fnt = _font_reg(12)
+    d.text((10, h-22), f"{n_pairs} zero pairs cancel out. Leftover = {sign}{leftover}", fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def vertical_numberline_blank(lo=-10, hi=10, **kw) -> BytesIO:
+    """A VERTICAL number line (like a thermometer) -- research-recommended
+    specifically for integers since most real contexts (temperature,
+    elevation) are vertical. Unlabeled ticks except endpoints."""
+    w, h = 90, 240
+    img, d = _blank(w, h)
+    pad = 20
+    x = 45
+    d.line([x, pad, x, h-pad], fill=C_BORDER, width=2)
+    divisions = hi - lo
+    step = max(1, divisions // 10)
+    n_ticks = divisions // step
+    for i in range(n_ticks+1):
+        y = (h-pad) - i*(h-2*pad)/n_ticks
+        d.line([x-7, y, x+7, y], fill=C_BORDER, width=2)
+    fnt = _font_reg(10)
+    d.text((x+12, h-pad-6), str(lo), fill=C_BORDER, font=fnt)
+    d.text((x+12, pad-6), str(hi), fill=C_BORDER, font=fnt)
+    d.text((x+12, (h-pad+pad)/2-6), "0", fill=C_GRAY_D, font=fnt)
+    return _to_bytes(img)
+
+
+def vertical_numberline_example(value=-3, lo=-10, hi=10, **kw) -> BytesIO:
+    """Worked example: a marked point at `value` on the vertical line."""
+    w, h = 100, 240
+    img, d = _blank(w, h)
+    pad = 20
+    x = 45
+    d.line([x, pad, x, h-pad], fill=C_BORDER, width=2)
+    divisions = hi - lo
+    step = max(1, divisions // 10)
+    n_ticks = divisions // step
+    for i in range(n_ticks+1):
+        y = (h-pad) - i*(h-2*pad)/n_ticks
+        d.line([x-7, y, x+7, y], fill=C_BORDER, width=2)
+    fnt = _font_reg(10)
+    d.text((x+12, h-pad-6), str(lo), fill=C_BORDER, font=fnt)
+    d.text((x+12, pad-6), str(hi), fill=C_BORDER, font=fnt)
+    frac = (value-lo)/(hi-lo) if hi != lo else 0
+    my = (h-pad) - frac*(h-2*pad)
+    d.ellipse([x-6, my-6, x+6, my+6], outline=C_BORDER, width=2)
+    fnt2 = _font(13)
+    d.text((x-35, my-7), str(value), fill=C_BORDER, font=fnt2)
+    return _to_bytes(img)
+
+
+def magic_square_blank(size=3, given=None, **kw) -> BytesIO:
+    """A size x size grid with some cells pre-filled (given) and the
+    rest blank, for integer magic-square puzzles (rows/cols/diagonals
+    sum to the same value)."""
+    if given is None:
+        given = {}
+    cell = 50
+    w, h = size*cell+20, size*cell+20
+    img, d = _blank(w, h)
+    fnt = _font(16)
+    for r in range(size):
+        for c in range(size):
+            x0, y0 = 10+c*cell, 10+r*cell
+            d.rectangle([x0, y0, x0+cell, y0+cell], outline=C_BORDER, width=2)
+            val = given.get((r, c))
+            if val is not None:
+                txt = str(val)
+                tw = d.textlength(txt, font=fnt)
+                d.text((x0+cell/2-tw/2, y0+cell/2-10), txt, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
 # ─── DISPATCHER ───────────────────────────────────────────────────────────────
 
 DIAGRAM_FUNCTIONS = {
@@ -1777,6 +1917,11 @@ DIAGRAM_FUNCTIONS = {
     "array_example": array_example,
     "division_box_blank": division_box_blank,
     "division_box_example": division_box_example,
+    "integer_chips_blank": integer_chips_blank,
+    "integer_chips_example": integer_chips_example,
+    "vertical_numberline_blank": vertical_numberline_blank,
+    "vertical_numberline_example": vertical_numberline_example,
+    "magic_square_blank": magic_square_blank,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
