@@ -162,7 +162,11 @@ def _est(item, cw=None):
     big_diag = item.get("diagram_type") in ("base10_blocks", "compare_blocks",
                                              "vertical_numberline_blank", "vertical_numberline_example")
     diag_h = (34*mm if big_diag else 20*mm) if item.get("diagram_type") else 0
-    return 2*mm+9*mm+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
+    text = item.get("text", "")
+    avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
+    n_lines = max(2, len(_wrap(text, "Helvetica", 12, avail_text))) if text else 2
+    text_h = n_lines * 4.5*mm
+    return 2*mm+text_h+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
 
 class Col:
     def __init__(self,c,x,cw,top,bot):
@@ -226,7 +230,7 @@ class Col:
         c=self.c; x=self.x; cw=self.cw
         num=item.get("_num","?"); text=item.get("text",""); bph=item.get("bold_phrase","")
         albl=item.get("answer_label","Answer = ____"); dtype=item.get("diagram_type"); dparm=item.get("diagram_params",{})
-        if len(text)>88: text=text[:85]+"..."
+        if len(text)>220: text=text[:215]+"..."
         self.y-=2.5*mm
         sz=12; c.setFont("Helvetica-Bold",sz); c.setFillColor(BLACK)
         ns=f"{num}."; nw=c.stringWidth(ns,"Helvetica-Bold",sz)+1.5*mm; c.drawString(x,self.y,ns)

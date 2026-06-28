@@ -1,34 +1,18 @@
 """
-Fear Less Maths — LEVEL 8 REDESIGN (Integers, Grade 6-7, higher students)
+Fear Less Maths — LEVEL 8 REDESIGN v2 (Integers, Grade 6-7)
 
 Replaces the original Level 8 in place, reusing the EXACT same 14
 sub-level codes (8A-8J, 8CUM1-3, 8REV) so the existing rich "Concept &
-Tips" study pages (concept_pages.py) remain untouched and correctly
+Tips" study pages (concept_pages.py) stay untouched and correctly
 matched to their topics.
 
-Three things this redesign does differently from a plain CPA worksheet:
-
-1. ~50% CPA (not the 15/5 pictorial/numeral split used in Pre-Levels)
-   -- these are older students, so less hand-holding is appropriate.
-
-2. QUESTION ORIENTATION ROTATION (the core fix): every 20-question sheet
-   is split into 4 blocks of 5, each a DIFFERENT task format around the
-   same skill, instead of one format repeated 20 times:
-     Block 1 (Q1-5):   standard computation (diagram + bare expression)
-     Block 2 (Q6-10):  True/False (including deliberately wrong
-                        statements -- the research-backed "compare
-                        correct vs incorrect" technique)
-     Block 3 (Q11-15): missing-number / fill-in-the-blank variant
-                        (same skill, asked from a different angle)
-     Block 4 (Q16-20): pure numeral, no diagram (CPA Abstract stage)
-
-3. Integer-specific pedagogy researched separately: two-colour zero-pair
-   counters (discovery-based, not told the rule), vertical number lines
-   (research-recommended over horizontal for temperature/elevation
-   contexts), "Keep-Change-Change" for subtraction, discovering the
-   multiplication sign rule from a number pattern instead of being told,
-   rotating real-world contexts (temperature/elevation/money/charge),
-   integer magic squares, and a self-scored speed round.
+v2 fixes the "same worksheet for every sheet" problem: each sub-level
+now has 6 question-format builders (computation, True/False,
+missing-number, numeral, multi-select, matching) and 4 SHEET TEMPLATES,
+each picking a different combination/order of 4 of those 6 formats.
+Sheet 1-4 of the same sub-level therefore look genuinely different from
+each other, not the same shape with new numbers -- and difficulty
+(number range/sign variety) increases slightly sheet to sheet.
 """
 import random
 from content import cb, tb, q
@@ -40,444 +24,655 @@ CONTEXTS = [
     ("charge", "An electric charge reads {v}."),
 ]
 
-
-def _kind_ctx(i):
-    return CONTEXTS[i % len(CONTEXTS)]
-
-
-def _chip_q(pos, neg, op="+"):
-    return q(f"({pos}) {op} (-{neg}) = ____", "diagram", "____", "", "integer_chips_blank",
-              {"pos": pos, "neg": neg})
-
-
-def _vline_q(lo, hi):
-    return q("Mark the value on the number line.", "diagram", "____",
-              "", "vertical_numberline_blank", {"lo": lo, "hi": hi})
+# 4 sheet templates: each a different combination/order of formats.
+# Sheet s uses TEMPLATES[(s-1) % 4].
+TEMPLATES = [
+    ["comp", "tf", "missing", "numeral"],
+    ["matching", "multisel", "comp", "tf"],
+    ["missing", "matching", "numeral", "multisel"],
+    ["tf", "numeral", "matching", "comp"],
+]
 
 
-def _array_int_q(rows, cols, sign_row, sign_col):
-    return q(f"({sign_row}{rows}) x ({sign_col}{cols}) = ____", "diagram", "____",
-              "", "array_blank", {"rows": rows, "cols": cols})
+def _diff_range(sheet):
+    """Slightly widens the number range / sign variety as sheet increases,
+    so sheet 4 is a bit harder than sheet 1, not identical difficulty."""
+    return [(2, 6), (3, 7), (4, 8), (5, 9)][min(sheet - 1, 3)]
 
 
-def _make_4block_sheet(title, bullets, icon, icon_params, instruction, block_builders, sheet, seed_base=0):
-    random.seed(seed_base + sheet)
+def _make_rotated_sheet(title, bullets, icon, icon_params, instruction, fmt_builders, sheet, seed_base=0):
+    random.seed(seed_base + sheet * 17)
     items = [cb(title, bullets, "", icon_diagram=icon, icon_params=icon_params)]
     items.append(tb("Instructions", [instruction]))
-    for builder in block_builders:
+    template = TEMPLATES[(sheet - 1) % 4]
+    for key in template:
         for i in range(5):
-            items.append(builder(i, sheet))
+            items.append(fmt_builders[key](i, sheet))
     return items
+
+
+def make_format_builders(gen_pair, diagram_fn, diagram_params_fn, op_symbol, op_compute, missing_diagram_fn=None, missing_params_fn=None):
+    """Builds the 6 standard format functions for a binary-operation skill."""
+    missing_diagram_fn = missing_diagram_fn or diagram_fn
+    missing_params_fn = missing_params_fn or diagram_params_fn
+
+    def comp(i, sheet):
+        a, b = gen_pair(sheet)
+        return q(f"({a}) {op_symbol} ({b}) = ____", "diagram", "____", "", diagram_fn, diagram_params_fn(a, b))
+
+    def tf(i, sheet):
+        a, b = gen_pair(sheet)
+        correct = op_compute(a, b)
+        shown = correct if random.random() > 0.4 else correct + random.choice([-3, -2, 2, 3])
+        return q(f"True or False: ({a}) {op_symbol} ({b}) = {shown}", "fill", "____ (True/False)")
+
+    def missing(i, sheet):
+        a, b = gen_pair(sheet)
+        target = op_compute(a, b)
+        return q(f"({a}) {op_symbol} ____ = {target}", "diagram", "____", "", missing_diagram_fn, missing_params_fn(a, b))
+
+    def numeral(i, sheet):
+        a, b = gen_pair(sheet)
+        return q(f"({a}) {op_symbol} ({b}) = ____", "fill", "____")
+
+    def multisel(i, sheet):
+        a, b = gen_pair(sheet)
+        target = op_compute(a, b)
+        opts = [(a, b)]
+        for _ in range(3):
+            opts.append(gen_pair(sheet))
+        letters = ["A", "B", "C", "D"]
+        opts_str = "  ".join(f"{letters[k]}) ({opts[k][0]}){op_symbol}({opts[k][1]})" for k in range(4))
+        return q(f"Which equal {target}? Select ALL that apply: {opts_str}", "fill", "____ (list all letters)")
+
+    def matching(i, sheet):
+        pairs = [gen_pair(sheet) for _ in range(3)]
+        lefts = [f"({a}){op_symbol}({b})" for a, b in pairs]
+        rights = [str(op_compute(a, b)) for a, b in pairs]
+        shuffled = rights[:]
+        random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+
+    return {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
 
 
 # ───────────────────────── 8A: Integer concept ─────────────────────────
 
 def _A_s(sheet):
-    def b1(i, sheet):
-        ctx, template = _kind_ctx(i)
-        v = random.choice([-8,-5,-3,-1,2,4,6,9])
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        v = random.choice([x for x in range(-hi-3, hi+4) if abs(x) >= lo])
+        return (v, 0)
+    def comp(i, sheet):
+        v, _ = gen(sheet)
+        ctx, template = CONTEXTS[i % len(CONTEXTS)]
         return q(f"{template.format(v=v)} Mark it on the number line.", "diagram", "____",
-                  "", "vertical_numberline_blank", {"lo": -10, "hi": 10})
-    def b2(i, sheet):
-        v = random.choice([-7,-4,-2,3,5,8])
-        claim = random.choice([True, False])
-        shown = v if claim else -v
-        return q(f"True or False: {shown} is {'below' if shown<0 else 'above'} zero.", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        v = random.choice([-9,-6,-4,2,5,7])
-        return q(f"The opposite of {v} is ____.", "diagram", "____", "", "vertical_numberline_blank", {"lo":-10,"hi":10})
-    def b4(i, sheet):
-        v = random.randint(-9,9)
+                  "", "vertical_numberline_blank", {"lo": -hi-5, "hi": hi+5})
+    def tf(i, sheet):
+        v, _ = gen(sheet)
+        shown_sign = random.choice([True, False])
+        word = "below" if v < 0 else "above"
+        wrong_word = "above" if v < 0 else "below"
+        return q(f"True or False: {v} is {word if shown_sign else wrong_word} zero.", "fill", "____ (True/False)")
+    def missing(i, sheet):
+        v, _ = gen(sheet)
+        return q(f"The opposite of {v} is ____.", "diagram", "____", "", "vertical_numberline_blank", {"lo": -hi-5, "hi": hi+5})
+    def numeral(i, sheet):
+        v, _ = gen(sheet)
         return q(f"Write the opposite of {v}. ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        v, _ = gen(sheet)
+        opts = [str(-v), str(v), str(-v+1), str(v-1)]
+        return q(f"Which of these is the opposite of {v}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        vals = [gen(sheet)[0] for _ in range(3)]
+        lefts = [str(v) for v in vals]
+        rights = [str(-v) for v in vals]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match each number to its opposite: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example",
         ["Real situations use integers: temperature, elevation, money owed, electric charge.",
          "-5 degrees means 5 below zero. +5 m means 5 above sea level."],
         "vertical_numberline_example", {"value": -5, "lo": -10, "hi": 10},
-        "Q1-5: mark the value. Q6-10: True/False. Q11-15: find the opposite. Q16-20: write the opposite, no picture.",
-        [b1, b2, b3, b4], sheet, seed_base=10)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=10)
 
 
 # ───────────────────────── 8B: Number line / ordering ─────────────────────────
 
 def _B_s(sheet):
-    def b1(i, sheet):
-        v = random.randint(-9,9)
-        return q(f"Mark {v} on the number line.", "diagram", "____", "", "vertical_numberline_blank", {"lo":-10,"hi":10})
-    def b2(i, sheet):
-        a, b = random.sample(range(-9,10), 2)
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return tuple(random.sample(range(-hi-2, hi+3), 2))
+    def comp(i, sheet):
+        v = random.randint(-hi-2, hi+2)
+        return q(f"Mark {v} on the number line.", "diagram", "____", "", "vertical_numberline_blank", {"lo": -hi-5, "hi": hi+5})
+    def tf(i, sheet):
+        a, b = gen(sheet)
         claim_true = a > b
-        stmt_a, stmt_b = (a,b) if random.random()>0.3 else (b,a)
+        show_correct = random.random() > 0.4
+        stmt_a, stmt_b = (a, b) if (claim_true == show_correct) else (b, a)
         return q(f"True or False: {stmt_a} > {stmt_b}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a, b = sorted(random.sample(range(-9,9), 2))
-        mid = (a+b)//2
+    def missing(i, sheet):
+        a, b = sorted(gen(sheet))
         return q(f"{a} < ____ < {b}  (give one number that fits)", "diagram", "____",
-                  "", "vertical_numberline_blank", {"lo": a-2, "hi": b+2})
-    def b4(i, sheet):
-        a, b = random.sample(range(-9,10), 2)
+                  "", "vertical_numberline_blank", {"lo": a-3, "hi": b+3})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
         return q(f"{a} ___ {b}  (>, < or =)", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        base = random.randint(-hi, hi)
+        opts = [base+1, base-1, base+5, base-5]
+        return q(f"Which of these are greater than {base}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        vals = [random.randint(-hi-2, hi+2) for _ in range(3)]
+        lefts = [str(v) for v in vals]
+        rights = [("positive" if v > 0 else ("negative" if v < 0 else "zero")) for v in vals]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match each number to its type: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example",
-        ["On a vertical number line, UP is bigger, DOWN is smaller.",
-         "-3 is above -7, so -3 > -7."],
+        ["On a vertical number line, UP is bigger, DOWN is smaller.", "-3 is above -7, so -3 > -7."],
         "vertical_numberline_example", {"value": -3, "lo": -10, "hi": 10},
-        "Q1-5: mark the number. Q6-10: True/False. Q11-15: find a number in between. Q16-20: compare, no picture.",
-        [b1, b2, b3, b4], sheet, seed_base=20)
-
-
-def _CUM1_s(sheet):
-    def b1(i, sheet):
-        v = random.randint(-9,9)
-        return q(f"Mark {v} on the number line.", "diagram", "____", "", "vertical_numberline_blank", {"lo":-10,"hi":10})
-    def b2(i, sheet):
-        pos, neg = random.randint(2,8), random.randint(2,8)
-        return q(f"True or False: ({pos}) + (-{neg}) = {pos-neg}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        pos, neg = random.randint(2,8), random.randint(2,8)
-        return _chip_q(pos, neg)
-    def b4(i, sheet):
-        a, b = random.sample(range(-9,10), 2)
-        return q(f"{a} ___ {b}", "fill", "____")
-    return _make_4block_sheet(
-        "Review", ["Mix of concept, ordering, and your first integer addition."],
-        "integer_chips_example", {"pos":5,"neg":3},
-        "Mixed review of Q1-5/6-10/11-15/16-20 styles.", [b1,b2,b3,b4], sheet, seed_base=100)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=20)
 
 
 # ───────────────────────── 8C: Addition (zero pairs) ─────────────────────────
 
 def _C_s(sheet):
-    def b1(i, sheet):
-        pos, neg = random.randint(2,8), random.randint(2,8)
-        return _chip_q(pos, neg)
-    def b2(i, sheet):
-        a, b = random.randint(-9,-1), random.randint(1,9)
-        correct = a+b
-        shown = correct if random.random()>0.4 else correct + random.choice([-2,2,3])
-        return q(f"True or False: ({a}) + ({b}) = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,-1); target = random.randint(-5,8)
-        return q(f"({a}) + ____ = {target}", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,target)-3, "hi": max(a,target)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        return q(f"({a}) + ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (-random.randint(lo, hi), random.randint(lo, hi))
+    fmt = make_format_builders(
+        gen, "integer_chips_blank", lambda a, b: {"pos": abs(b), "neg": abs(a)}, "+", lambda a, b: a+b,
+        missing_diagram_fn="vertical_numberline_blank",
+        missing_params_fn=lambda a, b: {"lo": min(a, a+b)-3, "hi": max(a, a+b)+3})
+    return _make_rotated_sheet(
         "Worked Example — Discover the Zero Pair Rule",
-        ["Try pairing one (+) chip with one (-) chip before reading on.",
-         "A (+) and a (-) together cancel out -- a ZERO PAIR.",
+        ["A (+) and a (-) together cancel out -- a ZERO PAIR.",
          "Whatever is left over (no partner) gives the answer."],
-        "integer_chips_example", {"pos":5,"neg":3},
-        "Q1-5: circle zero pairs to add. Q6-10: True/False. Q11-15: find the missing addend. Q16-20: add, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=30)
+        "integer_chips_example", {"pos": 5, "neg": 3},
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=30)
 
 
 # ───────────────────────── 8D: Subtraction (Keep-Change-Change) ─────────────────────────
 
 def _D_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(-9,9), random.randint(1,9)
-        return q(f"({a}) - ({b}) = ____  (Keep {a}, Change - to +, Change {b} to -{b})",
-                  "diagram", "____", "", "vertical_numberline_blank", {"lo": a-b-3, "hi": a+3})
-    def b2(i, sheet):
-        a, b = random.randint(-9,9), random.randint(1,9)
-        correct = a-b
-        shown = correct if random.random()>0.4 else a+b
-        return q(f"True or False: ({a}) - ({b}) = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); target = random.randint(-9,9)
-        return q(f"({a}) - ____ = {target}", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,target)-3, "hi": max(a,target)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        return q(f"({a}) - ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (random.randint(-hi, hi), random.randint(lo, hi))
+    fmt = make_format_builders(
+        gen, "vertical_numberline_blank", lambda a, b: {"lo": a-b-3, "hi": a+3}, "-", lambda a, b: a-b)
+    return _make_rotated_sheet(
         "Worked Example — Keep, Change, Change",
         ["KEEP the first number, CHANGE subtraction to addition, CHANGE the sign of the second number.",
          "(-3) - (5) becomes (-3) + (-5) = -8."],
         "vertical_numberline_example", {"value": -8, "lo": -12, "hi": 4},
-        "Q1-5: use Keep-Change-Change. Q6-10: True/False. Q11-15: find the missing number. Q16-20: subtract, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=40)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=40)
+
+
+def _CUM1_s(sheet):
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        op = random.choice(["+", "-"])
+        a = random.randint(-hi, hi); b = random.randint(lo, hi)
+        return (a, b if op == "+" else b)
+    def comp(i, sheet):
+        op = random.choice(["+", "-"]); a = random.randint(-hi, hi); b = random.randint(lo, hi)
+        return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank", {"lo": a-b-3, "hi": a+b+3})
+    def tf(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(lo, hi)
+        op = random.choice(["+", "-"]); correct = a+b if op == "+" else a-b
+        shown = correct if random.random() > 0.4 else correct+2
+        return q(f"True or False: ({a}) {op} ({b}) = {shown}", "fill", "____ (True/False)")
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
+        return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+    def numeral(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
+        return q(f"({a}) {random.choice(['+','-'])} ({b}) = ____", "fill", "____")
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"({target-2})+({2})", f"({target})+({0})", f"({target+3})+({-3})", f"({target+1})+({-2})"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [(random.randint(-hi, hi), random.randint(lo, hi)) for _ in range(3)]
+        lefts = [f"({a})+({b})" for a, b in pairs]; rights = [str(a+b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
+        "Review", ["Mix of concept, ordering, and addition/subtraction."],
+        "integer_chips_example", {"pos": 5, "neg": 3},
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=100)
 
 
 def _CUM2_s(sheet):
-    def b1(i, sheet):
-        pos, neg = random.randint(2,8), random.randint(2,8)
-        return _chip_q(pos, neg) if i%2==0 else q(f"({-neg}) - ({pos}) = ____", "diagram", "____",
-                                                     "", "vertical_numberline_blank", {"lo":-20,"hi":5})
-    def b2(i, sheet):
-        a,b = random.randint(-8,8), random.randint(1,8)
-        return q(f"True or False: ({a}) - ({b}) = {a+b}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); t = random.randint(-9,9)
-        return q(f"({a}) {'+ ' if random.random()>0.5 else '- '}____ = {t}", "diagram", "____",
-                  "", "vertical_numberline_blank", {"lo": min(a,t)-3, "hi": max(a,t)+3})
-    def b4(i, sheet):
-        a,b = random.randint(-9,9), random.randint(-9,9)
-        return q(f"({a}) {'+' if i%2==0 else '-'} ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
-        "Review", ["Mix of addition and subtraction."],
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        op = random.choice(["+", "-"]); a = random.randint(-hi, hi); b = random.randint(lo, hi)
+        return (a, b)
+    def comp(i, sheet):
+        op = random.choice(["+", "-"]); a = random.randint(-hi, hi); b = random.randint(lo, hi)
+        return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank", {"lo": a-b-3, "hi": a+b+3})
+    def tf(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(lo, hi)
+        op = random.choice(["+", "-"]); correct = a+b if op == "+" else a-b
+        shown = correct if random.random() > 0.4 else correct+2
+        return q(f"True or False: ({a}) {op} ({b}) = {shown}", "fill", "____ (True/False)")
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
+        op = random.choice(["+", "-"])
+        return q(f"({a}) {op} ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+    def numeral(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
+        return q(f"({a}) {random.choice(['+','-'])} ({b}) = ____", "fill", "____")
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"({target-2})-({-2})", f"({target})-({0})", f"({target+3})-({3})", f"({target+1})-({2})"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [(random.randint(-hi, hi), random.randint(lo, hi)) for _ in range(3)]
+        lefts = [f"({a})-({b})" for a, b in pairs]; rights = [str(a-b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
+        "Review", ["Mix of multiplying and dividing integers (from D/E/F)."],
         "vertical_numberline_example", {"value": -8, "lo": -12, "hi": 4},
-        "Mixed review of all 4 question styles.", [b1,b2,b3,b4], sheet, seed_base=200)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=200)
 
 
 # ───────────────────────── 8E: Multiplication (discover the sign rule) ─────────────────────────
 
 def _E_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
-        signs = random.choice([("","-"), ("-",""), ("-","-"), ("","")])
-        return _array_int_q(a, b, signs[0], signs[1])
-    def b2(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (random.randint(lo, hi), random.randint(lo, hi))
+    def comp(i, sheet):
+        a, b = gen(sheet)
+        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
+        return q(f"({signs[0]}{a}) x ({signs[1]}{b}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def tf(i, sheet):
+        a, b = gen(sheet)
         correct = a*b
-        shown = -correct if random.random()>0.4 else correct
+        shown = -correct if random.random() > 0.4 else correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(2,9); product = a * random.randint(2,9)
-        return q(f"(-{a}) x ____ = {-product}", "diagram", "____", "", "array_blank", {"rows": a, "cols": product//a})
-    def b4(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
-        signs = random.choice([("",""), ("","-"), ("-",""), ("-","-")])
+    def missing(i, sheet):
+        a, b = gen(sheet)
+        return q(f"(-{a}) x ____ = {-(a*b)}", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
+        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
         return q(f"({signs[0]}{a}) x ({signs[1]}{b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        a, b = gen(sheet)
+        target = a*b
+        opts = [f"(-{a})x(-{b})", f"({a})x(-{b})", f"(-{a})x({b})", f"({a})x({b})"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [gen(sheet) for _ in range(3)]
+        lefts = [f"(-{a})x(-{b})" for a, b in pairs]; rights = [str(a*b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example — Discover the Sign Rule",
-        ["Look at the pattern: 3x2=6, 3x1=3, 3x0=0, 3x(-1)=____, 3x(-2)=____. What rule do you notice?",
-         "Same signs (+x+ or -x-) give a POSITIVE answer. Different signs give a NEGATIVE answer."],
+        ["Pattern: 3x2=6, 3x1=3, 3x0=0, 3x(-1)=?, 3x(-2)=? What rule do you notice?",
+         "Same signs give POSITIVE. Different signs give NEGATIVE."],
         "array_example", {"rows": 3, "cols": 4},
-        "Q1-5: multiply using the grid. Q6-10: True/False. Q11-15: find the missing factor. Q16-20: multiply, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=50)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=50)
 
 
 # ───────────────────────── 8F: Division (fact families) ─────────────────────────
 
 def _F_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (random.randint(lo, hi), random.randint(lo, hi))
+    def comp(i, sheet):
+        a, b = gen(sheet)
         product = a*b
-        signs = random.choice([("",""), ("","-"), ("-",""), ("-","-")])
-        return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows":a,"cols":b})
-    def b2(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
-        correct = a*b
-        shown = correct if random.random()>0.4 else -correct
-        return q(f"True or False: (-{correct}) / (-{a}) = {b if shown==correct else -b}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
+        return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def tf(i, sheet):
+        a, b = gen(sheet)
         product = a*b
-        return q(f"(-{product}) / ____ = {b}", "diagram", "____", "", "array_blank", {"rows":a,"cols":b})
-    def b4(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+        correct = b
+        shown = correct if random.random() > 0.4 else -correct
+        return q(f"True or False: (-{product}) / (-{a}) = {shown}", "fill", "____ (True/False)")
+    def missing(i, sheet):
+        a, b = gen(sheet)
         product = a*b
-        signs = random.choice([("",""), ("","-"), ("-",""), ("-","-")])
+        return q(f"(-{product}) / ____ = {b}", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
+        product = a*b
+        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
         return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        a, b = gen(sheet)
+        product = a*b
+        target = b
+        opts = [f"(-{product})/(-{a})", f"({product})/(-{a})", f"(-{product})/({a})", f"({product})/({a})"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [gen(sheet) for _ in range(3)]
+        lefts = [f"(-{a*b})/(-{a})" for a, b in pairs]; rights = [str(b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example",
         ["Division follows the SAME sign rule as multiplication.",
-         "(-12) / (-3) = 4 (same signs -> positive). (-12) / 3 = -4 (different signs -> negative)."],
+         "(-12)/(-3)=4 (same signs->positive). (-12)/3=-4 (different signs->negative)."],
         "array_example", {"rows": 3, "cols": 4},
-        "Q1-5: divide using the grid. Q6-10: True/False. Q11-15: find the missing divisor. Q16-20: divide, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=60)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=60)
 
 
 def _CUM3_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
-        signs = random.choice([("",""), ("","-"), ("-",""), ("-","-")])
-        return _array_int_q(a, b, signs[0], signs[1]) if i%2==0 else q(
-            f"({signs[0]}{a*b}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows":a,"cols":b})
-    def b2(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (random.randint(lo, hi), random.randint(lo, hi))
+    def comp(i, sheet):
+        a, b = gen(sheet)
+        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
+        if i % 2 == 0:
+            return q(f"({signs[0]}{a}) x ({signs[1]}{b}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+        product = a*b
+        return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def tf(i, sheet):
+        a, b = gen(sheet)
         return q(f"True or False: (-{a}) x (-{b}) = {a*b}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(2,9); product = a*random.randint(2,9)
-        return q(f"(-{a}) x ____ = {-product}", "diagram", "____", "", "array_blank", {"rows":a,"cols":product//a})
-    def b4(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
-        op = random.choice(["x","/"])
+    def missing(i, sheet):
+        a, b = gen(sheet)
+        return q(f"(-{a}) x ____ = {-(a*b)}", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
+        op = random.choice(["x", "/"])
         if op == "/": a = a*b
         return q(f"(-{a}) {op} ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        a, b = gen(sheet)
+        target = a*b
+        opts = [f"(-{a})x(-{b})", f"({a})x(-{b})", f"(-{a})x({b})", f"({a})x({b})"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [gen(sheet) for _ in range(3)]
+        lefts = [f"(-{a})x(-{b})" for a, b in pairs]; rights = [str(a*b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Review", ["Mix of multiplying and dividing integers."],
         "array_example", {"rows": 3, "cols": 4},
-        "Mixed review of all 4 question styles.", [b1,b2,b3,b4], sheet, seed_base=300)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=300)
 
 
 # ───────────────────────── 8G: Word problems (rotated contexts) ─────────────────────────
 
 def _G_s(sheet):
+    lo, hi = _diff_range(sheet)
     templates = [
         "Temperature was {a} degrees, then changed by {b} degrees. Now it is ____.",
-        "A diver was at {a} m (relative to sea level), then moved {b} m. Now at ____.",
+        "A diver was at {a} m (sea level=0), then moved {b} m. Now at ____.",
         "An account had ${a}, then a transaction of ${b}. New balance: ____.",
     ]
-    def b1(i, sheet):
-        a = random.randint(-9,9); b = random.randint(-9,9)
-        txt = random.choice(templates).format(a=a, b=b)
-        return q(txt, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a,a+b)-3, "hi": max(a,a+b)+3})
-    def b2(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
+    def gen(sheet):
+        return (random.randint(-hi, hi), random.randint(-hi, hi))
+    def comp(i, sheet):
+        a, b = gen(sheet)
+        txt = templates[i % len(templates)].format(a=a, b=b)
+        return q(txt, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, a+b)-3, "hi": max(a, a+b)+3})
+    def tf(i, sheet):
+        a, b = gen(sheet)
         correct = a+b
-        shown = correct if random.random()>0.4 else correct+2
+        shown = correct if random.random() > 0.4 else correct+2
         return q(f"True or False: starting at {a} and changing by {b} gives {shown}.", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); final = random.randint(-9,9)
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); final = random.randint(-hi, hi)
         return q(f"Started at {a}, ended at {final}. The change was ____.", "diagram", "____",
-                  "", "vertical_numberline_blank", {"lo": min(a,final)-3, "hi": max(a,final)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        txt = random.choice(templates).format(a=a, b=b)
+                  "", "vertical_numberline_blank", {"lo": min(a, final)-3, "hi": max(a, final)+3})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
+        txt = templates[i % len(templates)].format(a=a, b=b)
         return q(txt, "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"start {target-2}, change +2", f"start {target}, change +0", f"start {target+3}, change -3", f"start {target+1}, change -2"]
+        return q(f"Which give a final value of {target}? Select ALL: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [gen(sheet) for _ in range(3)]
+        lefts = [f"start {a}, change {b}" for a, b in pairs]; rights = [str(a+b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match each to its final value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example",
         ["Picture real situations: temperature, elevation, money, charge.",
          "Started at -3, changed by 5: -3 + 5 = 2."],
         "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Q1-5: solve with the number line. Q6-10: True/False. Q11-15: find the change. Q16-20: solve, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=70)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=70)
 
 
 # ───────────────────────── 8H: Mixed integers ─────────────────────────
 
 def _H_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-"])
+    lo, hi = _diff_range(sheet)
+    def gen(sheet):
+        return (random.randint(-hi, hi), random.randint(-hi, hi))
+    def comp(i, sheet):
+        a, b = gen(sheet)
+        op = random.choice(["+", "-"])
         return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,b,a+b,a-b)-3, "hi": max(a,b,a+b,a-b)+3})
-    def b2(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-"])
-        correct = a+b if op=="+" else a-b
-        shown = correct if random.random()>0.4 else correct+3
+                  {"lo": min(a, b, a+b, a-b)-3, "hi": max(a, b, a+b, a-b)+3})
+    def tf(i, sheet):
+        a, b = gen(sheet)
+        op = random.choice(["+", "-"])
+        correct = a+b if op == "+" else a-b
+        shown = correct if random.random() > 0.4 else correct+3
         return q(f"True or False: ({a}) {op} ({b}) = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); t = random.randint(-9,9)
-        op = random.choice(["+","-"])
-        return q(f"({a}) {op} ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a,t)-3,"hi":max(a,t)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-","x"])
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
+        op = random.choice(["+", "-"])
+        return q(f"({a}) {op} ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+    def numeral(i, sheet):
+        a, b = gen(sheet)
+        op = random.choice(["+", "-", "x"])
         return q(f"({a}) {op} ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"({target-2})+(2)", f"({target+1})-(1)", f"({target})+(0)", f"({target+4})-(4)"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [gen(sheet) for _ in range(3)]
+        ops = [random.choice(["+", "-"]) for _ in range(3)]
+        lefts = [f"({a}){op}({b})" for (a, b), op in zip(pairs, ops)]
+        rights = [str(a+b if op == "+" else a-b) for (a, b), op in zip(pairs, ops)]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example", ["Check the operation symbol first, then use the right strategy."],
         "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Q1-5: solve with the number line. Q6-10: True/False. Q11-15: find the missing number. Q16-20: solve, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=80)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=80)
 
 
-# ───────────────────────── 8I: Puzzles (magic squares + spot the mistake) ─────────────────────────
+# ───────────────────────── 8I: Puzzles (magic squares + patterns) ─────────────────────────
 
 def _I_s(sheet):
-    def b1(i, sheet):
-        start = random.randint(-9,5); step = random.choice([-3,-2,2,3])
+    lo, hi = _diff_range(sheet)
+    def comp(i, sheet):
+        start = random.randint(-hi, 5); step = random.choice([-3, -2, 2, 3])
         seq = [start, start+step, start+2*step]
         return q(f"{seq[0]}, {seq[1]}, {seq[2]}, ____  (continue the pattern)", "diagram", "____",
                   "", "vertical_numberline_blank", {"lo": min(seq)-5, "hi": max(seq)+5})
-    def b2(i, sheet):
-        a, b, c = random.randint(-9,9), random.randint(-9,9), random.randint(-9,9)
-        claim = (a+b+c)
-        shown = claim if random.random()>0.4 else claim+1
+    def tf(i, sheet):
+        a, b, c = random.randint(-hi, hi), random.randint(-hi, hi), random.randint(-hi, hi)
+        claim = a+b+c
+        shown = claim if random.random() > 0.4 else claim+1
         return q(f"True or False: {a} + {b} + {c} = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        center = random.randint(-5,5)
-        given = {(0,0): center-1, (1,1): center, (2,2): center+1}
+    def missing(i, sheet):
+        center = random.randint(-5, 5)
+        given = {(0, 0): center-1, (1, 1): center, (2, 2): center+1}
         total = 3*center
-        return q(f"Magic square: every row, column, and diagonal sums to {total}. Fill in the rest.",
+        return q(f"Magic square: every row/col/diagonal sums to {total}. Fill in the rest.",
                   "diagram", "____", "", "magic_square_blank", {"size": 3, "given": given})
-    def b4(i, sheet):
-        a = random.randint(-9,9)
+    def numeral(i, sheet):
+        a = random.randint(-hi, hi)
         return q(f"I am the opposite of the opposite of {a}. What number am I? ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        step = random.choice([2, 3])
+        start = random.randint(-hi, 5)
+        seq_next = start + 3*step
+        opts = [seq_next, seq_next+1, seq_next-step, seq_next+step]
+        return q(f"The pattern {start},{start+step},{start+2*step},___ continues with which values? Select ALL valid next terms: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        starts = [random.randint(-hi, 5) for _ in range(3)]
+        steps = [random.choice([2, 3, -2]) for _ in range(3)]
+        lefts = [f"{s},{s+st},{s+2*st},___" for s, st in zip(starts, steps)]
+        rights = [str(s+3*st) for s, st in zip(starts, steps)]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match each pattern to its next term: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Worked Example",
         ["A magic square: every row, column, and diagonal adds to the SAME total.",
          "Use the given numbers to work out the pattern, then fill in the rest."],
-        "magic_square_blank", {"size": 3, "given": {(0,0):-1, (1,1):0, (2,2):1}},
-        "Q1-5: continue the pattern. Q6-10: True/False. Q11-15: complete the magic square. Q16-20: solve, no picture.",
-        [b1,b2,b3,b4], sheet, seed_base=90)
-
-
-def _CUM3b_s(sheet):
-    """8CUM3: review G/H/I."""
-    def b1(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-"])
-        return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,b)-5, "hi": max(a,b)+5})
-    def b2(i, sheet):
-        a, b, c = random.randint(-9,9), random.randint(-9,9), random.randint(-9,9)
-        return q(f"True or False: {a} + {b} + {c} = {a+b+c}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        center = random.randint(-5,5)
-        given = {(0,0): center-1, (1,1): center}
-        return q("Magic square: complete using the pattern.", "diagram", "____", "", "magic_square_blank",
-                  {"size": 3, "given": given})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        return q(f"({a}) + ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
-        "Review", ["Mix of word problems, mixed operations, and puzzles."],
-        "magic_square_blank", {"size": 3, "given": {(0,0):-1,(1,1):0,(2,2):1}},
-        "Mixed review of all 4 question styles.", [b1,b2,b3,b4], sheet, seed_base=400)
+        "magic_square_blank", {"size": 3, "given": {(0, 0): -1, (1, 1): 0, (2, 2): 1}},
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=90)
 
 
 # ───────────────────────── 8J: Mixed challenge (self-scored speed) ─────────────────────────
 
 def _J_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-"])
+    lo, hi = _diff_range(sheet)
+    def comp(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
+        op = random.choice(["+", "-"])
         return q(f"({a}) {op} ({b}) = ____  [1 point]", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,b)-5, "hi": max(a,b)+5})
-    def b2(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+                  {"lo": min(a, b)-5, "hi": max(a, b)+5})
+    def tf(i, sheet):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
         correct = a*b
-        shown = correct if random.random()>0.4 else -correct
+        shown = correct if random.random() > 0.4 else -correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}  [1 point]", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); t = random.randint(-9,9)
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
         return q(f"({a}) + ____ = {t}  [2 points]", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,t)-3, "hi": max(a,t)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-","x"])
+                  {"lo": min(a, t)-3, "hi": max(a, t)+3})
+    def numeral(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
+        op = random.choice(["+", "-", "x"])
         return q(f"({a}) {op} ({b}) = ____  [2 points]", "fill", "____")
-    items = _make_4block_sheet(
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"({target-2})+(2)", f"({target})+(0)", f"({target+3})-(3)", f"({target+1})-(2)"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}  [2 points]",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [(random.randint(-hi, hi), random.randint(-hi, hi)) for _ in range(3)]
+        lefts = [f"({a})+({b})" for a, b in pairs]; rights = [str(a+b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}  [2 points]", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    items = _make_rotated_sheet(
         "Worked Example",
         ["Speed challenge: each question has a point value. Add up your own score at the end!",
          "Bronze: 20+ points. Silver: 30+ points. Gold: 38+ points (all correct)."],
         "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Solve each question, then add up your points. Bronze=20+, Silver=30+, Gold=38+ (all correct).",
-        [b1,b2,b3,b4], sheet, seed_base=110)
-    items.append(tb("Your Score", ["My total score: _____ / 40.  My badge: Bronze / Silver / Gold (circle one)"]))
+        "Formats rotate each sheet. Solve each question, then add up your points (shown in brackets).",
+        fmt, sheet, seed_base=110)
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
     return items
 
 
 def _REV_s(sheet):
-    def b1(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-"])
+    lo, hi = _diff_range(sheet)
+    def comp(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
+        op = random.choice(["+", "-"])
         return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,b)-5, "hi": max(a,b)+5})
-    def b2(i, sheet):
-        a, b = random.randint(2,9), random.randint(2,9)
+                  {"lo": min(a, b)-5, "hi": max(a, b)+5})
+    def tf(i, sheet):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
         correct = a*b
-        shown = correct if random.random()>0.4 else -correct
+        shown = correct if random.random() > 0.4 else -correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}", "fill", "____ (True/False)")
-    def b3(i, sheet):
-        a = random.randint(-9,9); t = random.randint(-9,9)
-        return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a,t)-3, "hi": max(a,t)+3})
-    def b4(i, sheet):
-        a, b = random.randint(-9,9), random.randint(-9,9)
-        op = random.choice(["+","-","x","/"]) if b != 0 else "+"
+    def missing(i, sheet):
+        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
+        return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+    def numeral(i, sheet):
+        a, b = random.randint(-hi, hi), random.randint(-hi, hi) or 1
+        op = random.choice(["+", "-", "x"])
         return q(f"({a}) {op} ({b}) = ____", "fill", "____")
-    return _make_4block_sheet(
+    def multisel(i, sheet):
+        target = random.randint(-hi, hi)
+        opts = [f"({target-2})+(2)", f"({target})+(0)", f"({target+3})-(3)", f"({target+1})-(2)"]
+        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+                  "fill", "____ (list all letters)")
+    def matching(i, sheet):
+        pairs = [(random.randint(-hi, hi), random.randint(-hi, hi)) for _ in range(3)]
+        lefts = [f"({a})+({b})" for a, b in pairs]; rights = [str(a+b) for a, b in pairs]
+        shuffled = rights[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
+        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+    fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
+    return _make_rotated_sheet(
         "Level 8 Revision",
         ["Every integer skill: concept, ordering, the four operations, word problems, and puzzles."],
         "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Work through each block using the strategy that fits.", [b1,b2,b3,b4], sheet, seed_base=900)
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        fmt, sheet, seed_base=900)
 
 
 # ───────────────────────── Dispatcher (REPLACES original Level 8) ─────────────────────────
@@ -489,6 +684,6 @@ def _wrap(fn):
 LEVEL8_DISPATCH = {
     "8A": _wrap(_A_s), "8B": _wrap(_B_s), "8C": _wrap(_C_s), "8CUM1": _wrap(_CUM1_s),
     "8D": _wrap(_D_s), "8E": _wrap(_E_s), "8F": _wrap(_F_s), "8CUM2": _wrap(_CUM2_s),
-    "8G": _wrap(_G_s), "8H": _wrap(_H_s), "8I": _wrap(_I_s), "8CUM3": _wrap(_CUM3b_s),
+    "8G": _wrap(_G_s), "8H": _wrap(_H_s), "8I": _wrap(_I_s), "8CUM3": _wrap(_CUM3_s),
     "8J": _wrap(_J_s), "8REV": _wrap(_REV_s),
 }
