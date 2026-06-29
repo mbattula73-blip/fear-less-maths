@@ -164,7 +164,7 @@ def _est(item, cw=None):
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank")
     matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
-    diag_h = (44*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
+    diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
     avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
     n_lines = max(2, len(_wrap(text, "Helvetica", 12, avail_text))) if text else 2
@@ -267,7 +267,7 @@ class Col:
                                           "number_pyramid_blank")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
-                    ih=42*mm if matching_diag else (32*mm if big_diag else 18*mm)
+                    ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
                     self.y-=ih+1.5*mm
                 except: pass

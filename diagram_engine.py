@@ -1869,22 +1869,36 @@ def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
     if lefts is None: lefts = ["1", "2", "3"]
     if rights is None: rights = ["A", "B", "C"]
     n = len(lefts)
-    row_h = 58
-    w = 600
-    h = n * row_h + 48
+    row_h = 80
+    fnt = _font_reg(38)
+    box = 44
+    # Size columns dynamically from the ACTUAL content so nothing clips,
+    # instead of guessing a fixed width that breaks on longer text.
+    tmp_img, tmp_d = _blank(10, 10)
+    left_texts = [f"{i+1}) {item}" for i, item in enumerate(lefts)]
+    right_texts = [f"{chr(65+i)}) {item}" for i, item in enumerate(rights)]
+    left_w = max(tmp_d.textlength(t, font=fnt) for t in left_texts)
+    right_w = max(tmp_d.textlength(t, font=fnt) for t in right_texts)
+    col_gap = 24
+    dot_r = 10
+    x_left = 12
+    x_dot1 = x_left + left_w + col_gap
+    x_box = x_dot1 + dot_r + col_gap
+    x_dot2 = x_box + box + col_gap
+    x_right = x_dot2 + dot_r + col_gap
+    w = int(x_right + right_w + 14)
+    h = n * row_h + 50
     img, d = _blank(w, h)
-    fnt = _font_reg(30)
-    box = 40
     for i, item in enumerate(lefts):
-        y = 23 + i*row_h + row_h/2
-        d.text((14, y-18), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
-        d.ellipse([262-8, y-8, 262+8, y+8], outline=C_BORDER, width=3)
+        y = 25 + i*row_h + row_h/2
+        d.text((x_left, y-23), left_texts[i], fill=C_BORDER, font=fnt)
+        d.ellipse([x_dot1-dot_r, y-dot_r, x_dot1+dot_r, y+dot_r], outline=C_BORDER, width=3)
         # small answer box for writing the matching letter
-        d.rectangle([278, y-20, 278+box, y-20+40], outline=C_BORDER, width=3)
+        d.rectangle([x_box, y-25, x_box+box, y-25+50], outline=C_BORDER, width=3)
     for i, item in enumerate(rights):
-        y = 23 + i*row_h + row_h/2
-        d.ellipse([346-8, y-8, 346+8, y+8], outline=C_BORDER, width=3)
-        d.text((364, y-18), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+        y = 25 + i*row_h + row_h/2
+        d.ellipse([x_dot2-dot_r, y-dot_r, x_dot2+dot_r, y+dot_r], outline=C_BORDER, width=3)
+        d.text((x_right, y-23), right_texts[i], fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -1895,23 +1909,34 @@ def matching_vertical_example(lefts=None, rights=None, lines=None, **kw) -> Byte
     if rights is None: rights = ["6", "2", "4"]
     if lines is None: lines = [0, 2, 1]  # left index i connects to right index lines[i]
     n = len(lefts)
-    row_h = 58
-    w = 600
-    h = n * row_h + 48
+    row_h = 80
+    fnt = _font_reg(38)
+    tmp_img, tmp_d = _blank(10, 10)
+    left_texts = [f"{i+1}) {item}" for i, item in enumerate(lefts)]
+    right_texts = [f"{chr(65+i)}) {item}" for i, item in enumerate(rights)]
+    left_w = max(tmp_d.textlength(t, font=fnt) for t in left_texts)
+    right_w = max(tmp_d.textlength(t, font=fnt) for t in right_texts)
+    col_gap = 24
+    dot_r = 10
+    x_left = 12
+    x_dot1 = x_left + left_w + col_gap
+    x_dot2 = x_dot1 + 2*dot_r + col_gap
+    x_right = x_dot2 + dot_r + col_gap
+    w = int(x_right + right_w + 14)
+    h = n * row_h + 50
     img, d = _blank(w, h)
-    fnt = _font_reg(30)
     for i, item in enumerate(lefts):
-        y = 23 + i*row_h + row_h/2
-        d.text((14, y-18), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
-        d.ellipse([262-8, y-8, 262+8, y+8], outline=C_BORDER, width=3)
+        y = 25 + i*row_h + row_h/2
+        d.text((x_left, y-23), left_texts[i], fill=C_BORDER, font=fnt)
+        d.ellipse([x_dot1-dot_r, y-dot_r, x_dot1+dot_r, y+dot_r], outline=C_BORDER, width=3)
     for i, item in enumerate(rights):
-        y = 23 + i*row_h + row_h/2
-        d.ellipse([346-8, y-8, 346+8, y+8], outline=C_BORDER, width=3)
-        d.text((364, y-18), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+        y = 25 + i*row_h + row_h/2
+        d.ellipse([x_dot2-dot_r, y-dot_r, x_dot2+dot_r, y+dot_r], outline=C_BORDER, width=3)
+        d.text((x_right, y-23), right_texts[i], fill=C_BORDER, font=fnt)
     for li, ri in enumerate(lines):
-        y1 = 23 + li*row_h + row_h/2
-        y2 = 23 + ri*row_h + row_h/2
-        d.line([270, y1, 338, y2], fill=C_BORDER, width=3)
+        y1 = 25 + li*row_h + row_h/2
+        y2 = 25 + ri*row_h + row_h/2
+        d.line([x_dot1+dot_r, y1, x_dot2-dot_r, y2], fill=C_BORDER, width=3)
     return _to_bytes(img)
 
 
