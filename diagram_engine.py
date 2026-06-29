@@ -1870,21 +1870,21 @@ def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
     if rights is None: rights = ["A", "B", "C"]
     n = len(lefts)
     row_h = 46
-    w = 360
-    h = n * row_h + 25
+    w = 540
+    h = n * row_h + 38
     img, d = _blank(w, h)
-    fnt = _font_reg(17)
-    box = 24
+    fnt = _font_reg(26)
+    box = 36
     for i, item in enumerate(lefts):
-        y = 12 + i*row_h + row_h/2
-        d.text((12, y-11), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
-        d.ellipse([190-5, y-5, 190+5, y+5], outline=C_BORDER, width=2)
+        y = 18 + i*row_h + row_h/2
+        d.text((18, y-16), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
+        d.ellipse([285-7, y-7, 285+7, y+7], outline=C_BORDER, width=3)
         # small answer box for writing the matching letter
-        d.rectangle([206, y-12, 206+box, y-12+24], outline=C_BORDER, width=2)
+        d.rectangle([309, y-18, 309+box, y-18+36], outline=C_BORDER, width=3)
     for i, item in enumerate(rights):
-        y = 12 + i*row_h + row_h/2
-        d.ellipse([255-5, y-5, 255+5, y+5], outline=C_BORDER, width=2)
-        d.text((275, y-11), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+        y = 18 + i*row_h + row_h/2
+        d.ellipse([382-7, y-7, 382+7, y+7], outline=C_BORDER, width=3)
+        d.text((412, y-16), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -1896,22 +1896,22 @@ def matching_vertical_example(lefts=None, rights=None, lines=None, **kw) -> Byte
     if lines is None: lines = [0, 2, 1]  # left index i connects to right index lines[i]
     n = len(lefts)
     row_h = 46
-    w = 360
-    h = n * row_h + 25
+    w = 540
+    h = n * row_h + 38
     img, d = _blank(w, h)
-    fnt = _font_reg(17)
+    fnt = _font_reg(26)
     for i, item in enumerate(lefts):
-        y = 12 + i*row_h + row_h/2
-        d.text((12, y-11), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
-        d.ellipse([190-5, y-5, 190+5, y+5], outline=C_BORDER, width=2)
+        y = 18 + i*row_h + row_h/2
+        d.text((18, y-16), f"{i+1}) {item}", fill=C_BORDER, font=fnt)
+        d.ellipse([285-7, y-7, 285+7, y+7], outline=C_BORDER, width=3)
     for i, item in enumerate(rights):
-        y = 12 + i*row_h + row_h/2
-        d.ellipse([255-5, y-5, 255+5, y+5], outline=C_BORDER, width=2)
-        d.text((275, y-11), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
+        y = 18 + i*row_h + row_h/2
+        d.ellipse([382-7, y-7, 382+7, y+7], outline=C_BORDER, width=3)
+        d.text((412, y-16), f"{chr(65+i)}) {item}", fill=C_BORDER, font=fnt)
     for li, ri in enumerate(lines):
-        y1 = 12 + li*row_h + row_h/2
-        y2 = 12 + ri*row_h + row_h/2
-        d.line([195, y1, 250, y2], fill=C_BORDER, width=2)
+        y1 = 18 + li*row_h + row_h/2
+        y2 = 18 + ri*row_h + row_h/2
+        d.line([292, y1, 375, y2], fill=C_BORDER, width=3)
     return _to_bytes(img)
 
 
