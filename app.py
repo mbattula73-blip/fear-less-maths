@@ -10,7 +10,7 @@ for why both pages safely share the same live database.
 import streamlit as st
 from collections import defaultdict
 from levels_data import LEVELS, SUBLEVELS, SHEET_OPTIONS, get_tier
-from pdf_engine import build_pdf
+from pdf_engine import build_pdf, build_answer_key_pdf
 import db
 import analytics
 import concept_tagger
@@ -160,6 +160,37 @@ if section == "Generate Single Worksheet":
                 mime="application/pdf",
                 key="dl_s",
             )
+
+        # Answer key — only for main (non-remedial) sheets, Levels 5-19. Not
+        # shown for remedials or Pre-Levels/1-4 — staff correct those by hand.
+        is_key_eligible = (not is_r) and (5 <= level_num <= 19)
+        if is_key_eligible:
+            st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+            if st.button(f"🔑  Key  —  {ws_id}", key="gen_key"):
+                with st.spinner(f"Generating answer key for {ws_id}…"):
+                    try:
+                        key_bytes = build_answer_key_pdf(level_num, sublevel_code, sheet_num).read()
+                        st.session_state["key_ready"] = key_bytes
+                        st.session_state["key_ws_id"] = ws_id
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+                        st.exception(e)
+
+            if st.session_state.get("key_ws_id") == ws_id and "key_ready" in st.session_state:
+                size_kb = len(st.session_state["key_ready"]) // 1024
+                st.markdown(f"""
+                <div class="success-card">
+                    <div class="ck">✓</div>
+                    <div>{ws_id} answer key ready &nbsp;·&nbsp; {size_kb} KB</div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.download_button(
+                    label=f"⬇  Download  {ws_id}-KEY.pdf",
+                    data=st.session_state["key_ready"],
+                    file_name=f"{ws_id}-KEY.pdf",
+                    mime="application/pdf",
+                    key="dl_key",
+                )
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 

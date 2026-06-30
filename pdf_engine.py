@@ -413,3 +413,75 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
         except Exception:
             pass
     c.save(); _clean(); buf.seek(0); return buf
+
+
+def build_answer_key_pdf(level_num: int, sublevel_code: str, sheet_num: str) -> BytesIO:
+    """A separate, plain-language ANSWER KEY for staff who don't know maths
+    to use while correcting worksheets -- same FLM header/branding as the
+    worksheet itself, but the body is just 'Q# -> correct answer', nothing
+    else. Never used for remedial (R) sheets.
+    """
+    from answer_key import derive_answer_and_explanation
+    ws_id = f"{sublevel_code}-{sheet_num}"
+    tier = get_tier(sheet_num)
+    topic = dict(SUBLEVELS.get(level_num, [])).get(sublevel_code, "")
+    raw = get_questions(sublevel_code, sheet_num, level_num)
+    questions = [it for it in raw if it.get("type") not in ("concept_box", "tips_box")]
+
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+
+    def _start_page(first_page):
+        _outer(c)
+        _header(c, ws_id, tier, topic, level_num)
+        c.setFillColor(WHITE); c.setStrokeColor(BLACK); c.setLineWidth(0.6)
+        c.rect(ML+1.5*mm, PH-MT-33*mm, BW-3*mm, 11*mm, fill=1, stroke=1)
+        c.setFont("Helvetica-Bold", 12); c.setFillColor(colors.HexColor("#B71C1C"))
+        title = f"ANSWER KEY  —  {ws_id}" + ("" if first_page else "  (continued)")
+        c.drawCentredString(ML+BW/2, PH-MT-25.5*mm, title)
+        c.setFont("Helvetica-Oblique", 8); c.setFillColor(MGRAY)
+        c.drawCentredString(ML+BW/2, PH-MT-30.5*mm,
+            "For staff use during correction only — not to be given to students")
+        return PH - MT - 39*mm
+
+    text_w = BW - 16*mm
+    x0 = ML + 4*mm
+    bot_y = MB + 6*mm
+    y = _start_page(True)
+
+    for idx, item in enumerate(questions):
+        qn = idx + 1
+        ans, explanation = derive_answer_and_explanation(item)
+        exp_lines = _wrap(explanation, "Helvetica", 9, text_w - 6*mm) if explanation else []
+        needed_h = 6*mm + len(exp_lines) * 4*mm + 3*mm
+        if y - needed_h < bot_y:
+            c.setFont("Helvetica-Oblique", 8); c.setFillColor(MGRAY)
+            c.drawCentredString(PW/2, MB + 2.5*mm, "Generated answer key — verify any \"check with teacher\" item before correcting.")
+            c.showPage()
+            y = _start_page(False)
+
+        c.setFont("Helvetica-Bold", 11); c.setFillColor(BLACK)
+        c.drawString(x0, y, f"{qn}.")
+        c.setFont("Helvetica-Bold", 12)
+        if ans:
+            c.setFillColor(colors.HexColor("#1565C0"))
+            c.drawString(x0 + 10*mm, y, str(ans))
+        else:
+            c.setFillColor(MGRAY)
+            c.setFont("Helvetica-Oblique", 10)
+            c.drawString(x0 + 10*mm, y, "— check with teacher —")
+        y -= 5*mm
+        if exp_lines:
+            c.setFont("Helvetica", 9); c.setFillColor(MGRAY)
+            for line in exp_lines:
+                c.drawString(x0 + 10*mm, y, line)
+                y -= 4*mm
+        c.setStrokeColor(LGRAY); c.setLineWidth(0.3); c.setDash(1, 2)
+        c.line(x0, y - 1*mm, ML + BW - 4*mm, y - 1*mm)
+        c.setDash()
+        y -= 6*mm
+
+    c.setFont("Helvetica-Oblique", 8); c.setFillColor(MGRAY)
+    c.drawCentredString(PW/2, MB + 2.5*mm,
+        "Generated answer key — if an answer says \"check with teacher\", that question needs manual review.")
+    c.save(); _clean(); buf.seek(0); return buf
