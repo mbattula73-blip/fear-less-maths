@@ -89,6 +89,56 @@ def build_whatsapp_report(student_name: str, worksheet_id: str, total_questions:
     return " ".join(lines)
 
 
+def build_whatsapp_report_multi(student_name: str, entries: list) -> str:
+    """
+    Combines results from MULTIPLE worksheets done in one sitting (e.g. 4A-1
+    and 4A-2) into a single parent WhatsApp report, instead of sending two
+    separate messages.
+
+    entries: list of dicts, one per worksheet, each shaped like:
+        {"worksheet_id": str, "total_questions": int, "wrong_qs": list,
+         "resolved_topics": dict, "remedial_id": str|None}
+    """
+    entries = [e for e in entries if e.get("total_questions")]
+    if not entries:
+        return ""
+
+    if len(entries) == 1:
+        e = entries[0]
+        return build_whatsapp_report(
+            student_name, e["worksheet_id"], e["total_questions"],
+            e["wrong_qs"], e["resolved_topics"], e.get("remedial_id"),
+        )
+
+    total_q = sum(e["total_questions"] for e in entries)
+    total_wrong = sum(len(e["wrong_qs"]) for e in entries)
+    total_correct = total_q - total_wrong
+    ws_ids = ", ".join(e["worksheet_id"] for e in entries)
+
+    if total_wrong == 0:
+        return (
+            f"Hi! {student_name} completed worksheets {ws_ids} today and got "
+            f"all {total_q} questions correct. Great work! 🎉"
+        )
+
+    lines = [f"Hi! {student_name} attempted worksheets {ws_ids} today — "
+             f"{total_correct}/{total_q} correct overall."]
+
+    for e in entries:
+        n_wrong = len(e["wrong_qs"])
+        n_correct = e["total_questions"] - n_wrong
+        topics = sorted(set(t for t in e["resolved_topics"].values() if t and t != "(untagged)"))
+        seg = f"{e['worksheet_id']}: {n_correct}/{e['total_questions']} correct"
+        if topics:
+            seg += f" — needs practice with {', '.join(topics)}"
+        lines.append(seg + ".")
+        if e.get("remedial_id"):
+            lines.append(f"A remedial worksheet ({e['remedial_id']}) has been assigned for {e['worksheet_id']}.")
+
+    lines.append("Please encourage them to revise this at home. Thank you! 🙏")
+    return " ".join(lines)
+
+
 def build_school_whatsapp_report(period_label: str, class_label: str, summary: dict,
                                    class_rows: list, topic_rows: list, mistake_rows: list,
                                    remedial: dict, num_alerts: int, num_flagged_students: int) -> str:

@@ -28,7 +28,10 @@ from datetime import date as _date
 import db
 import ui_common
 from levels_data import SHEET_OPTIONS
-from ws_helpers import remedial_id_for, build_whatsapp_report, build_whatsapp_link, MISTAKE_TYPES
+from ws_helpers import (
+    remedial_id_for, build_whatsapp_report, build_whatsapp_report_multi,
+    build_whatsapp_link, MISTAKE_TYPES,
+)
 
 ui_common.setup_page("Daily Entry — Fear Less Maths")
 ui_common.render_header(
@@ -151,8 +154,9 @@ if not existing_classes:
     st.info("No students yet — add your first student above (\"Manage Students\") to begin daily entry.")
 else:
     st.markdown("##### Daily Entry")
-    st.caption("Pick a student and the worksheet they did, then tap any questions they got wrong. "
-               "Topics, remedial worksheet and the parent report fill in automatically.")
+    st.caption("Pick a student. Students do **two worksheets** per visit — fill in both below, "
+               "then save once. Tap any questions they got wrong; topics, remedial worksheet "
+               "and the parent report fill in automatically.")
 
     col_d1, col_d2 = st.columns([1, 1])
     with col_d1:
@@ -170,84 +174,103 @@ else:
             db.update_parent_whatsapp(student["id"], wa_in)
             st.rerun()
 
-    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-    col_w1, col_w2, col_w3 = st.columns([1, 1, 1])
-    with col_w1:
-        de_date = st.date_input("Date", value=_date.today(), key="de_date")
-    with col_w2:
-        de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
-        de_sheet_sel = st.selectbox("Sheet", de_sheet_lbls, key="de_sheet")
-        de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
-    with col_w3:
-        de_total_q = st.number_input("Total Qs", min_value=1, max_value=50, value=20, key="de_total_q")
+    de_date = st.date_input("Date", value=_date.today(), key="de_date")
 
-    de_ws_id = f"{sublevel_code}-{de_sheet_num}"
-    st.markdown(f"""
-    <div style="font-size:13px;color:#888;margin:4px 0 10px">
-        Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
-    </div>
-    """, unsafe_allow_html=True)
+    de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
 
-    # ── Wrong-answer grid — tap a question number if the student got it wrong ──
-    st.markdown(
-        '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
-        'letter-spacing:.06em;color:#555;margin-bottom:6px">'
-        'Mark wrong answers (leave unchecked = correct)</div>',
-        unsafe_allow_html=True,
+    # How many worksheets today — defaults to 2 (the normal case), but a
+    # student can occasionally do just one.
+    de_num_sheets = st.radio(
+        "Worksheets today", [1, 2], index=1, horizontal=True, key="de_num_sheets",
+        format_func=lambda n: "1 worksheet" if n == 1 else "2 worksheets (default)",
     )
-    de_wrong_qs = []
-    total_q_int = int(de_total_q)
-    cols_per_row = 5
-    for row_start in range(1, total_q_int + 1, cols_per_row):
-        row_cols = st.columns(cols_per_row)
-        for i, col in enumerate(row_cols):
-            qn = row_start + i
-            if qn > total_q_int:
-                break
-            with col:
-                if st.checkbox(f"Q{qn}", key=f"de_q_{qn}"):
-                    de_wrong_qs.append(qn)
-    de_wrong_qs.sort()
-    if de_wrong_qs:
-        st.caption(f"Marked wrong: {', '.join(str(q) for q in de_wrong_qs)}")
-    else:
-        st.caption("All correct so far.")
 
-    # ── For each wrong answer: WHAT kind of mistake, and what did they write? ──
-    # This is what lets the Student Profile show how a child is thinking
-    # (concept gap vs calculation slip vs carelessness), not just what topic
-    # they got wrong.
-    de_wrong_details = {}
-    if de_wrong_qs:
-        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+    sheet_entries = []  # collects per-sheet results to combine into one report/save
+    for sheet_idx in range(1, de_num_sheets + 1):
+        st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
+        st.markdown(f"###### Worksheet {sheet_idx}")
+
+        col_w1, col_w2 = st.columns([1, 1])
+        with col_w1:
+            sel_default = min(sheet_idx - 1, len(de_sheet_lbls) - 1)
+            de_sheet_sel = st.selectbox(
+                "Sheet", de_sheet_lbls, index=sel_default, key=f"de_sheet_{sheet_idx}",
+            )
+            de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
+        with col_w2:
+            de_total_q = st.number_input(
+                "Total Qs", min_value=1, max_value=50, value=20, key=f"de_total_q_{sheet_idx}",
+            )
+
+        de_ws_id = f"{sublevel_code}-{de_sheet_num}"
+        st.markdown(f"""
+        <div style="font-size:13px;color:#888;margin:4px 0 10px">
+            Worksheet: <b style="color:#111">{de_ws_id}</b> &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Wrong-answer grid — tap a question number if the student got it wrong ──
         st.markdown(
             '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
             'letter-spacing:.06em;color:#555;margin-bottom:6px">'
-            'For each wrong answer — what kind of mistake was it?</div>',
+            'Mark wrong answers (leave unchecked = correct)</div>',
             unsafe_allow_html=True,
         )
-        for qn in de_wrong_qs:
-            col_m1, col_m2 = st.columns([1, 1.4])
-            with col_m1:
-                mtype = st.selectbox(
-                    f"Q{qn} mistake type", MISTAKE_TYPES, key=f"de_mtype_{qn}",
-                    label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
-                )
-            with col_m2:
-                sans = st.text_input(
-                    f"Q{qn} — what did they write? (optional)", key=f"de_ans_{qn}",
-                    placeholder=f"Q{qn}: what they actually wrote (optional)",
-                    label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
-                )
-            de_wrong_details[qn] = {"mistake_type": mtype, "student_answer": sans}
+        de_wrong_qs = []
+        total_q_int = int(de_total_q)
+        cols_per_row = 5
+        for row_start in range(1, total_q_int + 1, cols_per_row):
+            row_cols = st.columns(cols_per_row)
+            for i, col in enumerate(row_cols):
+                qn = row_start + i
+                if qn > total_q_int:
+                    break
+                with col:
+                    if st.checkbox(f"Q{qn}", key=f"de_q_{sheet_idx}_{qn}"):
+                        de_wrong_qs.append(qn)
+        de_wrong_qs.sort()
+        if de_wrong_qs:
+            st.caption(f"Marked wrong: {', '.join(str(q) for q in de_wrong_qs)}")
+        else:
+            st.caption("All correct so far.")
 
-    resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
-    remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if len(de_wrong_qs) > 3 else None
-    whatsapp_msg = build_whatsapp_report(
-        de_name, de_ws_id, total_q_int, de_wrong_qs, resolved, remedial_id
-    )
+        # ── For each wrong answer: WHAT kind of mistake, and what did they write? ──
+        de_wrong_details = {}
+        if de_wrong_qs:
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
+                'letter-spacing:.06em;color:#555;margin-bottom:6px">'
+                'For each wrong answer — what kind of mistake was it?</div>',
+                unsafe_allow_html=True,
+            )
+            for qn in de_wrong_qs:
+                col_m1, col_m2 = st.columns([1, 1.4])
+                with col_m1:
+                    mtype = st.selectbox(
+                        f"Q{qn} mistake type", MISTAKE_TYPES, key=f"de_mtype_{sheet_idx}_{qn}",
+                        label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
+                    )
+                with col_m2:
+                    sans = st.text_input(
+                        f"Q{qn} — what did they write? (optional)", key=f"de_ans_{sheet_idx}_{qn}",
+                        placeholder=f"Q{qn}: what they actually wrote (optional)",
+                        label_visibility="collapsed" if qn != de_wrong_qs[0] else "visible",
+                    )
+                de_wrong_details[qn] = {"mistake_type": mtype, "student_answer": sans}
+
+        resolved = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
+        remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if len(de_wrong_qs) > 3 else None
+
+        sheet_entries.append({
+            "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
+            "total_questions": total_q_int, "wrong_qs": de_wrong_qs,
+            "wrong_details": de_wrong_details, "resolved_topics": resolved,
+            "remedial_id": remedial_id,
+        })
 
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+    whatsapp_msg = build_whatsapp_report_multi(de_name, sheet_entries)
     st.markdown(f"""
     <div class="info-cell" style="margin-bottom:12px">
         <div class="il">Parent report preview</div>
@@ -258,21 +281,26 @@ else:
     col_s1, col_s2 = st.columns([1, 1])
     with col_s1:
         if st.button("💾  Save Entry", type="primary", key="de_save"):
-            new_session_id = db.add_session(
-                session_date=de_date.isoformat(), student_id=student["id"],
-                class_name=de_class, grade=student["grade"], level_num=level_num,
-                worksheet_id=de_ws_id, wrong_qs=de_wrong_qs, resolved_topics=resolved,
-                total_questions=total_q_int, remedial_id=remedial_id,
-            )
-            if de_wrong_details:
-                db.save_wrong_answer_details(new_session_id, de_wrong_details)
+            for entry in sheet_entries:
+                new_session_id = db.add_session(
+                    session_date=de_date.isoformat(), student_id=student["id"],
+                    class_name=de_class, grade=student["grade"], level_num=level_num,
+                    worksheet_id=entry["worksheet_id"], wrong_qs=entry["wrong_qs"],
+                    resolved_topics=entry["resolved_topics"],
+                    total_questions=entry["total_questions"], remedial_id=entry["remedial_id"],
+                )
+                if entry["wrong_details"]:
+                    db.save_wrong_answer_details(new_session_id, entry["wrong_details"])
             st.session_state["de_saved"] = de_name
-            # Clear the wrong-answer grid + mistake details so the next student starts fresh.
-            for qn in range(1, 51):
-                st.session_state.pop(f"de_q_{qn}", None)
-                st.session_state.pop(f"de_mtype_{qn}", None)
-                st.session_state.pop(f"de_ans_{qn}", None)
-            st.success(f"Saved entry for {de_name}.")
+            # Clear the wrong-answer grids + mistake details for both sheets
+            # so the next student starts fresh.
+            for sheet_idx in range(1, 3):
+                for qn in range(1, 51):
+                    st.session_state.pop(f"de_q_{sheet_idx}_{qn}", None)
+                    st.session_state.pop(f"de_mtype_{sheet_idx}_{qn}", None)
+                    st.session_state.pop(f"de_ans_{sheet_idx}_{qn}", None)
+            ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
+            st.success(f"Saved entry for {de_name} ({ws_ids_saved}).")
             st.rerun()
 
     with col_s2:
