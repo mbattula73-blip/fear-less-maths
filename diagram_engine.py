@@ -1870,7 +1870,7 @@ def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
     if rights is None: rights = ["A", "B", "C"]
     n = len(lefts)
     row_h = 80
-    fnt = _font_reg(38)
+    fnt = _font_reg(21)  # renders at ~12pt in the final PDF box, matching question text
     box = 44
     # Size columns dynamically from the ACTUAL content so nothing clips,
     # instead of guessing a fixed width that breaks on longer text.
@@ -1910,7 +1910,7 @@ def matching_vertical_example(lefts=None, rights=None, lines=None, **kw) -> Byte
     if lines is None: lines = [0, 2, 1]  # left index i connects to right index lines[i]
     n = len(lefts)
     row_h = 80
-    fnt = _font_reg(38)
+    fnt = _font_reg(21)  # renders at ~12pt in the final PDF box, matching question text
     tmp_img, tmp_d = _blank(10, 10)
     left_texts = [f"{i+1}) {item}" for i, item in enumerate(lefts)]
     right_texts = [f"{chr(65+i)}) {item}" for i, item in enumerate(rights)]
