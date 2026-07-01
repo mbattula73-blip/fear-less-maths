@@ -298,91 +298,30 @@ else:
             st.markdown(
                 '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
                 'letter-spacing:.06em;color:#555;margin-bottom:4px">'
-                'What did the student write?  '
-                '<span style="font-weight:400;text-transform:none;font-size:10px;color:#888">'
-                '— App will auto-detect mistake type</span></div>',
+                'What did the student write?</div>',
                 unsafe_allow_html=True,
             )
 
-            for qn in de_wrong_qs:
-                # Correct answer for this question (0-indexed)
-                q_idx = qn - 1
-                item     = ws_items[q_idx]   if q_idx < len(ws_items)   else None
-                corr_ans = ws_answers[q_idx]  if q_idx < len(ws_answers) else None
-
-                col_q, col_ans, col_type, col_conf = st.columns([0.5, 1.5, 1.5, 0.8])
-
-                with col_q:
-                    st.markdown(
-                        f'<div style="padding-top:28px;font-size:13px;'
-                        f'font-weight:700;color:#333">Q{qn}</div>',
-                        unsafe_allow_html=True,
-                    )
-
-                with col_ans:
+            cols = st.columns(len(de_wrong_qs) if len(de_wrong_qs) <= 4 else 4)
+            for i, qn in enumerate(de_wrong_qs):
+                with cols[i % 4]:
                     sans = st.text_input(
-                        f"Student wrote (Q{qn})",
+                        f"Q{qn}",
                         key=f"de_ans_{sheet_idx}_{qn}",
-                        placeholder="what they wrote…",
-                        label_visibility="visible" if qn == de_wrong_qs[0] else "collapsed",
+                        placeholder="wrote…",
                     )
 
-                # Auto-classify if student answer is entered and we have question data
-                auto_type, auto_conf, auto_reason = None, None, None
+                # Auto-classify silently
+                q_idx    = qn - 1
+                item     = ws_items[q_idx]  if q_idx < len(ws_items)  else None
+                corr_ans = ws_answers[q_idx] if q_idx < len(ws_answers) else None
                 if sans.strip() and item and corr_ans:
-                    auto_type, auto_conf, auto_reason = mc.classify(
-                        item, corr_ans, sans.strip()
-                    )
-
-                # Show auto-detected type (or dropdown override)
-                with col_type:
-                    if auto_type:
-                        # Show auto-detected as default selection
-                        default_idx = mc.MISTAKE_TYPES.index(auto_type) \
-                            if auto_type in mc.MISTAKE_TYPES else 0
-                    else:
-                        default_idx = 0
-
-                    override_key = f"de_mtype_{sheet_idx}_{qn}"
-                    current_override = st.session_state.get(override_key)
-                    if current_override and current_override != auto_type:
-                        # Staff already manually overrode
-                        sel_idx = mc.MISTAKE_TYPES.index(current_override) \
-                            if current_override in mc.MISTAKE_TYPES else default_idx
-                    else:
-                        sel_idx = default_idx
-
-                    mtype = st.selectbox(
-                        f"Mistake type (Q{qn})",
-                        mc.MISTAKE_TYPES,
-                        index=sel_idx,
-                        key=override_key,
-                        label_visibility="visible" if qn == de_wrong_qs[0] else "collapsed",
-                    )
-
-                with col_conf:
-                    if auto_type and auto_conf:
-                        conf_color = {
-                            "high": "#2E6B5E", "medium": "#CC7000", "low": "#B71C1C"
-                        }.get(auto_conf, "#888")
-                        conf_label = {"high": "✓ Sure", "medium": "~ Likely", "low": "? Check"}.get(auto_conf, "")
-                        st.markdown(
-                            f'<div style="padding-top:{"28px" if qn == de_wrong_qs[0] else "8px"};'
-                            f'font-size:11px;font-weight:700;color:{conf_color}">'
-                            f'{conf_label}</div>',
-                            unsafe_allow_html=True,
-                        )
-                        if auto_reason:
-                            st.caption(auto_reason[:80])
-                    else:
-                        st.markdown(
-                            f'<div style="padding-top:{"28px" if qn == de_wrong_qs[0] else "8px"};'
-                            f'font-size:11px;color:#aaa">Enter answer above</div>',
-                            unsafe_allow_html=True,
-                        )
+                    auto_type, _, _ = mc.classify(item, corr_ans, sans.strip())
+                else:
+                    auto_type = None
 
                 de_wrong_details[qn] = {
-                    "mistake_type": mtype,
+                    "mistake_type": auto_type,
                     "student_answer": sans.strip(),
                 }
 
