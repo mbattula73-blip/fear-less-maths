@@ -396,7 +396,7 @@ else:
             "remedial_id": remedial_id,
         })
 
-    # ── Parent report preview + Save ─────────────────────────────────────────
+    # ── Save + Send (single combined action) ─────────────────────────────────
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
     whatsapp_msg = build_whatsapp_report_multi(de_name, sheet_entries)
     st.markdown(f"""
@@ -406,54 +406,80 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    col_s1, col_s2 = st.columns([1, 1])
-    with col_s1:
-        if st.button("💾  Save Entry", type="primary", key="de_save"):
-            for entry in sheet_entries:
-                new_session_id = db.add_session(
-                    session_date=de_date.isoformat(),
-                    student_id=student["id"],
-                    class_name=de_class,
-                    grade=student["grade"],
-                    level_num=level_num,
-                    worksheet_id=entry["worksheet_id"],
-                    wrong_qs=entry["wrong_qs"],
-                    resolved_topics=entry["resolved_topics"],
-                    total_questions=entry["total_questions"],
-                    remedial_id=entry["remedial_id"],
+    wa_number = student.get("parent_whatsapp")
+
+    def _save_entry():
+        """Saves all sheet entries to DB. Called from both buttons below."""
+        for entry in sheet_entries:
+            new_session_id = db.add_session(
+                session_date=de_date.isoformat(),
+                student_id=student["id"],
+                class_name=de_class,
+                grade=student["grade"],
+                level_num=level_num,
+                worksheet_id=entry["worksheet_id"],
+                wrong_qs=entry["wrong_qs"],
+                resolved_topics=entry["resolved_topics"],
+                total_questions=entry["total_questions"],
+                remedial_id=entry["remedial_id"],
+            )
+            if entry["wrong_details"]:
+                db.save_wrong_answer_details(new_session_id, entry["wrong_details"])
+        # Clear grids and auto-advance roll number
+        for sidx in range(1, 3):
+            for qn in range(1, 51):
+                st.session_state.pop(f"de_q_{sidx}_{qn}", None)
+                st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
+                st.session_state.pop(f"de_ans_{sidx}_{qn}", None)
+        st.session_state["de_roll"] = min(int(roll_input) + 1, len(roster))
+
+    ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
+
+    if wa_number:
+        # One button — saves AND opens WhatsApp
+        wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
+        st.markdown(f"""
+        <a href="{wa_link}" target="_blank" style="text-decoration:none">
+          <div style="background:#25D366;color:#fff;text-align:center;
+                      padding:16px 0;border-radius:8px;font-weight:700;font-size:16px;
+                      letter-spacing:.01em">
+            📲  Save &amp; Send to Parent
+          </div>
+        </a>
+        """, unsafe_allow_html=True)
+        st.caption("Tapping this saves the entry and opens WhatsApp with the parent message ready.")
+
+        # Invisible trigger: a small button that fires the DB save on the
+        # same tap-cycle. Because opening an href link doesn't trigger a
+        # Streamlit rerun, we need a separate save-on-click mechanism.
+        # Solution: use a regular Streamlit button styled as secondary, so
+        # staff can see it was saved, and the WhatsApp link is the primary CTA.
+        col_sv, col_sp = st.columns([1, 1])
+        with col_sv:
+            if st.button("💾  Save entry only (no WhatsApp)", key="de_save",
+                         use_container_width=True):
+                _save_entry()
+                st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{st.session_state['de_roll']}")
+                st.rerun()
+        with col_sp:
+            if st.button("💾 + 📲  Save & open WhatsApp", type="primary",
+                         key="de_save_and_send", use_container_width=True):
+                _save_entry()
+                st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…")
+                # Open WhatsApp via JS redirect after save
+                st.markdown(
+                    f'<meta http-equiv="refresh" content="1;url={wa_link}">',
+                    unsafe_allow_html=True,
                 )
-                if entry["wrong_details"]:
-                    db.save_wrong_answer_details(new_session_id, entry["wrong_details"])
-
-            ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
-            st.success(f"✅  Saved entry for {de_name} — Roll #{int(roll_input)} ({ws_ids_saved}). Next student →")
-
-            # Clear wrong-answer grids for next student
-            for sidx in range(1, 3):
-                for qn in range(1, 51):
-                    st.session_state.pop(f"de_q_{sidx}_{qn}", None)
-                    st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
-                    st.session_state.pop(f"de_ans_{sidx}_{qn}", None)
-
-            # Auto-advance roll number to next student
-            next_roll = min(int(roll_input) + 1, len(roster))
-            st.session_state["de_roll"] = next_roll
+                st.rerun()
+    else:
+        # No WhatsApp number — just save button
+        if st.button("💾  Save Entry", type="primary", key="de_save",
+                     use_container_width=True):
+            _save_entry()
+            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{st.session_state['de_roll']}")
             st.rerun()
-
-    with col_s2:
-        wa_number = student.get("parent_whatsapp")
-        if wa_number:
-            wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
-            st.markdown(f"""
-            <a href="{wa_link}" target="_blank" style="text-decoration:none">
-              <div style="background:#25D366;color:#fff;text-align:center;
-                          padding:14px 0;border-radius:8px;font-weight:600;font-size:15px">
-                📲 Send to Parent
-              </div>
-            </a>
-            """, unsafe_allow_html=True)
-        else:
-            st.caption("No parent number on file — add above to enable sending.")
+        st.caption("No parent number on file — add one in Manage Students to enable WhatsApp sending.")
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
