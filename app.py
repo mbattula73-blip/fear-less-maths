@@ -58,18 +58,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Top bar
+# Top bar with ☰ button
 col_brand, col_menu_btn = st.columns([8, 1])
 with col_brand:
     st.markdown("""
-    <div style="padding:14px 0 10px 24px">
-        <div class="flm-brand">Fear Less Maths</div>
-        <div class="flm-sub">LA Excellence Schools · IDPS Orchards</div>
+    <div style="padding:14px 0 10px 8px">
+        <div style="font-size:20px;font-weight:700;color:#111;letter-spacing:-.4px">Fear Less Maths</div>
+        <div style="font-size:11px;color:#777;margin-top:1px">LA Excellence Schools · IDPS Orchards</div>
     </div>
     """, unsafe_allow_html=True)
-
 with col_menu_btn:
-    st.markdown('<div style="padding-top:10px">', unsafe_allow_html=True)
+    st.markdown('<div style="padding-top:14px">', unsafe_allow_html=True)
     if st.button("☰", key="menu_toggle", help="Menu", use_container_width=True):
         st.session_state["menu_open"] = not st.session_state["menu_open"]
     st.markdown('</div>', unsafe_allow_html=True)
@@ -338,6 +337,9 @@ else:  # "dashboards"
 
     # ─── STUDENT PROFILE ────────────────────────────────────────────────────
     if dash_section == "👤 Student Profile":
+        import pandas as pd
+        from datetime import date as _date
+
         st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
         st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 
@@ -346,8 +348,7 @@ else:  # "dashboards"
             st.info("No student data yet. Use Daily Entry to add sessions, or generate demo data below.")
             with st.expander("Generate demo data"):
                 st.caption("Generates 300 fake students (30 per class, Class 1–10) with a realistic "
-                           "mix of sessions, wrong answers, and remedial assignments — lets you preview "
-                           "all the dashboards before real data arrives.")
+                           "mix of sessions, wrong answers, and remedial assignments.")
                 if st.button("👥  Generate 300 demo students", key="gen_demo"):
                     with st.spinner("Seeding demo data…"):
                         import seed_demo_data
@@ -357,80 +358,147 @@ else:  # "dashboards"
             col_p1, col_p2 = st.columns([1, 1])
             with col_p1:
                 profile_class = st.selectbox("Class", existing_classes, key="profile_class")
-            students = db.get_students(profile_class)
+            pool = db.get_students(profile_class)
             with col_p2:
-                profile_student = st.selectbox("Student", [s["name"] for s in students], key="profile_student")
-            student = next(s for s in students if s["name"] == profile_student)
+                sp_labels = [f'{s["name"]}' for s in pool]
+                sp_pick = st.selectbox("Student", sp_labels, key="sp_pick")
+            student = pool[sp_labels.index(sp_pick)]
 
-            sessions = db.get_student_sessions(student["id"])
-            alerts   = db.get_student_alerts(student["id"], threshold=2)
+            current_levels   = analytics.get_current_levels()
+            cur_level        = current_levels.get(student["id"])
+            student_sessions = db.get_sessions(student_id=student["id"])
+            history          = analytics.student_history(student["id"], sessions=student_sessions)
+            topic_rows       = analytics.student_topic_breakdown(student["id"], sessions=student_sessions)
+            mistake_rows     = analytics.student_mistake_breakdown(student["id"], sessions=student_sessions)
+            remedial         = analytics.student_remedial_summary(student["id"], sessions=student_sessions)
 
-            # ── Header card
-            grade_badge = f"Grade {student.get('grade','?')}"
-            st.markdown(f"""
-            <div class="ws-hero" style="margin-top:14px">
-                <div>
-                    <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Student</div>
-                    <div class="ws-hero-id" style="font-size:22px">{student['name']}</div>
-                    <div style="font-size:12px;color:#888;margin-top:3px">{profile_class} &nbsp;·&nbsp; {grade_badge}</div>
-                </div>
-                <div class="ws-hero-meta">
-                    <div class="ws-hero-topic">{len(sessions)} sessions</div>
-                    <div class="ws-hero-tier">{"⚠️ "+str(len(alerts))+" alerts" if alerts else "✅ No open alerts"}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            today_str      = _date.today().isoformat()
+            today_sessions = [h for h in history if h["session_date"] == today_str]
+            days_active    = len({h["session_date"] for h in history})
+            last_active    = history[0]["session_date"] if history else "—"
 
-            # ── Stats row
-            if sessions:
-                total_q  = sum(s["total_questions"] or 0 for s in sessions)
-                total_w  = sum(len(s.get("wrong_qs") or []) for s in sessions)
-                accuracy = round(100*(total_q-total_w)/total_q) if total_q else 0
-                current_level = sessions[-1]["level_num"] if sessions else "—"
-                st.markdown(f"""
-                <div class="info-row" style="margin-left:0;margin-right:0">
-                    <div class="info-cell"><div class="il">Sessions</div><div class="iv">{len(sessions)}</div></div>
-                    <div class="info-cell"><div class="il">Questions</div><div class="iv">{total_q}</div></div>
-                    <div class="info-cell"><div class="il">Accuracy</div><div class="iv">{accuracy}%</div></div>
-                    <div class="info-cell"><div class="il">Current Level</div><div class="iv">{current_level}</div></div>
-                </div>
-                """, unsafe_allow_html=True)
+            # Header
+            st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:20px;font-weight:700;margin-bottom:6px">{student["name"]}</div>',
+                        unsafe_allow_html=True)
+            header_cards = [
+                ("Class", student["class_name"]), ("Grade", student["grade"]),
+                ("Current Level", cur_level if cur_level is not None else "—"),
+                ("Total Sessions", len(history)), ("Days Active", days_active),
+                ("Last Active", last_active),
+            ]
+            card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+            for label, value in header_cards:
+                card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                              f'<div class="iv" style="font-size:18px">{value}</div></div>')
+            card_html += '</div>'
+            st.markdown(card_html, unsafe_allow_html=True)
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
 
-                # ── Recent sessions
-                st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
-                st.markdown("###### Recent Sessions")
-                for s in reversed(sessions[-8:]):
-                    wq = s.get("wrong_qs") or []
-                    n_wrong = len(wq); n_q = s["total_questions"] or 0
-                    acc = round(100*(n_q-n_wrong)/n_q) if n_q else 0
-                    acc_color = "#2E6B5E" if acc>=80 else ("#CC7000" if acc>=60 else "#B71C1C")
-                    st.markdown(f"""
-                    <div style="display:flex;justify-content:space-between;align-items:center;
-                                padding:8px 0;border-bottom:1px solid #f0ede8">
-                        <div>
-                            <span style="font-size:13px;font-weight:600;color:#111">{s['worksheet_id']}</span>
-                            <span style="font-size:11px;color:#888;margin-left:10px">{s['session_date']}</span>
-                        </div>
-                        <div style="font-size:13px;font-weight:700;color:{acc_color}">{acc}%</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                # ── Alerts for this student
-                if alerts:
-                    st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
-                    st.markdown("###### Open Alerts")
-                    for a in alerts:
-                        st.markdown(f"""
-                        <div class="info-cell" style="margin-bottom:8px">
-                            <div class="il">⚠️ Concept stuck</div>
-                            <div style="font-size:13px;color:#222;margin-top:4px">
-                                <b>{a['topic']}</b> — wrong {a['wrong_count']} times across {a['worksheet_count']} worksheets
-                                <span style="font-size:11px;color:#888"> (Level {a['level_num']} · {a['sublevel_topic']})</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+            # Today's update
+            st.markdown("###### Today's update")
+            if today_sessions:
+                for h in today_sessions:
+                    correct = h["total_questions"] - h["wrong_count"]
+                    rem_txt = f' · Remedial: {h["remedial_status"]}' if h["remedial_status"] else ""
+                    detail_lines = ""
+                    if h["wrong_details"]:
+                        parts = []
+                        for qn in sorted(h["wrong_details"].keys()):
+                            d = h["wrong_details"][qn]
+                            mt = d.get("mistake_type") or "untagged"
+                            ans = d.get("student_answer")
+                            piece = f"Q{qn}: {mt}" + (f' ("{ans}")' if ans else "")
+                            parts.append(piece)
+                        detail_lines = (f'<div style="font-size:12px;color:#777;margin-top:6px">'
+                                       f'{" &nbsp;·&nbsp; ".join(parts)}</div>')
+                    st.markdown(
+                        f'<div class="info-cell" style="margin-bottom:8px">'
+                        f'<b>{h["worksheet_id"]}</b> — {correct}/{h["total_questions"]} correct '
+                        f'({h["accuracy"]}%){rem_txt}{detail_lines}</div>',
+                        unsafe_allow_html=True,
+                    )
             else:
-                st.caption("No sessions recorded yet for this student.")
+                st.caption("No entry logged for today yet.")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # Growth charts
+            st.markdown("###### Growth over time")
+            if len(history) >= 2:
+                chrono = sorted(history, key=lambda h: (h["session_date"], h["id"]))
+                growth_df = pd.DataFrame({
+                    "Level": [h["level_num"] for h in chrono],
+                    "Accuracy %": [h["accuracy"] for h in chrono],
+                }, index=[h["session_date"] for h in chrono])
+                col_g1, col_g2 = st.columns(2)
+                with col_g1:
+                    st.caption("Level progression")
+                    st.line_chart(growth_df[["Level"]], color="#0D0D0D", width='stretch')
+                with col_g2:
+                    st.caption("Accuracy trend")
+                    st.line_chart(growth_df[["Accuracy %"]], color="#0D0D0D", width='stretch')
+            else:
+                st.caption("Not enough history yet — needs at least 2 sessions.")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # Topic weaknesses
+            st.markdown("###### Topics needing attention")
+            if topic_rows:
+                topic_df = pd.DataFrame({"Times wrong": [t["count"] for t in topic_rows[:10]]},
+                                        index=[t["topic"] for t in topic_rows[:10]])
+                st.bar_chart(topic_df, horizontal=True, color="#0D0D0D", width='stretch')
+            else:
+                st.caption("No wrong-answer data yet — clean record so far!")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # Mistake types
+            st.markdown("###### How they're thinking")
+            st.caption("What kind of mistake this student makes — concept gaps need different follow-up than calculation slips.")
+            if mistake_rows:
+                mistake_df = pd.DataFrame({"Times": [m["count"] for m in mistake_rows]},
+                                          index=[m["mistake_type"] for m in mistake_rows])
+                st.bar_chart(mistake_df, horizontal=True, color="#0D0D0D", width='stretch')
+            else:
+                st.caption("No mistake-type data yet.")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # Remedial tracking
+            st.markdown("###### Remedial tracking")
+            rem_cards = [
+                ("Assigned", remedial["assigned"]),
+                ("Completed", remedial["completed"]),
+                ("Pending", remedial["pending_count"]),
+            ]
+            rcard_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+            for label, value in rem_cards:
+                rcard_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                              f'<div class="iv" style="font-size:18px">{value}</div></div>')
+            rcard_html += '</div>'
+            st.markdown(rcard_html, unsafe_allow_html=True)
+            if remedial["pending_sessions"]:
+                pending_ids = ", ".join(s["remedial_id"] for s in remedial["pending_sessions"])
+                st.caption(f"Pending: {pending_ids}")
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # Full history
+            st.markdown("###### Full history")
+            hist_df = pd.DataFrame([{
+                "Date": h["session_date"],
+                "Worksheet": h["worksheet_id"],
+                "Score": f'{h["total_questions"] - h["wrong_count"]}/{h["total_questions"]}',
+                "Accuracy": f'{h["accuracy"]}%',
+                "Topics missed": h["resolved_topics"] or "—",
+                "Mistake types": ", ".join(sorted({
+                    d.get("mistake_type") for d in h["wrong_details"].values() if d.get("mistake_type")
+                })) or "—",
+                "Remedial": h["remedial_status"] or "—",
+            } for h in history])
+            st.dataframe(hist_df, hide_index=True, width='stretch')
 
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
