@@ -436,44 +436,17 @@ else:
     ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
 
     if wa_number:
-        # One button — saves AND opens WhatsApp
         wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
-        st.markdown(f"""
-        <a href="{wa_link}" target="_blank" style="text-decoration:none">
-          <div style="background:#25D366;color:#fff;text-align:center;
-                      padding:16px 0;border-radius:8px;font-weight:700;font-size:16px;
-                      letter-spacing:.01em">
-            📲  Save &amp; Send to Parent
-          </div>
-        </a>
-        """, unsafe_allow_html=True)
-        st.caption("Tapping this saves the entry and opens WhatsApp with the parent message ready.")
-
-        # Invisible trigger: a small button that fires the DB save on the
-        # same tap-cycle. Because opening an href link doesn't trigger a
-        # Streamlit rerun, we need a separate save-on-click mechanism.
-        # Solution: use a regular Streamlit button styled as secondary, so
-        # staff can see it was saved, and the WhatsApp link is the primary CTA.
-        col_sv, col_sp = st.columns([1, 1])
-        with col_sv:
-            if st.button("💾  Save entry only (no WhatsApp)", key="de_save",
-                         use_container_width=True):
-                _save_entry()
-                st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{st.session_state['de_roll']}")
-                st.rerun()
-        with col_sp:
-            if st.button("💾 + 📲  Save & open WhatsApp", type="primary",
-                         key="de_save_and_send", use_container_width=True):
-                _save_entry()
-                st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…")
-                # Open WhatsApp via JS redirect after save
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="1;url={wa_link}">',
-                    unsafe_allow_html=True,
-                )
-                st.rerun()
+        if st.button("💾 📲  Save & Send to Parent", type="primary",
+                     key="de_save_and_send", use_container_width=True):
+            _save_entry()
+            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…")
+            st.markdown(
+                f'<meta http-equiv="refresh" content="1;url={wa_link}">',
+                unsafe_allow_html=True,
+            )
+            st.rerun()
     else:
-        # No WhatsApp number — just save button
         if st.button("💾  Save Entry", type="primary", key="de_save",
                      use_container_width=True):
             _save_entry()
