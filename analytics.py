@@ -51,7 +51,7 @@ def _session_accuracy(session: dict) -> float:
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_current_levels() -> dict:
     """
     {student_id: level_num} based on each student's most recent session
@@ -75,7 +75,7 @@ def get_current_levels() -> dict:
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def school_summary(date_from: str = None, date_to: str = None, class_name: str = None) -> dict:
     """
     Whole-school (or one class) summary for a date range — total roster,
@@ -109,7 +109,7 @@ def school_summary(date_from: str = None, date_to: str = None, class_name: str =
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def class_summary(date_from: str = None, date_to: str = None) -> list:
     """
     Returns a list of dicts, one per class:
@@ -147,7 +147,7 @@ def class_summary(date_from: str = None, date_to: str = None) -> list:
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def grade_rollup(date_from: str = None, date_to: str = None) -> list:
     """
     Returns a list of dicts, one per grade (1-10 that have students):
@@ -184,7 +184,7 @@ def grade_rollup(date_from: str = None, date_to: str = None) -> list:
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name: str = None) -> list:
     """
     Returns [{topic, student_count, occurrence_count}, ...] sorted by
@@ -212,7 +212,7 @@ def topic_failure_ranking(date_from: str = None, date_to: str = None, class_name
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def school_mistake_breakdown(date_from: str = None, date_to: str = None, class_name: str = None) -> list:
     """
     Schoolwide (or one class) mistake-type breakdown for a date range —
@@ -233,7 +233,7 @@ def school_mistake_breakdown(date_from: str = None, date_to: str = None, class_n
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def remedial_completion_summary(date_from: str = None, date_to: str = None, class_name: str = None) -> dict:
     """
     How many remedial worksheets were assigned (sessions with a remedial_id)
@@ -448,7 +448,7 @@ def concept_mistake_types_for_student(student_id: int, concept: str) -> list:
 
 
 @_registered
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def concept_alerts(threshold: int = 2, class_name: str = None) -> list:
     """
     Scans every student (optionally limited to one class) and flags any

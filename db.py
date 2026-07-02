@@ -58,8 +58,10 @@ def _cached(*args, **kwargs):
     the selected student's whole history, even when nothing relevant
     changed. Caching means repeated calls with the same arguments reuse the
     last result instead of re-querying Turso and recomputing from scratch.
-    A short TTL is a safety net; explicit .clear() calls after every write
-    (below) are what actually keep this from ever showing stale data.
+    The TTL is a 1-hour safety net only; explicit .clear() calls after every
+    write (below) are what actually keep this from ever showing stale data.
+    (Was 60s previously — that forced a full Turso re-fetch every minute,
+    which is what made tab switches feel slow.)
     """
     if st is None:
         def _noop(fn):
@@ -367,7 +369,7 @@ def update_parent_whatsapp(student_id: int, parent_whatsapp: str):
     _clear_read_caches()
 
 
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_students(class_name: str = None):
     with get_conn() as conn:
         if class_name:
@@ -379,7 +381,7 @@ def get_students(class_name: str = None):
         return [dict(r) for r in rows]
 
 
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_classes():
     with get_conn() as conn:
         rows = conn.execute("SELECT DISTINCT class_name FROM students ORDER BY class_name").fetchall()
@@ -487,7 +489,7 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
     return session_id
 
 
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_sessions(student_id: int = None, date_from: str = None, date_to: str = None,
                   class_name: str = None):
     q = "SELECT * FROM sessions WHERE 1=1"
@@ -521,7 +523,7 @@ def get_remedial_status(session_id: int):
         return dict(row) if row else None
 
 
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_remedial_status_bulk(session_ids: list) -> dict:
     """
     Returns {session_id: {...}} for MANY sessions in ONE query, instead of
@@ -576,7 +578,7 @@ def get_wrong_answer_details(session_id: int) -> dict:
                 for r in rows}
 
 
-@_cached(ttl=60, show_spinner=False)
+@_cached(ttl=3600, show_spinner=False)
 def get_wrong_answer_details_bulk(session_ids: list) -> dict:
     """
     Returns {session_id: {q_num: {...}}} for MANY sessions in ONE query,
