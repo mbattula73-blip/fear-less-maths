@@ -1869,9 +1869,9 @@ def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
     if lefts is None: lefts = ["1", "2", "3"]
     if rights is None: rights = ["A", "B", "C"]
     n = len(lefts)
-    row_h = 80
-    fnt = _font_reg(21)  # renders at ~12pt in the final PDF box, matching question text
-    box = 44
+    row_h = 68
+    fnt = _font_reg(26)  # ~15pt effective in the PDF -- clearly larger than body text
+    box = 40
     # Size columns dynamically from the ACTUAL content so nothing clips,
     # instead of guessing a fixed width that breaks on longer text.
     tmp_img, tmp_d = _blank(10, 10)
@@ -1879,26 +1879,26 @@ def matching_vertical_blank(lefts=None, rights=None, **kw) -> BytesIO:
     right_texts = [f"{chr(65+i)}) {item}" for i, item in enumerate(rights)]
     left_w = max(tmp_d.textlength(t, font=fnt) for t in left_texts)
     right_w = max(tmp_d.textlength(t, font=fnt) for t in right_texts)
-    col_gap = 24
-    dot_r = 10
-    x_left = 12
+    col_gap = 18
+    dot_r = 8
+    x_left = 10
     x_dot1 = x_left + left_w + col_gap
     x_box = x_dot1 + dot_r + col_gap
     x_dot2 = x_box + box + col_gap
     x_right = x_dot2 + dot_r + col_gap
-    w = int(x_right + right_w + 14)
-    h = n * row_h + 50
+    w = int(x_right + right_w + 12)
+    h = n * row_h + 36
     img, d = _blank(w, h)
     for i, item in enumerate(lefts):
-        y = 25 + i*row_h + row_h/2
-        d.text((x_left, y-23), left_texts[i], fill=C_BORDER, font=fnt)
+        y = 18 + i*row_h + row_h/2
+        d.text((x_left, y-18), left_texts[i], fill=C_BORDER, font=fnt)
         d.ellipse([x_dot1-dot_r, y-dot_r, x_dot1+dot_r, y+dot_r], outline=C_BORDER, width=3)
         # small answer box for writing the matching letter
-        d.rectangle([x_box, y-25, x_box+box, y-25+50], outline=C_BORDER, width=3)
+        d.rectangle([x_box, y-20, x_box+box, y-20+40], outline=C_BORDER, width=3)
     for i, item in enumerate(rights):
-        y = 25 + i*row_h + row_h/2
+        y = 18 + i*row_h + row_h/2
         d.ellipse([x_dot2-dot_r, y-dot_r, x_dot2+dot_r, y+dot_r], outline=C_BORDER, width=3)
-        d.text((x_right, y-23), right_texts[i], fill=C_BORDER, font=fnt)
+        d.text((x_right, y-18), right_texts[i], fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -1909,8 +1909,8 @@ def matching_vertical_example(lefts=None, rights=None, lines=None, **kw) -> Byte
     if rights is None: rights = ["6", "2", "4"]
     if lines is None: lines = [0, 2, 1]  # left index i connects to right index lines[i]
     n = len(lefts)
-    row_h = 80
-    fnt = _font_reg(21)  # renders at ~12pt in the final PDF box, matching question text
+    row_h = 68
+    fnt = _font_reg(26)  # ~15pt effective in the PDF -- clearly larger than body text
     tmp_img, tmp_d = _blank(10, 10)
     left_texts = [f"{i+1}) {item}" for i, item in enumerate(lefts)]
     right_texts = [f"{chr(65+i)}) {item}" for i, item in enumerate(rights)]
