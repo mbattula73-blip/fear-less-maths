@@ -77,7 +77,7 @@ with col_menu_btn:
 if st.session_state["menu_open"]:
     st.markdown('<div class="menu-panel"><div class="menu-panel-title">Go to</div></div>',
                 unsafe_allow_html=True)
-    col_m1, col_m2, col_m3 = st.columns([1, 1, 1])
+    col_m1, col_m2, col_m3, col_m4 = st.columns([1, 1, 1, 1])
     with col_m1:
         if st.button("📄  Worksheet Generator", key="goto_gen", use_container_width=True):
             st.session_state["view"] = "generator"
@@ -89,6 +89,11 @@ if st.session_state["menu_open"]:
             st.session_state["menu_open"] = False
             st.rerun()
     with col_m3:
+        if st.button("🧪  Screening Test", key="goto_screen", use_container_width=True):
+            st.session_state["view"] = "screening"
+            st.session_state["menu_open"] = False
+            st.rerun()
+    with col_m4:
         if st.button("🏠  Dashboards", key="goto_dash", use_container_width=True):
             st.session_state["view"] = "dashboards"
             st.session_state["menu_open"] = False
@@ -109,6 +114,79 @@ if st.session_state["view"] == "daily_entry_url":
     if st.button("← Back to Dashboards", key="back_de"):
         st.session_state["view"] = "dashboards"
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VIEW: SCREENING TEST
+# ══════════════════════════════════════════════════════════════════════════════
+elif st.session_state["view"] == "screening":
+    st.markdown('<div class="back-bar">', unsafe_allow_html=True)
+    col_back, col_title = st.columns([1, 6])
+    with col_back:
+        if st.button("← Back", key="back_screen"):
+            st.session_state["view"] = "dashboards"
+            st.rerun()
+    with col_title:
+        st.markdown('<span style="font-weight:600;color:#111">Screening Test — Who Needs FLM?</span>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+    st.markdown("##### Comprehensive FLM Readiness Screening")
+    st.caption(
+        "Generates a diagnostic worksheet built from real, already-verified FLM questions "
+        "sampling every prerequisite level a student should have secured by the end of the "
+        "previous class. Use the score to decide FLM placement — see the Screening Test "
+        "Accountability Framework document for the scoring bands and decision rules."
+    )
+
+    import screening_test as _st
+
+    class_options = sorted(_st.SCREENING_BLUEPRINTS.keys(), key=int)
+    screen_class = st.selectbox("Class", class_options, key="screen_class",
+                                format_func=lambda c: f"Class {c}")
+
+    if st.button(f"🧪  Generate Screening Test — Class {screen_class}", type="primary", key="gen_screen"):
+        with st.spinner(f"Assembling comprehensive screening test for Class {screen_class}…"):
+            try:
+                pdf_bytes, report = _st.build_screening_pdf_with_report(
+                    screen_class, _st.SCREENING_BLUEPRINTS[screen_class]
+                )
+                st.session_state["screen_pdf"] = pdf_bytes.read()
+                st.session_state["screen_report"] = report
+                st.session_state["screen_class_done"] = screen_class
+            except Exception as e:
+                st.error(f"Error: {e}")
+                st.exception(e)
+
+    if st.session_state.get("screen_class_done") == screen_class and "screen_pdf" in st.session_state:
+        report = st.session_state["screen_report"]
+        size_kb = len(st.session_state["screen_pdf"]) // 1024
+        st.markdown(f"""
+        <div class="success-card">
+            <div class="ck">✓</div>
+            <div>Class {screen_class} screening test ready &nbsp;·&nbsp; {report['total_questions']} questions &nbsp;·&nbsp; {size_kb} KB</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.download_button(
+            label=f"⬇  Download  SCREEN-{screen_class}.pdf",
+            data=st.session_state["screen_pdf"],
+            file_name=f"SCREEN-{screen_class}.pdf",
+            mime="application/pdf",
+            key="dl_screen",
+        )
+
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+        st.caption(f"Sublevels sampled: {len(report['used'])}")
+        if report["skipped"]:
+            st.warning(
+                f"⚠️ {len(report['skipped'])} sublevel(s) skipped — no content built yet for: "
+                f"{', '.join(report['skipped'])}. These were left out honestly rather than "
+                f"faked; the test score should be read with this gap in mind."
+            )
+
+    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
