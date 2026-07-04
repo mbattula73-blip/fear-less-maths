@@ -17531,6 +17531,13 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 20 (Statistics, Probability & AP) content from content_l20.py
+try:
+    from content_l20 import DISPATCH_L20
+    _DISPATCH.update(DISPATCH_L20)
+except Exception as _e:
+    pass
+
 # Merge in Pre-Level (Pre-Primary counting & number sense) content from content_pre.py
 try:
     from content_pre import PRE_DISPATCH
