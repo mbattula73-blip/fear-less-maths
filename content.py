@@ -13484,7 +13484,7 @@ def _L12B_4():
 def _L12C_1():
     return [
         cb("Two-Step Equations", [
-            "ROUTE for this topic: 1 See it → 2 Try it → 3 Practice → 3B Bridge → 4 Master it.  You are on Sheet 1.",
+            "[1] ↓ 2 ↓ 3 ↓ 3B ↓ 4     You are on Sheet 1.",
             "2x + 3 = 11. There are TWO operations: ×2 and +3.",
             "Undo in reverse: first undo +3, then undo ×2.",
             "Step 1: Subtract 3 → 2x = 8.",
@@ -13521,7 +13521,7 @@ def _L12C_1():
 def _L12C_2():
     return [
         cb("Two-Step Equations — Practice", [
-            "ROUTE for this topic: 1 See it → 2 Try it → 3 Practice → 3B Bridge → 4 Master it.  You are on Sheet 2.",
+            "1 ↓ [2] ↓ 3 ↓ 3B ↓ 4     You are on Sheet 2.",
             "Always do the same thing to both sides.",
             "Show your working step by step.",
             "Check your answer by substituting back.",
@@ -13552,7 +13552,7 @@ def _L12C_2():
 def _L12C_3():
     return [
         tb("Multi-Step Equations — Tips", [
-            "ROUTE for this topic: 1 See it → 2 Try it → 3 Practice → 3B Bridge → 4 Master it.  You are on Sheet 3.",
+            "1 ↓ 2 ↓ [3] ↓ 3B ↓ 4     You are on Sheet 3.",
             "Two-step: undo +/- first, then ×/÷.",
             "Step 1: get the term with x alone on one side.",
             "Step 2: divide by the coefficient.",
@@ -13585,7 +13585,7 @@ def _L12C_3():
 def _L12C_4():
     return [
         tb("Multi-Step Equations — Mastery Tips", [
-            "ROUTE for this topic: 1 See it → 2 Try it → 3 Practice → 3B Bridge → 4 Master it.  You are on Sheet 4 — the final stage!",
+            "1 ↓ 2 ↓ 3 ↓ 3B ↓ [4]     You are on Sheet 4 — the final one!",
             "Like terms on the same side: combine first.",
             "x + x = 2x. 3x + 2x = 5x.",
             "Then solve as a two-step equation.",
@@ -13623,7 +13623,7 @@ def _L12C_4():
 def _L12C_3B():
     return [
         tb("Combining Like Terms — Bridge", [
-            "ROUTE for this topic: 1 See it → 2 Try it → 3 Practice → 3B Bridge → 4 Master it.  You are on Sheet 3B.",
+            "1 ↓ 2 ↓ 3 ↓ [3B] ↓ 4     You are on Sheet 3B.",
             "Before solving, combine any like terms on the SAME side first.",
             "2x + 3x = 5x. x + 4x = 5x. 6x - 2x = 4x.",
             "Once combined, solve exactly like a two-step equation.",
