@@ -209,7 +209,7 @@ elif st.session_state["view"] == "generator":
     level_num, sublevel_code, topic = ui_common.render_level_selector()
 
     # Generator sub-tabs
-    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🏷️ Concept Tags"]
+    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🗂️ Bulk Export", "🏷️ Concept Tags"]
     st.markdown('<div class="section-switcher">', unsafe_allow_html=True)
     gen_section = st.radio("Generator Section", GEN_SECTIONS, horizontal=True,
                            key="gen_section", label_visibility="collapsed")
@@ -364,6 +364,84 @@ elif st.session_state["view"] == "generator":
                     fname = f"{sublevel_code}-{sn}.pdf"
                     st.download_button(f"⬇ {fname}", data=data, file_name=fname,
                                        mime="application/pdf", key=f"dl_b_{sn}")
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ─── Bulk Export ────────────────────────────────────────────────────────
+    elif gen_section == "🗂️ Bulk Export":
+        import bulk_export as be
+
+        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+        st.markdown("##### Bulk Export")
+        st.caption("Generates every worksheet (4 main + 4 remedial sheets, every sublevel) "
+                   "for a whole level or a 5-level range, and packages them into one ZIP file.")
+
+        bulk_mode = st.radio("Export scope", ["Whole Level", "5-Level Range"],
+                             horizontal=True, key="bulk_mode")
+
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+
+        if bulk_mode == "Whole Level":
+            all_levels = sorted(LEVELS.keys())
+            bulk_level = st.selectbox(
+                "Level", all_levels, index=all_levels.index(level_num) if level_num in all_levels else 0,
+                format_func=lambda l: f"Level {l} — {LEVELS[l]['name']}", key="bulk_level",
+            )
+            n_pdfs = be.count_pdfs_for_levels([bulk_level])
+            est_sec = round(n_pdfs * 0.1)
+            st.caption(f"This will generate **{n_pdfs} PDFs** (≈{est_sec}s) and zip them.")
+
+            if st.button(f"🗂️  Export Level {bulk_level} (ZIP)", type="primary", key="bulk_export_level"):
+                progress = st.progress(0, text="Starting…")
+                def _cb(done, total):
+                    progress.progress(done/total, text=f"Generating {done}/{total} worksheets…")
+                zip_buf, failures = be.build_level_zip(bulk_level, progress_cb=_cb)
+                progress.empty()
+                st.session_state["bulk_zip"] = zip_buf.getvalue()
+                st.session_state["bulk_zip_name"] = f"Level{bulk_level:02d}_AllWorksheets.zip"
+                st.session_state["bulk_failures"] = failures
+                st.success(f"Level {bulk_level} export ready — {n_pdfs - len(failures)}/{n_pdfs} worksheets included.")
+
+        else:  # 5-Level Range
+            range_label = st.selectbox("Range", list(be.FIVE_LEVEL_RANGES.keys()), key="bulk_range")
+            range_levels = be.FIVE_LEVEL_RANGES[range_label]
+            n_pdfs = be.count_pdfs_for_levels(range_levels)
+            est_sec = round(n_pdfs * 0.1)
+            st.caption(f"This will generate **{n_pdfs} PDFs** across {len(range_levels)} levels "
+                      f"(≈{est_sec}s, may take over a minute) and zip them.")
+
+            if st.button(f"🗂️  Export {range_label} (ZIP)", type="primary", key="bulk_export_range"):
+                progress = st.progress(0, text="Starting…")
+                def _cb(done, total):
+                    progress.progress(done/total, text=f"Generating {done}/{total} worksheets…")
+                zip_buf, failures = be.build_multi_level_zip(range_levels, progress_cb=_cb)
+                progress.empty()
+                st.session_state["bulk_zip"] = zip_buf.getvalue()
+                st.session_state["bulk_zip_name"] = f"{range_label.replace(' ', '_')}_AllWorksheets.zip"
+                st.session_state["bulk_failures"] = failures
+                st.success(f"{range_label} export ready — {n_pdfs - len(failures)}/{n_pdfs} worksheets included.")
+
+        if "bulk_zip" in st.session_state:
+            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+            size_mb = len(st.session_state["bulk_zip"]) / (1024*1024)
+            st.markdown(f"""
+            <div class="success-card">
+                <div class="ck">✓</div>
+                <div>{st.session_state['bulk_zip_name']} &nbsp;·&nbsp; {size_mb:.1f} MB</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.download_button(
+                label=f"⬇  Download  {st.session_state['bulk_zip_name']}",
+                data=st.session_state["bulk_zip"],
+                file_name=st.session_state["bulk_zip_name"],
+                mime="application/zip",
+                key="dl_bulk_zip",
+            )
+            if st.session_state.get("bulk_failures"):
+                st.warning(f"⚠️ {len(st.session_state['bulk_failures'])} worksheet(s) failed to generate "
+                          f"and were skipped — see MANIFEST.txt inside the zip for details.")
+
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
