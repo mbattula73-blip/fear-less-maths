@@ -13606,6 +13606,42 @@ def _L12C_4():
         q("True or False: 2x + x + 2 = 14 means x = 4.", "fill", "Answer = ____"),
     ]
 
+# ─── 12C Bridge sheet — PILOT for the Practice→Mastery step-size fix ────────
+# Sheet 4 introduces TWO new skills simultaneously: combining like terms on
+# one side (2x+3x=25) AND moving variables across the equals sign (3x=x+8).
+# This bridge sheet teaches ONLY the first skill (combining like terms on
+# one side), so by the time a student reaches Sheet 4 unchanged, they meet
+# just one genuinely new idea instead of two at once.
+def _L12C_3B():
+    return [
+        tb("Combining Like Terms — Bridge", [
+            "Before solving, combine any like terms on the SAME side first.",
+            "2x + 3x = 5x. x + 4x = 5x. 6x - 2x = 4x.",
+            "Once combined, solve exactly like a two-step equation.",
+            "This sheet keeps the variable on ONE side only — both-sides equations come next.",
+        ]),
+        q("Solve 2x + 3x = 25. Combine: 5x = 25. x = ____", "fill", "Answer = ____"),
+        q("Solve x + 4x = 20. Combine: 5x = 20. x = ____", "fill", "Answer = ____"),
+        q("Solve 3x + 2x = 35. Combine: 5x = 35. x = ____", "fill", "Answer = ____"),
+        q("Solve 6x + x = 21. Combine: 7x = 21. x = ____", "fill", "Answer = ____"),
+        q("Solve 2x + 2x = 16. Combine: 4x = 16. x = ____", "fill", "Answer = ____"),
+        q("Solve 5x - 2x = 15. Combine: 3x = 15. x = ____", "fill", "Answer = ____"),
+        q("Solve 7x - 3x = 24. Combine: 4x = 24. x = ____", "fill", "Answer = ____"),
+        q("Solve 4x - x = 18. Combine: 3x = 18. x = ____", "fill", "Answer = ____"),
+        q("Solve 2x + x + 3 = 18. Combine: 3x + 3 = 18. 3x = 15. x = ____", "fill", "Answer = ____"),
+        q("Solve 3x + 2x + 1 = 21. Combine: 5x + 1 = 21. 5x = 20. x = ____", "fill", "Answer = ____"),
+        q("Solve 4x - x + 2 = 14. Combine: 3x + 2 = 14. 3x = 12. x = ____", "fill", "Answer = ____"),
+        q("Solve 5x - 2x + 3 = 18. Combine: 3x + 3 = 18. 3x = 15. x = ____", "fill", "Answer = ____"),
+        q("True or False: 2x + 3x = 25 means x = 5.", "fill", "Answer = ____"),
+        q("True or False: x + 4x = 20 means x = 4.", "fill", "Answer = ____"),
+        q("True or False: 3x + 2x = 35 means x = 6.", "fill", "Answer = ____"),
+        q("True or False: 6x + x = 21 means x = 3.", "fill", "Answer = ____"),
+        q("Spot: 5x - 2x = 15, someone says x = 6. Correct? Fix (x=5). ____", "fill", "Answer = ____"),
+        q("True or False: 7x - 3x = 24 means x = 6.", "fill", "Answer = ____"),
+        q("True or False: 2x + x + 3 = 18 means x = 5.", "fill", "Answer = ____"),
+        q("True or False: 4x - x + 2 = 14 means x = 5.", "fill", "Answer = ____"),
+    ]
+
 # ─── 12CUM1: Mixed A+B+C ────────────────────────────────────
 def _L12CUM1_s(sheet):
     if sheet <= 2:
@@ -17440,7 +17476,7 @@ _DISPATCH = {
     # Level 12
     "12A":   {1:_L12A_1, 2:_L12A_2, 3:_L12A_3, 4:_L12A_4},
     "12B":   {1:_L12B_1, 2:_L12B_2, 3:_L12B_3, 4:_L12B_4},
-    "12C":   {1:_L12C_1, 2:_L12C_2, 3:_L12C_3, 4:_L12C_4},
+    "12C":   {1:_L12C_1, 2:_L12C_2, 3:_L12C_3, "3B":_L12C_3B, 4:_L12C_4},
     "12D":   {1:_L12D_1, 2:_L12D_2, 3:_L12D_3, 4:_L12D_4},
     "12E":   {1:_L12E_1, 2:_L12E_2, 3:_L12E_3, 4:_L12E_4},
     "12F":   {1:_L12F_1, 2:_L12F_2, 3:_L12F_3, 4:_L12F_4},
@@ -17741,7 +17777,16 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
                letters without overwriting each other's content.
     """
     is_remedial = str(sheet_num).endswith("R")
-    base_sheet = int(str(sheet_num).replace("R", ""))
+    _raw = str(sheet_num)
+    _base_raw = _raw[:-1] if is_remedial else _raw
+    try:
+        base_sheet = int(_base_raw)
+    except ValueError:
+        # Non-integer sheet codes (e.g. "3B" for a Bridge sheet inserted
+        # between Practice and Mastery) are looked up as their literal
+        # string key instead -- existing integer-keyed sheets (1-4) are
+        # completely unaffected by this fallback.
+        base_sheet = _base_raw
 
     # Look up the function — try namespaced key first (for levels that opted
     # into plain-letter codes via level_num), then fall back to the plain

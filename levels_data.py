@@ -242,15 +242,17 @@ SHEET_OPTIONS = [
     ("1",  "Sheet 1 — See it (Intuition)"),
     ("2",  "Sheet 2 — Try it (Concept)"),
     ("3",  "Sheet 3 — Do it (Practice)"),
+    ("3B", "Sheet 3B — Bridge it (Bridge)"),
     ("4",  "Sheet 4 — Master it (Mastery)"),
     ("1R", "Sheet 1R — Remedial"),
     ("2R", "Sheet 2R — Remedial"),
     ("3R", "Sheet 3R — Remedial"),
+    ("3BR","Sheet 3BR — Bridge Remedial"),
     ("4R", "Sheet 4R — Remedial"),
 ]
 
 def get_tier(sheet_num: str) -> str:
-    base = sheet_num.replace("R","")
-    names = {"1":"Intuition","2":"Concept","3":"Practice","4":"Mastery"}
+    base = sheet_num[:-1] if sheet_num.endswith("R") else sheet_num
+    names = {"1":"Intuition","2":"Concept","3":"Practice","3B":"Bridge","4":"Mastery"}
     t = names.get(base,"Practice")
     return t + " (Remedial)" if sheet_num.endswith("R") else t
