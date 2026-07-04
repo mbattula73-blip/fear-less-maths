@@ -13485,17 +13485,8 @@ def _L12C_1():
     return [
         cb("Two-Step Equations", [
             "[1] ↓ 2 ↓ 3 ↓ 3B ↓ 4     You are on Sheet 1.",
-            "2x + 3 = 11. There are TWO operations: ×2 and +3.",
-            "Undo in reverse: first undo +3, then undo ×2.",
-            "Step 1: Subtract 3 → 2x = 8.",
-            "Step 2: Divide by 2 → x = 4.",
-        ], "3x - 2 = 13. Add 2: 3x = 15. Divide by 3: x = 5."),
-        cb("Order of Undoing", [
-            "Always undo + and - FIRST.",
-            "Then undo × and ÷.",
-            "Opposite of how you would normally calculate.",
-            "➜ Next: Sheet 2 has you try more two-step equations on your own.",
-        ], "2x + 5 = 13. First -5: 2x = 8. Then ÷2: x = 4."),
+            "There are TWO operations to undo. Undo +/- first, then ×/÷.",
+        ], "2x + 3 = 11  →  2x = 8  →  x = 4"),
         q("Solve 2x + 3 = 11. First 2x = 11 - 3 = ____. Then x = ____ ÷ 2 = ____", "fill", "Answer = ____"),
         q("Solve 3x + 1 = 13. First 3x = ____. Then x = ____", "fill", "Answer = ____"),
         q("Solve 2x + 5 = 15. First 2x = ____. Then x = ____", "fill", "Answer = ____"),
@@ -13523,10 +13514,7 @@ def _L12C_2():
         cb("Two-Step Equations — Practice", [
             "1 ↓ [2] ↓ 3 ↓ 3B ↓ 4     You are on Sheet 2.",
             "Always do the same thing to both sides.",
-            "Show your working step by step.",
-            "Check your answer by substituting back.",
-            "➜ Next: Sheet 3 is focused practice, fully on your own.",
-        ], "4x + 7 = 23. -7: 4x = 16. ÷4: x = 4. Check: 4×4+7 = 23 ✓"),
+        ], "4x + 7 = 23  →  4x = 16  →  x = 4"),
         q("Solve 2x + 1 = 9. x = ____", "fill", "Answer = ____"),
         q("Solve 2x + 7 = 11. x = ____", "fill", "Answer = ____"),
         q("Solve 3x + 4 = 19. x = ____", "fill", "Answer = ____"),
@@ -13553,12 +13541,7 @@ def _L12C_3():
     return [
         tb("Multi-Step Equations — Tips", [
             "1 ↓ 2 ↓ [3] ↓ 3B ↓ 4     You are on Sheet 3.",
-            "Two-step: undo +/- first, then ×/÷.",
-            "Step 1: get the term with x alone on one side.",
-            "Step 2: divide by the coefficient.",
-            "Show your work clearly: write each step.",
-            "Always check by substituting your answer back.",
-            "➜ Next: Sheet 3B (Bridge) teaches combining like terms before the hardest equations.",
+            "3x + 5 = 14  →  3x = 9  →  x = 3",
         ]),
         q("Solve 3x + 5 = 14. x = ____", "fill", "Answer = ____"),
         q("Solve 4x + 1 = 17. x = ____", "fill", "Answer = ____"),
@@ -13586,11 +13569,7 @@ def _L12C_4():
     return [
         tb("Multi-Step Equations — Mastery Tips", [
             "1 ↓ 2 ↓ 3 ↓ 3B ↓ [4]     You are on Sheet 4 — the final one!",
-            "Like terms on the same side: combine first.",
-            "x + x = 2x. 3x + 2x = 5x.",
-            "Then solve as a two-step equation.",
-            "Letters on both sides: get all letters on one side.",
-            "★ This is the last sheet for this topic — you've built up to the hardest equations here.",
+            "3x = x + 8  →  2x = 8  →  x = 4",
         ]),
         q("Solve 2x + 3x = 25. Combine: 5x = 25. x = ____", "fill", "Answer = ____"),
         q("Solve x + 3x = 16. Combine: 4x = 16. x = ____", "fill", "Answer = ____"),
@@ -13624,11 +13603,7 @@ def _L12C_3B():
     return [
         tb("Combining Like Terms — Bridge", [
             "1 ↓ 2 ↓ 3 ↓ [3B] ↓ 4     You are on Sheet 3B.",
-            "Before solving, combine any like terms on the SAME side first.",
-            "2x + 3x = 5x. x + 4x = 5x. 6x - 2x = 4x.",
-            "Once combined, solve exactly like a two-step equation.",
-            "This sheet keeps the variable on ONE side only — both-sides equations come next.",
-            "➜ Next: Sheet 4 adds variables on BOTH sides — the final mastery step.",
+            "2x + 3x = 25  →  5x = 25  →  x = 5",
         ]),
         q("Solve 2x + 3x = 25. Combine: 5x = 25. x = ____", "fill", "Answer = ____"),
         q("Solve x + 4x = 20. Combine: 5x = 20. x = ____", "fill", "Answer = ____"),
