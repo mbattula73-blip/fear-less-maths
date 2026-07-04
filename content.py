@@ -13485,8 +13485,12 @@ def _L12C_1():
     return [
         cb("Two-Step Equations", [
             "[1] ↓ 2 ↓ 3 ↓ 3B ↓ 4     You are on Sheet 1.",
-            "There are TWO operations to undo. Undo +/- first, then ×/÷.",
-        ], "2x + 3 = 11  →  2x = 8  →  x = 4"),
+            "This sheet: solve two-step equations.",
+            "Next: Sheet 2 — try more two-step equations on your own.",
+            "Example: 2x + 3 = 11",
+            "Step 1: Subtract 3  →  2x = 8",
+            "Step 2: Divide by 2  →  x = 4",
+        ], ""),
         q("Solve 2x + 3 = 11. First 2x = 11 - 3 = ____. Then x = ____ ÷ 2 = ____", "fill", "Answer = ____"),
         q("Solve 3x + 1 = 13. First 3x = ____. Then x = ____", "fill", "Answer = ____"),
         q("Solve 2x + 5 = 15. First 2x = ____. Then x = ____", "fill", "Answer = ____"),
@@ -13513,8 +13517,12 @@ def _L12C_2():
     return [
         cb("Two-Step Equations — Practice", [
             "1 ↓ [2] ↓ 3 ↓ 3B ↓ 4     You are on Sheet 2.",
-            "Always do the same thing to both sides.",
-        ], "4x + 7 = 23  →  4x = 16  →  x = 4"),
+            "This sheet: practice two-step equations on your own.",
+            "Next: Sheet 3 — more practice, fully on your own.",
+            "Example: 4x + 7 = 23",
+            "Step 1: Subtract 7  →  4x = 16",
+            "Step 2: Divide by 4  →  x = 4",
+        ], ""),
         q("Solve 2x + 1 = 9. x = ____", "fill", "Answer = ____"),
         q("Solve 2x + 7 = 11. x = ____", "fill", "Answer = ____"),
         q("Solve 3x + 4 = 19. x = ____", "fill", "Answer = ____"),
@@ -13541,7 +13549,11 @@ def _L12C_3():
     return [
         tb("Multi-Step Equations — Tips", [
             "1 ↓ 2 ↓ [3] ↓ 3B ↓ 4     You are on Sheet 3.",
-            "3x + 5 = 14  →  3x = 9  →  x = 3",
+            "This sheet: practice multi-step equations independently.",
+            "Next: Sheet 3B (Bridge) — combine like terms first.",
+            "Example: 3x + 5 = 14",
+            "Step 1: Subtract 5  →  3x = 9",
+            "Step 2: Divide by 3  →  x = 3",
         ]),
         q("Solve 3x + 5 = 14. x = ____", "fill", "Answer = ____"),
         q("Solve 4x + 1 = 17. x = ____", "fill", "Answer = ____"),
@@ -13569,7 +13581,10 @@ def _L12C_4():
     return [
         tb("Multi-Step Equations — Mastery Tips", [
             "1 ↓ 2 ↓ 3 ↓ 3B ↓ [4]     You are on Sheet 4 — the final one!",
-            "3x = x + 8  →  2x = 8  →  x = 4",
+            "This sheet: solve equations with variables on both sides.",
+            "Example: 3x = x + 8",
+            "Step 1: Subtract x from both sides  →  2x = 8",
+            "Step 2: Divide by 2  →  x = 4",
         ]),
         q("Solve 2x + 3x = 25. Combine: 5x = 25. x = ____", "fill", "Answer = ____"),
         q("Solve x + 3x = 16. Combine: 4x = 16. x = ____", "fill", "Answer = ____"),
@@ -13603,7 +13618,11 @@ def _L12C_3B():
     return [
         tb("Combining Like Terms — Bridge", [
             "1 ↓ 2 ↓ 3 ↓ [3B] ↓ 4     You are on Sheet 3B.",
-            "2x + 3x = 25  →  5x = 25  →  x = 5",
+            "This sheet: combine like terms on one side before solving.",
+            "Next: Sheet 4 — equations with variables on BOTH sides.",
+            "Example: 2x + 3x = 25",
+            "Step 1: Combine like terms  →  5x = 25",
+            "Step 2: Divide by 5  →  x = 5",
         ]),
         q("Solve 2x + 3x = 25. Combine: 5x = 25. x = ____", "fill", "Answer = ____"),
         q("Solve x + 4x = 20. Combine: 5x = 20. x = ____", "fill", "Answer = ____"),
