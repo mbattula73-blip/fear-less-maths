@@ -384,15 +384,19 @@ else:
             "remedial_id": remedial_id,
         })
 
-    # ── Save + Send (single combined action) ─────────────────────────────────
+    # ── Save (WhatsApp send temporarily disabled — set WHATSAPP_ENABLED=True
+    #    below to restore the "Save & Send to Parent" button) ────────────────
+    WHATSAPP_ENABLED = False
+
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
     whatsapp_msg = build_whatsapp_report_multi(de_name, sheet_entries)
-    st.markdown(f"""
-    <div class="info-cell" style="margin-bottom:12px">
-        <div class="il">Parent report preview</div>
-        <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    if WHATSAPP_ENABLED:
+        st.markdown(f"""
+        <div class="info-cell" style="margin-bottom:12px">
+            <div class="il">Parent report preview</div>
+            <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     wa_number = student.get("parent_whatsapp")
 
@@ -423,7 +427,7 @@ else:
 
     ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
 
-    if wa_number:
+    if WHATSAPP_ENABLED and wa_number:
         wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
         if st.button("💾 📲  Save & Send to Parent", type="primary",
                      key="de_save_and_send", use_container_width=True):
@@ -440,7 +444,6 @@ else:
             _save_entry()
             st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{st.session_state['de_roll']}")
             st.rerun()
-        st.caption("No parent number on file — add one in Manage Students to enable WhatsApp sending.")
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
 
