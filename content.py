@@ -16,9 +16,9 @@ def tb(title, tips):
     tips: list of short tip strings."""
     return {"type":"tips_box","section_title":title,"tips":tips}
 
-def q(text, qtype="fill", ans="Answer = ____", bold="", diag=None, dpar=None):
+def q(text, qtype="fill", ans="Answer = ____", bold="", diag=None, dpar=None, tier=None):
     return {"type":qtype,"text":text,"answer_label":ans,
-            "bold_phrase":bold,"diagram_type":diag,"diagram_params":dpar or {}}
+            "bold_phrase":bold,"diagram_type":diag,"diagram_params":dpar or {},"tier":tier}
 
 
 # ───────────────────────── shared pictorial-question helpers ─────────────────────────
@@ -9149,36 +9149,38 @@ def _L8REV_s(sheet):
 # ─── 9A: Factors ────────────────────────────────────────────
 def _L9A_1():
     return [
-        cb("What are Factors?", [
-            "A FACTOR of a number divides it exactly with no remainder.",
-            "To find all factors: try dividing by 1, 2, 3, ... up to the number.",
-            "Factors always come in PAIRS that multiply to give the number.",
-        ], "Factors of 12: 1×12, 2×6, 3×4 → factors are 1, 2, 3, 4, 6, 12"),
-        cb("Checking Factors", [
-            "Is 4 a factor of 20? 20 ÷ 4 = 5, no remainder → YES.",
-            "Is 7 a factor of 20? 20 ÷ 7 = 2 remainder 6 → NO.",
-            "1 is a factor of every number. Every number is a factor of itself.",
-        ], "Is 3 a factor of 18? 18÷3=6, no remainder → YES"),
-        q("Is 3 a factor of 12? 12÷3 = ____. Remainder? ____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 5 a factor of 12? 12÷5 = ____ r ____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 4 a factor of 20? 20÷4 = ____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 6 a factor of 30? 30÷6 = ____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 7 a factor of 35? 35÷7 = ____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 9 a factor of 40? 40÷9 = ____ r ____. Answer: ____", "fill", "Answer = ____"),
-        q("List ALL factors of 6: ____", "fill", "Factors = ____"),
-        q("List ALL factors of 10: ____", "fill", "Factors = ____"),
-        q("List ALL factors of 15: ____", "fill", "Factors = ____"),
-        q("List ALL factors of 16: ____", "fill", "Factors = ____"),
-        q("List ALL factors of 18: ____", "fill", "Factors = ____"),
-        q("List ALL factors of 24: ____", "fill", "Factors = ____"),
-        q("How many factors does 6 have? ____", "fill", "Answer = ____"),
-        q("How many factors does 12 have? ____", "fill", "Answer = ____"),
-        q("How many factors does 7 have? (7 is prime) ____", "fill", "Answer = ____"),
-        q("Write all factor pairs of 24: ____", "fill", "Answer = ____"),
-        q("True or False: 1 is a factor of every whole number.", "fill", "Answer = ____"),
-        q("True or False: 6 is a factor of 30.", "fill", "Answer = ____"),
-        q("Spot the mistake: Factors of 10 are 2, 5, 10. What is missing? ____", "fill", "Answer = ____"),
-        q("True or False: 9 is a factor of 36.", "fill", "Answer = ____"),
+        cb("", [], "", icon_diagram="mascot_splitter",
+           icon_params={"message": "Hi, I'm Splitter! I love breaking numbers into equal "
+                                    "groups. If it splits evenly with nothing left over, "
+                                    "that's a FACTOR!"}),
+        cb("BIG IDEA — A factor divides EXACTLY, no remainder", [
+            "[1] ↓ 2 ↓ 3 ↓ 4     You are on Sheet 1.",
+            "12 splits evenly into groups of 1, 2, 3, 4, 6, or 12 — these are ALL its factors.",
+            "Is 4 a factor of 20?  →  20 ÷ 4 = 5, nothing left over  →  YES.",
+            "Is 7 a factor of 20?  →  20 ÷ 7 = 2 remainder 6  →  NO (something is left over).",
+        ], "", icon_diagram="factor_groups_icon", icon_params={"number": 12, "group_size": 3}),
+        q("Is 3 a factor of 12? 12÷3 = ____. Remainder? ____. Answer: ____", "fill", "Answer = ____", tier="INTUITION"),
+        q("Is 5 a factor of 12? 12÷5 = ____ r ____. Answer: ____", "fill", "Answer = ____", tier="INTUITION"),
+        q("Is 4 a factor of 20? 20÷4 = ____. Answer: ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("Is 6 a factor of 30? 30÷6 = ____. Answer: ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("Is 7 a factor of 35? 35÷7 = ____. Answer: ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("Is 9 a factor of 40? 40÷9 = ____ r ____. Answer: ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("List ALL factors of 6: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("List ALL factors of 10: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("List ALL factors of 15: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("List ALL factors of 16: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("List ALL factors of 18: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("List ALL factors of 24: ____", "fill", "Factors = ____", tier="PRACTICE"),
+        q("How many factors does 6 have? ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("How many factors does 12 have? ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("How many factors does 7 have? (7 is prime) ____", "fill", "Answer = ____", tier="CONCEPT"),
+        q("Write all factor pairs of 24: ____", "fill", "Answer = ____", tier="PRACTICE"),
+        q("True or False: 1 is a factor of every whole number.", "fill", "Answer = ____", tier="CONCEPT"),
+        q("True or False: 6 is a factor of 30.", "fill", "Answer = ____", tier="CONCEPT"),
+        q("Spot the mistake: Splitter listed the factors of 10 as 2, 5, 10. "
+          "One factor is missing — which one, and why did he miss it?", "fill", "Answer = ____", tier="MASTERY"),
+        q("Splitter says: 'If a number divides evenly with nothing left over, it's a factor.' "
+          "Is 9 a factor of 36? Explain your answer in one line.", "fill", "Answer = ____", tier="MASTERY"),
     ]
 
 def _L9A_2():

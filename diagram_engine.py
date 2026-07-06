@@ -46,7 +46,100 @@ def _blank(w=500, h=200, bg=C_BG):
     return img, ImageDraw.Draw(img)
 
 
-# ─── DIAGRAM FUNCTIONS ────────────────────────────────────────────────────────
+def mascot_splitter(message: str, **kw) -> BytesIO:
+    """Draws 'Splitter' -- a simple round-faced mascot character with a
+    basket/container body (representing grouping/sharing things into equal
+    parts) next to a speech bubble containing the given message. Used to
+    open Type-3 'Groups & Parts' illustrated worksheets (multiplication,
+    division, fractions, factors/HCF/LCM, mensuration).
+
+    Built entirely from the same primitives (circles, lines, rectangles,
+    text) already used by every other diagram in this file -- no new
+    library or external artwork required.
+    """
+    from textwrap import wrap
+    char_w = 130
+    lines = wrap(message, width=46)
+    line_h = 22
+    bubble_h = max(70, len(lines) * line_h + 30)
+    w = char_w + 480
+    h = max(180, bubble_h + 40)
+    img, d = _blank(w, h)
+
+    # --- character: round head + basket body -------------------------------
+    cx, cy = 65, h - 70
+    # basket body (trapezoid-ish container)
+    d.polygon([(cx-38, cy+10), (cx+38, cy+10), (cx+28, cy+55), (cx-28, cy+55)],
+              outline=C_BORDER, width=3, fill="#FDEBD0")
+    # basket weave lines
+    for lx in range(-24, 28, 12):
+        d.line([(cx+lx, cy+14), (cx+lx-4, cy+52)], fill=C_BORDER, width=1)
+    # a few "items" peeking out of the basket (small circles = grouped objects)
+    for ox, oy, col in [(-14, cy-6, C_TEAL_D), (0, cy-12, C_AMBER_D), (14, cy-6, C_RED_D)]:
+        d.ellipse([cx+ox-8, oy-8, cx+ox+8, oy+8], outline=C_BORDER, width=2, fill=col)
+    # head
+    d.ellipse([cx-30, cy-70, cx+30, cy-10], outline=C_BORDER, width=3, fill="#FFF8E7")
+    # eyes
+    d.ellipse([cx-14, cy-48, cx-6, cy-40], fill=C_BORDER)
+    d.ellipse([cx+6, cy-48, cx+14, cy-40], fill=C_BORDER)
+    # smile
+    d.arc([cx-14, cy-42, cx+14, cy-24], start=20, end=160, fill=C_BORDER, width=3)
+    # little arms
+    d.line([(cx-30, cy-25), (cx-45, cy-5)], fill=C_BORDER, width=3)
+    d.line([(cx+30, cy-25), (cx+45, cy-5)], fill=C_BORDER, width=3)
+
+    # --- speech bubble -------------------------------------------------------
+    bx0, by0 = char_w, 15
+    bx1, by1 = w - 15, 15 + bubble_h
+    d.rounded_rectangle([bx0, by0, bx1, by1], radius=16, outline=C_BORDER, width=3, fill="#FFFFFF")
+    # little pointer triangle back toward the character
+    d.polygon([(bx0+30, by1-4), (bx0+8, by1+22), (bx0+55, by1-4)],
+              outline=C_BORDER, width=3, fill="#FFFFFF")
+    d.line([(bx0+31, by1-2), (bx0+54, by1-2)], fill="#FFFFFF", width=5)  # erase seam
+    fnt = _font_reg(17)
+    ty = by0 + 16
+    for ln in lines:
+        d.text((bx0 + 20, ty), ln, fill=C_TEXT, font=fnt)
+        ty += line_h
+    return _to_bytes(img)
+
+
+def mascot_splitter_intro():
+    """Standard opening line used across Type-3 worksheets. Individual
+    sheets can call mascot_splitter() directly with custom text instead."""
+    return mascot_splitter(
+        "Hi, I'm Splitter! I love breaking numbers into equal groups. "
+        "If it splits evenly with nothing left over, that's a FACTOR!"
+    )
+
+
+def factor_groups_icon(number=12, group_size=3, **kw) -> BytesIO:
+    """Small icon showing `number` dots split into equal groups of
+    `group_size` -- used as the BIG IDEA box illustration for factor
+    concepts. E.g. 12 dots arranged as 4 groups of 3."""
+    n_groups = number // group_size
+    w, h = 220, 90
+    img, d = _blank(w, h)
+    dot_r = 6
+    gap_within = 16
+    gap_between = 14
+    x = 8
+    fnt = _font_reg(13)
+    for g in range(n_groups):
+        gy = 20
+        gw = gap_within * (group_size - 1) + dot_r * 2 + 10
+        d.rounded_rectangle([x - 5, gy - dot_r - 6, x + gw - 5, gy + dot_r + 6],
+                             radius=8, outline=C_TEAL_D, width=2)
+        for i in range(group_size):
+            cx = x + i * gap_within
+            d.ellipse([cx - dot_r, gy - dot_r, cx + dot_r, gy + dot_r],
+                      outline=C_BORDER, width=2, fill=C_TEAL)
+        x += gw + gap_between
+    d.text((8, 55), f"{number} = {n_groups} groups of {group_size}", fill=C_TEXT, font=fnt)
+    return _to_bytes(img)
+
+
+
 
 def tenths_grid(shaded=3, total=10, **kw) -> BytesIO:
     """Row of boxes, some shaded = tenths."""
@@ -2139,6 +2232,8 @@ DIAGRAM_FUNCTIONS = {
     "math_maze_blank": math_maze_blank,
     "function_machine_blank": function_machine_blank,
     "number_pyramid_blank": number_pyramid_blank,
+    "mascot_splitter": mascot_splitter,
+    "factor_groups_icon": factor_groups_icon,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

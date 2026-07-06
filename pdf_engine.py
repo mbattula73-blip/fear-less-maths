@@ -149,7 +149,10 @@ def _est(item, cw=None):
         if example:
             ex_lines=len(_wrap(f"e.g. {example}","Helvetica-Oblique",12,avail))
         h=4*mm+n_lines*4.5*mm+ex_lines*4.5*mm+5*mm
-        if item.get("icon_diagram"):
+        icon_dtype = item.get("icon_diagram")
+        if icon_dtype and str(icon_dtype).startswith("mascot_"):
+            h=max(h, 46*mm)
+        elif icon_dtype:
             h=max(h, 24*mm)
         return h
     if item.get("type")=="tips_box":
@@ -169,7 +172,8 @@ def _est(item, cw=None):
     avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
     n_lines = max(2, len(_wrap(text, "Helvetica", 12, avail_text))) if text else 2
     text_h = n_lines * 4.5*mm
-    return 2*mm+text_h+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
+    tier_h = 4*mm if item.get("tier") else 0
+    return tier_h+2*mm+text_h+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
 
 class Col:
     def __init__(self,c,x,cw,top,bot):
@@ -196,9 +200,14 @@ class Col:
             path=_diag(icon_dtype,icon_dparm)
             if path:
                 try:
-                    ih=20*mm; iw=ih*1.45
+                    is_mascot = icon_dtype.startswith("mascot_")
+                    ih=38*mm if is_mascot else 20*mm
+                    iw=ih*3.4 if is_mascot else ih*1.45
+                    iw=min(iw, cw)
                     c.drawImage(path,x+cw-iw,self.y-ih+2*mm,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
-                    icon_w = iw + 2*mm
+                    icon_w = 0 if is_mascot else iw + 2*mm
+                    if is_mascot:
+                        self.y -= ih + 1*mm
                 except: pass
         c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK)
         c.drawString(x,self.y,title[:52]); self.y-=4.5*mm
@@ -233,8 +242,16 @@ class Col:
         c=self.c; x=self.x; cw=self.cw
         num=item.get("_num","?"); text=item.get("text",""); bph=item.get("bold_phrase","")
         albl=item.get("answer_label","Answer = ____"); dtype=item.get("diagram_type"); dparm=item.get("diagram_params",{})
+        tier=item.get("tier")
         if len(text)>220: text=text[:215]+"..."
         self.y-=2.5*mm
+        if tier:
+            tier_colors={"INTUITION":"#8E44AD","CONCEPT":"#2196F3","PRACTICE":"#198754","MASTERY":"#CC7000"}
+            tcol=colors.HexColor(tier_colors.get(tier.upper(),"#888888"))
+            c.setFont("Helvetica-Bold",7); tw=c.stringWidth(tier.upper(),"Helvetica-Bold",7)+3*mm
+            c.setFillColor(tcol); c.roundRect(x+cw-tw,self.y-2.6*mm,tw,3.6*mm,1.2,fill=1,stroke=0)
+            c.setFillColor(WHITE); c.drawCentredString(x+cw-tw/2,self.y-2*mm,tier.upper())
+            self.y-=4*mm
         sz=12; c.setFont("Helvetica-Bold",sz); c.setFillColor(BLACK)
         ns=f"{num}."; nw=c.stringWidth(ns,"Helvetica-Bold",sz)+1.5*mm; c.drawString(x,self.y,ns)
         tx=x+nw; avail=cw-nw; lh=sz*1.45
