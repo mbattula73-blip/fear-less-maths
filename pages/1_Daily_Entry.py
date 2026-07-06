@@ -247,6 +247,27 @@ else:
 
     de_date = st.date_input("Date", value=_date.today(), key="de_date")
 
+    de_status = st.radio(
+        "Student status today", ["Present", "Absent"], horizontal=True, key="de_status",
+    )
+
+    if de_status == "Absent":
+        st.info(f"**{de_name}** will be marked absent for {de_date.strftime('%d %b %Y')} — no worksheet score is recorded.")
+        if st.button("📌  Mark Absent & Save", type="primary", key="de_mark_absent", use_container_width=True):
+            db.add_session(
+                session_date=de_date.isoformat(), student_id=student["id"],
+                class_name=de_class, grade=student["grade"], level_num=level_num,
+                worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
+                total_questions=0, remedial_id=None, status="absent",
+            )
+            st.session_state["de_roll"] = min(int(roll_input) + 1, len(roster))
+            st.success(f"✅ Marked {de_name} absent. Next → Roll #{st.session_state['de_roll']}")
+            st.rerun()
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        ui_common.render_footer(level_num, sublevel_code)
+        st.stop()
+
     de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
     de_num_sheets = st.radio(
         "Worksheets today", [1, 2], index=1, horizontal=True, key="de_num_sheets",
@@ -297,6 +318,20 @@ else:
 
         de_ws_id = f"{sublevel_code}-{de_sheet_num}"
         total_q_int = int(de_total_q)
+
+        de_not_attempted = st.checkbox(
+            "Not attempted (student didn't do this worksheet today)",
+            key=f"de_not_attempted_{student['id']}_{sheet_idx}",
+        )
+        if de_not_attempted:
+            st.caption(f"{de_ws_id} will be logged as not attempted — no score recorded.")
+            sheet_entries.append({
+                "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
+                "total_questions": 0, "wrong_qs": [],
+                "wrong_details": {}, "resolved_topics": {},
+                "remedial_id": None, "status": "not_attempted",
+            })
+            continue
 
         st.markdown(f"""
         <div style="font-size:13px;color:#888;margin:4px 0 10px">
@@ -382,7 +417,7 @@ else:
             "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
             "total_questions": total_q_int, "wrong_qs": de_wrong_qs,
             "wrong_details": de_wrong_details, "resolved_topics": resolved,
-            "remedial_id": remedial_id,
+            "remedial_id": remedial_id, "status": None,
         })
 
     # ── Save (WhatsApp send temporarily disabled — set WHATSAPP_ENABLED=True
@@ -415,6 +450,7 @@ else:
                 resolved_topics=entry["resolved_topics"],
                 total_questions=entry["total_questions"],
                 remedial_id=entry["remedial_id"],
+                status=entry.get("status"),
             )
             if entry["wrong_details"]:
                 db.save_wrong_answer_details(new_session_id, entry["wrong_details"])

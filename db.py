@@ -275,6 +275,13 @@ def init_db():
         # added ad-hoc without a roll number.
         if "roll_no" not in cols:
             conn.execute("ALTER TABLE students ADD COLUMN roll_no INTEGER")
+        # Migration: add status to sessions -- nullable, NULL means a normal
+        # scored session (unchanged behaviour). 'absent' or 'not_attempted'
+        # marks a day/worksheet with no score to record, without ever being
+        # counted in accuracy or topic analytics (see get_sessions() below).
+        session_cols = [r["name"] for r in conn.execute("PRAGMA table_info(sessions)").fetchall()]
+        if "status" not in session_cols:
+            conn.execute("ALTER TABLE sessions ADD COLUMN status TEXT")
 
 
 def import_roster(rows: list) -> dict:
@@ -481,17 +488,17 @@ def resolve_topics(worksheet_id: str, wrong_qs: list, fallback_topic: str = None
 
 def add_session(session_date: str, student_id: int, class_name: str, grade: int,
                  level_num: int, worksheet_id: str, wrong_qs: list, resolved_topics: dict,
-                 total_questions: int = 20, remedial_id: str = None) -> int:
+                 total_questions: int = 20, remedial_id: str = None, status: str = None) -> int:
     wrong_str = ",".join(str(q) for q in wrong_qs)
     topics_str = ",".join(sorted(set(resolved_topics.values()))) if resolved_topics else ""
     with get_conn() as conn:
         cur = conn.execute(
             """INSERT INTO sessions
                (session_date, student_id, class_name, grade, level_num, worksheet_id,
-                wrong_qs, resolved_topics, total_questions, remedial_id, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                wrong_qs, resolved_topics, total_questions, remedial_id, status, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (session_date, student_id, class_name, grade, level_num, worksheet_id,
-             wrong_str, topics_str, total_questions, remedial_id, datetime.now().isoformat()),
+             wrong_str, topics_str, total_questions, remedial_id, status, datetime.now().isoformat()),
         )
         session_id = cur.lastrowid
         if remedial_id:
@@ -502,9 +509,14 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
 
 @_cached(ttl=3600, show_spinner=False)
 def get_sessions(student_id: int = None, date_from: str = None, date_to: str = None,
-                  class_name: str = None):
+                  class_name: str = None, include_special: bool = False):
     q = "SELECT * FROM sessions WHERE 1=1"
     params = []
+    if not include_special:
+        # Excludes 'absent' / 'not_attempted' markers by default, so every
+        # existing accuracy/topic/mistake calculation automatically stays
+        # correct without needing to know these special rows exist.
+        q += " AND status IS NULL"
     if student_id is not None:
         q += " AND student_id=?"; params.append(student_id)
     if class_name:
