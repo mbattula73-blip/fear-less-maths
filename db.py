@@ -269,6 +269,12 @@ def init_db():
         cols = [r["name"] for r in conn.execute("PRAGMA table_info(students)").fetchall()]
         if "parent_whatsapp" not in cols:
             conn.execute("ALTER TABLE students ADD COLUMN parent_whatsapp TEXT")
+        # Migration: add roll_no (official school roster serial number) --
+        # nullable, so existing rows without one still work; get_students()
+        # sorts by roll_no first, falling back to name for any student
+        # added ad-hoc without a roll number.
+        if "roll_no" not in cols:
+            conn.execute("ALTER TABLE students ADD COLUMN roll_no INTEGER")
 
 
 def import_roster(rows: list) -> dict:
@@ -341,22 +347,24 @@ def _normalize_whatsapp(num: str) -> str:
     return cleaned
 
 
-def add_student(name: str, class_name: str, grade: int, parent_whatsapp: str = None) -> int:
+def add_student(name: str, class_name: str, grade: int, parent_whatsapp: str = None, roll_no: int = None) -> int:
     wa = _normalize_whatsapp(parent_whatsapp) if parent_whatsapp else None
     with get_conn() as conn:
         cur = conn.execute(
-            "INSERT OR IGNORE INTO students (name, class_name, grade, parent_whatsapp, created_at) VALUES (?,?,?,?,?)",
-            (name.strip(), class_name.strip(), grade, wa, datetime.now().isoformat()),
+            "INSERT OR IGNORE INTO students (name, class_name, grade, parent_whatsapp, roll_no, created_at) VALUES (?,?,?,?,?,?)",
+            (name.strip(), class_name.strip(), grade, wa, roll_no, datetime.now().isoformat()),
         )
         if cur.lastrowid:
             result_id = cur.lastrowid
         else:
-            # Already exists — update grade/parent if provided
+            # Already exists — update grade/parent/roll_no if provided
             row = conn.execute(
                 "SELECT id FROM students WHERE name=? AND class_name=?", (name.strip(), class_name.strip())
             ).fetchone()
             if wa:
                 conn.execute("UPDATE students SET parent_whatsapp=?, grade=? WHERE id=?", (wa, grade, row["id"]))
+            if roll_no is not None:
+                conn.execute("UPDATE students SET roll_no=? WHERE id=?", (roll_no, row["id"]))
             result_id = row["id"]
     _clear_read_caches()
     return result_id
@@ -374,10 +382,13 @@ def get_students(class_name: str = None):
     with get_conn() as conn:
         if class_name:
             rows = conn.execute(
-                "SELECT * FROM students WHERE class_name=? ORDER BY name", (class_name,)
+                "SELECT * FROM students WHERE class_name=? "
+                "ORDER BY (roll_no IS NULL), roll_no, name", (class_name,)
             ).fetchall()
         else:
-            rows = conn.execute("SELECT * FROM students ORDER BY class_name, name").fetchall()
+            rows = conn.execute(
+                "SELECT * FROM students ORDER BY class_name, (roll_no IS NULL), roll_no, name"
+            ).fetchall()
         return [dict(r) for r in rows]
 
 

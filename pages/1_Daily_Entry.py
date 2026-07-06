@@ -38,11 +38,60 @@ st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
 with st.expander("👥 Manage Students — add new students, bulk import, or update a WhatsApp number",
                   expanded=(not db.get_classes())):
     mgmt_mode = st.radio(
-        "Action", ["Add one student", "Bulk import a class", "View / edit roster"],
+        "Action", ["Add one student", "Bulk import a class", "View / edit roster",
+                   "⚠️ Full Roster Reset (2026-27)"],
         horizontal=True, key="mgmt_mode", label_visibility="collapsed",
     )
 
-    if mgmt_mode == "Add one student":
+    if mgmt_mode == "⚠️ Full Roster Reset (2026-27)":
+        st.error(
+            "**This is a one-time, irreversible reset.** It will:\n\n"
+            "1. Delete every current student, session, and score history — ALL classes.\n"
+            "2. Import the official 2026-27 roster (302 students, Nursery through Class 10) "
+            "fresh, in serial order.\n\n"
+            "Every dashboard (Student Profile, Alerts, Report) will start completely empty "
+            "afterward. A backup of the current data is downloaded automatically before "
+            "anything is deleted, in case you need to recover it."
+        )
+        current_count = len(db.get_students())
+        st.caption(f"Students currently in the database: {current_count}")
+
+        confirm_text = st.text_input(
+            "Type RESET to confirm you understand this cannot be undone",
+            key="roster_reset_confirm",
+        )
+        if confirm_text.strip().upper() == "RESET":
+            if st.button("🗑️  Wipe & Import 2026-27 Roster", type="primary", key="do_roster_reset"):
+                with st.spinner("Backing up current data, then wiping and importing…"):
+                    import roster_migration
+                    backup_bytes, report = roster_migration.run_full_roster_replacement()
+                st.session_state["roster_reset_backup"] = backup_bytes
+                st.session_state["roster_reset_report"] = report
+                st.rerun()
+        else:
+            st.caption("Type RESET (all caps) above to unlock the button.")
+
+        if "roster_reset_report" in st.session_state:
+            report = st.session_state["roster_reset_report"]
+            st.success(
+                f"✅ Done. {report['total_before']} old student record(s) removed. "
+                f"{report['total_after']} of {report['expected']} new students imported."
+            )
+            if report["errors"]:
+                st.warning(f"{len(report['errors'])} row(s) had issues:\n\n" +
+                          "\n".join(report["errors"][:10]))
+            st.markdown("**By class:**")
+            for cn, cnt in sorted(report["by_class"].items(), key=lambda x: x[0]):
+                st.caption(f"{cn}: {cnt} students")
+            st.download_button(
+                "⬇ Download pre-reset backup (safety copy)",
+                data=st.session_state["roster_reset_backup"],
+                file_name="flm_backup_before_2026_27_reset.json",
+                mime="application/json",
+                key="dl_reset_backup",
+            )
+
+    elif mgmt_mode == "Add one student":
         col_a1, col_a2 = st.columns(2)
         with col_a1:
             new_name  = st.text_input("Student name", key="new_student_name")
