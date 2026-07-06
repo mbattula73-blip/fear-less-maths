@@ -254,19 +254,21 @@ else:
     )
 
     # ── Pre-load question items + correct answers for this level/sublevel ─────
+    # Cached with st.cache_data so this only runs ONCE per (code, sheet, level)
+    # combo and is reused across every rerun -- previously this recomputed
+    # from scratch (question generation + answer derivation for every
+    # question) on EVERY interaction, including just changing the roll
+    # number, which is what caused the noticeable latency.
     try:
         from content import get_questions as _gq
         from answer_key import derive_answer_and_explanation as _dae
-        _items_cache = {}
-        def _get_items(code, sheet, lvl):
-            key = (code, sheet, lvl)
-            if key not in _items_cache:
-                raw = _gq(code, sheet, lvl)
-                _items_cache[key] = [
-                    it for it in raw
-                    if it.get("type") not in ("concept_box", "tips_box")
-                ]
-            return _items_cache[key]
+
+        @st.cache_data(ttl=3600, show_spinner=False)
+        def _get_items_and_answers(code, sheet, lvl):
+            raw = _gq(code, sheet, lvl)
+            items = [it for it in raw if it.get("type") not in ("concept_box", "tips_box")]
+            answers = [_dae(it)[0] for it in items]
+            return items, answers
         _answers_available = True
     except Exception:
         _answers_available = False
@@ -306,8 +308,7 @@ else:
         # Try to load correct answers for this sheet
         if _answers_available:
             try:
-                ws_items    = _get_items(sublevel_code, de_sheet_num, level_num)
-                ws_answers  = [_dae(it)[0] for it in ws_items]
+                ws_items, ws_answers = _get_items_and_answers(sublevel_code, de_sheet_num, level_num)
             except Exception:
                 ws_items   = []
                 ws_answers = []
@@ -331,7 +332,7 @@ else:
                 if qn > total_q_int:
                     break
                 with col:
-                    if st.checkbox(f"Q{qn}", key=f"de_q_{sheet_idx}_{qn}"):
+                    if st.checkbox(f"Q{qn}", key=f"de_q_{student['id']}_{sheet_idx}_{qn}"):
                         de_wrong_qs.append(qn)
         de_wrong_qs.sort()
 
@@ -356,7 +357,7 @@ else:
                 with cols[i % 4]:
                     sans = st.text_input(
                         f"Q{qn}",
-                        key=f"de_ans_{sheet_idx}_{qn}",
+                        key=f"de_ans_{student['id']}_{sheet_idx}_{qn}",
                         placeholder="wrote…",
                     )
 
@@ -417,12 +418,13 @@ else:
             )
             if entry["wrong_details"]:
                 db.save_wrong_answer_details(new_session_id, entry["wrong_details"])
-        # Clear grids and auto-advance roll number
+        # Clear this student's grids (now student-scoped, so this never
+        # affects any other student's state) and auto-advance roll number
         for sidx in range(1, 3):
             for qn in range(1, 51):
-                st.session_state.pop(f"de_q_{sidx}_{qn}", None)
+                st.session_state.pop(f"de_q_{student['id']}_{sidx}_{qn}", None)
                 st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
-                st.session_state.pop(f"de_ans_{sidx}_{qn}", None)
+                st.session_state.pop(f"de_ans_{student['id']}_{sidx}_{qn}", None)
         st.session_state["de_roll"] = min(int(roll_input) + 1, len(roster))
 
     ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
