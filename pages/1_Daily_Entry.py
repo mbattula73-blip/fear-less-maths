@@ -204,12 +204,25 @@ else:
 
     roster = db.get_students(de_class)
 
+    # Apply any pending roll-number advance queued by a previous Save click.
+    # This MUST happen before the de_roll widget below is instantiated --
+    # Streamlit forbids writing to a widget's session_state key after that
+    # widget has already been drawn in the same script run, which is
+    # exactly what caused the StreamlitAPIException when this was done
+    # directly inside the Save button's own click handler further down.
+    if "_pending_roll_advance" in st.session_state:
+        st.session_state["de_roll"] = st.session_state.pop("_pending_roll_advance")
+
     with col_d2:
-        # Show roll number range as hint
+        # Show roll number range as hint. No `value=` here -- the widget's
+        # value is fully owned by session_state (defaulted via
+        # st.session_state.setdefault below), since passing both a
+        # `value=` and a session_state entry for the same key triggers a
+        # (harmless but noisy) Streamlit warning.
+        st.session_state.setdefault("de_roll", 1)
         roll_input = st.number_input(
             f"Roll No (1–{len(roster)})",
-            min_value=1, max_value=len(roster),
-            value=1, step=1, key="de_roll",
+            min_value=1, max_value=len(roster), step=1, key="de_roll",
         )
 
     # Resolve student from roll number (1-based index into alphabetical roster)
@@ -260,8 +273,9 @@ else:
                 worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
                 total_questions=0, remedial_id=None, status="absent",
             )
-            st.session_state["de_roll"] = min(int(roll_input) + 1, len(roster))
-            st.success(f"✅ Marked {de_name} absent. Next → Roll #{st.session_state['de_roll']}")
+            next_roll = min(int(roll_input) + 1, len(roster))
+            st.session_state["_pending_roll_advance"] = next_roll
+            st.success(f"✅ Marked {de_name} absent. Next → Roll #{next_roll}")
             st.rerun()
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -461,7 +475,9 @@ else:
                 st.session_state.pop(f"de_q_{student['id']}_{sidx}_{qn}", None)
                 st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
                 st.session_state.pop(f"de_ans_{student['id']}_{sidx}_{qn}", None)
-        st.session_state["de_roll"] = min(int(roll_input) + 1, len(roster))
+        next_roll = min(int(roll_input) + 1, len(roster))
+        st.session_state["_pending_roll_advance"] = next_roll
+        return next_roll
 
     ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
 
@@ -479,8 +495,8 @@ else:
     else:
         if st.button("💾  Save Entry", type="primary", key="de_save",
                      use_container_width=True):
-            _save_entry()
-            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{st.session_state['de_roll']}")
+            next_roll = _save_entry()
+            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}")
             st.rerun()
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
