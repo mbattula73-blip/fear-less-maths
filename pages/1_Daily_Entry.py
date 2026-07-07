@@ -653,7 +653,15 @@ def _daily_entry_fragment(level_num, sublevel_code, topic):
             if st.button("💾  Save Entry", type="primary", key="de_save",
                          use_container_width=True):
                 next_roll = _save_entry()
-                st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}"
+                # Fire the toast NOW, before the rerun, so the confirmation
+                # pops the instant the save finishes rather than only after
+                # the fragment finishes redrawing. The save above is fully
+                # synchronous and already committed by this point -- this is
+                # honest feedback, not an optimistic guess.
+                st.toast(
+                    f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}",
+                    icon="✅",
+                )
                 st.rerun()
 
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)

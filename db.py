@@ -86,6 +86,27 @@ def _clear_read_caches():
         pass  # analytics.py imports db.py, not the other way around — avoid a cycle on first load
 
 
+def _clear_session_caches():
+    """
+    Lighter-weight invalidation for writes that ONLY add session data (daily
+    entries, class-grid saves, absent markers) and do NOT touch the roster or
+    class list. Deliberately leaves get_students()/get_classes() caches
+    intact -- the Daily Entry page re-reads BOTH of those every time it
+    reruns to show the save-confirmation toast, and clearing them forced two
+    extra network round-trips to Turso on every single Save (the real cause
+    of the 2-3s post-save delay). A session insert can't change who's in the
+    class, so those caches are still correct after it.
+    """
+    for fn in (get_sessions, get_remedial_status_bulk, get_wrong_answer_details_bulk):
+        if hasattr(fn, "clear"):
+            fn.clear()
+    try:
+        import analytics
+        analytics.clear_caches()
+    except ImportError:
+        pass
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS students (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -587,7 +608,7 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
         session_id = cur.lastrowid
         if remedial_id:
             conn.execute("INSERT INTO remedial_status (session_id, completed) VALUES (?,0)", (session_id,))
-    _clear_read_caches()
+    _clear_session_caches()
     return session_id
 
 
@@ -653,7 +674,7 @@ def save_daily_entries(session_date: str, student_id: int, class_name: str, grad
                 entry.get("status"), entry.get("wrong_details"),
             )
             session_ids.append(session_id)
-    _clear_read_caches()
+    _clear_session_caches()
     return session_ids
 
 
@@ -690,7 +711,7 @@ def save_class_entries(session_date: str, class_name: str, level_num: int, rows:
                     entry.get("resolved_topics") or {}, entry.get("total_questions", 0),
                     entry.get("remedial_id"), None, None,
                 )
-    _clear_read_caches()
+    _clear_session_caches()
     return len(rows)
 
 
