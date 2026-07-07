@@ -24,12 +24,6 @@ import mistake_classifier as mc
 
 ui_common.setup_page("Daily Entry — Fear Less Maths")
 
-# Show the save confirmation as a floating toast that survives the rerun
-# triggered by the Save button (a plain st.success() right before st.rerun()
-# used to flash and disappear before anyone could read it).
-if "_flash_toast" in st.session_state:
-    st.toast(st.session_state.pop("_flash_toast"), icon="✅")
-
 ui_common.render_header(
     subtitle="Daily Entry · Staff",
     badge="Manage students & log today's worksheet results",
@@ -197,308 +191,321 @@ st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
 # ════════════════════════════════════════════════════════════════════════════
 # 2. DAILY ENTRY — SERIAL NUMBER + INTELLIGENT MISTAKE DETECTION
 # ════════════════════════════════════════════════════════════════════════════
-existing_classes = db.get_classes()
+@st.fragment
+def _daily_entry_fragment(level_num, sublevel_code, topic):
+    """Everything below reruns on its own (Save, checkboxes, roll number, etc.)
+    instead of the whole page, via st.fragment -- this is what makes Save feel
+    instant instead of re-loading the header/Manage Students/level selector too.
+    """
+    # Show the save confirmation as a floating toast. Lives inside the fragment
+    # so it still fires after a fragment-scoped rerun (a check placed outside
+    # the fragment would never run again once Save only reruns this block).
+    if "_flash_toast" in st.session_state:
+        st.toast(st.session_state.pop("_flash_toast"), icon="✅")
 
-if not existing_classes:
-    st.info("No students yet — add your first student above.")
-else:
-    st.markdown("##### Daily Entry")
+    existing_classes = db.get_classes()
 
-    # ── Class + serial number student picker ──────────────────────────────────
-    col_d1, col_d2, col_d3 = st.columns([1.2, 0.8, 1.5])
-    with col_d1:
-        de_class = st.selectbox("Class", existing_classes, key="de_class")
+    if not existing_classes:
+        st.info("No students yet — add your first student above.")
+    else:
+        st.markdown("##### Daily Entry")
 
-    roster = db.get_students(de_class)
+        # ── Class + serial number student picker ──────────────────────────────────
+        col_d1, col_d2, col_d3 = st.columns([1.2, 0.8, 1.5])
+        with col_d1:
+            de_class = st.selectbox("Class", existing_classes, key="de_class")
 
-    # Apply any pending roll-number advance queued by a previous Save click.
-    # This MUST happen before the de_roll widget below is instantiated --
-    # Streamlit forbids writing to a widget's session_state key after that
-    # widget has already been drawn in the same script run, which is
-    # exactly what caused the StreamlitAPIException when this was done
-    # directly inside the Save button's own click handler further down.
-    if "_pending_roll_advance" in st.session_state:
-        st.session_state["de_roll"] = st.session_state.pop("_pending_roll_advance")
+        roster = db.get_students(de_class)
 
-    with col_d2:
-        # Show roll number range as hint. No `value=` here -- the widget's
-        # value is fully owned by session_state (defaulted via
-        # st.session_state.setdefault below), since passing both a
-        # `value=` and a session_state entry for the same key triggers a
-        # (harmless but noisy) Streamlit warning.
-        st.session_state.setdefault("de_roll", 1)
-        roll_input = st.number_input(
-            f"Roll No (1–{len(roster)})",
-            min_value=1, max_value=len(roster), step=1, key="de_roll",
-        )
+        # Apply any pending roll-number advance queued by a previous Save click.
+        # This MUST happen before the de_roll widget below is instantiated --
+        # Streamlit forbids writing to a widget's session_state key after that
+        # widget has already been drawn in the same script run, which is
+        # exactly what caused the StreamlitAPIException when this was done
+        # directly inside the Save button's own click handler further down.
+        if "_pending_roll_advance" in st.session_state:
+            st.session_state["de_roll"] = st.session_state.pop("_pending_roll_advance")
 
-    # Resolve student from roll number (1-based index into alphabetical roster)
-    roll_idx  = int(roll_input) - 1
-    student   = roster[roll_idx]
-    de_name   = student["name"]
-
-    with col_d3:
-        st.markdown(f"""
-        <div style="padding-top:28px">
-            <span style="font-size:18px;font-weight:700;color:#111">{de_name}</span>
-            <span style="font-size:12px;color:#888;margin-left:8px">Roll #{int(roll_input)}</span>
-        </div>
-        """, unsafe_allow_html=True)
-
-    # Roster quick-reference so staff can see names ↔ numbers at a glance
-    with st.expander("📋 View class roster (roll numbers)", expanded=False):
-        half = (len(roster) + 1) // 2
-        col_r1, col_r2 = st.columns(2)
-        with col_r1:
-            for i, s in enumerate(roster[:half], 1):
-                st.markdown(f"**{i}.** {s['name']}", unsafe_allow_html=False)
-        with col_r2:
-            for i, s in enumerate(roster[half:], half + 1):
-                st.markdown(f"**{i}.** {s['name']}", unsafe_allow_html=False)
-
-    if not student.get("parent_whatsapp"):
-        wa_in = st.text_input(
-            f"Parent WhatsApp for {de_name} (not on file)",
-            key="de_add_wa", placeholder="e.g. 7036525875",
-        )
-        if wa_in.strip():
-            db.update_parent_whatsapp(student["id"], wa_in)
-            st.rerun()
-
-    de_date = st.date_input("Date", value=_date.today(), key="de_date")
-
-    de_status = st.radio(
-        "Student status today", ["Present", "Absent"], horizontal=True, key="de_status",
-    )
-
-    if de_status == "Absent":
-        st.info(f"**{de_name}** will be marked absent for {de_date.strftime('%d %b %Y')} — no worksheet score is recorded.")
-        if st.button("📌  Mark Absent & Save", type="primary", key="de_mark_absent", use_container_width=True):
-            db.add_session(
-                session_date=de_date.isoformat(), student_id=student["id"],
-                class_name=de_class, grade=student["grade"], level_num=level_num,
-                worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
-                total_questions=0, remedial_id=None, status="absent",
-            )
-            next_roll = min(int(roll_input) + 1, len(roster))
-            st.session_state["_pending_roll_advance"] = next_roll
-            st.session_state["_flash_toast"] = f"✅ Marked {de_name} absent. Next → Roll #{next_roll}"
-            st.rerun()
-        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        ui_common.render_footer(level_num, sublevel_code)
-        st.stop()
-
-    de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
-    de_num_sheets = st.radio(
-        "Worksheets today", [1, 2], index=1, horizontal=True, key="de_num_sheets",
-        format_func=lambda n: "1 worksheet" if n == 1 else "2 worksheets (default)",
-    )
-
-    # ── Pre-load question items + correct answers for this level/sublevel ─────
-    # Cached with st.cache_data so this only runs ONCE per (code, sheet, level)
-    # combo and is reused across every rerun -- previously this recomputed
-    # from scratch (question generation + answer derivation for every
-    # question) on EVERY interaction, including just changing the roll
-    # number, which is what caused the noticeable latency.
-    try:
-        from content import get_questions as _gq
-        from answer_key import derive_answer_and_explanation as _dae
-
-        @st.cache_data(ttl=3600, show_spinner=False)
-        def _get_items_and_answers(code, sheet, lvl):
-            raw = _gq(code, sheet, lvl)
-            items = [it for it in raw if it.get("type") not in ("concept_box", "tips_box")]
-            answers = [_dae(it)[0] for it in items]
-            return items, answers
-        _answers_available = True
-    except Exception:
-        _answers_available = False
-
-    # ══════════════════════════════════════════════════════════════════════════
-    # Per-worksheet entry
-    # ══════════════════════════════════════════════════════════════════════════
-    sheet_entries = []
-    for sheet_idx in range(1, de_num_sheets + 1):
-        st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
-        st.markdown(f"###### Worksheet {sheet_idx}")
-
-        col_w1, col_w2 = st.columns([1, 1])
-        with col_w1:
-            sel_default = min(sheet_idx - 1, len(de_sheet_lbls) - 1)
-            de_sheet_sel = st.selectbox(
-                "Sheet", de_sheet_lbls, index=sel_default,
-                key=f"de_sheet_{sheet_idx}",
-            )
-            de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
-        with col_w2:
-            de_total_q = st.number_input(
-                "Total Qs", min_value=1, max_value=50, value=20,
-                key=f"de_total_q_{sheet_idx}",
+        with col_d2:
+            # Show roll number range as hint. No `value=` here -- the widget's
+            # value is fully owned by session_state (defaulted via
+            # st.session_state.setdefault below), since passing both a
+            # `value=` and a session_state entry for the same key triggers a
+            # (harmless but noisy) Streamlit warning.
+            st.session_state.setdefault("de_roll", 1)
+            roll_input = st.number_input(
+                f"Roll No (1–{len(roster)})",
+                min_value=1, max_value=len(roster), step=1, key="de_roll",
             )
 
-        de_ws_id = f"{sublevel_code}-{de_sheet_num}"
-        total_q_int = int(de_total_q)
+        # Resolve student from roll number (1-based index into alphabetical roster)
+        roll_idx  = int(roll_input) - 1
+        student   = roster[roll_idx]
+        de_name   = student["name"]
 
-        de_not_attempted = st.checkbox(
-            "Not attempted (student didn't do this worksheet today)",
-            key=f"de_not_attempted_{student['id']}_{sheet_idx}",
+        with col_d3:
+            st.markdown(f"""
+            <div style="padding-top:28px">
+                <span style="font-size:18px;font-weight:700;color:#111">{de_name}</span>
+                <span style="font-size:12px;color:#888;margin-left:8px">Roll #{int(roll_input)}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Roster quick-reference so staff can see names ↔ numbers at a glance
+        with st.expander("📋 View class roster (roll numbers)", expanded=False):
+            half = (len(roster) + 1) // 2
+            col_r1, col_r2 = st.columns(2)
+            with col_r1:
+                for i, s in enumerate(roster[:half], 1):
+                    st.markdown(f"**{i}.** {s['name']}", unsafe_allow_html=False)
+            with col_r2:
+                for i, s in enumerate(roster[half:], half + 1):
+                    st.markdown(f"**{i}.** {s['name']}", unsafe_allow_html=False)
+
+        if not student.get("parent_whatsapp"):
+            wa_in = st.text_input(
+                f"Parent WhatsApp for {de_name} (not on file)",
+                key="de_add_wa", placeholder="e.g. 7036525875",
+            )
+            if wa_in.strip():
+                db.update_parent_whatsapp(student["id"], wa_in)
+                st.rerun()
+
+        de_date = st.date_input("Date", value=_date.today(), key="de_date")
+
+        de_status = st.radio(
+            "Student status today", ["Present", "Absent"], horizontal=True, key="de_status",
         )
-        if de_not_attempted:
-            st.caption(f"{de_ws_id} will be logged as not attempted — no score recorded.")
-            sheet_entries.append({
-                "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
-                "total_questions": 0, "wrong_qs": [],
-                "wrong_details": {}, "resolved_topics": {},
-                "remedial_id": None, "status": "not_attempted",
-            })
-            continue
 
-        st.markdown(f"""
-        <div style="font-size:13px;color:#888;margin:4px 0 10px">
-            Worksheet: <b style="color:#111">{de_ws_id}</b>
-            &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
-        </div>
-        """, unsafe_allow_html=True)
+        if de_status == "Absent":
+            st.info(f"**{de_name}** will be marked absent for {de_date.strftime('%d %b %Y')} — no worksheet score is recorded.")
+            if st.button("📌  Mark Absent & Save", type="primary", key="de_mark_absent", use_container_width=True):
+                db.add_session(
+                    session_date=de_date.isoformat(), student_id=student["id"],
+                    class_name=de_class, grade=student["grade"], level_num=level_num,
+                    worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
+                    total_questions=0, remedial_id=None, status="absent",
+                )
+                next_roll = min(int(roll_input) + 1, len(roster))
+                st.session_state["_pending_roll_advance"] = next_roll
+                st.session_state["_flash_toast"] = f"✅ Marked {de_name} absent. Next → Roll #{next_roll}"
+                st.rerun()
+            return
 
-        # Try to load correct answers for this sheet
-        if _answers_available:
-            try:
-                ws_items, ws_answers = _get_items_and_answers(sublevel_code, de_sheet_num, level_num)
-            except Exception:
+        de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
+        de_num_sheets = st.radio(
+            "Worksheets today", [1, 2], index=1, horizontal=True, key="de_num_sheets",
+            format_func=lambda n: "1 worksheet" if n == 1 else "2 worksheets (default)",
+        )
+
+        # ── Pre-load question items + correct answers for this level/sublevel ─────
+        # Cached with st.cache_data so this only runs ONCE per (code, sheet, level)
+        # combo and is reused across every rerun -- previously this recomputed
+        # from scratch (question generation + answer derivation for every
+        # question) on EVERY interaction, including just changing the roll
+        # number, which is what caused the noticeable latency.
+        try:
+            from content import get_questions as _gq
+            from answer_key import derive_answer_and_explanation as _dae
+
+            @st.cache_data(ttl=3600, show_spinner=False)
+            def _get_items_and_answers(code, sheet, lvl):
+                raw = _gq(code, sheet, lvl)
+                items = [it for it in raw if it.get("type") not in ("concept_box", "tips_box")]
+                answers = [_dae(it)[0] for it in items]
+                return items, answers
+            _answers_available = True
+        except Exception:
+            _answers_available = False
+
+        # ══════════════════════════════════════════════════════════════════════════
+        # Per-worksheet entry
+        # ══════════════════════════════════════════════════════════════════════════
+        sheet_entries = []
+        for sheet_idx in range(1, de_num_sheets + 1):
+            st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
+            st.markdown(f"###### Worksheet {sheet_idx}")
+
+            col_w1, col_w2 = st.columns([1, 1])
+            with col_w1:
+                sel_default = min(sheet_idx - 1, len(de_sheet_lbls) - 1)
+                de_sheet_sel = st.selectbox(
+                    "Sheet", de_sheet_lbls, index=sel_default,
+                    key=f"de_sheet_{sheet_idx}",
+                )
+                de_sheet_num = SHEET_OPTIONS[de_sheet_lbls.index(de_sheet_sel)][0]
+            with col_w2:
+                de_total_q = st.number_input(
+                    "Total Qs", min_value=1, max_value=50, value=20,
+                    key=f"de_total_q_{sheet_idx}",
+                )
+
+            de_ws_id = f"{sublevel_code}-{de_sheet_num}"
+            total_q_int = int(de_total_q)
+
+            de_not_attempted = st.checkbox(
+                "Not attempted (student didn't do this worksheet today)",
+                key=f"de_not_attempted_{student['id']}_{sheet_idx}",
+            )
+            if de_not_attempted:
+                st.caption(f"{de_ws_id} will be logged as not attempted — no score recorded.")
+                sheet_entries.append({
+                    "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
+                    "total_questions": 0, "wrong_qs": [],
+                    "wrong_details": {}, "resolved_topics": {},
+                    "remedial_id": None, "status": "not_attempted",
+                })
+                continue
+
+            st.markdown(f"""
+            <div style="font-size:13px;color:#888;margin:4px 0 10px">
+                Worksheet: <b style="color:#111">{de_ws_id}</b>
+                &nbsp;·&nbsp; {topic} &nbsp;·&nbsp; Level {level_num}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Try to load correct answers for this sheet
+            if _answers_available:
+                try:
+                    ws_items, ws_answers = _get_items_and_answers(sublevel_code, de_sheet_num, level_num)
+                except Exception:
+                    ws_items   = []
+                    ws_answers = []
+            else:
                 ws_items   = []
                 ws_answers = []
-        else:
-            ws_items   = []
-            ws_answers = []
 
-        # ── Wrong-answer grid ─────────────────────────────────────────────────
-        st.markdown(
-            '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
-            'letter-spacing:.06em;color:#555;margin-bottom:6px">'
-            'Mark wrong answers</div>',
-            unsafe_allow_html=True,
-        )
-        de_wrong_qs = []
-        cols_per_row = 5
-        for row_start in range(1, total_q_int + 1, cols_per_row):
-            row_cols = st.columns(cols_per_row)
-            for i, col in enumerate(row_cols):
-                qn = row_start + i
-                if qn > total_q_int:
-                    break
-                with col:
-                    if st.checkbox(f"Q{qn}", key=f"de_q_{student['id']}_{sheet_idx}_{qn}"):
-                        de_wrong_qs.append(qn)
-        de_wrong_qs.sort()
-
-        if de_wrong_qs:
-            st.caption(f"Marked wrong: {', '.join(str(q) for q in de_wrong_qs)}")
-        else:
-            st.caption("All correct so far.")
-
-        # ── Intelligent wrong-answer entry ────────────────────────────────────
-        de_wrong_details = {}
-        if de_wrong_qs:
-            st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+            # ── Wrong-answer grid ─────────────────────────────────────────────────
             st.markdown(
                 '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
-                'letter-spacing:.06em;color:#555;margin-bottom:4px">'
-                'What did the student write?</div>',
+                'letter-spacing:.06em;color:#555;margin-bottom:6px">'
+                'Mark wrong answers</div>',
                 unsafe_allow_html=True,
             )
+            de_wrong_qs = []
+            cols_per_row = 5
+            for row_start in range(1, total_q_int + 1, cols_per_row):
+                row_cols = st.columns(cols_per_row)
+                for i, col in enumerate(row_cols):
+                    qn = row_start + i
+                    if qn > total_q_int:
+                        break
+                    with col:
+                        if st.checkbox(f"Q{qn}", key=f"de_q_{student['id']}_{sheet_idx}_{qn}"):
+                            de_wrong_qs.append(qn)
+            de_wrong_qs.sort()
 
-            cols = st.columns(len(de_wrong_qs) if len(de_wrong_qs) <= 4 else 4)
-            for i, qn in enumerate(de_wrong_qs):
-                with cols[i % 4]:
-                    sans = st.text_input(
-                        f"Q{qn}",
-                        key=f"de_ans_{student['id']}_{sheet_idx}_{qn}",
-                        placeholder="wrote…",
-                    )
+            if de_wrong_qs:
+                st.caption(f"Marked wrong: {', '.join(str(q) for q in de_wrong_qs)}")
+            else:
+                st.caption("All correct so far.")
 
-                # Auto-classify silently
-                q_idx    = qn - 1
-                item     = ws_items[q_idx]  if q_idx < len(ws_items)  else None
-                corr_ans = ws_answers[q_idx] if q_idx < len(ws_answers) else None
-                if sans.strip() and item and corr_ans:
-                    auto_type, _, _ = mc.classify(item, corr_ans, sans.strip())
-                else:
-                    auto_type = None
+            # ── Intelligent wrong-answer entry ────────────────────────────────────
+            de_wrong_details = {}
+            if de_wrong_qs:
+                st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+                st.markdown(
+                    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
+                    'letter-spacing:.06em;color:#555;margin-bottom:4px">'
+                    'What did the student write?</div>',
+                    unsafe_allow_html=True,
+                )
 
-                de_wrong_details[qn] = {
-                    "mistake_type": auto_type,
-                    "student_answer": sans.strip(),
-                }
+                cols = st.columns(len(de_wrong_qs) if len(de_wrong_qs) <= 4 else 4)
+                for i, qn in enumerate(de_wrong_qs):
+                    with cols[i % 4]:
+                        sans = st.text_input(
+                            f"Q{qn}",
+                            key=f"de_ans_{student['id']}_{sheet_idx}_{qn}",
+                            placeholder="wrote…",
+                        )
 
-        resolved   = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
-        remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if len(de_wrong_qs) > 3 else None
+                    # Auto-classify silently
+                    q_idx    = qn - 1
+                    item     = ws_items[q_idx]  if q_idx < len(ws_items)  else None
+                    corr_ans = ws_answers[q_idx] if q_idx < len(ws_answers) else None
+                    if sans.strip() and item and corr_ans:
+                        auto_type, _, _ = mc.classify(item, corr_ans, sans.strip())
+                    else:
+                        auto_type = None
 
-        sheet_entries.append({
-            "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
-            "total_questions": total_q_int, "wrong_qs": de_wrong_qs,
-            "wrong_details": de_wrong_details, "resolved_topics": resolved,
-            "remedial_id": remedial_id, "status": None,
-        })
+                    de_wrong_details[qn] = {
+                        "mistake_type": auto_type,
+                        "student_answer": sans.strip(),
+                    }
 
-    # ── Save (WhatsApp send temporarily disabled — set WHATSAPP_ENABLED=True
-    #    below to restore the "Save & Send to Parent" button) ────────────────
-    WHATSAPP_ENABLED = False
+            resolved   = db.resolve_topics(de_ws_id, de_wrong_qs, fallback_topic=topic) if de_wrong_qs else {}
+            remedial_id = remedial_id_for(sublevel_code, de_sheet_num) if len(de_wrong_qs) > 3 else None
 
-    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-    whatsapp_msg = build_whatsapp_report_multi(de_name, sheet_entries)
-    if WHATSAPP_ENABLED:
-        st.markdown(f"""
-        <div class="info-cell" style="margin-bottom:12px">
-            <div class="il">Parent report preview</div>
-            <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
-        </div>
-        """, unsafe_allow_html=True)
+            sheet_entries.append({
+                "worksheet_id": de_ws_id, "sheet_num": de_sheet_num,
+                "total_questions": total_q_int, "wrong_qs": de_wrong_qs,
+                "wrong_details": de_wrong_details, "resolved_topics": resolved,
+                "remedial_id": remedial_id, "status": None,
+            })
 
-    wa_number = student.get("parent_whatsapp")
+        # ── Save (WhatsApp send temporarily disabled — set WHATSAPP_ENABLED=True
+        #    below to restore the "Save & Send to Parent" button) ────────────────
+        WHATSAPP_ENABLED = False
 
-    def _save_entry():
-        """Saves all sheet entries to DB in a single batched call."""
-        db.save_daily_entries(
-            session_date=de_date.isoformat(),
-            student_id=student["id"],
-            class_name=de_class,
-            grade=student["grade"],
-            level_num=level_num,
-            entries=sheet_entries,
-        )
-        # Clear this student's grids (now student-scoped, so this never
-        # affects any other student's state) and auto-advance roll number
-        for sidx in range(1, 3):
-            for qn in range(1, 51):
-                st.session_state.pop(f"de_q_{student['id']}_{sidx}_{qn}", None)
-                st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
-                st.session_state.pop(f"de_ans_{student['id']}_{sidx}_{qn}", None)
-        next_roll = min(int(roll_input) + 1, len(roster))
-        st.session_state["_pending_roll_advance"] = next_roll
-        return next_roll
+        st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+        whatsapp_msg = build_whatsapp_report_multi(de_name, sheet_entries)
+        if WHATSAPP_ENABLED:
+            st.markdown(f"""
+            <div class="info-cell" style="margin-bottom:12px">
+                <div class="il">Parent report preview</div>
+                <div style="font-size:13px;color:#222;line-height:1.5;margin-top:6px">{whatsapp_msg}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-    ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
+        wa_number = student.get("parent_whatsapp")
 
-    if WHATSAPP_ENABLED and wa_number:
-        wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
-        if st.button("💾 📲  Save & Send to Parent", type="primary",
-                     key="de_save_and_send", use_container_width=True):
-            _save_entry()
-            st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…"
-            st.markdown(
-                f'<meta http-equiv="refresh" content="1;url={wa_link}">',
-                unsafe_allow_html=True,
+        def _save_entry():
+            """Saves all sheet entries to DB in a single batched call."""
+            db.save_daily_entries(
+                session_date=de_date.isoformat(),
+                student_id=student["id"],
+                class_name=de_class,
+                grade=student["grade"],
+                level_num=level_num,
+                entries=sheet_entries,
             )
-            st.rerun()
-    else:
-        if st.button("💾  Save Entry", type="primary", key="de_save",
-                     use_container_width=True):
-            next_roll = _save_entry()
-            st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}"
-            st.rerun()
+            # Clear this student's grids (now student-scoped, so this never
+            # affects any other student's state) and auto-advance roll number
+            for sidx in range(1, 3):
+                for qn in range(1, 51):
+                    st.session_state.pop(f"de_q_{student['id']}_{sidx}_{qn}", None)
+                    st.session_state.pop(f"de_mtype_{sidx}_{qn}", None)
+                    st.session_state.pop(f"de_ans_{student['id']}_{sidx}_{qn}", None)
+            next_roll = min(int(roll_input) + 1, len(roster))
+            st.session_state["_pending_roll_advance"] = next_roll
+            return next_roll
 
-    st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        ws_ids_saved = ", ".join(e["worksheet_id"] for e in sheet_entries)
+
+        if WHATSAPP_ENABLED and wa_number:
+            wa_link = build_whatsapp_link(wa_number, whatsapp_msg)
+            if st.button("💾 📲  Save & Send to Parent", type="primary",
+                         key="de_save_and_send", use_container_width=True):
+                _save_entry()
+                st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…"
+                st.markdown(
+                    f'<meta http-equiv="refresh" content="1;url={wa_link}">',
+                    unsafe_allow_html=True,
+                )
+                st.rerun()
+        else:
+            if st.button("💾  Save Entry", type="primary", key="de_save",
+                         use_container_width=True):
+                next_roll = _save_entry()
+                st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}"
+                st.rerun()
+
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+
+
+
+_daily_entry_fragment(level_num, sublevel_code, topic)
 
 st.markdown('</div>', unsafe_allow_html=True)
 ui_common.render_footer(level_num, sublevel_code)
