@@ -375,25 +375,60 @@ def _daily_entry_fragment(level_num, sublevel_code, topic):
                 ws_items   = []
                 ws_answers = []
 
-            # ── Wrong-answer grid ─────────────────────────────────────────────────
+            # ── Wrong-answer entry: fast typed entry (default) + tap-grid fallback ──
             st.markdown(
                 '<div style="font-size:11px;font-weight:600;text-transform:uppercase;'
                 'letter-spacing:.06em;color:#555;margin-bottom:6px">'
                 'Mark wrong answers</div>',
                 unsafe_allow_html=True,
             )
+
+            quick_key = f"de_quick_{student['id']}_{sheet_idx}"
+            quick_last_key = f"de_quick_last_{student['id']}_{sheet_idx}"
+            quick_val = st.text_input(
+                "Type the wrong question numbers, comma-separated",
+                key=quick_key,
+                placeholder="e.g. 3, 7, 15 — leave blank if all correct",
+            )
+
+            # Sync typed numbers into the checkbox states below, but ONLY when
+            # the typed text actually changed since last time -- otherwise a
+            # manual tap in the grid (with the text box left untouched) would
+            # get silently overwritten back to the old typed value on every
+            # rerun, which is the bug this guard avoids.
+            if st.session_state.get(quick_last_key) != quick_val:
+                typed_wrong = set()
+                for piece in quick_val.split(","):
+                    piece = piece.strip()
+                    if piece.isdigit():
+                        qn = int(piece)
+                        if 1 <= qn <= total_q_int:
+                            typed_wrong.add(qn)
+                for qn in range(1, total_q_int + 1):
+                    st.session_state[f"de_q_{student['id']}_{sheet_idx}_{qn}"] = qn in typed_wrong
+                st.session_state[quick_last_key] = quick_val
+
             de_wrong_qs = []
-            cols_per_row = 5
-            for row_start in range(1, total_q_int + 1, cols_per_row):
-                row_cols = st.columns(cols_per_row)
-                for i, col in enumerate(row_cols):
-                    qn = row_start + i
-                    if qn > total_q_int:
-                        break
-                    with col:
-                        if st.checkbox(f"Q{qn}", key=f"de_q_{student['id']}_{sheet_idx}_{qn}"):
-                            de_wrong_qs.append(qn)
-            de_wrong_qs.sort()
+            already_tapped = any(
+                st.session_state.get(f"de_q_{student['id']}_{sheet_idx}_{qn}")
+                for qn in range(1, total_q_int + 1)
+            )
+            with st.expander("Prefer tapping boxes instead?", expanded=already_tapped and not quick_val.strip()):
+                cols_per_row = 5
+                for row_start in range(1, total_q_int + 1, cols_per_row):
+                    row_cols = st.columns(cols_per_row)
+                    for i, col in enumerate(row_cols):
+                        qn = row_start + i
+                        if qn > total_q_int:
+                            break
+                        with col:
+                            if st.checkbox(f"Q{qn}", key=f"de_q_{student['id']}_{sheet_idx}_{qn}"):
+                                de_wrong_qs.append(qn)
+            # Ticks made in the tap-grid above already populated de_wrong_qs;
+            # for numbers that came from typed entry (grid collapsed, so the
+            # checkbox loop above still ran and appended them too since the
+            # expander body still executes even when collapsed). Dedup + sort.
+            de_wrong_qs = sorted(set(de_wrong_qs))
 
             if de_wrong_qs:
                 st.caption(f"Marked wrong: {', '.join(str(q) for q in de_wrong_qs)}")
