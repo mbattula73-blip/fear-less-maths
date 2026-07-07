@@ -282,7 +282,7 @@ else:
             )
             next_roll = min(int(roll_input) + 1, len(roster))
             st.session_state["_pending_roll_advance"] = next_roll
-            st.success(f"✅ Marked {de_name} absent. Next → Roll #{next_roll}")
+            st.session_state["_flash_toast"] = f"✅ Marked {de_name} absent. Next → Roll #{next_roll}"
             st.rerun()
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -458,23 +458,15 @@ else:
     wa_number = student.get("parent_whatsapp")
 
     def _save_entry():
-        """Saves all sheet entries to DB. Called from both buttons below."""
-        for entry in sheet_entries:
-            new_session_id = db.add_session(
-                session_date=de_date.isoformat(),
-                student_id=student["id"],
-                class_name=de_class,
-                grade=student["grade"],
-                level_num=level_num,
-                worksheet_id=entry["worksheet_id"],
-                wrong_qs=entry["wrong_qs"],
-                resolved_topics=entry["resolved_topics"],
-                total_questions=entry["total_questions"],
-                remedial_id=entry["remedial_id"],
-                status=entry.get("status"),
-            )
-            if entry["wrong_details"]:
-                db.save_wrong_answer_details(new_session_id, entry["wrong_details"])
+        """Saves all sheet entries to DB in a single batched call."""
+        db.save_daily_entries(
+            session_date=de_date.isoformat(),
+            student_id=student["id"],
+            class_name=de_class,
+            grade=student["grade"],
+            level_num=level_num,
+            entries=sheet_entries,
+        )
         # Clear this student's grids (now student-scoped, so this never
         # affects any other student's state) and auto-advance roll number
         for sidx in range(1, 3):

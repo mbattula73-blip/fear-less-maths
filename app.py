@@ -485,14 +485,114 @@ elif st.session_state["view"] == "generator":
 # ══════════════════════════════════════════════════════════════════════════════
 else:  # "dashboards"
 
-    DASH_SECTIONS = ["👤 Student Profile", "🚨 Alerts", "📊 Report"]
+    DASH_SECTIONS = ["🏫 Class Dashboard", "👤 Student Profile", "🚨 Alerts", "📊 Report"]
     st.markdown('<div class="section-switcher">', unsafe_allow_html=True)
     dash_section = st.radio("Dashboard", DASH_SECTIONS, horizontal=True,
                             key="dash_section", label_visibility="collapsed")
     st.markdown('</div>', unsafe_allow_html=True)
 
+    # ─── CLASS DASHBOARD ────────────────────────────────────────────────────
+    if dash_section == "🏫 Class Dashboard":
+        import pandas as pd
+        from datetime import date as _cdate, timedelta as _ctimedelta
+
+        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+        st.markdown("##### Class Dashboard")
+        st.caption("Pick a class to see who's submitted today, class-level accuracy, and weak topics — the quick daily check-in view.")
+
+        cd_classes = db.get_classes()
+        if not cd_classes:
+            st.info("No student data yet. Use Daily Entry to add sessions.")
+        else:
+            col_c1, col_c2 = st.columns([1, 1])
+            with col_c1:
+                cd_class = st.selectbox("Class", cd_classes, key="cd_class")
+            with col_c2:
+                cd_period = st.radio("Period", ["Today", "This Week", "This Month"],
+                                     horizontal=True, key="cd_period")
+
+            today = _cdate.today()
+            if cd_period == "Today":
+                cd_from = cd_to = today.isoformat()
+            elif cd_period == "This Week":
+                cd_from = (today - _ctimedelta(days=today.weekday())).isoformat()
+                cd_to = today.isoformat()
+            else:
+                cd_from = today.replace(day=1).isoformat()
+                cd_to = today.isoformat()
+
+            summary = analytics.school_summary(cd_from, cd_to, cd_class)
+            cards = [
+                ("Total Students", summary["total_students"]),
+                ("Submitted" if cd_period == "Today" else "Active", summary["active_students"]),
+                ("Not Yet" if cd_period == "Today" else "Inactive", summary["inactive_students"]),
+                ("Avg Accuracy", f'{summary["avg_accuracy"]}%' if summary["avg_accuracy"] is not None else "—"),
+                ("Avg Current Level", summary["avg_level"]),
+            ]
+            card_html = '<div class="info-row" style="margin-left:0;margin-right:0">'
+            for label, value in cards:
+                card_html += (f'<div class="info-cell"><div class="il">{label}</div>'
+                              f'<div class="iv" style="font-size:18px">{value}</div></div>')
+            card_html += '</div>'
+            st.markdown(card_html, unsafe_allow_html=True)
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            # ── Per-student roll call: who submitted, who didn't ──────────────
+            roster = db.get_students(cd_class)
+            sessions = db.get_sessions(class_name=cd_class, date_from=cd_from, date_to=cd_to)
+            by_student = defaultdict(list)
+            for sess in sessions:
+                by_student[sess["student_id"]].append(sess)
+            current_levels = analytics.get_current_levels()
+            open_alerts = analytics.concept_alerts(threshold=2, class_name=cd_class)
+            alert_counts = defaultdict(int)
+            for a in open_alerts:
+                alert_counts[a["student_id"]] += 1
+
+            rows = []
+            for i, s in enumerate(sorted(roster, key=lambda x: x["name"]), 1):
+                s_sessions = by_student.get(s["id"], [])
+                submitted = len(s_sessions) > 0
+                accs = [analytics._session_accuracy(sess) for sess in s_sessions
+                        if sess.get("status") not in ("absent",)]
+                avg_acc = f"{round(sum(accs)/len(accs)*100)}%" if accs else "—"
+                rows.append({
+                    "#": i,
+                    "Name": s["name"],
+                    "Submitted" if cd_period == "Today" else "Active": "✅" if submitted else "—",
+                    "Level": current_levels.get(s["id"], "—"),
+                    "Accuracy": avg_acc,
+                    "Alerts": alert_counts.get(s["id"], 0) or "—",
+                })
+
+            not_submitted = [r["Name"] for r in rows if r.get("Submitted" if cd_period == "Today" else "Active") == "—"]
+            if cd_period == "Today" and not_submitted:
+                st.warning(f"⏳ Not yet submitted today ({len(not_submitted)}): " + ", ".join(not_submitted))
+            elif cd_period == "Today":
+                st.success("✅ Everyone in this class has submitted today.")
+
+            st.markdown("###### Roll call")
+            st.dataframe(pd.DataFrame(rows), hide_index=True, width='stretch')
+
+            st.markdown('<div style="height:24px"></div>', unsafe_allow_html=True)
+
+            st.markdown("###### Topics needing attention in this class")
+            topic_rows = analytics.topic_failure_ranking(cd_from, cd_to, cd_class)
+            if topic_rows:
+                top_t = topic_rows[:8]
+                topic_df = pd.DataFrame({"Students affected": [t["student_count"] for t in top_t]},
+                                        index=[t["topic"] for t in top_t])
+                st.bar_chart(topic_df, horizontal=True, color="#0D0D0D", width='stretch')
+            else:
+                st.caption("No wrong-answer data in this period.")
+
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
     # ─── STUDENT PROFILE ────────────────────────────────────────────────────
-    if dash_section == "👤 Student Profile":
+    elif dash_section == "👤 Student Profile":
         import pandas as pd
         from datetime import date as _date
 

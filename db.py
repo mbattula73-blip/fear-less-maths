@@ -538,6 +538,64 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
     return session_id
 
 
+def save_daily_entries(session_date: str, student_id: int, class_name: str, grade: int,
+                        level_num: int, entries: list) -> list:
+    """
+    Saves ALL of a Daily Entry submission (every sheet, plus each sheet's
+    wrong-answer details) in ONE connection use / ONE commit, instead of
+    add_session() + save_wrong_answer_details() being called separately per
+    sheet (which was 2-4 sequential network round-trips to Turso for every
+    sheet, and is what made Save take several seconds with 2 worksheets).
+
+    entries: same shape as the sheet_entries list built by Daily Entry —
+    each dict has worksheet_id, wrong_qs, resolved_topics, total_questions,
+    remedial_id, status, and optionally wrong_details.
+
+    Returns the list of new session_ids, in the same order as `entries`.
+    """
+    now = datetime.now().isoformat()
+    session_ids = []
+    with get_conn() as conn:
+        for entry in entries:
+            wrong_str = ",".join(str(q) for q in entry["wrong_qs"])
+            resolved = entry.get("resolved_topics") or {}
+            topics_str = ",".join(sorted(set(resolved.values()))) if resolved else ""
+            cur = conn.execute(
+                """INSERT INTO sessions
+                   (session_date, student_id, class_name, grade, level_num, worksheet_id,
+                    wrong_qs, resolved_topics, total_questions, remedial_id, status, created_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (session_date, student_id, class_name, grade, level_num, entry["worksheet_id"],
+                 wrong_str, topics_str, entry.get("total_questions", 0),
+                 entry.get("remedial_id"), entry.get("status"), now),
+            )
+            session_id = cur.lastrowid
+            session_ids.append(session_id)
+
+            if entry.get("remedial_id"):
+                conn.execute(
+                    "INSERT INTO remedial_status (session_id, completed) VALUES (?,0)",
+                    (session_id,),
+                )
+
+            details = entry.get("wrong_details")
+            if details:
+                rows = [
+                    (session_id, int(q), d.get("mistake_type") or None,
+                     d.get("student_answer") or None, now)
+                    for q, d in details.items()
+                ]
+                if rows:
+                    conn.executemany(
+                        "INSERT INTO wrong_answer_details "
+                        "(session_id, q_num, mistake_type, student_answer, created_at) "
+                        "VALUES (?,?,?,?,?)",
+                        rows,
+                    )
+    _clear_read_caches()
+    return session_ids
+
+
 @_cached(ttl=3600, show_spinner=False)
 def get_sessions(student_id: int = None, date_from: str = None, date_to: str = None,
                   class_name: str = None, include_special: bool = False):
