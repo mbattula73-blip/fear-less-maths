@@ -23,6 +23,13 @@ from ws_helpers import (
 import mistake_classifier as mc
 
 ui_common.setup_page("Daily Entry — Fear Less Maths")
+
+# Show the save confirmation as a floating toast that survives the rerun
+# triggered by the Save button (a plain st.success() right before st.rerun()
+# used to flash and disappear before anyone could read it).
+if "_flash_toast" in st.session_state:
+    st.toast(st.session_state.pop("_flash_toast"), icon="✅")
+
 ui_common.render_header(
     subtitle="Daily Entry · Staff",
     badge="Manage students & log today's worksheet results",
@@ -486,7 +493,7 @@ else:
         if st.button("💾 📲  Save & Send to Parent", type="primary",
                      key="de_save_and_send", use_container_width=True):
             _save_entry()
-            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…")
+            st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Opening WhatsApp…"
             st.markdown(
                 f'<meta http-equiv="refresh" content="1;url={wa_link}">',
                 unsafe_allow_html=True,
@@ -496,7 +503,7 @@ else:
         if st.button("💾  Save Entry", type="primary", key="de_save",
                      use_container_width=True):
             next_roll = _save_entry()
-            st.success(f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}")
+            st.session_state["_flash_toast"] = f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}"
             st.rerun()
 
     st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)

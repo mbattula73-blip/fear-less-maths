@@ -245,8 +245,11 @@ class _DictConnection:
         self._raw.close()
 
 
-@contextmanager
-def get_conn():
+import threading
+_conn_lock = threading.Lock()
+
+
+def _open_raw_connection():
     url, token = _turso_credentials()
     if url and token:
         raw = libsql.connect(database=url, auth_token=token)
@@ -254,11 +257,39 @@ def get_conn():
         raw = libsql.connect(database=DB_PATH)
     conn = _DictConnection(raw)
     conn.execute("PRAGMA foreign_keys = ON")
-    try:
-        yield conn
-        conn.commit()
-    finally:
-        conn.close()
+    return conn
+
+
+def _get_shared_conn():
+    """
+    Returns one long-lived connection reused across the whole app process,
+    instead of opening a brand-new connection (a full network round-trip to
+    Turso) on every single read/write. This was the main source of the
+    Daily Entry latency — every checkbox render and save was paying a fresh
+    connection-setup cost.
+    """
+    return _open_raw_connection()
+
+
+if st is not None:
+    _get_shared_conn = st.cache_resource(show_spinner=False)(_get_shared_conn)
+
+
+@contextmanager
+def get_conn():
+    with _conn_lock:  # libsql connections aren't safe for concurrent use across sessions
+        conn = _get_shared_conn()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            # Connection may have gone stale (e.g. Turso idle timeout) —
+            # drop the cached one so the next call reconnects cleanly.
+            if hasattr(_get_shared_conn, "clear"):
+                _get_shared_conn.clear()
+            else:
+                globals()["_get_shared_conn"] = lambda: _open_raw_connection()
+            raise
 
 
 
