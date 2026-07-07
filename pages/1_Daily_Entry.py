@@ -294,11 +294,13 @@ def _render_class_grid(de_class, roster, level_num, sublevel_code, topic):
                 "status": None, "sheet_entries": sheet_entries,
             })
 
-        db.save_class_entries(
-            session_date=cg_date.isoformat(), class_name=de_class,
-            level_num=level_num, rows=rows_to_save,
-        )
-        st.session_state["_flash_toast"] = f"✅ Saved {len(rows_to_save)} students in {de_class}."
+        with st.status("💾 Saving whole class…", expanded=False) as _cg_status:
+            db.save_class_entries(
+                session_date=cg_date.isoformat(), class_name=de_class,
+                level_num=level_num, rows=rows_to_save,
+            )
+            _cg_status.update(label="✅ Saved successfully!", state="complete")
+        st.session_state["_flash_toast"] = f"✅ Saved successfully — {len(rows_to_save)} students in {de_class}."
         st.session_state.pop(grid_key, None)  # reset the grid for the next entry
         st.rerun()
 
@@ -400,12 +402,14 @@ def _daily_entry_fragment(level_num, sublevel_code, topic):
         if de_status == "Absent":
             st.info(f"**{de_name}** will be marked absent for {de_date.strftime('%d %b %Y')} — no worksheet score is recorded.")
             if st.button("📌  Mark Absent & Save", type="primary", key="de_mark_absent", use_container_width=True):
-                db.add_session(
-                    session_date=de_date.isoformat(), student_id=student["id"],
-                    class_name=de_class, grade=student["grade"], level_num=level_num,
-                    worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
-                    total_questions=0, remedial_id=None, status="absent",
-                )
+                with st.status("💾 Saving…", expanded=False) as _abs_status:
+                    db.add_session(
+                        session_date=de_date.isoformat(), student_id=student["id"],
+                        class_name=de_class, grade=student["grade"], level_num=level_num,
+                        worksheet_id=f"{sublevel_code}-ABSENT", wrong_qs=[], resolved_topics={},
+                        total_questions=0, remedial_id=None, status="absent",
+                    )
+                    _abs_status.update(label="✅ Saved successfully!", state="complete")
                 next_roll = min(int(roll_input) + 1, len(roster))
                 st.session_state["_pending_roll_advance"] = next_roll
                 st.session_state["_flash_toast"] = f"✅ Marked {de_name} absent. Next → Roll #{next_roll}"
@@ -652,15 +656,17 @@ def _daily_entry_fragment(level_num, sublevel_code, topic):
         else:
             if st.button("💾  Save Entry", type="primary", key="de_save",
                          use_container_width=True):
-                next_roll = _save_entry()
-                # Fire the toast NOW, before the rerun, so the confirmation
-                # pops the instant the save finishes rather than only after
-                # the fragment finishes redrawing. The save above is fully
-                # synchronous and already committed by this point -- this is
-                # honest feedback, not an optimistic guess.
-                st.toast(
-                    f"✅ Saved for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}",
-                    icon="✅",
+                # st.status shows INSTANTLY the moment the button is tapped,
+                # before the save network call runs -- so staff get immediate
+                # acknowledgement that their tap registered, instead of a
+                # blank couple of seconds that leaves them unsure whether it
+                # saved. It then flips to the confirmed "Saved" state once the
+                # (synchronous, real) write actually completes.
+                with st.status("💾 Saving…", expanded=False) as _save_status:
+                    next_roll = _save_entry()
+                    _save_status.update(label="✅ Saved successfully!", state="complete")
+                st.session_state["_flash_toast"] = (
+                    f"✅ Saved successfully for {de_name} ({ws_ids_saved}). Next → Roll #{next_roll}"
                 )
                 st.rerun()
 
