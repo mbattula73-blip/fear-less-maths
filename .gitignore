@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 flm_data.db
+flm_replica.db
+flm_replica.db-*

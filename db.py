@@ -162,12 +162,35 @@ def _turso_credentials():
     return None, None
 
 
+# Local file for the (opt-in) embedded replica -- see _use_embedded_replica().
+REPLICA_PATH = os.path.join(os.path.dirname(__file__), "flm_replica.db")
+
+
+def _use_embedded_replica() -> bool:
+    """
+    Opt-in switch for Turso embedded replicas: a local SQLite file kept in
+    sync with the remote database, so reads are served from disk instead of
+    over the network. OFF by default -- turn it on by adding
+    USE_EMBEDDED_REPLICA = true to secrets.toml once you've tried it and are
+    happy with it. It has NOT been tested against a live Turso database (this
+    was built in an environment with no network access to Turso's servers),
+    so _open_raw_connection() falls back to the normal direct connection
+    automatically if anything about the replica setup fails.
+    """
+    if st is None:
+        return False
+    try:
+        return bool(st.secrets.get("USE_EMBEDDED_REPLICA", False))
+    except Exception:
+        return False
+
+
 def connection_status() -> dict:
     """
     Reports which backend is actually active right now, and (for Turso)
     whether a real query against it succeeds — so the app can show a clear
     yes/no instead of leaving it to guesswork after configuring secrets.
-    Returns {"mode": "turso"|"local", "ok": bool, "detail": str}.
+    Returns {"mode": "turso"|"turso-replica"|"local", "ok": bool, "detail": str}.
     """
     url, token = _turso_credentials()
     if not (url and token):
@@ -179,6 +202,12 @@ def connection_status() -> dict:
         with get_conn() as conn:
             conn.execute("SELECT 1")
         host = url.split("//", 1)[-1].split("?", 1)[0]
+        if _use_embedded_replica():
+            return {
+                "mode": "turso-replica", "ok": True,
+                "detail": f"Connected to Turso ({host}) via a local embedded replica — "
+                          f"reads are served from disk, writes sync to the primary.",
+            }
         return {
             "mode": "turso", "ok": True,
             "detail": f"Connected to Turso ({host}) — this persists across redeploys/restarts.",
@@ -224,8 +253,9 @@ class _DictConnection:
     returns a _DictCursor — the rest of this file never needs to know
     whether it's talking to a local file or a remote Turso database."""
 
-    def __init__(self, raw):
+    def __init__(self, raw, is_replica=False):
         self._raw = raw
+        self._is_replica = is_replica
 
     def execute(self, sql, params=None):
         cur = self._raw.execute(sql, params) if params is not None else self._raw.execute(sql)
@@ -240,6 +270,15 @@ class _DictConnection:
 
     def commit(self):
         self._raw.commit()
+        if self._is_replica:
+            try:
+                # Best-effort sync so this connection's own writes (and
+                # anyone else's) are reflected immediately. The write itself
+                # already committed to the primary regardless of whether
+                # this succeeds.
+                self._raw.sync()
+            except Exception:
+                pass
 
     def close(self):
         self._raw.close()
@@ -251,6 +290,20 @@ _conn_lock = threading.Lock()
 
 def _open_raw_connection():
     url, token = _turso_credentials()
+
+    if url and token and _use_embedded_replica():
+        try:
+            raw = libsql.connect(
+                database=REPLICA_PATH, sync_url=url, auth_token=token,
+                sync_interval=5,
+            )
+            raw.sync()  # make sure the replica isn't stale before first use
+            conn = _DictConnection(raw, is_replica=True)
+            conn.execute("PRAGMA foreign_keys = ON")
+            return conn
+        except Exception:
+            pass  # fall through to the direct remote connection below
+
     if url and token:
         raw = libsql.connect(database=url, auth_token=token)
     else:
