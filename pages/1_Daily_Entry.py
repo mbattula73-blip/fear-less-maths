@@ -191,6 +191,118 @@ st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
 # ════════════════════════════════════════════════════════════════════════════
 # 2. DAILY ENTRY — SERIAL NUMBER + INTELLIGENT MISTAKE DETECTION
 # ════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════════════════
+# WHOLE-CLASS GRID — mark an entire class in one table instead of
+# navigating student-by-student. Trade-off: this mode only records WHICH
+# question numbers were wrong, not the per-student "what did they write"
+# mistake-typing detail -- that level of detail is still available in
+# One Student at a Time mode.
+# ════════════════════════════════════════════════════════════════════════════
+def _render_class_grid(de_class, roster, level_num, sublevel_code, topic):
+    st.caption(
+        "Type wrong question numbers per student (e.g. '3, 7, 15'), tick Absent "
+        "for anyone away today, then Save Whole Class once at the bottom."
+    )
+
+    cg_date = st.date_input("Date", value=_date.today(), key="cg_date")
+
+    de_sheet_lbls = [lbl for _, lbl in SHEET_OPTIONS]
+    cg_num_sheets = st.radio(
+        "Worksheets today", [1, 2], index=1, horizontal=True, key="cg_num_sheets",
+        format_func=lambda n: "1 worksheet" if n == 1 else "2 worksheets (default)",
+    )
+
+    sheet_nums = []
+    sheet_cols = st.columns(cg_num_sheets)
+    for i, col in enumerate(sheet_cols, 1):
+        with col:
+            sel = st.selectbox(
+                f"Worksheet {i} sheet", de_sheet_lbls,
+                index=min(i - 1, len(de_sheet_lbls) - 1), key=f"cg_sheet_{i}",
+            )
+            sheet_nums.append(SHEET_OPTIONS[de_sheet_lbls.index(sel)][0])
+
+    total_q = int(st.number_input(
+        "Total Qs per sheet", min_value=1, max_value=50, value=20, key="cg_total_q",
+    ))
+
+    if not roster:
+        st.info("No students in this class yet.")
+        return
+
+    # A fresh grid_key per class/date/sheet-count combo -- switching any of
+    # those starts a clean grid instead of showing stale edits from before.
+    grid_key = f"cg_grid_{de_class}_{cg_date.isoformat()}_{cg_num_sheets}"
+
+    base_rows = []
+    for i, s in enumerate(roster, 1):
+        row = {"Roll": i, "Name": s["name"], "Absent": False}
+        for sn in range(1, cg_num_sheets + 1):
+            row[f"S{sn} Wrong"] = ""
+        base_rows.append(row)
+    base_df = pd.DataFrame(base_rows)
+
+    column_config = {
+        "Roll": st.column_config.NumberColumn(disabled=True, width="small"),
+        "Name": st.column_config.TextColumn(disabled=True, width="medium"),
+        "Absent": st.column_config.CheckboxColumn(width="small"),
+    }
+    for sn in range(1, cg_num_sheets + 1):
+        column_config[f"S{sn} Wrong"] = st.column_config.TextColumn(
+            f"Sheet {sn} — wrong Qs",
+            help="e.g. 3, 7, 15 — leave blank if all correct",
+        )
+
+    edited = st.data_editor(
+        base_df, key=grid_key, hide_index=True, width="stretch",
+        column_config=column_config, num_rows="fixed",
+    )
+
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+
+    if st.button("💾  Save Whole Class", type="primary", key="cg_save", use_container_width=True):
+        student_by_roll = {i: s for i, s in enumerate(roster, 1)}
+        rows_to_save = []
+        for _, r in edited.iterrows():
+            roll = int(r["Roll"])
+            student = student_by_roll[roll]
+
+            if bool(r["Absent"]):
+                rows_to_save.append({
+                    "student_id": student["id"], "grade": student["grade"], "status": "absent",
+                })
+                continue
+
+            sheet_entries = []
+            for idx, sn in enumerate(sheet_nums, 1):
+                wrong_text = str(r.get(f"S{idx} Wrong", "") or "").strip()
+                wrong_qs = sorted({
+                    int(p.strip()) for p in wrong_text.split(",")
+                    if p.strip().isdigit() and 1 <= int(p.strip()) <= total_q
+                })
+                ws_id = f"{sublevel_code}-{sn}"
+                resolved = db.resolve_topics(ws_id, wrong_qs, fallback_topic=topic) if wrong_qs else {}
+                remedial_id = remedial_id_for(sublevel_code, sn) if len(wrong_qs) > 3 else None
+                sheet_entries.append({
+                    "worksheet_id": ws_id, "wrong_qs": wrong_qs,
+                    "resolved_topics": resolved, "total_questions": total_q,
+                    "remedial_id": remedial_id,
+                })
+
+            rows_to_save.append({
+                "student_id": student["id"], "grade": student["grade"],
+                "status": None, "sheet_entries": sheet_entries,
+            })
+
+        db.save_class_entries(
+            session_date=cg_date.isoformat(), class_name=de_class,
+            level_num=level_num, rows=rows_to_save,
+        )
+        st.session_state["_flash_toast"] = f"✅ Saved {len(rows_to_save)} students in {de_class}."
+        st.session_state.pop(grid_key, None)  # reset the grid for the next entry
+        st.rerun()
+
+
 @st.fragment
 def _daily_entry_fragment(level_num, sublevel_code, topic):
     """Everything below reruns on its own (Save, checkboxes, roll number, etc.)
@@ -210,12 +322,20 @@ def _daily_entry_fragment(level_num, sublevel_code, topic):
     else:
         st.markdown("##### Daily Entry")
 
-        # ── Class + serial number student picker ──────────────────────────────────
-        col_d1, col_d2, col_d3 = st.columns([1.2, 0.8, 1.5])
-        with col_d1:
-            de_class = st.selectbox("Class", existing_classes, key="de_class")
+        entry_mode = st.radio(
+            "Entry mode", ["One Student at a Time", "Whole Class Grid"],
+            horizontal=True, key="de_entry_mode",
+        )
 
+        de_class = st.selectbox("Class", existing_classes, key="de_class")
         roster = db.get_students(de_class)
+
+        if entry_mode == "Whole Class Grid":
+            _render_class_grid(de_class, roster, level_num, sublevel_code, topic)
+            return
+
+        # ── Serial number student picker ────────────────────────────────────────
+        col_d2, col_d3 = st.columns([0.8, 1.5])
 
         # Apply any pending roll-number advance queued by a previous Save click.
         # This MUST happen before the de_roll widget below is instantiated --

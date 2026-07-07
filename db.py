@@ -538,6 +538,42 @@ def add_session(session_date: str, student_id: int, class_name: str, grade: int,
     return session_id
 
 
+def _insert_session_row(conn, now, session_date, student_id, class_name, grade,
+                         level_num, worksheet_id, wrong_qs, resolved_topics,
+                         total_questions, remedial_id, status, wrong_details):
+    """Shared insert logic used by save_daily_entries() and save_class_entries()
+    so both write through the exact same SQL/columns."""
+    wrong_str = ",".join(str(q) for q in wrong_qs)
+    topics_str = ",".join(sorted(set(resolved_topics.values()))) if resolved_topics else ""
+    cur = conn.execute(
+        """INSERT INTO sessions
+           (session_date, student_id, class_name, grade, level_num, worksheet_id,
+            wrong_qs, resolved_topics, total_questions, remedial_id, status, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (session_date, student_id, class_name, grade, level_num, worksheet_id,
+         wrong_str, topics_str, total_questions, remedial_id, status, now),
+    )
+    session_id = cur.lastrowid
+
+    if remedial_id:
+        conn.execute("INSERT INTO remedial_status (session_id, completed) VALUES (?,0)", (session_id,))
+
+    if wrong_details:
+        detail_rows = [
+            (session_id, int(q), d.get("mistake_type") or None,
+             d.get("student_answer") or None, now)
+            for q, d in wrong_details.items()
+        ]
+        if detail_rows:
+            conn.executemany(
+                "INSERT INTO wrong_answer_details "
+                "(session_id, q_num, mistake_type, student_answer, created_at) "
+                "VALUES (?,?,?,?,?)",
+                detail_rows,
+            )
+    return session_id
+
+
 def save_daily_entries(session_date: str, student_id: int, class_name: str, grade: int,
                         level_num: int, entries: list) -> list:
     """
@@ -557,43 +593,55 @@ def save_daily_entries(session_date: str, student_id: int, class_name: str, grad
     session_ids = []
     with get_conn() as conn:
         for entry in entries:
-            wrong_str = ",".join(str(q) for q in entry["wrong_qs"])
-            resolved = entry.get("resolved_topics") or {}
-            topics_str = ",".join(sorted(set(resolved.values()))) if resolved else ""
-            cur = conn.execute(
-                """INSERT INTO sessions
-                   (session_date, student_id, class_name, grade, level_num, worksheet_id,
-                    wrong_qs, resolved_topics, total_questions, remedial_id, status, created_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (session_date, student_id, class_name, grade, level_num, entry["worksheet_id"],
-                 wrong_str, topics_str, entry.get("total_questions", 0),
-                 entry.get("remedial_id"), entry.get("status"), now),
+            session_id = _insert_session_row(
+                conn, now, session_date, student_id, class_name, grade, level_num,
+                entry["worksheet_id"], entry["wrong_qs"], entry.get("resolved_topics") or {},
+                entry.get("total_questions", 0), entry.get("remedial_id"),
+                entry.get("status"), entry.get("wrong_details"),
             )
-            session_id = cur.lastrowid
             session_ids.append(session_id)
-
-            if entry.get("remedial_id"):
-                conn.execute(
-                    "INSERT INTO remedial_status (session_id, completed) VALUES (?,0)",
-                    (session_id,),
-                )
-
-            details = entry.get("wrong_details")
-            if details:
-                rows = [
-                    (session_id, int(q), d.get("mistake_type") or None,
-                     d.get("student_answer") or None, now)
-                    for q, d in details.items()
-                ]
-                if rows:
-                    conn.executemany(
-                        "INSERT INTO wrong_answer_details "
-                        "(session_id, q_num, mistake_type, student_answer, created_at) "
-                        "VALUES (?,?,?,?,?)",
-                        rows,
-                    )
     _clear_read_caches()
     return session_ids
+
+
+def save_class_entries(session_date: str, class_name: str, level_num: int, rows: list) -> int:
+    """
+    Saves an ENTIRE class's Whole-Class-Grid submission (every student who
+    has data to save, every sheet, every wrong-answer) in ONE connection
+    use / ONE commit -- so marking 30 students only costs one save action,
+    not 30 separate round trips through Daily Entry one student at a time.
+
+    rows: list of dicts, one per student that has something to save:
+      {
+        "student_id": int, "grade": int,
+        "status": "absent" or None,
+        "sheet_entries": [ {worksheet_id, wrong_qs, resolved_topics,
+                             total_questions, remedial_id}, ... ]   # only when status is None
+      }
+
+    Returns the number of students saved.
+    """
+    now = datetime.now().isoformat()
+    with get_conn() as conn:
+        for row in rows:
+            if row.get("status") == "absent":
+                _insert_session_row(
+                    conn, now, session_date, row["student_id"], class_name, row["grade"],
+                    level_num, "ABSENT", [], {}, 0, None, "absent", None,
+                )
+                continue
+            for entry in row.get("sheet_entries", []):
+                _insert_session_row(
+                    conn, now, session_date, row["student_id"], class_name, row["grade"],
+                    level_num, entry["worksheet_id"], entry["wrong_qs"],
+                    entry.get("resolved_topics") or {}, entry.get("total_questions", 0),
+                    entry.get("remedial_id"), None, None,
+                )
+    _clear_read_caches()
+    return len(rows)
+
+
+
 
 
 @_cached(ttl=3600, show_spinner=False)
