@@ -209,7 +209,7 @@ elif st.session_state["view"] == "generator":
     level_num, sublevel_code, topic = ui_common.render_level_selector()
 
     # Generator sub-tabs
-    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🗂️ Bulk Export", "🏷️ Concept Tags"]
+    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🗂️ Bulk Export", "🎯 Class Plan (5-Month)", "🏷️ Concept Tags"]
     st.markdown('<div class="section-switcher">', unsafe_allow_html=True)
     gen_section = st.radio("Generator Section", GEN_SECTIONS, horizontal=True,
                            key="gen_section", label_visibility="collapsed")
@@ -440,6 +440,83 @@ elif st.session_state["view"] == "generator":
             )
             if st.session_state.get("bulk_failures"):
                 st.warning(f"⚠️ {len(st.session_state['bulk_failures'])} worksheet(s) failed to generate "
+                          f"and were skipped — see MANIFEST.txt inside the zip for details.")
+
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ─── Class Plan (5-Month) ───────────────────────────────────────────────
+    elif gen_section == "🎯 Class Plan (5-Month)":
+        import class_plan_export as cpe
+        from class_plan_2026_27 import CLASS_PLAN_2026_27
+
+        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+        st.markdown("##### Personalised 5-Month Class Plan")
+        st.caption(
+            "One tap per class downloads exactly the worksheets assigned to that class in the "
+            "published 5-month plan (16 FLM days/month × 5 months) — the specific levels, "
+            "sublevels, and sheet depth already worked out to fit the time budget. Not a whole "
+            "level — only what that class actually needs."
+        )
+
+        CLASS_ORDER = ["Class 1","Class 2","Class 3","Class 4","Class 5",
+                       "Class 6","Class 7","Class 8","Class 9","Class 10"]
+        PRE_PRIMARY = ["Nursery","LKG","UKG"]
+
+        def _class_button_grid(class_list, cols_per_row=5):
+            for row_start in range(0, len(class_list), cols_per_row):
+                row_classes = class_list[row_start:row_start+cols_per_row]
+                cols = st.columns(cols_per_row)
+                for i, cls in enumerate(row_classes):
+                    with cols[i]:
+                        n_ws = cpe.count_pdfs_for_class(cls)
+                        if st.button(f"{cls}\n({n_ws} sheets)", key=f"class_plan_btn_{cls}",
+                                     use_container_width=True):
+                            st.session_state["class_plan_target"] = cls
+
+        st.markdown("###### Classes 1 – 10")
+        _class_button_grid(CLASS_ORDER)
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+        st.markdown("###### Pre-Primary")
+        _class_button_grid(PRE_PRIMARY)
+
+        target = st.session_state.get("class_plan_target")
+        if target:
+            st.markdown('<div style="height:16px"></div>', unsafe_allow_html=True)
+            n_ws = cpe.count_pdfs_for_class(target)
+            est_sec = round(n_ws * 0.1)
+            st.info(f"**{target}** — {n_ws} worksheets, ≈{est_sec}s to generate.")
+
+            if st.button(f"🎯  Generate {target} Plan (ZIP)", type="primary", key="gen_class_plan"):
+                progress = st.progress(0, text="Starting…")
+                def _cb(done, total):
+                    progress.progress(done/total, text=f"Generating {done}/{total} worksheets…")
+                zip_buf, failures = cpe.build_class_plan_zip(target, progress_cb=_cb)
+                progress.empty()
+                st.session_state["class_plan_zip"] = zip_buf.getvalue()
+                st.session_state["class_plan_zip_name"] = f"{target.replace(' ', '_')}_5Month_Plan.zip"
+                st.session_state["class_plan_failures"] = failures
+                st.success(f"{target} plan ready — {n_ws - len(failures)}/{n_ws} worksheets included.")
+
+        if "class_plan_zip" in st.session_state:
+            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+            size_mb = len(st.session_state["class_plan_zip"]) / (1024*1024)
+            st.markdown(f"""
+            <div class="success-card">
+                <div class="ck">✓</div>
+                <div>{st.session_state['class_plan_zip_name']} &nbsp;·&nbsp; {size_mb:.1f} MB</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.download_button(
+                label=f"⬇  Download  {st.session_state['class_plan_zip_name']}",
+                data=st.session_state["class_plan_zip"],
+                file_name=st.session_state["class_plan_zip_name"],
+                mime="application/zip",
+                key="dl_class_plan_zip",
+            )
+            if st.session_state.get("class_plan_failures"):
+                st.warning(f"⚠️ {len(st.session_state['class_plan_failures'])} worksheet(s) failed to generate "
                           f"and were skipped — see MANIFEST.txt inside the zip for details.")
 
         st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
