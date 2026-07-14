@@ -375,17 +375,38 @@ def _CUM3_s(sheet):
 
 def _G_s(sheet):
     lo, hi = _diff_range(sheet)
-    templates = [
-        "Temperature was {a} degrees, then changed by {b} degrees. Now it is ____.",
-        "A diver was at {a} m (sea level=0), then moved {b} m. Now at ____.",
-        "An account had ${a}, then a transaction of ${b}. New balance: ____.",
-    ]
     def gen(sheet):
         return (random.randint(-hi, hi), random.randint(-hi, hi))
+    def word_problem(i, sheet):
+        """Returns (text, answer). Cycles through 6 word-problem kinds so
+        8G exercises all four operations in real contexts -- the original
+        3 kinds only ever did single-step +/- across 3 nouns. Kinds 3-5
+        add a multiplication-rate context, a fair-share division context,
+        and a genuine 2-step chain."""
+        kind = (i + sheet) % 6
+        if kind == 0:
+            a, b = gen(sheet)
+            return f"Temperature was {a} degrees, then changed by {b} degrees. Now it is ____.", a + b
+        elif kind == 1:
+            a, b = gen(sheet)
+            return f"A diver was at {a} m (sea level=0), then moved {b} m. Now at ____.", a + b
+        elif kind == 2:
+            a, b = gen(sheet)
+            return f"An account had ${a}, then a transaction of ${b}. New balance: ____.", a + b
+        elif kind == 3:
+            r = random.choice([x for x in range(-hi, hi + 1) if x != 0])
+            h = random.randint(2, 5)
+            return f"Temperature changes by {r} degrees every hour, for {h} hours in a row. Total change = ____.", r * h
+        elif kind == 4:
+            n = random.choice([2, 3, 4, 5, 6])
+            per = random.randint(1, max(hi, 2))
+            return f"A total debt of ${per*n} is shared equally among {n} people. Each person's share = ____.", -per
+        else:
+            a, b, c = random.randint(-hi, hi), random.randint(-hi, hi), random.randint(-hi, hi)
+            return f"Started at {a}, changed by {b}, then changed again by {c}. Now at ____.", a + b + c
     def comp(i, sheet):
-        a, b = gen(sheet)
-        txt = templates[i % len(templates)].format(a=a, b=b)
-        return q(txt, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, a+b)-3, "hi": max(a, a+b)+3})
+        txt, ans = word_problem(i, sheet)
+        return q(txt, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(0, ans) - 5, "hi": max(0, ans) + 5})
     def tf(i, sheet):
         a, b = gen(sheet)
         correct = a+b
@@ -396,8 +417,7 @@ def _G_s(sheet):
         return q(f"Started at {a}, ended at {final}. The change was ____.", "diagram", "____",
                   "", "vertical_numberline_blank", {"lo": min(a, final)-3, "hi": max(a, final)+3})
     def numeral(i, sheet):
-        a, b = gen(sheet)
-        txt = templates[i % len(templates)].format(a=a, b=b)
+        txt, ans = word_problem(i, sheet)
         return q(txt, "fill", "____")
     def multisel(i, sheet):
         target = random.randint(-hi, hi)
@@ -430,6 +450,14 @@ def _H_s(sheet):
     def comp(i, sheet):
         a, b = gen(sheet)
         op = random.choice(["+", "-"])
+        ans = a + b if op == "+" else a - b
+        if i == 0:
+            signed_b = b if op == "+" else -b
+            ctx = random.choice([
+                f"Temperature was {a} degrees and changed by {signed_b} degrees. Now it is ____.",
+                f"An account had ${a} and a transaction of ${signed_b}. New balance = ____.",
+            ])
+            return q(ctx, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(0, ans) - 5, "hi": max(0, ans) + 5})
         return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank",
                   {"lo": min(a, b, a+b, a-b)-3, "hi": max(a, b, a+b, a-b)+3})
     def tf(i, sheet):
