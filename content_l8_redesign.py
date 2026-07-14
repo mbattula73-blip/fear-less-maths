@@ -49,7 +49,15 @@ def _A_s(sheet):
         return q(f"The opposite of {v} is ____.", "diagram", "____", "", "vertical_numberline_blank", {"lo": -hi-5, "hi": hi+5})
     def numeral(i, sheet):
         v, _ = gen(sheet)
-        return q(f"Write the opposite of {v}. ____", "fill", "____")
+        kind = i % 4
+        if kind == 0:
+            return q(f"Write the opposite of {v}. ____", "fill", "____")
+        elif kind == 1:
+            return q(f"Write the successor of {v} (the next integer). ____", "fill", "____")
+        elif kind == 2:
+            return q(f"Write the predecessor of {v} (the integer just before it). ____", "fill", "____")
+        else:
+            return q(f"Is {v} a Natural number, a Whole number, and/or an Integer? List ALL that apply. ____", "fill", "____")
     def multisel(i, sheet):
         v, _ = gen(sheet)
         opts = [str(-v), str(v), str(-v+1), str(v-1)]
@@ -171,8 +179,18 @@ def _CUM1_s(sheet):
         a = random.randint(-hi, hi); t = random.randint(-hi, hi)
         return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
     def numeral(i, sheet):
-        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
-        return q(f"({a}) {random.choice(['+','-'])} ({b}) = ____", "fill", "____")
+        kind = i % 5
+        a, b, c = random.randint(-hi, hi), random.randint(-hi, hi), random.randint(-hi, hi)
+        if kind == 0:
+            return q(f"({a}) + ({b}) = ____. Is the result always an integer? (This is the Closure Property.)", "fill", "____")
+        elif kind == 1:
+            return q(f"Verify: ({a}) + ({b}) = ({b}) + ({a})? Compute both sides. Which property does this show?", "fill", "____")
+        elif kind == 2:
+            return q(f"Verify: [({a})+({b})]+({c}) = ({a})+[({b})+({c})]? Compute both sides. Which property does this show?", "fill", "____")
+        elif kind == 3:
+            return q(f"({a}) + 0 = ____. Which property does this show? (Hint: 0 is the Additive Identity.)", "fill", "____")
+        else:
+            return q(f"Is ({a}) - ({b}) the same as ({b}) - ({a})? Compute both sides. Is subtraction of integers commutative?", "fill", "____")
     def multisel(i, sheet):
         target = random.randint(-hi, hi)
         opts = [f"({target-2})+({2})", f"({target})+({0})", f"({target+3})+({-3})", f"({target+1})+({-2})"]
@@ -211,8 +229,20 @@ def _CUM2_s(sheet):
         op = random.choice(["+", "-"])
         return q(f"({a}) {op} ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
     def numeral(i, sheet):
-        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
-        return q(f"({a}) {random.choice(['+','-'])} ({b}) = ____", "fill", "____")
+        kind = (i + sheet) % 6
+        a, b, c = random.randint(-hi, hi) or 1, random.randint(-hi, hi) or 1, random.randint(-hi, hi) or 1
+        if kind == 0:
+            return q(f"({a}) x ({b}) = ____. Is the result always an integer? (This is the Closure Property.)", "fill", "____")
+        elif kind == 1:
+            return q(f"Verify: ({a}) x ({b}) = ({b}) x ({a})? Compute both sides. Which property does this show?", "fill", "____")
+        elif kind == 2:
+            return q(f"Verify: [({a})x({b})]x({c}) = ({a})x[({b})x({c})]? Compute both sides. Which property does this show?", "fill", "____")
+        elif kind == 3:
+            return q(f"({a}) x 1 = ____. Which property does this show? (Hint: 1 is the Multiplicative Identity.)", "fill", "____")
+        elif kind == 4:
+            return q(f"Verify: ({a}) x [({b})+({c})] = ({a})x({b}) + ({a})x({c})? Compute both sides. Which property does this show?", "fill", "____")
+        else:
+            return q(f"Is ({a}) / ({b}) always an integer? Give an example where it is NOT. (Division does NOT satisfy the Closure Property.)", "fill", "____")
     def multisel(i, sheet):
         target = random.randint(-hi, hi)
         opts = [f"({target-2})-({-2})", f"({target})-({0})", f"({target+3})-({3})", f"({target+1})-({2})"]
@@ -341,6 +371,17 @@ def _CUM3_s(sheet):
         return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
     def tf(i, sheet):
         a, b = gen(sheet)
+        if i == 0:
+            correct_prop = random.choice(["Commutative", "Associative", "Closure", "Distributive"])
+            wrong_prop = random.choice([p for p in ["Commutative", "Associative", "Closure", "Distributive"] if p != correct_prop])
+            shown_prop = correct_prop if random.random() > 0.4 else wrong_prop
+            examples = {
+                "Commutative": f"({a}) x ({b}) = ({b}) x ({a})",
+                "Associative": f"[({a})x({b})]x(2) = ({a})x[({b})x(2)]",
+                "Closure": f"({a}) x ({b}) is always an integer",
+                "Distributive": f"({a}) x [({b})+(2)] = ({a})x({b}) + ({a})x(2)",
+            }
+            return q(f"True or False: '{examples[correct_prop]}' is an example of the {shown_prop} Property.", "fill", "____ (True/False)")
         return q(f"True or False: (-{a}) x (-{b}) = {a*b}", "fill", "____ (True/False)")
     def missing(i, sheet):
         a, b = gen(sheet)
@@ -556,6 +597,17 @@ def _J_s(sheet):
                   {"lo": min(a, b)-5, "hi": max(a, b)+5})
     def tf(i, sheet):
         a, b = random.randint(lo, hi), random.randint(lo, hi)
+        if i == 0:
+            correct_prop = random.choice(["Commutative", "Associative", "Closure", "Distributive"])
+            wrong_prop = random.choice([p for p in ["Commutative", "Associative", "Closure", "Distributive"] if p != correct_prop])
+            shown_prop = correct_prop if random.random() > 0.4 else wrong_prop
+            examples = {
+                "Commutative": f"({a}) + ({b}) = ({b}) + ({a})",
+                "Associative": f"[({a})+({b})]+(2) = ({a})+[({b})+(2)]",
+                "Closure": f"({a}) - ({b}) is always an integer",
+                "Distributive": f"({a}) x [({b})+(2)] = ({a})x({b}) + ({a})x(2)",
+            }
+            return q(f"True or False: '{examples[correct_prop]}' is an example of the {shown_prop} Property.  [1 point]", "fill", "____ (True/False)")
         correct = a*b
         shown = correct if random.random() > 0.4 else -correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}  [1 point]", "fill", "____ (True/False)")
@@ -600,6 +652,17 @@ def _REV_s(sheet):
                   {"lo": min(a, b)-5, "hi": max(a, b)+5})
     def tf(i, sheet):
         a, b = random.randint(lo, hi), random.randint(lo, hi)
+        if i == 0:
+            correct_prop = random.choice(["Commutative", "Associative", "Closure", "Distributive"])
+            wrong_prop = random.choice([p for p in ["Commutative", "Associative", "Closure", "Distributive"] if p != correct_prop])
+            shown_prop = correct_prop if random.random() > 0.4 else wrong_prop
+            examples = {
+                "Commutative": f"({a}) + ({b}) = ({b}) + ({a})",
+                "Associative": f"[({a})+({b})]+(2) = ({a})+[({b})+(2)]",
+                "Closure": f"({a}) - ({b}) is always an integer",
+                "Distributive": f"({a}) x [({b})+(2)] = ({a})x({b}) + ({a})x(2)",
+            }
+            return q(f"True or False: '{examples[correct_prop]}' is an example of the {shown_prop} Property.", "fill", "____ (True/False)")
         correct = a*b
         shown = correct if random.random() > 0.4 else -correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}", "fill", "____ (True/False)")
