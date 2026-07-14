@@ -209,7 +209,7 @@ elif st.session_state["view"] == "generator":
     level_num, sublevel_code, topic = ui_common.render_level_selector()
 
     # Generator sub-tabs
-    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🗂️ Bulk Export", "🎯 Class Plan (5-Month)", "🏷️ Concept Tags"]
+    GEN_SECTIONS = ["📄 Single Worksheet", "📦 Batch — All 8 Sheets", "🗂️ Bulk Export", "📘 Bulk Export — Single PDF/Level", "🎯 Class Plan (5-Month)", "🏷️ Concept Tags"]
     st.markdown('<div class="section-switcher">', unsafe_allow_html=True)
     gen_section = st.radio("Generator Section", GEN_SECTIONS, horizontal=True,
                            key="gen_section", label_visibility="collapsed")
@@ -446,6 +446,100 @@ elif st.session_state["view"] == "generator":
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ─── Class Plan (5-Month) ───────────────────────────────────────────────
+    # ─── Bulk Export — Single PDF per Level (main sheets only, print-ready) ─
+    elif gen_section == "📘 Bulk Export — Single PDF/Level":
+        import bulk_export as be
+
+        st.markdown('<div style="height:20px"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin:0 24px">', unsafe_allow_html=True)
+        st.markdown("##### Bulk Export — Single PDF per Level")
+        st.caption("Merges the 4 main sheets (1, 2, 3, 4) for every sublevel in a level into "
+                   "**one single PDF**, in sublevel order, ready to print in one go. "
+                   "Remedial sheets (1R-4R) are excluded — those are printed separately.")
+
+        sp_mode = st.radio("Export scope", ["Whole Level", "5-Level Range"],
+                             horizontal=True, key="sp_mode")
+
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+
+        if sp_mode == "Whole Level":
+            all_levels = sorted(LEVELS.keys())
+            sp_level = st.selectbox(
+                "Level", all_levels, index=all_levels.index(level_num) if level_num in all_levels else 0,
+                format_func=lambda l: f"Level {l} — {LEVELS[l]['name']}", key="sp_level",
+            )
+            n_pdfs = be.count_main_pdfs_for_levels([sp_level])
+            est_sec = round(n_pdfs * 0.1)
+            st.caption(f"This will merge **{n_pdfs} worksheets** (≈{est_sec}s) into one PDF.")
+
+            if st.button(f"📘  Export Level {sp_level} (Single PDF)", type="primary", key="sp_export_level"):
+                progress = st.progress(0, text="Starting…")
+                def _cb(done, total):
+                    progress.progress(done/total, text=f"Merging {done}/{total} worksheets…")
+                pdf_buf, failures = be.build_level_single_pdf(sp_level, progress_cb=_cb)
+                progress.empty()
+                level_name = LEVELS.get(sp_level, {}).get("name", f"Level {sp_level}")
+                st.session_state["sp_pdf"] = pdf_buf.getvalue()
+                st.session_state["sp_pdf_name"] = f"Level{sp_level:02d} - {level_name}".replace("/", "-") + ".pdf"
+                st.session_state["sp_failures"] = failures
+                st.success(f"Level {sp_level} single-PDF ready — {n_pdfs - len(failures)}/{n_pdfs} worksheets included.")
+
+        else:  # 5-Level Range
+            sp_range_label = st.selectbox("Range", list(be.FIVE_LEVEL_RANGES.keys()), key="sp_range")
+            sp_range_levels = be.FIVE_LEVEL_RANGES[sp_range_label]
+            n_pdfs = be.count_main_pdfs_for_levels(sp_range_levels)
+            est_sec = round(n_pdfs * 0.1)
+            st.caption(f"This will merge **{n_pdfs} worksheets** across {len(sp_range_levels)} levels "
+                      f"(≈{est_sec}s) into one PDF per level, zipped together.")
+
+            if st.button(f"📘  Export {sp_range_label} (Single PDF/Level)", type="primary", key="sp_export_range"):
+                progress = st.progress(0, text="Starting…")
+                def _cb(done, total):
+                    progress.progress(done/total, text=f"Merging {done}/{total} worksheets…")
+                zip_buf, failures = be.build_multi_level_single_pdfs(sp_range_levels, progress_cb=_cb)
+                progress.empty()
+                st.session_state["sp_zip"] = zip_buf.getvalue()
+                st.session_state["sp_zip_name"] = f"{sp_range_label.replace(' ', '_')}_SinglePDFs.zip"
+                st.session_state["sp_failures"] = failures
+                st.success(f"{sp_range_label} export ready — {n_pdfs - len(failures)}/{n_pdfs} worksheets included.")
+
+        if "sp_pdf" in st.session_state:
+            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+            size_mb = len(st.session_state["sp_pdf"]) / (1024*1024)
+            st.markdown(f"""
+            <div class="success-card">
+                <div class="ck">✓</div>
+                <div>{st.session_state['sp_pdf_name']} &nbsp;·&nbsp; {size_mb:.1f} MB</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.download_button(
+                label=f"⬇  Download  {st.session_state['sp_pdf_name']}",
+                data=st.session_state["sp_pdf"],
+                file_name=st.session_state["sp_pdf_name"],
+                mime="application/pdf",
+                key="dl_sp_pdf",
+            )
+
+        if "sp_zip" in st.session_state:
+            st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+            size_mb = len(st.session_state["sp_zip"]) / (1024*1024)
+            st.markdown(f"""
+            <div class="success-card">
+                <div class="ck">✓</div>
+                <div>{st.session_state['sp_zip_name']} &nbsp;·&nbsp; {size_mb:.1f} MB</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.download_button(
+                label=f"⬇  Download  {st.session_state['sp_zip_name']}",
+                data=st.session_state["sp_zip"],
+                file_name=st.session_state["sp_zip_name"],
+                mime="application/zip",
+                key="dl_sp_zip",
+            )
+
+        st.markdown('<div style="height:40px"></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
     elif gen_section == "🎯 Class Plan (5-Month)":
         import class_plan_export as cpe
         from class_plan_2026_27 import CLASS_PLAN_2026_27

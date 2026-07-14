@@ -9,10 +9,18 @@ no changes to worksheet generation logic, only batching + zipping.
 import zipfile
 from io import BytesIO
 
+from pypdf import PdfWriter
+
 import levels_data
 from pdf_engine import build_pdf
 
 ALL_SHEETS = ["1", "2", "3", "4", "1R", "2R", "3R", "4R"]
+
+# Used only by the single-PDF, level-wise export (build_level_single_pdf /
+# build_multi_level_single_pdfs below). Remedial sheets are deliberately
+# excluded — they're printed separately and rarely, so bundling them into
+# the main printing PDF would just add clutter.
+MAIN_SHEETS = ["1", "2", "3", "4"]
 
 # The five preset ranges offered in the app, covering every level 1-25
 # (Level 0 / Pre-Levels are offered as their own range since they're a
@@ -77,6 +85,101 @@ def build_multi_level_zip(level_nums: list, progress_cb=None) -> BytesIO:
         )
         if failures:
             manifest += "Failed worksheets (skipped, not included in this zip):\n"
+            manifest += "\n".join(failures)
+        zf.writestr("MANIFEST.txt", manifest)
+
+    zip_buf.seek(0)
+    return zip_buf, failures
+
+
+# ─── Single PDF, level-wise (main sheets only, no remedials) ────────────────
+# Separate from the ZIP functions above so existing behaviour is untouched.
+
+def count_main_pdfs_for_levels(level_nums: list) -> int:
+    """Same as count_pdfs_for_levels but counts only the 4 main sheets per
+    sublevel (no remedials) — used for the single-PDF export estimate."""
+    total = 0
+    for lvl in level_nums:
+        subs = levels_data.SUBLEVELS.get(lvl, [])
+        total += len(subs) * len(MAIN_SHEETS)
+    return total
+
+
+def build_level_single_pdf(level_num: int, progress_cb=None):
+    """Generates the 4 main sheets (no remedials) for every sublevel in a
+    level, merged sublevel-by-sublevel into ONE PDF, ready for printing.
+    Returns (pdf_bytesio, failures_list). progress_cb(done, total) is
+    called after each worksheet."""
+    subs = levels_data.SUBLEVELS.get(level_num, [])
+    total = len(subs) * len(MAIN_SHEETS)
+    done = 0
+    failures = []
+
+    writer = PdfWriter()
+    for sublevel_code, _topic in subs:
+        for sheet in MAIN_SHEETS:
+            ws_id = f"{sublevel_code}-{sheet}"
+            try:
+                pdf_bytes = build_pdf(level_num, sublevel_code, sheet).read()
+                writer.append(BytesIO(pdf_bytes))
+            except Exception as e:
+                failures.append(f"{ws_id}: {e}")
+            done += 1
+            if progress_cb:
+                progress_cb(done, total)
+
+    out_buf = BytesIO()
+    writer.write(out_buf)
+    writer.close()
+    out_buf.seek(0)
+    return out_buf, failures
+
+
+def build_multi_level_single_pdfs(level_nums: list, progress_cb=None):
+    """Generates one merged PDF per level (main sheets only) across multiple
+    levels, and packages those level-PDFs into a ZIP (one PDF file per
+    level inside, instead of one PDF per worksheet). Returns
+    (zip_bytesio, failures_list). progress_cb(done, total) is called after
+    each worksheet across all levels."""
+    total = count_main_pdfs_for_levels(level_nums)
+    done = 0
+    failures = []
+
+    zip_buf = BytesIO()
+    with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for lvl in level_nums:
+            subs = levels_data.SUBLEVELS.get(lvl, [])
+            level_name = levels_data.LEVELS.get(lvl, {}).get("name", f"Level {lvl}")
+            fname = f"Level{lvl:02d} - {level_name}".replace("/", "-") + ".pdf"
+
+            writer = PdfWriter()
+            for sublevel_code, _topic in subs:
+                for sheet in MAIN_SHEETS:
+                    ws_id = f"{sublevel_code}-{sheet}"
+                    try:
+                        pdf_bytes = build_pdf(lvl, sublevel_code, sheet).read()
+                        writer.append(BytesIO(pdf_bytes))
+                    except Exception as e:
+                        failures.append(f"{ws_id}: {e}")
+                    done += 1
+                    if progress_cb:
+                        progress_cb(done, total)
+
+            level_buf = BytesIO()
+            writer.write(level_buf)
+            writer.close()
+            zf.writestr(fname, level_buf.getvalue())
+
+        manifest = (
+            f"Fear Less Maths -- Level-wise Single-PDF Export Manifest\n"
+            f"Levels included: {level_nums}\n"
+            f"Sheets included per sublevel: {MAIN_SHEETS} (remedials excluded)\n"
+            f"Total worksheets: {total}\n"
+            f"Successful: {total - len(failures)}\n"
+            f"Failed: {len(failures)}\n\n"
+        )
+        if failures:
+            manifest += "Failed worksheets (skipped, not included):\n"
             manifest += "\n".join(failures)
         zf.writestr("MANIFEST.txt", manifest)
 
