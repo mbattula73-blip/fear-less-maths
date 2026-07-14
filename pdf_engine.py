@@ -346,6 +346,15 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     topic=dict(SUBLEVELS.get(level_num,[])).get(sublevel_code,"")
     raw=get_questions(sublevel_code,sheet_num,level_num)
 
+    # Levels 6-20: a Concept Paper is now printed/given separately, so the
+    # inline concept_box/tips_box reference boxes are no longer needed on
+    # the worksheet itself. Strip them here -- this is the single place
+    # every sheet (1-4, 1R-4R) passes through, since cb()/tb() calls are
+    # scattered across sheets in content.py, not just sheet 1. Levels 1-5
+    # are untouched (no separate concept paper for those yet).
+    if level_num is not None and 6 <= level_num <= 20:
+        raw = [item for item in raw if item.get("type") not in ("concept_box", "tips_box")]
+
     # Decide whether a RICH concept page will be added (sheet 1 + spec exists)
     # BEFORE deciding what to do with inline concept/tips boxes, so we only
     # ever pull them off the worksheet when something is actually replacing
