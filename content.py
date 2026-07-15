@@ -10795,67 +10795,59 @@ def _L10C_4():
     ]
 
 # ─── 10CUM1: Mixed A+B+C ────────────────────────────────────
-def _L10CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Ratio Concept, Simplifying, Equivalent — Summary", [
-                "Ratio a:b: order matters, total = a+b, first part = a/(a+b) of total.",
-                "Simplify: divide both by HCF.",
-                "Equivalent: multiply or divide both by same number.",
-                "Check equivalence: a:b = c:d means a×d = b×c.",
-            ], "4:6 → total=10, simplify=2:3. Equivalent: 8:12, 12:18..."),
-            q("4 red and 6 blue. Ratio of red to blue = ____:____", "fill", "Answer = ____"),
-            q("Total parts in ratio 3:7 = ____", "fill", "Answer = ____"),
-            q("Fraction that is first in ratio 3:7 = ____/____", "fill", "Answer = ____"),
-            q("True or False: 3:7 means 3/10 of items are the first type.", "fill", "Answer = ____"),
-            q("True or False: Ratio 1:1 means equal amounts.", "fill", "Answer = ____"),
-            q("Simplify 12:8. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify 15:10. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify 3:6:9. HCF=3. Answer: ____:____:____", "fill", "Answer = ____"),
-            q("True or False: 6:4 simplifies to 3:2.", "fill", "Answer = ____"),
-            q("True or False: 5:7 is already in simplest form.", "fill", "Answer = ____"),
-            q("2:5 = ____:15. Multiply by ____.", "fill", "Answer = ____"),
-            q("3:4 = 9:____. Multiply by ____.", "fill", "Answer = ____"),
-            q("Are 4:6 and 6:9 equivalent? ____", "fill", "Answer = ____"),
-            q("Find n: 2:3 = 8:n. n = ____", "fill", "n = ____"),
-            q("True or False: 2:5 = 6:15.", "fill", "Answer = ____"),
-            q("Spot: Simplify 15:10. Someone says 5:4. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: 4:6 and 6:9 are both equal to 2:3.", "fill", "Answer = ____"),
-            q("True or False: Total parts in 2:3:5 = 10.", "fill", "Answer = ____"),
-            q("True or False: In 3:7, first part = 3/10 of total.", "fill", "Answer = ____"),
-            q("True or False: 12:8 simplifies to 3:2.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 10A+10B+10C — Tips", [
-                "Ratio a:b: order matters, total = a+b, fraction = a/(a+b).",
-                "Simplify: divide both by HCF.",
-                "Equivalent ratio: multiply or divide both by same number.",
-                "Find missing term: see what one side was multiplied by, apply same to other.",
-                "Check: cross multiply. a:b = c:d means a×d = b×c.",
-            ]),
-            q("7 boys and 3 girls. Ratio of boys to girls = ____:____", "fill", "Answer = ____"),
-            q("Total parts in ratio 7:3 = ____", "fill", "Answer = ____"),
-            q("Fraction that are boys = ____/____", "fill", "Answer = ____"),
-            q("Simplify 18:12. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify 24:16. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify 4:8:12. HCF=4. Answer: ____:____:____", "fill", "Answer = ____"),
-            q("3:5 = ____:20. Multiply by ____.", "fill", "Answer = ____"),
-            q("4:7 = 12:____. Multiply by ____.", "fill", "Answer = ____"),
-            q("Find n: 5:3 = n:9. n = ____", "fill", "n = ____"),
-            q("Find n: 7:4 = 35:n. n = ____", "fill", "n = ____"),
-            q("Are 6:10 and 9:15 equivalent? Simplify both. ____", "fill", "Answer = ____"),
-            q("True or False: 7:3 means 7/10 are boys.", "fill", "Answer = ____"),
-            q("True or False: 18:12 simplifies to 3:2.", "fill", "Answer = ____"),
-            q("True or False: 3:5 = 12:20.", "fill", "Answer = ____"),
-            q("True or False: 5:3 = n:9 gives n=15.", "fill", "Answer = ____"),
-            q("True or False: 6:10 and 9:15 are both equal to 3:5.", "fill", "Answer = ____"),
-            q("Spot: 4:7 = 12:n. n=21. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 4:8:12 simplifies to 1:2:3.", "fill", "Answer = ____"),
-            q("True or False: Equivalent ratios simplify to the same form.", "fill", "Answer = ____"),
-            q("True or False: 24:16 simplifies to 3:2.", "fill", "Answer = ____"),
-        ]
+def _l10_hcf(a, b):
+    while b:
+        a, b = b, a % b
+    return a
 
+
+# ─── 10CUM1: Ratio Bar Models ────────────────────────────────
+def _L10CUM1_s(sheet):
+    random.seed(1000 + sheet)
+    part_ranges = {1: (2, 6), 2: (3, 9), 3: (4, 12), 4: (5, 15)}
+    k_ranges = {1: (2, 5), 2: (3, 8), 3: (4, 10), 4: (5, 15)}
+    plo, phi = part_ranges[sheet]
+    klo, khi = k_ranges[sheet]
+    items = [
+        cb("Ratio Bar Models", [
+            "Draw the ratio as a bar split into parts -- this makes 'sharing' problems visual and easy.",
+            "Each equal segment = 1 part. Total parts = sum of the ratio numbers.",
+            "1 part = Total amount / Total parts. Multiply to find each share.",
+        ], "Share 20 in ratio 2:3. Total parts=5. 1 part=4. Shares: 8 and 12."),
+    ]
+
+    def two_part():
+        a, b = random.randint(plo, phi), random.randint(plo, phi)
+        while a == b:
+            b = random.randint(plo, phi)
+        k = random.randint(klo, khi)
+        return a, b, (a + b) * k
+
+    def three_part():
+        a, b, c = random.randint(plo, phi), random.randint(plo, phi), random.randint(plo, phi)
+        k = random.randint(klo, khi)
+        return a, b, c, (a + b + c) * k
+
+    for _ in range(5):
+        a, b, total = two_part()
+        items.append(q(f"The bar shows the ratio {a}:{b}. Share {total} in this ratio. Find each part.", "diagram", "____",
+                        "", "ratio_bar", {"parts": [a, b], "labels": [str(a), str(b)]}))
+    for _ in range(4):
+        a, b, c, total = three_part()
+        items.append(q(f"The bar shows the ratio {a}:{b}:{c}. Share {total} in this ratio. Find each part.", "diagram", "____",
+                        "", "ratio_bar", {"parts": [a, b, c], "labels": [str(a), str(b), str(c)]}))
+    for _ in range(4):
+        a, b, total = two_part()
+        items.append(q(f"Share {total} in the ratio {a}:{b}. First part = ____, Second part = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b, total = two_part()
+        first = total * a // (a + b)
+        shown = first if random.random() > 0.4 else first + random.choice([2, -3])
+        items.append(q(f"True or False: Sharing {total} in ratio {a}:{b} gives a first part of {shown}.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, total = two_part()
+        items.append(q(f"In the ratio {a}:{b}, the first part is ____/{a+b} of the total.", "fill", "Answer = ____"))
+    return items
 
 # ─── 10D: Proportion ────────────────────────────────────────
 def _L10D_1():
@@ -11229,67 +11221,45 @@ def _L10F_4():
 
 
 # ─── 10CUM2: Mixed D+E+F ────────────────────────────────────
+# ─── 10CUM2: Continued Proportion & Rates ────────────────────
 def _L10CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Proportion, Solving, Word Problems — Summary", [
-                "Proportion: a:b = c:d means a×d = b×c.",
-                "Unitary: find value of 1 unit, then multiply.",
-                "Sharing: 1 part = total ÷ sum of parts.",
-                "Direct: both go up together. Inverse: one up, other down.",
-            ], "Share Rs 40 in 3:5: 1 part=Rs5. Shares=Rs15 and Rs25."),
-            q("Is 4:5 = 12:15 a proportion? Check: 4×15=____, 5×12=____. ____", "fill", "Answer = ____"),
-            q("Is 3:7 = 9:20 a proportion? Check. ____", "fill", "Answer = ____"),
-            q("Direct or inverse? More items → more cost. ____", "fill", "Answer = ____"),
-            q("Direct or inverse? More taps → less time to fill tank. ____", "fill", "Answer = ____"),
-            q("Solve: 3:5 = n:25. n = ____", "fill", "n = ____"),
-            q("Solve: 7:4 = 21:n. n = ____", "fill", "n = ____"),
-            q("Solve: n:6 = 8:12. n = ____", "fill", "n = ____"),
-            q("5 pens cost Rs 35. Cost of 9 pens = Rs ____", "word", "Cost = Rs ____", "35÷5×9"),
-            q("Share Rs 56 in ratio 3:4. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 3:4"),
-            q("Share Rs 90 in ratio 2:3:4. Shares = Rs ____, Rs ____, Rs ____", "word", "Shares = Rs ____", "ratio 2:3:4"),
-            q("Ages in ratio 2:5. Younger = 8. Older = ____", "word", "Older = ____", "ratio 2:5"),
-            q("True or False: 4:5 = 12:15 is a proportion.", "fill", "Answer = ____"),
-            q("True or False: 3:5 = n:25 gives n=15.", "fill", "Answer = ____"),
-            q("True or False: Rs 56 in 3:4 → Rs 24 and Rs 32.", "fill", "Answer = ____"),
-            q("True or False: Rs 90 in 2:3:4 → Rs 20, Rs 30, Rs 40.", "fill", "Answer = ____"),
-            q("True or False: 5 pens for Rs 35 → 9 pens for Rs 63.", "fill", "Answer = ____"),
-            q("True or False: Age ratio 2:5, younger=8 → older=20.", "fill", "Answer = ____"),
-            q("Spot: 7:4 = 21:n. n=12. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: n:6 = 8:12 gives n=4.", "fill", "Answer = ____"),
-            q("True or False: 3:7 = 9:20 is NOT a proportion.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 10D+10E+10F — Tips", [
-                "Proportion: cross multiply to check or find unknown.",
-                "Unitary method: find 1 unit value, then scale.",
-                "Sharing: total ÷ sum of parts = value of 1 part.",
-                "Direct: ratio is constant. Inverse: product is constant.",
-                "Always verify answers by checking or cross multiplying.",
-            ]),
-            q("Is 5:6 = 15:18 a proportion? Check. ____", "fill", "Answer = ____"),
-            q("Is 4:9 = 12:25 a proportion? Check. ____", "fill", "Answer = ____"),
-            q("Solve: 4:7 = n:28. n = ____", "fill", "n = ____"),
-            q("Solve: 9:n = 27:12. n = ____", "fill", "n = ____"),
-            q("Solve: n:8 = 15:24. n = ____", "fill", "n = ____"),
-            q("8 items cost Rs 64. Cost of 11 items = Rs ____", "word", "Cost = Rs ____", "64÷8×11"),
-            q("Car: 180 km in 3 hrs. Distance in 8 hrs = ____ km", "word", "Distance = ____ km", "180÷3×8"),
-            q("Share Rs 110 in ratio 3:8. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 3:8"),
-            q("Ratio boys:girls = 4:5. Total = 45. Boys = ____, Girls = ____", "word", "Boys=____ Girls=____", "ratio 4:5 of 45"),
-            q("True or False: 5:6 = 15:18 is a proportion.", "fill", "Answer = ____"),
-            q("True or False: 4:7 = n:28 gives n=16.", "fill", "Answer = ____"),
-            q("True or False: 8 items Rs 64 → 11 items Rs 88.", "fill", "Answer = ____"),
-            q("True or False: Rs 110 in 3:8 → Rs 30 and Rs 80.", "fill", "Answer = ____"),
-            q("True or False: Ratio 4:5, total=45 → boys=20, girls=25.", "fill", "Answer = ____"),
-            q("True or False: 4:9 = 12:25 is NOT a proportion.", "fill", "Answer = ____"),
-            q("Spot: 9:n = 27:12. 9×12=108=27n, n=4. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 180 km in 3 hrs → 480 km in 8 hrs.", "fill", "Answer = ____"),
-            q("True or False: n:8 = 15:24 gives n=5.", "fill", "Answer = ____"),
-            q("True or False: 5:6 = 15:18 because 5×18=90 and 6×15=90.", "fill", "Answer = ____"),
-            q("True or False: Rs 110 in 3:8: total=11 parts, 1 part=Rs 10. Shares=Rs 30 and Rs 80.", "fill", "Answer = ____"),
-        ]
+    random.seed(1010 + sheet)
+    ranges = {1: (2, 8), 2: (3, 12), 3: (4, 16), 4: (5, 20)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Continued Proportion & Rates", [
+            "a, b, c are in CONTINUED proportion if a:b = b:c, which means b x b = a x c.",
+            "b is called the MEAN PROPORTIONAL between a and c.",
+            "A RATE compares two DIFFERENT kinds of quantities: speed = distance/time, price = cost/quantity.",
+        ], "4, 6, 9 in continued proportion? 6x6=36, 4x9=36. YES. Mean proportional between 4 and 9 is 6."),
+    ]
 
+    def make_continued():
+        a = random.randint(lo, hi)
+        mult = random.randint(2, 4)
+        b = a * mult
+        c = b * mult
+        return a, b, c
+
+    for _ in range(5):
+        a, b, c = make_continued()
+        items.append(q(f"Are {a}, {b}, {c} in continued proportion? (Check if {b} x {b} = {a} x {c})", "fill", "Answer = ____ (Yes/No)"))
+    for _ in range(5):
+        a, b, c = make_continued()
+        items.append(q(f"Find the mean proportional between {a} and {c}.", "fill", "Answer = ____"))
+    for _ in range(4):
+        d = random.randint(lo * 10, hi * 20)
+        t = random.randint(2, 8)
+        items.append(q(f"A car travels {d} km in {t} hours. Find its speed in km/h.", "fill", "Speed = ____ km/h"))
+    for _ in range(3):
+        cost_each = random.randint(lo, hi)
+        qty = random.randint(2, 10)
+        items.append(q(f"{qty} identical items cost Rs {cost_each*qty} in total. Find the price per item.", "fill", "Price = Rs ____"))
+    for _ in range(3):
+        a, b, c = make_continued()
+        shown = b if random.random() > 0.4 else b + random.choice([1, -1])
+        items.append(q(f"True or False: The mean proportional between {a} and {c} is {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 10G: Direct proportion ─────────────────────────────────
 def _L10G_1():
@@ -11537,258 +11507,198 @@ def _L10H_4():
     ]
 
 # ─── 10I: Mixed ─────────────────────────────────────────────
+# ─── 10I: Direct & Inverse Proportion Graphs ─────────────────
 def _L10I_s(sheet):
-    s1 = [
-        cb("Mixed — All Level 10 Skills", [
-            "Ratio: simplify using HCF. Sharing: 1 part = total ÷ sum of parts.",
-            "Direct: y=kx. Find k=y÷x. Both go up together.",
-            "Inverse: xy=k. Find k=x×y. One up, other down.",
-            "Proportion: a:b = c:d → cross multiply.",
-        ], "Share Rs 60 in 2:3. Parts=5, 1 part=Rs12. Shares=Rs24 and Rs36."),
-        q("Simplify ratio 15:20. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Share Rs 60 in ratio 2:3. 1 part=Rs ____. Shares=Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 2:3"),
-        q("Is 4:6 = 6:9 a proportion? Check: 4×9=____, 6×6=____. ____", "fill", "Answer = ____"),
-        q("Solve: 3:5 = n:35. n = ____", "fill", "n = ____"),
-        q("Direct or inverse? More workers → more work done in same time. ____", "fill", "Answer = ____"),
-        q("x=3, y=15 (direct). k=____. When x=7, y=____", "fill", "Answer = ____"),
-        q("x=4, y=9 (inverse). k=____. When x=6, y=____", "fill", "Answer = ____"),
-        q("5 kg costs Rs 35. Cost of 9 kg = Rs ____", "word", "Cost = Rs ____", "35÷5×9"),
-        q("6 workers finish in 8 days. 4 workers finish in ____ days.", "word", "Days = ____", "k=48, 48÷4"),
-        q("Ages Ravi:Meena = 3:4. Ravi is 15. Meena is ____", "word", "Meena = ____", "ratio 3:4"),
-        q("True or False: 15:20 simplifies to 3:4.", "fill", "Answer = ____"),
-        q("True or False: Share Rs 60 in 2:3 → Rs 24 and Rs 36.", "fill", "Answer = ____"),
-        q("True or False: 4:6 = 6:9 is a proportion.", "fill", "Answer = ____"),
-        q("True or False: 3:5 = n:35 gives n=21.", "fill", "Answer = ____"),
-        q("True or False: x=3,y=15 direct → k=5 → x=7, y=35.", "fill", "Answer = ____"),
-        q("True or False: x=4,y=9 inverse → k=36 → x=6, y=6.", "fill", "Answer = ____"),
-        q("True or False: 5 kg for Rs 35 → 9 kg for Rs 63.", "fill", "Answer = ____"),
-        q("True or False: 6 workers in 8 days → 4 workers in 12 days.", "fill", "Answer = ____"),
-        q("True or False: Age ratio 3:4, Ravi=15 → Meena=20.", "fill", "Answer = ____"),
-        q("Spot: Share Rs 60 in 2:3. Someone says Rs 30 each. Correct? Fix. ____", "fill", "Answer = ____"),
+    random.seed(1020 + sheet)
+    ranges = {1: (2, 5), 2: (2, 8), 3: (3, 10), 4: (3, 15)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Direct & Inverse Proportion Graphs", [
+            "Direct proportion (y=kx): the graph is a STRAIGHT LINE through the origin (0,0).",
+            "Inverse proportion (y=k/x): the graph is a CURVE that gets closer to the axes but never touches them.",
+            "Look at the SHAPE first -- straight line means direct, curve means inverse.",
+        ], "y=3x is a straight line. y=12/x is a curve."),
     ]
-    s2 = [
-        cb("Mixed — Connecting All Concepts", [
-            "Direct proportion: y=kx. k stays constant.",
-            "Inverse proportion: xy=k. k stays constant.",
-            "HCF and LCM connect to simplifying and finding equivalent ratios.",
-        ], "12 workers, 5 days → k=60. 8 workers: 60÷8=7.5 days (inverse)."),
-        q("Simplify 24:36. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("3:5 = ____:20. Fill the missing value. ____", "fill", "Answer = ____"),
-        q("Find n: 7:4 = n:16. n = ____", "fill", "n = ____"),
-        q("Share Rs 100 in ratio 2:3. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 2:3"),
-        q("Share 72 marbles in ratio 3:5. Shares = ____ and ____", "word", "Shares = ____", "ratio 3:5"),
-        q("8 workers earn Rs 480 per day. 5 workers earn Rs ____", "word", "Earn = Rs ____", "480÷8×5"),
-        q("x=5, y=30 (direct). k=____. When x=8, y=____", "fill", "Answer = ____"),
-        q("x=6, y=8 (inverse). k=____. When x=12, y=____", "fill", "Answer = ____"),
-        q("12 workers finish in 5 days. 8 workers finish in ____ days.", "word", "Days = ____", "k=60, 60÷8"),
-        q("Car: 120 km in 2 hrs. In 7 hrs = ____ km.", "word", "Distance = ____ km", "120÷2×7"),
-        q("True or False: 24:36 simplifies to 2:3.", "fill", "Answer = ____"),
-        q("True or False: 3:5 = 12:20.", "fill", "Answer = ____"),
-        q("True or False: 7:4 = n:16 gives n=28.", "fill", "Answer = ____"),
-        q("True or False: Rs 100 in 2:3 → Rs 40 and Rs 60.", "fill", "Answer = ____"),
-        q("True or False: 72 marbles in 3:5 → 27 and 45.", "fill", "Answer = ____"),
-        q("True or False: 8 workers earn Rs 480 → 5 workers earn Rs 300.", "fill", "Answer = ____"),
-        q("True or False: x=5,y=30 direct → k=6 → x=8, y=48.", "fill", "Answer = ____"),
-        q("True or False: x=6,y=8 inverse → k=48 → x=12, y=4.", "fill", "Answer = ____"),
-        q("True or False: 12 workers, 5 days → k=60 → 8 workers take 7.5 days.", "fill", "Answer = ____"),
-        q("Spot: Share 72 in 3:5. Total=8 parts, 1 part=9. Shares=27 and 45. Correct? ____", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Level 10 — Tips", [
-            "Ratio: simplify using HCF. Sharing: 1 part = total ÷ sum of parts.",
-            "Proportion: cross multiply to check or find n.",
-            "Direct: y=kx. Find k first, then scale.",
-            "Inverse: xy=k. Find k first, then divide.",
-            "Identify type: same direction=direct, opposite=inverse.",
-        ]),
-        q("Simplify 36:48. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Share Rs 150 in ratio 2:3:5. Shares = Rs ____, Rs ____, Rs ____", "word", "Shares = Rs ____", "ratio 2:3:5"),
-        q("Is 7:9 = 21:27 a proportion? Check. ____", "fill", "Answer = ____"),
-        q("Solve: 8:n = 24:15. n = ____", "fill", "n = ____"),
-        q("x=7, y=42 (direct). k=____. Find y when x=11. ____", "fill", "Answer = ____"),
-        q("x=5, y=12 (inverse). k=____. Find y when x=20. ____", "fill", "Answer = ____"),
-        q("15 pipes fill in 4 hours. 10 pipes fill in ____ hours.", "word", "Hours = ____", "k=60, 60÷10"),
-        q("Train: 120 km in 2 hrs. In 7 hrs = ____ km.", "word", "Distance = ____ km", "120÷2×7"),
-        q("Ages Ravi:Meena:Arjun = 2:3:4. Ravi is 12. Meena = ____. Arjun = ____", "word", "Ages = ____", "ratio 2:3:4, Ravi=12"),
-        q("True or False: 36:48 simplifies to 3:4.", "fill", "Answer = ____"),
-        q("True or False: Rs 150 in 2:3:5 → Rs 30, Rs 45, Rs 75.", "fill", "Answer = ____"),
-        q("True or False: 7:9 = 21:27 is a proportion.", "fill", "Answer = ____"),
-        q("True or False: 8:n = 24:15 gives n=5.", "fill", "Answer = ____"),
-        q("True or False: x=7,y=42 direct → k=6 → x=11, y=66.", "fill", "Answer = ____"),
-        q("True or False: x=5,y=12 inverse → k=60 → x=20, y=3.", "fill", "Answer = ____"),
-        q("True or False: 15 pipes, 4 hrs → k=60 → 10 pipes take 6 hrs.", "fill", "Answer = ____"),
-        q("True or False: Train 120 km in 2 hrs → 420 km in 7 hrs.", "fill", "Answer = ____"),
-        q("Spot: Rs 150 in 2:3:5. Total=10 parts, 1 part=Rs 15. Shares=Rs 30,45,75. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 8:n=24:15 → 8×15=120=24n → n=5.", "fill", "Answer = ____"),
-        q("True or False: Age ratio 2:3:4, Ravi=12 → Meena=18, Arjun=24.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        tb("Mixed Level 10 — Mastery Tips", [
-            "A:B = 2:3 and B:C = 3:5, then A:B:C = 2:3:5 (B is already same).",
-            "A:B = 3:4 and B:C = 2:5 → make B same: 3:4 → 6:8, 2:5 → 8:20. A:B:C=6:8:20=3:4:10.",
-            "Multi-step sharing: solve one share, then split that share again.",
-            "Always identify direct or inverse FIRST, then solve.",
-        ]),
-        q("A:B = 2:3 and B:C = 3:5. Find A:B:C. ____", "fill", "Answer = ____"),
-        q("A:B = 3:4 and B:C = 2:5. Make B same. Find A:B:C. ____", "fill", "Answer = ____"),
-        q("Share Rs 180 in 1:2:3. Middle share split 2:3. All 4 final shares = Rs ____", "word", "Shares = Rs ____", "multi-step"),
-        q("30 workers build in 16 days. Workers needed for 12 days = ____", "word", "Workers = ____", "k=480, 480÷12"),
-        q("Speed=60, time=5 (same distance). Speed=75, time=____", "word", "Time = ____ hours", "k=300, 300÷75"),
-        q("x=5, y=20 (direct), k=____. Find y when x=8. ____", "fill", "Answer = ____"),
-        q("x=6, y=8 (inverse). k=____. Find y when x=4. ____", "fill", "Answer = ____"),
-        q("True or False: A:B=2:3 and B:C=3:5 → A:B:C=2:3:5.", "fill", "Answer = ____"),
-        q("True or False: A:B=3:4 and B:C=2:5 → A:B:C=3:4:10.", "fill", "Answer = ____"),
-        q("True or False: Rs 180 in 1:2:3 → Rs 30, Rs 60, Rs 90.", "fill", "Answer = ____"),
-        q("True or False: Rs 60 (middle) shared 2:3 → Rs 24 and Rs 36.", "fill", "Answer = ____"),
-        q("True or False: 30 workers, 16 days → k=480 → 12 days need 40 workers.", "fill", "Answer = ____"),
-        q("True or False: Speed=60, time=5 → k=300 → speed=75, time=4.", "fill", "Answer = ____"),
-        q("True or False: x=5,y=20 direct → k=4 → x=8, y=32.", "fill", "Answer = ____"),
-        q("True or False: x=6,y=8 inverse → k=48 → x=4, y=12.", "fill", "Answer = ____"),
-        q("Spot: A:B=3:4 and B:C=2:5. B LCM=4: 3:4 stays, 2:5 → 8:20. A:B:C=3:4:10. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 30 workers, 16 days → k=480 → 12 days need 480÷12=40 workers.", "fill", "Answer = ____"),
-        q("True or False: Speed × time = distance is inverse proportion (for constant distance).", "fill", "Answer = ____"),
-        q("True or False: Multi-step sharing: solve each step separately and check.", "fill", "Answer = ____"),
-        q("True or False: A:B=2:3 and B:C=3:5 means B is already the same (3), so A:B:C=2:3:5 directly.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
+    for _ in range(6):
+        kind = random.choice(["direct", "inverse"])
+        k = random.randint(lo, hi) if kind == "direct" else random.randint(lo * 5, hi * 8)
+        xmax = random.choice([8, 10, 12])
+        items.append(q("Look at the graph. Is this direct or inverse proportion? What is the value of k?", "diagram", "____",
+                        "", "proportion_graph", {"kind": kind, "k": k, "xmax": xmax}))
+    for _ in range(5):
+        kind = random.choice(["direct", "inverse"])
+        shown_kind = kind if random.random() > 0.4 else ("inverse" if kind == "direct" else "direct")
+        shape = "a straight line through the origin" if kind == "direct" else "a curve"
+        eqn = "y=kx" if kind == "direct" else "y=k/x"
+        items.append(q(f"True or False: The graph of {eqn} is {shape}. This makes it {shown_kind} proportion.", "fill", "Answer = ____"))
+    for _ in range(4):
+        k = random.randint(lo, hi)
+        x = random.randint(2, 9)
+        items.append(q(f"For direct proportion y={k}x, find y when x={x}.", "fill", "y = ____"))
+    for _ in range(3):
+        k = random.randint(lo * 5, hi * 8)
+        x = random.randint(2, 9)
+        items.append(q(f"For inverse proportion y={k}/x, find y when x={x}.", "fill", "y = ____"))
+    for _ in range(2):
+        items.append(q("Spot: A student says the inverse proportion graph is a straight line. Correct? Explain and fix. ____", "fill", "Answer = ____"))
+    return items
 
 # ─── 10CUM3: Mixed G+H+I ────────────────────────────────────
+# ─── 10CUM3: Compound Proportion & Partnership ───────────────
 def _L10CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Direct, Inverse, Mixed — Summary", [
-                "Direct: y=kx. k=y÷x. Both increase together.",
-                "Inverse: xy=k. k=x×y. One goes up, other goes down.",
-                "Identify type first. Then find k. Then solve.",
-            ], "Direct: 3 kg→Rs18, k=6. Inverse: 4 workers→6 days, k=24."),
-            q("x=3, y=18 (direct). k=____. When x=7, y=____", "fill", "Answer = ____"),
-            q("x=4, y=6 (inverse). k=____. When x=8, y=____", "fill", "Answer = ____"),
-            q("Direct or inverse? More hours studying → better marks. ____", "fill", "Answer = ____"),
-            q("Direct or inverse? More cars → slower traffic. ____", "fill", "Answer = ____"),
-            q("5 taps fill in 6 hours. 3 taps fill in ____ hours.", "word", "Hours = ____", "k=30, 30÷3"),
-            q("Runner: 12 km in 2 hours. In 5 hours = ____ km.", "word", "Distance = ____ km", "12÷2×5"),
-            q("x=9, y=4 (inverse). k=____. Find x when y=6. ____", "fill", "Answer = ____"),
-            q("x=6, y=42 (direct). k=____. Find y when x=9. ____", "fill", "Answer = ____"),
-            q("Share Rs 140 in ratio 2:5. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 2:5"),
-            q("Simplify ratio 18:24. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("True or False: x=3,y=18 direct → k=6 → x=7, y=42.", "fill", "Answer = ____"),
-            q("True or False: x=4,y=6 inverse → k=24 → x=8, y=3.", "fill", "Answer = ____"),
-            q("True or False: 5 taps, 6 hrs → k=30 → 3 taps take 10 hrs.", "fill", "Answer = ____"),
-            q("True or False: Runner: 12 km in 2 hrs → 30 km in 5 hrs.", "fill", "Answer = ____"),
-            q("True or False: x=9,y=4 inverse → k=36 → y=6 means x=6.", "fill", "Answer = ____"),
-            q("True or False: Rs 140 in 2:5 → Rs 40 and Rs 100.", "fill", "Answer = ____"),
-            q("True or False: x=6,y=42 direct → k=7 → x=9, y=63.", "fill", "Answer = ____"),
-            q("Spot: 5 taps, 6 hrs. 3 taps: k=30, 30÷3=10 hrs. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: Direct proportion: y doubles when x doubles.", "fill", "Answer = ____"),
-            q("True or False: Inverse proportion: y halves when x doubles.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 10G+10H+10I — Tips", [
-                "Direct: y=kx. Find k=y÷x. Scale with same k.",
-                "Inverse: xy=k. Find k=x×y. Divide k by new x to get y.",
-                "Identify first: same direction=direct, opposite=inverse.",
-                "Sharing: total ÷ sum of parts = 1 part value.",
-                "Always verify answers by checking k is consistent.",
-            ]),
-            q("x=5, y=35 (direct). k=____. Find y when x=9. ____", "fill", "Answer = ____"),
-            q("x=7, y=4 (inverse). k=____. Find y when x=14. ____", "fill", "Answer = ____"),
-            q("x=3, y=8 (inverse). k=____. Find x when y=6. ____", "fill", "Answer = ____"),
-            q("18 workers build in 10 days. 12 workers build in ____ days.", "word", "Days = ____", "k=180, 180÷12"),
-            q("Car at 80 km/h takes 3 hours. At 60 km/h takes ____ hours.", "word", "Hours = ____", "k=240, 240÷60"),
-            q("9 kg costs Rs 63. Cost of 14 kg = Rs ____", "word", "Cost = Rs ____", "63÷9×14"),
-            q("Share Rs 200 in ratio 3:5. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 3:5"),
-            q("Ratio boys:girls = 5:3. Total = 64. Boys = ____, Girls = ____", "word", "Boys=____ Girls=____", "ratio 5:3 of 64"),
-            q("True or False: x=5,y=35 direct → k=7 → x=9, y=63.", "fill", "Answer = ____"),
-            q("True or False: x=7,y=4 inverse → k=28 → x=14, y=2.", "fill", "Answer = ____"),
-            q("True or False: 18 workers, 10 days → k=180 → 12 workers take 15 days.", "fill", "Answer = ____"),
-            q("True or False: Car 80 km/h, 3 hrs → k=240 → 60 km/h takes 4 hrs.", "fill", "Answer = ____"),
-            q("True or False: 9 kg for Rs 63 → 14 kg for Rs 98.", "fill", "Answer = ____"),
-            q("True or False: Rs 200 in 3:5 → Rs 75 and Rs 125.", "fill", "Answer = ____"),
-            q("True or False: Ratio 5:3, total=64 → boys=40, girls=24.", "fill", "Answer = ____"),
-            q("True or False: x=3,y=8 inverse → k=24 → y=6 means x=4.", "fill", "Answer = ____"),
-            q("Spot: 18 workers, 10 days → k=180 → 12 workers take 180÷12=15 days. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 9 kg for Rs 63 → 1 kg = Rs 7 → 14 kg = Rs 98.", "fill", "Answer = ____"),
-            q("True or False: Direct proportion: y=kx where k stays constant.", "fill", "Answer = ____"),
-            q("True or False: Inverse proportion: x×y=k where k stays constant.", "fill", "Answer = ____"),
-        ]
+    random.seed(1030 + sheet)
+    ranges = {1: (100, 400), 2: (200, 800), 3: (400, 1500), 4: (600, 3000)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Compound Proportion & Partnership", [
+            "Compound proportion mixes MULTIPLE direct/inverse relationships in one problem.",
+            "Method: find the total 'work units' (people x hours x days) -- this stays constant.",
+            "Partnership: profit is shared in the ratio of (investment x time) for each partner.",
+        ], "6 men work 8 hrs/day for 5 days. How many days for 4 men working 10 hrs/day? Work=6x8x5=240 units. 4x10=40/day. 240/40=6 days."),
+    ]
 
+    def compound_problem():
+        m1 = random.randint(2, 10)
+        h1 = random.randint(4, 10)
+        d1 = random.randint(2, 10)
+        work = m1 * h1 * d1
+        m2 = random.randint(2, 10)
+        h2 = random.randint(4, 10)
+        tries = 0
+        while work % (m2 * h2) != 0 and tries < 20:
+            m2 = random.randint(2, 10)
+            h2 = random.randint(4, 10)
+            tries += 1
+        if work % (m2 * h2) != 0:
+            m2, h2 = m1, h1
+        d2 = work // (m2 * h2)
+        return m1, h1, d1, m2, h2, d2
+
+    for _ in range(6):
+        m1, h1, d1, m2, h2, d2 = compound_problem()
+        items.append(q(f"{m1} workers work {h1} hours a day for {d1} days to finish a job. How many days would {m2} workers working {h2} hours a day take?",
+                        "word", "Days = ____", "compound proportion"))
+    for _ in range(5):
+        m1, h1, d1, m2, h2, d2 = compound_problem()
+        shown = d2 if random.random() > 0.4 else d2 + random.choice([1, -1])
+        items.append(q(f"True or False: {m1} workers at {h1} hrs/day for {d1} days = {m2} workers at {h2} hrs/day for {shown} days (same total work).", "fill", "Answer = ____"))
+    for _ in range(5):
+        inv_a = random.randint(lo, hi)
+        inv_b = random.randint(lo, hi)
+        t_a, t_b = random.randint(2, 12), random.randint(2, 12)
+        ratio_a, ratio_b = inv_a * t_a, inv_b * t_b
+        total_profit = (ratio_a + ratio_b) * random.randint(2, 10)
+        items.append(q(f"A invests Rs {inv_a} for {t_a} months, B invests Rs {inv_b} for {t_b} months. "
+                        f"They share a profit of Rs {total_profit} in the ratio of (investment x time). Find A's share.",
+                        "word", "A's share = Rs ____", "partnership ratio"))
+    for _ in range(4):
+        items.append(q("Spot: In a partnership, a student shares profit using ONLY the investment amount, ignoring how long each partner invested for. Is this correct? Explain. ____", "fill", "Answer = ____"))
+    return items
 
 # ─── 10J: Mixed challenge ───────────────────────────────────
+# ─── 10J: Scale Drawings & Similar Figures (bigger numbers, gamified) ───
 def _L10J_s(sheet):
-    s1 = [
-        tb("Level 10 Mixed Challenge — Tips", [
-            "Ratio: a:b. Simplify ÷HCF. Total parts=a+b.",
-            "Equivalent: multiply/divide both by same number.",
-            "Proportion: cross multiply → a×d = b×c.",
-            "Direct: y=kx, k=y÷x. Inverse: xy=k.",
-            "Sharing: 1 part = total ÷ sum of parts.",
-            "Word problems: identify type, then solve step by step.",
-        ]),
-        q("Write ratio 8:14 in simplest form: ____", "fill", "Answer = ____"),
-        q("Simplify 36:24. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("3:5 = ____:25. Missing = ____", "fill", "Answer = ____"),
-        q("Find n: 4:7 = 12:n. n = ____", "fill", "n = ____"),
-        q("Is 5:8 = 15:24 a proportion? Check. ____", "fill", "Answer = ____"),
-        q("Direct or inverse? More distance → more time (same speed). ____", "fill", "Answer = ____"),
-        q("x=4, y=20 (direct). k=____. When x=9, y=____", "fill", "Answer = ____"),
-        q("x=6, y=8 (inverse). k=____. When x=12, y=____", "fill", "Answer = ____"),
-        q("Share Rs 72 in ratio 1:2:3. Shares = Rs ____, Rs ____, Rs ____", "word", "Shares = Rs ____", "ratio 1:2:3"),
-        q("6 workers finish in 9 days. 9 workers finish in ____ days.", "word", "Days = ____", "k=54, 54÷9"),
-        q("8 pens cost Rs 40. Cost of 13 pens = Rs ____", "word", "Cost = Rs ____", "40÷8×13"),
-        q("Ages in ratio 2:3. Sum=30. Ages = ____ and ____", "word", "Ages = ____", "ratio 2:3 of 30"),
-        q("True or False: 8:14 simplifies to 4:7.", "fill", "Answer = ____"),
-        q("True or False: 5:8 = 15:24 is a proportion.", "fill", "Answer = ____"),
-        q("True or False: x=4,y=20 direct → k=5 → x=9, y=45.", "fill", "Answer = ____"),
-        q("True or False: x=6,y=8 inverse → k=48 → x=12, y=4.", "fill", "Answer = ____"),
-        q("True or False: Rs 72 in 1:2:3 → Rs 12, Rs 24, Rs 36.", "fill", "Answer = ____"),
-        q("True or False: 6 workers, 9 days → k=54 → 9 workers take 6 days.", "fill", "Answer = ____"),
-        q("Spot: 8 pens for Rs 40 → 13 pens for Rs 65. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Ages 2:3 sum=30 → 12 and 18.", "fill", "Answer = ____"),
+    random.seed(1040 + sheet)
+    ranges = {1: (100, 500), 2: (500, 2000), 3: (1000, 5000), 4: (2000, 10000)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Scale Drawings & Similar Figures", [
+            "Map/model scale: 1 unit on the drawing = SCALE units in real life. Real = Map x Scale.",
+            "For SIMILAR figures with sides in ratio a:b, the AREAS are in ratio a^2:b^2.",
+            "Bigger numbers here -- this challenge covers everything from the whole level.",
+        ], "Scale 1:50000. 3cm on map = 3x50000cm = 150000cm = 1.5km real distance."),
     ]
-    return [s1, s1, s1, s1][sheet - 1]
 
+    def make_scale_pair():
+        scale = random.choice([1000, 2000, 5000, 10000, 25000, 50000])
+        map_cm = random.randint(2, 12)
+        return scale, map_cm, map_cm * scale
+
+    for _ in range(5):
+        scale, map_cm, real_cm = make_scale_pair()
+        items.append(q(f"Scale 1:{scale}. A distance of {map_cm} cm on the map. Find the real distance in cm.  [2 points]",
+                        "word", "Real distance = ____ cm", "scale conversion"))
+    for _ in range(5):
+        scale, map_cm, real_cm = make_scale_pair()
+        items.append(q(f"Scale 1:{scale}. Real distance of {real_cm} cm. Find the map distance in cm.  [2 points]",
+                        "word", "Map distance = ____ cm", "scale conversion"))
+    for _ in range(5):
+        ratio = random.choice([2, 3, 4, 5])
+        items.append(q(f"Two similar triangles have sides in ratio 1:{ratio}. Find the ratio of their areas.  [2 points]", "fill", "Area ratio = ____"))
+    for _ in range(3):
+        scale = random.choice([1000, 10000])
+        p, w = random.randint(2, 8), random.randint(2, 8)
+        items.append(q(f"A rectangular plot on a map (scale 1:{scale}) measures {p}cm x {w}cm. Find its real area in square metres.  [3 points]",
+                        "word", "Area = ____ m2", "scale area"))
+    for _ in range(2):
+        ratio = random.choice([2, 3, 4])
+        shown = ratio * ratio if random.random() > 0.4 else ratio * ratio + 1
+        items.append(q(f"True or False: Similar figures with side ratio 1:{ratio} have area ratio 1:{shown}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 10REV: Level 10 Revision ───────────────────────────────
+# ─── 10REV: Level 10 Revision (samples every topic, climbs in difficulty) ───
 def _L10REV_s(sheet):
-    return [
-        tb("Level 10 Revision — Ratio and Proportion", [
-            "Ratio: compare quantities. Simplify using HCF. Total parts = sum of ratio.",
-            "Equivalent ratio: multiply or divide both parts by same number.",
-            "Proportion: a:b = c:d means a×d = b×c.",
-            "Direct proportion: y=kx. k stays constant. Both go up together.",
-            "Inverse proportion: xy=k. k stays constant. One up, other down.",
-            "Sharing: 1 part = total ÷ sum of parts. Then multiply each part.",
+    random.seed(1050 + sheet)
+    ranges = {1: (2, 8), 2: (5, 20), 3: (10, 50), 4: (20, 100)}
+    lo, hi = ranges[sheet]
+    items = [
+        tb("Level 10 Revision — Tips", [
+            "Ratio a:b: simplify using HCF, order matters, total parts = a+b.",
+            "Proportion: a:b=c:d means a x d = b x c (cross multiply).",
+            "Direct: y=kx (line through origin). Inverse: xy=k (curve).",
+            "Compound proportion: combine multiple direct/inverse relationships (work x time x people).",
+            "Scale: real = map x scale. Similar figures: area ratio = (side ratio)^2.",
         ]),
-        q("Write ratio 12:18 in simplest form: ____", "fill", "Answer = ____"),
-        q("Total parts in ratio 3:4:5 = ____", "fill", "Answer = ____"),
-        q("2:7 = ____:21. Missing value = ____", "fill", "Answer = ____"),
-        q("Find n: 5:8 = 20:n. n = ____", "fill", "n = ____"),
-        q("Is 3:5 = 9:15 a proportion? Check: 3×15=____, 5×9=____. ____", "fill", "Answer = ____"),
-        q("Direct or inverse? More speed → less time (same distance). ____", "fill", "Answer = ____"),
-        q("x=4, y=24 (direct). k=____. When x=7, y=____", "fill", "Answer = ____"),
-        q("x=5, y=6 (inverse). k=____. When x=10, y=____", "fill", "Answer = ____"),
-        q("Share Rs 80 in ratio 3:5. Shares = Rs ____ and Rs ____", "word", "Shares = Rs ____", "ratio 3:5"),
-        q("Share 90 sweets in ratio 2:3:4. Shares = ____, ____, ____", "word", "Shares = ____", "ratio 2:3:4"),
-        q("6 kg costs Rs 42. Cost of 10 kg = Rs ____", "word", "Cost = Rs ____", "42÷6×10"),
-        q("8 pipes fill in 6 hours. 12 pipes fill in ____ hours.", "word", "Hours = ____", "k=48, 48÷12"),
-        q("True or False: 12:18 simplifies to 2:3.", "fill", "Answer = ____"),
-        q("True or False: 2:7 = 6:21.", "fill", "Answer = ____"),
-        q("True or False: 3:5 = 9:15 is a proportion.", "fill", "Answer = ____"),
-        q("True or False: x=4,y=24 direct → k=6 → x=7, y=42.", "fill", "Answer = ____"),
-        q("True or False: x=5,y=6 inverse → k=30 → x=10, y=3.", "fill", "Answer = ____"),
-        q("True or False: Rs 80 in 3:5 → Rs 30 and Rs 50.", "fill", "Answer = ____"),
-        q("Spot: 8 pipes, 6 hrs. 12 pipes: k=48, 48÷12=4 hrs. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 90 sweets in 2:3:4 → 20, 30, 40.", "fill", "Answer = ____"),
     ]
 
+    def make_pair():
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a == b:
+            b = random.randint(lo, hi)
+        return a, b
 
-
-# ═══ LEVEL 11 ═══
-# Level 11 — Algebra: Expressions
-# FORMAT: Pages 1-2 = questions only. Page 3 = concept + tips reference.
-# Target: very weak students. Very simple, clear steps, build confidence.
+    for _ in range(3):
+        a, b = make_pair()
+        items.append(q(f"Simplify the ratio {a*4}:{b*4}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        k = random.randint(2, 6)
+        total = (a + b) * k
+        items.append(q(f"Share {total} in the ratio {a}:{b}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        items.append(q(f"Solve for n: {a}:{b} = {a*3}:n. n = ____", "fill", "n = ____"))
+    for _ in range(3):
+        k = random.randint(2, max(hi // 2, 3))
+        x = random.randint(2, 10)
+        items.append(q(f"y={k}x (direct proportion). Find y when x={x}.", "fill", "y = ____"))
+    for _ in range(3):
+        k = random.randint(lo * 4, hi * 4)
+        x = random.randint(2, 10)
+        items.append(q(f"xy={k} (inverse proportion). Find y when x={x}.", "fill", "y = ____"))
+    for _ in range(2):
+        m1, h1, d1 = random.randint(2, 8), random.randint(4, 10), random.randint(2, 8)
+        work = m1 * h1 * d1
+        m2 = random.randint(2, 8)
+        tries = 0
+        while work % (m2 * h1) != 0 and tries < 20:
+            m2 = random.randint(2, 8)
+            tries += 1
+        if work % (m2 * h1) != 0:
+            m2 = m1
+        d2 = work // (m2 * h1)
+        items.append(q(f"{m1} workers take {d1} days working {h1} hrs/day. How many days for {m2} workers at the same hrs/day?", "word", "Days = ____", "compound proportion"))
+    for _ in range(2):
+        scale = random.choice([1000, 10000, 50000])
+        map_cm = random.randint(2, 10)
+        items.append(q(f"Scale 1:{scale}. Map distance {map_cm}cm. Real distance = ____ cm", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        items.append(q(f"True or False: The ratio {a}:{b} is already in simplest form.", "fill", "Answer = ____"))
+    return items
 
 # ─── 11A: Variables ─────────────────────────────────────────
 def _L11A_1():

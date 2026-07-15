@@ -2264,6 +2264,75 @@ def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", **
 
 
 
+# ─── RATIO BAR & PROPORTION GRAPH (Level 10 additions) ─────────────────────────
+
+def ratio_bar(parts=None, labels=None, **kw) -> BytesIO:
+    """Horizontal bar split into segments proportional to a ratio (e.g.
+    parts=[2,3] for a 2:3 ratio), each segment coloured and labelled."""
+    parts = parts or [2, 3]
+    labels = labels or [str(p) for p in parts]
+    total = sum(parts) if sum(parts) else 1
+    w, h = 560, 150
+    img, dr = _blank(w, h)
+    bar_w, bar_h = 480, 70
+    x0 = (w - bar_w) // 2
+    y0 = 30
+    colors = [C_BLUE, C_TEAL, C_AMBER, C_RED, C_ACCENT]
+    fnt = _font(14)
+    x = x0
+    for i, p in enumerate(parts):
+        seg_w = bar_w * p / total
+        color = colors[i % len(colors)]
+        dr.rectangle([x, y0, x + seg_w, y0 + bar_h], fill=color, outline=C_BORDER, width=2)
+        label = str(labels[i])
+        tw = dr.textlength(label, font=fnt)
+        if seg_w > tw + 6:
+            dr.text((x + seg_w/2 - tw/2, y0 + bar_h/2 - 9), label, fill=C_TEXT, font=fnt)
+        x += seg_w
+    caption = ":".join(str(p) for p in parts) + f"  (total = {total} parts)"
+    cw = dr.textlength(caption, font=_font_reg(13))
+    dr.text((w/2 - cw/2, y0 + bar_h + 15), caption, fill=C_TEAL_D, font=_font_reg(13))
+    return _to_bytes(img)
+
+
+def proportion_graph(kind="direct", k=2, xmax=10, **kw) -> BytesIO:
+    """Plots y=kx (direct -- straight line through origin) or y=k/x
+    (inverse -- a curve), so the defining visual difference between the
+    two is actually shown, not just described."""
+    w, h = 400, 400
+    img, dr = _blank(w, h)
+    margin = 45
+    plot_w, plot_h = w - 2*margin, h - 2*margin
+    ox, oy = margin, h - margin
+    dr.line([ox, margin, ox, oy], fill=C_BORDER, width=2)
+    dr.line([ox, oy, w - margin, oy], fill=C_BORDER, width=2)
+    fnt = _font_reg(12)
+    dr.text((w - margin - 5, oy + 8), "x", fill=C_TEXT, font=fnt)
+    dr.text((ox - 18, margin - 8), "y", fill=C_TEXT, font=fnt)
+
+    xs = [x for x in range(1, xmax + 1)]
+    if kind == "direct":
+        ys = [k * x for x in xs]
+    else:
+        ys = [k / x for x in xs]
+    ymax = max(ys) if ys else 1
+
+    def to_px(x, y):
+        return ox + (x / xmax) * plot_w, oy - (y / ymax) * plot_h
+
+    pts = [to_px(x, y) for x, y in zip(xs, ys)]
+    color = C_BLUE_D if kind == "direct" else C_RED_D
+    for i in range(len(pts) - 1):
+        dr.line([pts[i], pts[i + 1]], fill=color, width=3)
+    for p in pts:
+        dr.ellipse([p[0] - 3, p[1] - 3, p[0] + 3, p[1] + 3], fill=color)
+
+    label = f"y = {k}x  (Direct Proportion)" if kind == "direct" else f"y = {k}/x  (Inverse Proportion)"
+    lw = dr.textlength(label, font=_font(12))
+    dr.text((w/2 - lw/2, 10), label, fill=color, font=_font(12))
+    return _to_bytes(img)
+
+
 DIAGRAM_FUNCTIONS = {
     "tenths_grid": tenths_grid,
     "hundredths_grid": hundredths_grid,
@@ -2334,6 +2403,8 @@ DIAGRAM_FUNCTIONS = {
     "factor_groups_icon": factor_groups_icon,
     "factor_tree": factor_tree,
     "venn_two": venn_two,
+    "ratio_bar": ratio_bar,
+    "proportion_graph": proportion_graph,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
