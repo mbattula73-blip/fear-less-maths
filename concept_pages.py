@@ -4061,13 +4061,13 @@ _L8 = {
 
     # ---- 8CUM1 Mixed A+B+C ----
     "8CUM1": {
-        "title": "Review: Concept, Number Line, Addition",
+        "title": "Review: Addition & Its Properties",
         "intro": [
             "Integers include negatives and 0.",
             "Right = positive/bigger; left = negative/smaller.",
             "Add + \u2192 right; add - \u2192 left.",
             "Same signs add; different signs subtract.",
-            "0 is neither + nor -.",
+            "Addition has PROPERTIES: Closure (result is always an integer), Commutative (a+b=b+a), Associative ((a+b)+c=a+(b+c)), Identity (a+0=a). Subtraction does NOT have these.",
         ],
         "real_life": [
             {"text": "1. -3 is left of 0",
@@ -4233,13 +4233,13 @@ _L8 = {
 
     # ---- 8CUM2 Mixed D+E+F ----
     "8CUM2": {
-        "title": "Review: Subtract, Multiply, Divide",
+        "title": "Review: Multiplication/Division & Their Properties",
         "intro": [
             "Subtract = add the opposite.",
             "Multiply/divide: same signs \u2192 +.",
             "Multiply/divide: different signs \u2192 -.",
-            "Minus a minus = plus.",
-            "Work the numbers, then fix the sign.",
+            "Multiplication has PROPERTIES: Closure, Commutative (axb=bxa), Associative, Identity (ax1=a), Distributive (ax(b+c)=axb+axc).",
+            "Division does NOT satisfy Closure -- e.g. (-7)/2 is not an integer.",
         ],
         "real_life": [
             {"text": "1. 5 - (-3) = 8 (add the opposite)",
@@ -4401,87 +4401,87 @@ _L8 = {
         },
     },
 
-    # ---- 8CUM3 Mixed G+H+I ----
+    # ---- 8CUM3 Divisibility Rules ----
     "8CUM3": {
-        "title": "Review: Word Problems, Order, Puzzles",
+        "title": "Divisibility Rules",
         "intro": [
-            "Rise \u2192 add; fall \u2192 subtract.",
-            "Do \u00d7 \u00f7 before + -.",
-            "Apply sign rules every step.",
-            "Puzzles: add the two clues for 2A.",
-            "Always check your answer.",
+            "2: last digit is even (0,2,4,6,8). 5: last digit is 0 or 5. 10: last digit is 0.",
+            "3: sum of digits divisible by 3. 9: sum of digits divisible by 9.",
+            "4: last 2 digits divisible by 4. 8: last 3 digits divisible by 8.",
+            "6: divisible by BOTH 2 and 3.",
+            "The sign doesn't matter -- check the digits of the number the same way.",
         ],
         "real_life": [
-            {"text": "1. -8 C rises 12 C \u2192 4 C",
-             "diagram": "integer_line", "lo": -10, "hi": 6, "jump": (-8, 12, "+12"),
-             "marks": [(4, "4")], "caption": "rise = add"},
-            {"text": "2. (-3) \u00d7 4 = -12 (multiply first)",
-             "diagram": "integer_line", "lo": -14, "hi": 2, "marks": [(-12, "-12")],
-             "caption": "do \u00d7 before +"},
-            {"text": "3. A+B = -6, A-B = 4 \u2192 A = -1, B = -5",
-             "diagram": "integer_line", "lo": -6, "hi": 2,
-             "marks": [(-1, "A"), (-5, "B")], "caption": "solve with both clues"},
-        ],
-        "card": card_int_signs,
-        "solved": [
-            {"q": "Ex: 5 C falls 14 C, then (-3) \u00d7 2.",
-             "steps": ["5 - 14 = -9 C", "(-3)\u00d72 = -6"]},
-        ],
-        "tips": [
-            "Up add, down subtract.",
-            "\u00d7 \u00f7 before + -.",
-            "Add clues \u2192 2A in puzzles.",
-            "Check the answer.",
-        ],
-        "try_it": {
-            "questions": [
-                "1. -5 C rises 9 C. New temp?",
-                "2. (-4) \u00d7 3 + 2 = ?",
-                "3. A+B = 4, A-B = 10. Find A, B.",
-            ],
-            "answers": "1) 4 C    2) -10    3) A=7,B=-3",
-        },
-    },
-
-    # ---- 8J Mixed challenge ----
-    "8J": {
-        "title": "Integers — Mixed Challenge",
-        "intro": [
-            "Absolute value |x| = distance from 0.",
-            "|-13| = 13 (always positive).",
-            "Opposite of -8 = 8 (flip the sign).",
-            "Compare: right on the line is bigger.",
-            "-7 < -3 (less negative is bigger).",
-        ],
-        "real_life": [
-            {"text": "1. |-13| = 13 (distance from 0)",
+            {"text": "1. 84: last digit 4 is even -> divisible by 2",
              "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
-             "caption": "absolute value is always +"},
-            {"text": "2. Opposite of -8 is +8",
-             "diagram": "integer_line", "lo": -9, "hi": 9,
-             "marks": [(-8, "-8"), (8, "+8")], "caption": "same distance, other side"},
-            {"text": "3. -7 < -3 (further left is smaller)",
-             "diagram": "integer_line", "lo": -9, "hi": 1,
-             "marks": [(-7, "-7"), (-3, "-3")], "caption": "-3 is bigger than -7"},
+             "caption": "check the last digit"},
+            {"text": "2. 84: 8+4=12, divisible by 3 -> 84 is divisible by 3",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "add the digits"},
+            {"text": "3. 84 is divisible by BOTH 2 and 3 -> divisible by 6",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "6 needs both rules"},
         ],
         "card": card_integer_line,
         "solved": [
-            {"q": "Ex: Compare -7 and -3.",
-             "steps": ["-3 is further right", "Right = bigger", "So -7 < -3"]},
+            {"q": "Ex: Is 138 divisible by 6?",
+             "steps": ["Last digit 8 is even -> divisible by 2", "1+3+8=12, divisible by 3", "Divisible by BOTH -> divisible by 6"]},
         ],
         "tips": [
-            "|x| = distance from 0 (always +).",
-            "Opposite flips the sign.",
-            "Right on the line = bigger.",
-            "Less negative is bigger.",
+            "2,5,10: check only the last digit.",
+            "3,9: add up all the digits.",
+            "4: check the last 2 digits. 8: check the last 3.",
+            "6 = divisible by 2 AND 3 together.",
         ],
         "try_it": {
             "questions": [
-                "1. |-9| = ?",
-                "2. Opposite of 5 = ?",
-                "3. Compare -2 and -6 (use > < =).",
+                "1. Is 96 divisible by 3?",
+                "2. Is 250 divisible by 4?",
+                "3. Is 144 divisible by 6?",
             ],
-            "answers": "1) 9    2) -5    3) -2 > -6",
+            "answers": "1) Yes (9+6=15)    2) No (last 2 digits 50, not div by 4)    3) Yes (even, and 1+4+4=9)",
+        },
+    },
+
+    # ---- 8J Prime & Composite + Absolute Value ----
+    "8J": {
+        "title": "Prime & Composite Numbers + Absolute Value",
+        "intro": [
+            "A PRIME number has exactly 2 factors: 1 and itself (2, 3, 5, 7, 11, 13...).",
+            "A COMPOSITE number has more than 2 factors (4, 6, 8, 9, 10...).",
+            "1 is neither prime nor composite.",
+            "Absolute value |x| = distance from 0.",
+            "|-13| = 13 (always positive).",
+        ],
+        "real_life": [
+            {"text": "1. 7 has only factors 1 and 7 -> PRIME",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "check: does anything else divide it?"},
+            {"text": "2. 12 has factors 1,2,3,4,6,12 -> COMPOSITE",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "more than 2 factors"},
+            {"text": "3. |-13| = 13 (distance from 0)",
+             "diagram": "integer_line", "lo": -3, "hi": 3, "marks": [(0, "0")],
+             "caption": "absolute value is always +"},
+        ],
+        "card": card_integer_line,
+        "solved": [
+            {"q": "Ex: Is 17 prime or composite?",
+             "steps": ["Check 2,3,4: none divide 17 evenly", "Only factors are 1 and 17", "17 is PRIME"]},
+        ],
+        "tips": [
+            "Prime = exactly 2 factors (1 and itself).",
+            "Composite = more than 2 factors.",
+            "1 is neither prime nor composite.",
+            "|x| = distance from 0 (always +).",
+        ],
+        "try_it": {
+            "questions": [
+                "1. Is 21 prime or composite?",
+                "2. Is 23 prime or composite?",
+                "3. |-9| = ?",
+            ],
+            "answers": "1) Composite (3x7)    2) Prime    3) 9",
         },
     },
 

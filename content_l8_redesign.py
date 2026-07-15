@@ -359,56 +359,73 @@ def _F_s(sheet):
 
 
 def _CUM3_s(sheet):
-    lo, hi = _diff_range(sheet)
+    lo, hi = _diff_range(sheet, base_lo=3, base_hi=10, step=2)
     def gen(sheet):
-        return (random.randint(lo, hi), random.randint(lo, hi))
+        return tuple(random.randint(lo, hi) * random.choice([1, -1]) for _ in range(4))
+    def expr_and_answer(kind, sheet):
+        a, b, c, d = gen(sheet)
+        if a == 0: a = lo
+        if b == 0: b = lo
+        if c == 0: c = lo
+        if d == 0: d = lo
+        if kind == 0:
+            return f"({a}) + ({b}) x ({c})", a + b*c
+        elif kind == 1:
+            return f"({a}) - ({b}) x ({c})", a - b*c
+        elif kind == 2:
+            return f"[({a}) + ({b})] x ({c})", (a+b)*c
+        elif kind == 3:
+            return f"({a}) x ({b}) + ({c}) x ({d})", a*b + c*d
+        elif kind == 4:
+            return f"({a}) + ({b}) - ({c}) x ({d})", a + b - c*d
+        else:
+            return f"[({a}) - ({b})] x [({c}) + ({d})]", (a-b)*(c+d)
     def comp(i, sheet):
-        a, b = gen(sheet)
-        signs = random.choice([("", ""), ("", "-"), ("-", ""), ("-", "-")])
-        if i % 2 == 0:
-            return q(f"({signs[0]}{a}) x ({signs[1]}{b}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
-        product = a*b
-        return q(f"({signs[0]}{product}) / ({signs[1]}{a}) = ____", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+        kind = (i + sheet) % 6
+        expr, ans = expr_and_answer(kind, sheet)
+        return q(f"{expr} = ____  (apply BODMAS)", "fill", "____")
     def tf(i, sheet):
-        a, b = gen(sheet)
-        if i == 0:
-            correct_prop = random.choice(["Commutative", "Associative", "Closure", "Distributive"])
-            wrong_prop = random.choice([p for p in ["Commutative", "Associative", "Closure", "Distributive"] if p != correct_prop])
-            shown_prop = correct_prop if random.random() > 0.4 else wrong_prop
-            examples = {
-                "Commutative": f"({a}) x ({b}) = ({b}) x ({a})",
-                "Associative": f"[({a})x({b})]x(2) = ({a})x[({b})x(2)]",
-                "Closure": f"({a}) x ({b}) is always an integer",
-                "Distributive": f"({a}) x [({b})+(2)] = ({a})x({b}) + ({a})x(2)",
-            }
-            return q(f"True or False: '{examples[correct_prop]}' is an example of the {shown_prop} Property.", "fill", "____ (True/False)")
-        return q(f"True or False: (-{a}) x (-{b}) = {a*b}", "fill", "____ (True/False)")
+        kind = (i + sheet + 1) % 6
+        expr, ans = expr_and_answer(kind, sheet)
+        shown = ans if random.random() > 0.4 else ans + random.choice([2, -2, 3, -3])
+        return q(f"True or False: {expr} = {shown}", "fill", "____ (True/False)")
     def missing(i, sheet):
-        a, b = gen(sheet)
-        return q(f"(-{a}) x ____ = {-(a*b)}", "diagram", "____", "", "array_blank", {"rows": a, "cols": b})
+        a, b, c, d = gen(sheet)
+        if a == 0: a = lo
+        if b == 0: b = lo
+        if c == 0: c = lo
+        target = a + b*c
+        return q(f"({a}) + ({b}) x ____ = {target}. Find the missing number (apply BODMAS).", "fill", "____")
     def numeral(i, sheet):
-        a, b = gen(sheet)
-        op = random.choice(["x", "/"])
-        if op == "/": a = a*b
-        return q(f"(-{a}) {op} ({b}) = ____", "fill", "____")
+        kind = (i + sheet + 2) % 6
+        expr, ans = expr_and_answer(kind, sheet)
+        return q(f"Evaluate using BODMAS: {expr} = ____", "fill", "____")
     def multisel(i, sheet):
-        a, b = gen(sheet)
-        target = a*b
-        opts = [f"(-{a})x(-{b})", f"({a})x(-{b})", f"(-{a})x({b})", f"({a})x({b})"]
-        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
-                  "fill", "____ (list all letters)")
+        a, b, c, _ = gen(sheet)
+        if a == 0: a = lo
+        if b == 0: b = lo
+        if c == 0: c = lo
+        left_to_right = (a + b) * c
+        bodmas_order = a + b*c
+        return q(f"For ({a}) + ({b}) x ({c}): Priya computed {left_to_right} (working left to right). "
+                  f"Raj computed {bodmas_order} (using BODMAS order). Who is correct? ____ (Priya/Raj)", "fill", "____")
     def matching(i, sheet):
-        pairs = [gen(sheet) for _ in range(3)]
-        lefts = [f"(-{a})x(-{b})" for a, b in pairs]; rights = [str(a*b) for a, b in pairs]
-        shuffled = rights[:]; random.shuffle(shuffled)
-        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
+        exprs, anss = [], []
+        for k in range(3):
+            kind = (k + sheet) % 6
+            e, ans = expr_and_answer(kind, sheet)
+            exprs.append(e); anss.append(str(ans))
+        shuffled = anss[:]; random.shuffle(shuffled)
+        left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(exprs))
         right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
-        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+        return q(f"Match each expression to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
     return _make_rotated_sheet(
-        "Review", ["Mix of multiplying and dividing integers."],
+        "BODMAS / Order of Operations",
+        ["Order: Brackets first, then Of (powers), then Division/Multiplication (left to right), then Addition/Subtraction (left to right).",
+         "(-2) + (3) x (4) = (-2) + 12 = 10 -- multiply BEFORE adding, even with negative numbers."],
         "array_example", {"rows": 3, "cols": 4},
-        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching. This bridges into Level 9's multi-step factor/HCF-LCM problems.",
         fmt, sheet, seed_base=300)
 
 
@@ -485,56 +502,54 @@ def _G_s(sheet):
 # ───────────────────────── 8H: Mixed integers ─────────────────────────
 
 def _H_s(sheet):
-    lo, hi = _diff_range(sheet)
+    lo, hi = _diff_range(sheet, base_lo=20, base_hi=100, step=20)
+    DIVS = [2, 3, 4, 5, 6, 8, 9, 10, 11]
     def gen(sheet):
-        return (random.randint(-hi, hi), random.randint(-hi, hi))
+        n = random.randint(-hi, hi)
+        if n == 0: n = hi
+        d = random.choice(DIVS)
+        return n, d
     def comp(i, sheet):
-        a, b = gen(sheet)
-        op = random.choice(["+", "-"])
-        ans = a + b if op == "+" else a - b
-        if i == 0:
-            signed_b = b if op == "+" else -b
-            ctx = random.choice([
-                f"Temperature was {a} degrees and changed by {signed_b} degrees. Now it is ____.",
-                f"An account had ${a} and a transaction of ${signed_b}. New balance = ____.",
-            ])
-            return q(ctx, "diagram", "____", "", "vertical_numberline_blank", {"lo": min(0, ans) - 5, "hi": max(0, ans) + 5})
-        return q(f"({a}) {op} ({b}) = ____", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a, b, a+b, a-b)-3, "hi": max(a, b, a+b, a-b)+3})
+        n, d = gen(sheet)
+        return q(f"Is {n} divisible by {d}? Use the divisibility rule for {d} to decide.", "fill", "____ (Yes/No)")
     def tf(i, sheet):
-        a, b = gen(sheet)
-        op = random.choice(["+", "-"])
-        correct = a+b if op == "+" else a-b
-        shown = correct if random.random() > 0.4 else correct+3
-        return q(f"True or False: ({a}) {op} ({b}) = {shown}", "fill", "____ (True/False)")
+        n, d = gen(sheet)
+        actual = "Yes" if n % d == 0 else "No"
+        wrong = "No" if actual == "Yes" else "Yes"
+        shown = actual if random.random() > 0.4 else wrong
+        return q(f"True or False: {n} is divisible by {d} — {shown}.", "fill", "____ (True/False)")
     def missing(i, sheet):
-        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
-        op = random.choice(["+", "-"])
-        return q(f"({a}) {op} ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+        n = random.randint(-hi, hi)
+        if n == 0: n = hi
+        dv = random.choice(DIVS)
+        return q(f"What is the smallest number GREATER than {n} that IS divisible by {dv}? ____", "fill", "____")
     def numeral(i, sheet):
-        a, b = gen(sheet)
-        op = random.choice(["+", "-", "x"])
-        return q(f"({a}) {op} ({b}) = ____", "fill", "____")
+        n, d = gen(sheet)
+        return q(f"Is {n} divisible by {d}? Answer Yes or No. ____", "fill", "____")
     def multisel(i, sheet):
-        target = random.randint(-hi, hi)
-        opts = [f"({target-2})+(2)", f"({target+1})-(1)", f"({target})+(0)", f"({target+4})-(4)"]
-        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}",
+        n = random.randint(max(lo, 12), hi)
+        candidates = random.sample(DIVS, 4)
+        opts_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(candidates))
+        return q(f"Which of these numbers is {n} divisible by? Select ALL that apply: {opts_str}",
                   "fill", "____ (list all letters)")
     def matching(i, sheet):
-        pairs = [gen(sheet) for _ in range(3)]
-        ops = [random.choice(["+", "-"]) for _ in range(3)]
-        lefts = [f"({a}){op}({b})" for (a, b), op in zip(pairs, ops)]
-        rights = [str(a+b if op == "+" else a-b) for (a, b), op in zip(pairs, ops)]
+        pairs = [(random.randint(lo, hi), random.choice(DIVS)) for _ in range(3)]
+        lefts = [f"{n} by {d}" for n, d in pairs]
+        rights = ["Yes" if n % d == 0 else "No" for n, d in pairs]
         shuffled = rights[:]; random.shuffle(shuffled)
         left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
         right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
-        return q(f"Match to its value: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
+        return q(f"Match each check to Yes/No: {left_str}  to  {right_str}", "fill", "____ (e.g. 1-A,2-B...)")
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
     return _make_rotated_sheet(
-        "Worked Example", ["Check the operation symbol first, then use the right strategy."],
-        "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
-        fmt, sheet, seed_base=80)
+        "Divisibility Rules",
+        ["2: last digit even. 3: digit sum divisible by 3. 4: last 2 digits divisible by 4.",
+         "5: ends in 0 or 5. 6: divisible by BOTH 2 and 3. 8: last 3 digits divisible by 8.",
+         "9: digit sum divisible by 9. 10: ends in 0. 11: alternating digit sum divisible by 11.",
+         "The sign of the number doesn't matter -- check the digits the same way."],
+        "array_example", {"rows": 4, "cols": 5},
+        "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching. This bridges into Level 9 (Factors & HCF/LCM).",
+        fmt, sheet, seed_base=400)
 
 
 # ───────────────────────── 8I: Puzzles (magic squares + patterns) ─────────────────────────
@@ -589,62 +604,58 @@ def _I_s(sheet):
 # ───────────────────────── 8J: Mixed challenge (self-scored speed) ─────────────────────────
 
 def _J_s(sheet):
-    lo, hi = _diff_range(sheet)
+    lo, hi = _diff_range(sheet, base_lo=10, base_hi=70, step=15)
+    def is_prime(n):
+        n = abs(n)
+        if n < 2: return False
+        for k in range(2, int(n**0.5) + 1):
+            if n % k == 0: return False
+        return True
     def comp(i, sheet):
-        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
-        op = random.choice(["+", "-"])
-        return q(f"({a}) {op} ({b}) = ____  [1 point]", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a, b)-5, "hi": max(a, b)+5})
+        n = random.randint(max(lo, 2), hi)
+        return q(f"Is {n} a PRIME number or a COMPOSITE number? Show your working.  [1 point]", "fill", "____ (Prime/Composite)")
     def tf(i, sheet):
-        a, b = random.randint(lo, hi), random.randint(lo, hi)
-        if i == 0:
-            correct_prop = random.choice(["Commutative", "Associative", "Closure", "Distributive"])
-            wrong_prop = random.choice([p for p in ["Commutative", "Associative", "Closure", "Distributive"] if p != correct_prop])
-            shown_prop = correct_prop if random.random() > 0.4 else wrong_prop
-            examples = {
-                "Commutative": f"({a}) + ({b}) = ({b}) + ({a})",
-                "Associative": f"[({a})+({b})]+(2) = ({a})+[({b})+(2)]",
-                "Closure": f"({a}) - ({b}) is always an integer",
-                "Distributive": f"({a}) x [({b})+(2)] = ({a})x({b}) + ({a})x(2)",
-            }
-            return q(f"True or False: '{examples[correct_prop]}' is an example of the {shown_prop} Property.  [1 point]", "fill", "____ (True/False)")
-        correct = a*b
-        shown = correct if random.random() > 0.4 else -correct
-        return q(f"True or False: (-{a}) x (-{b}) = {shown}  [1 point]", "fill", "____ (True/False)")
+        n = random.randint(max(lo, 2), hi)
+        actual = "Prime" if is_prime(n) else "Composite"
+        wrong = "Composite" if actual == "Prime" else "Prime"
+        shown = actual if random.random() > 0.4 else wrong
+        return q(f"True or False: {n} is {shown}.  [1 point]", "fill", "____ (True/False)")
     def missing(i, sheet):
-        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
-        return q(f"({a}) + ____ = {t}  [2 points]", "diagram", "____", "", "vertical_numberline_blank",
-                  {"lo": min(a, t)-3, "hi": max(a, t)+3})
+        n = random.randint(-hi, hi)
+        if n == 0: n = hi
+        return q(f"|{n}| = ____  (absolute value = distance from 0)  [2 points]", "fill", "____")
     def numeral(i, sheet):
-        a, b = random.randint(-hi, hi), random.randint(-hi, hi)
-        op = random.choice(["+", "-", "x"])
-        return q(f"({a}) {op} ({b}) = ____  [2 points]", "fill", "____")
+        n = random.choice([-1, 1]) * random.randint(max(lo, 2), hi)
+        extra = random.randint(2, 9)
+        return q(f"Find |{n}| + {extra}.  [2 points]", "fill", "____")
     def multisel(i, sheet):
-        target = random.randint(-hi, hi)
-        opts = [f"({target-2})+(2)", f"({target})+(0)", f"({target+3})-(3)", f"({target+1})-(2)"]
-        return q(f"Which equal {target}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}  [2 points]",
+        nums = random.sample(range(max(lo, 2), hi), 4)
+        opts_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(nums))
+        return q(f"Which of these are PRIME numbers? Select ALL that apply: {opts_str}  [2 points]",
                   "fill", "____ (list all letters)")
     def matching(i, sheet):
-        pairs = [(random.randint(-hi, hi), random.randint(-hi, hi)) for _ in range(3)]
-        lefts = [f"({a})+({b})" for a, b in pairs]; rights = [str(a+b) for a, b in pairs]
+        vals = [random.choice([-1, 1]) * random.randint(max(lo, 2), hi) for _ in range(3)]
+        lefts = [f"|{v}|" for v in vals]; rights = [str(abs(v)) for v in vals]
         shuffled = rights[:]; random.shuffle(shuffled)
         left_str = "  ".join(f"{idx+1}) {v}" for idx, v in enumerate(lefts))
         right_str = "  ".join(f"{chr(65+idx)}) {v}" for idx, v in enumerate(shuffled))
-        return q(f"Match to its value: {left_str}  to  {right_str}  [2 points]", "fill", "____ (e.g. 1-A,2-B...)")
+        return q(f"Match to its absolute value: {left_str}  to  {right_str}  [2 points]", "fill", "____ (e.g. 1-A,2-B...)")
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
     items = _make_rotated_sheet(
-        "Worked Example",
+        "Prime & Composite + Absolute Value",
         ["Speed challenge: each question has a point value. Add up your own score at the end!",
+         "A PRIME number has exactly 2 factors: 1 and itself. A COMPOSITE number has more than 2 factors.",
+         "|x| (absolute value) = distance from 0 on the number line -- always positive or zero.",
          "Bronze: 20+ points. Silver: 30+ points. Gold: 38+ points (all correct)."],
-        "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
-        "Formats rotate each sheet. Solve each question, then add up your points (shown in brackets).",
-        fmt, sheet, seed_base=110)
+        "vertical_numberline_example", {"value": -13, "lo": -20, "hi": 20},
+        "Formats rotate each sheet. Solve each question, then add up your points (shown in brackets). This bridges into Level 9 (Factors & Prime Factorisation).",
+        fmt, sheet, seed_base=500)
     items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
     return items
 
 
 def _REV_s(sheet):
-    lo, hi = _diff_range(sheet)
+    lo, hi = _diff_range(sheet, base_lo=8, base_hi=25, step=8)
     def comp(i, sheet):
         a, b = random.randint(-hi, hi), random.randint(-hi, hi)
         op = random.choice(["+", "-"])
@@ -667,12 +678,40 @@ def _REV_s(sheet):
         shown = correct if random.random() > 0.4 else -correct
         return q(f"True or False: (-{a}) x (-{b}) = {shown}", "fill", "____ (True/False)")
     def missing(i, sheet):
-        a = random.randint(-hi, hi); t = random.randint(-hi, hi)
-        return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+        kind = i % 4
+        if kind == 0:
+            a = random.randint(-hi, hi); t = random.randint(-hi, hi)
+            return q(f"({a}) + ____ = {t}", "diagram", "____", "", "vertical_numberline_blank", {"lo": min(a, t)-3, "hi": max(a, t)+3})
+        elif kind == 1:
+            n = random.randint(-hi, hi)
+            if n == 0: n = hi
+            dv = random.choice([2, 3, 4, 5, 6, 8, 9, 10, 11])
+            return q(f"What is the smallest number GREATER than {n} that IS divisible by {dv}? ____", "fill", "____")
+        elif kind == 2:
+            a, b, c = random.randint(-hi, hi) or 1, random.randint(-hi, hi) or 1, random.randint(2, 9)
+            target = a + b*c
+            return q(f"({a}) + ({b}) x ____ = {target}. Find the missing number (apply BODMAS).", "fill", "____")
+        else:
+            n = random.randint(-hi, hi)
+            if n == 0: n = hi
+            return q(f"|{n}| = ____  (absolute value)", "fill", "____")
     def numeral(i, sheet):
-        a, b = random.randint(-hi, hi), random.randint(-hi, hi) or 1
-        op = random.choice(["+", "-", "x"])
-        return q(f"({a}) {op} ({b}) = ____", "fill", "____")
+        kind = i % 4
+        if kind == 0:
+            a, b = random.randint(-hi, hi), random.randint(-hi, hi) or 1
+            op = random.choice(["+", "-", "x"])
+            return q(f"({a}) {op} ({b}) = ____", "fill", "____")
+        elif kind == 1:
+            n = random.randint(max(lo, 2), hi)
+            return q(f"Is {n} PRIME or COMPOSITE?", "fill", "____ (Prime/Composite)")
+        elif kind == 2:
+            a, b, c = random.randint(lo, hi), random.randint(lo, hi), random.randint(lo, hi)
+            return q(f"({a}) - ({b}) x ({c}) = ____  (apply BODMAS)", "fill", "____")
+        else:
+            n = random.randint(-hi, hi)
+            if n == 0: n = hi
+            dv = random.choice([2, 3, 4, 5, 6, 8, 9, 10, 11])
+            return q(f"Is {n} divisible by {dv}? Answer Yes or No.", "fill", "____")
     def multisel(i, sheet):
         target = random.randint(-hi, hi)
         opts = [f"({target-2})+(2)", f"({target})+(0)", f"({target+3})-(3)", f"({target+1})-(2)"]
@@ -688,7 +727,7 @@ def _REV_s(sheet):
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
     return _make_rotated_sheet(
         "Level 8 Revision",
-        ["Every integer skill: concept, ordering, the four operations, word problems, and puzzles."],
+        ["Every integer skill: concept, ordering, the four operations, properties, divisibility, BODMAS, primes, absolute value, word problems, and puzzles."],
         "vertical_numberline_example", {"value": 2, "lo": -10, "hi": 10},
         "Formats rotate each sheet: computation, True/False, missing-number, numeral, multi-select, matching.",
         fmt, sheet, seed_base=900)
@@ -703,6 +742,6 @@ def _wrap(fn):
 LEVEL8_DISPATCH = {
     "8A": _wrap(_A_s), "8B": _wrap(_B_s), "8C": _wrap(_C_s), "8CUM1": _wrap(_CUM1_s),
     "8D": _wrap(_D_s), "8E": _wrap(_E_s), "8F": _wrap(_F_s), "8CUM2": _wrap(_CUM2_s),
-    "8G": _wrap(_G_s), "8H": _wrap(_H_s), "8I": _wrap(_I_s), "8CUM3": _wrap(_CUM3_s),
+    "8G": _wrap(_G_s), "8H": _wrap(_CUM3_s), "8I": _wrap(_I_s), "8CUM3": _wrap(_H_s),
     "8J": _wrap(_J_s), "8REV": _wrap(_REV_s),
 }
