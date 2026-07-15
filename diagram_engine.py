@@ -2407,6 +2407,274 @@ DIAGRAM_FUNCTIONS = {
     "proportion_graph": proportion_graph,
 }
 
+
+# ─── SVG DIAGRAMS (Level 11 trial -- vector output for sharper print) ──────────
+
+def algebra_tiles_svg(pos_x=0, pos_const=0, neg_x=0, neg_const=0, **kw):
+    """Renders an algebraic expression as physical tiles: long rectangles
+    for x-terms, small squares for constants. Blue = positive x, amber =
+    positive unit, red = negative. Includes a built-in legend so the
+    tiles are self-explanatory without relying on a separate worked
+    example. Returns a raw SVG string."""
+    tile_w, tile_h, unit, gap = 78, 34, 34, 12
+    legend_h = 34
+    x = 18
+    y = 18 + legend_h + 12
+    parts = []
+
+    defs = '''<defs>
+<linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#EAF4FC"/><stop offset="1" stop-color="#BFDDF5"/>
+</linearGradient>
+<linearGradient id="gAmber" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FFF8E1"/><stop offset="1" stop-color="#FCE7A6"/>
+</linearGradient>
+<linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#FDEDEB"/><stop offset="1" stop-color="#F5C2BA"/>
+</linearGradient>
+<filter id="tileShadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.25"/>
+</filter>
+</defs>'''
+    parts.append(defs)
+
+    def add_x_tile(positive):
+        nonlocal x
+        grad, stroke, tcol, label = ("url(#gBlue)", "#1B5E8C", "#0C3A5C", "x") if positive else ("url(#gRed)", "#A6362B", "#6E1F18", "-x")
+        parts.append(f'<rect x="{x}" y="{y}" width="{tile_w}" height="{tile_h}" rx="6" fill="{grad}" stroke="{stroke}" stroke-width="2" filter="url(#tileShadow)"/>')
+        parts.append(f'<text x="{x+tile_w/2:.1f}" y="{y+tile_h/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="{tcol}">{label}</text>')
+        x += tile_w + gap
+
+    def add_unit_tile(positive):
+        nonlocal x
+        grad, stroke, tcol, label = ("url(#gAmber)", "#9A7209", "#5c4708", "1") if positive else ("url(#gRed)", "#A6362B", "#6E1F18", "-1")
+        parts.append(f'<rect x="{x}" y="{y}" width="{unit}" height="{unit}" rx="6" fill="{grad}" stroke="{stroke}" stroke-width="2" filter="url(#tileShadow)"/>')
+        parts.append(f'<text x="{x+unit/2:.1f}" y="{y+unit/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="{tcol}">{label}</text>')
+        x += unit + gap
+
+    for _ in range(pos_x): add_x_tile(True)
+    for _ in range(neg_x): add_x_tile(False)
+    for _ in range(pos_const): add_unit_tile(True)
+    for _ in range(neg_const): add_unit_tile(False)
+
+    width = max(x + 12, 300)
+    height = y + tile_h + 16
+
+    # Legend, top-left: small sample tiles next to "= x" / "= 1" labels
+    lx, ly = 18, 16
+    legend = f'''
+<rect x="{lx}" y="{ly}" width="30" height="16" rx="4" fill="url(#gBlue)" stroke="#1B5E8C" stroke-width="1.5"/>
+<text x="{lx+37}" y="{ly+13}" font-family="Helvetica-Bold" font-size="13" fill="#0C3A5C">= x</text>
+<rect x="{lx+95}" y="{ly}" width="16" height="16" rx="4" fill="url(#gAmber)" stroke="#9A7209" stroke-width="1.5"/>
+<text x="{lx+119}" y="{ly+13}" font-family="Helvetica-Bold" font-size="13" fill="#5c4708">= 1</text>
+<rect x="{lx+170}" y="{ly}" width="30" height="16" rx="4" fill="url(#gRed)" stroke="#A6362B" stroke-width="1.5"/>
+<text x="{lx+207}" y="{ly+13}" font-family="Helvetica-Bold" font-size="13" fill="#6E1F18">= negative</text>
+<line x1="{lx}" y1="{ly+legend_h-8}" x2="{width-18}" y2="{ly+legend_h-8}" stroke="#D5D8DC" stroke-width="1"/>'''
+    parts.insert(1, legend)
+
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
+
+
+def balance_scale_svg(left_text="x + 3", right_text="7", w=380, **kw):
+    """Renders a balance scale in equilibrium with the two sides of an
+    equation on each pan -- the standard visual for equation solving.
+    Returns a raw SVG string."""
+    h = 220
+    cx = w / 2
+    beam_y = 64
+    left_x, right_x = 68, w - 68
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">
+<defs>
+<linearGradient id="gPanL" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#EAF4FC"/><stop offset="1" stop-color="#BFDDF5"/>
+</linearGradient>
+<linearGradient id="gPanR" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#E7F8ED"/><stop offset="1" stop-color="#B7E8C7"/>
+</linearGradient>
+<linearGradient id="gBase" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#F7F8F9"/><stop offset="1" stop-color="#D6D9DC"/>
+</linearGradient>
+<filter id="panShadow" x="-30%" y="-30%" width="160%" height="160%">
+<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.28"/>
+</filter>
+</defs>
+<line x1="{cx}" y1="{beam_y+42}" x2="{cx}" y2="{h-24}" stroke="#2C3E50" stroke-width="5"/>
+<polygon points="{cx-74},{h-24} {cx+74},{h-24} {cx+54},{h-6} {cx-54},{h-6}" fill="url(#gBase)" stroke="#2C3E50" stroke-width="2"/>
+<polygon points="{cx-22},{beam_y+42} {cx+22},{beam_y+42} {cx},{beam_y}" fill="url(#gBase)" stroke="#2C3E50" stroke-width="2"/>
+<line x1="{left_x}" y1="{beam_y}" x2="{right_x}" y2="{beam_y}" stroke="#2C3E50" stroke-width="4" stroke-linecap="round"/>
+<circle cx="{cx}" cy="{beam_y}" r="5" fill="#2C3E50"/>
+<line x1="{left_x}" y1="{beam_y}" x2="{left_x}" y2="{beam_y+52}" stroke="#2C3E50" stroke-width="2"/>
+<polygon points="{left_x-48},{beam_y+52} {left_x+48},{beam_y+52} {left_x+34},{beam_y+86} {left_x-34},{beam_y+86}" fill="url(#gPanL)" stroke="#1B5E8C" stroke-width="2" filter="url(#panShadow)"/>
+<text x="{left_x}" y="{beam_y+74}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0C3A5C">{left_text}</text>
+<line x1="{right_x}" y1="{beam_y}" x2="{right_x}" y2="{beam_y+52}" stroke="#2C3E50" stroke-width="2"/>
+<polygon points="{right_x-48},{beam_y+52} {right_x+48},{beam_y+52} {right_x+34},{beam_y+86} {right_x-34},{beam_y+86}" fill="url(#gPanR)" stroke="#1E7A44" stroke-width="2" filter="url(#panShadow)"/>
+<text x="{right_x}" y="{beam_y+74}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0B4F30">{right_text}</text>
+<text x="{cx}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">Both sides are EQUAL</text>
+</svg>'''
+
+
+def term_label_svg(coefficient=5, variable="x", exponent=None, **kw):
+    """Breaks a term like '5x' or '5x^2' into its parts, with a labelled
+    connector under each piece: Coefficient / Variable / Exponent."""
+    fs = 34
+    char_w = fs * 0.62
+    inter_part_gap = 60
+    coef_str = str(coefficient)
+    var_str = str(variable)
+    exp_str = str(exponent) if exponent not in (None, "") else None
+    coef_w = char_w * len(coef_str)
+    var_w = char_w * len(var_str)
+    exp_w = char_w * len(exp_str) * 0.6 if exp_str else 0
+
+    x0 = 30
+    y_term = 68
+    width = max(coef_w + inter_part_gap + var_w + inter_part_gap + exp_w + 60, 300)
+    height = 150
+
+    parts = []
+    cx = x0
+    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#1B5E8C">{coef_str}</text>')
+    coef_mid = cx + coef_w / 2
+    cx += coef_w + inter_part_gap
+    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#1E7A44">{var_str}</text>')
+    var_mid = cx + var_w / 2
+    cx += var_w + inter_part_gap
+    exp_mid = None
+    if exp_str:
+        parts.append(f'<text x="{cx}" y="{y_term-16}" font-family="Helvetica-Bold" font-size="{fs*0.6:.0f}" fill="#A6362B">{exp_str}</text>')
+        exp_mid = cx + exp_w / 2
+
+    label_y = y_term + 46
+
+    def add_label(mid_x, text, color):
+        parts.append(f'<line x1="{mid_x}" y1="{y_term+12}" x2="{mid_x}" y2="{label_y-16}" stroke="{color}" stroke-width="1.5" stroke-dasharray="3,2"/>')
+        tw = len(text) * 6.8
+        parts.append(f'<rect x="{mid_x-tw/2-7}" y="{label_y-16}" width="{tw+14}" height="22" rx="11" fill="{color}" fill-opacity="0.13" stroke="{color}" stroke-width="1.3"/>')
+        parts.append(f'<text x="{mid_x}" y="{label_y-1}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11.5" fill="{color}">{text}</text>')
+
+    add_label(coef_mid, "Coefficient", "#1B5E8C")
+    add_label(var_mid, "Variable", "#1E7A44")
+    if exp_mid is not None:
+        add_label(exp_mid, "Exponent", "#A6362B")
+
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
+
+
+def like_terms_sort_svg(groups=None, **kw):
+    """Sorts a set of terms into labelled, colour-coded groups (e.g.
+    x-terms, y-terms, constants) inside dashed boundary boxes -- the
+    visual for 'collecting like terms'."""
+    groups = groups or {"x-terms": ["3x", "2x"], "constants": ["5", "1"]}
+    palette = [("#1B5E8C", "#EAF4FC"), ("#1E7A44", "#E7F8ED"), ("#A6362B", "#FDEDEB"), ("#7D3C98", "#F3E9F8")]
+    card_w, card_h, gap, pad, group_gap = 54, 34, 10, 18, 30
+    x = 16
+    y_top = 42
+    parts = []
+    for gi, (label, terms) in enumerate(groups.items()):
+        color, fill = palette[gi % len(palette)]
+        group_w = max(len(terms) * (card_w + gap) - gap, card_w) + 2 * pad
+        parts.append(f'<rect x="{x}" y="{y_top}" width="{group_w}" height="{card_h+2*pad}" rx="14" fill="{fill}" stroke="{color}" stroke-width="2" stroke-dasharray="6,3"/>')
+        parts.append(f'<text x="{x+group_w/2}" y="{y_top-10}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="{color}">{label}</text>')
+        tx, ty = x + pad, y_top + pad
+        for term in terms:
+            parts.append(f'<rect x="{tx}" y="{ty}" width="{card_w}" height="{card_h}" rx="8" fill="white" stroke="{color}" stroke-width="1.8"/>')
+            parts.append(f'<text x="{tx+card_w/2}" y="{ty+card_h/2+5}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="{color}">{term}</text>')
+            tx += card_w + gap
+        x += group_w + group_gap
+    width = x - group_gap + 16
+    height = y_top + card_h + 2 * pad + 16
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
+
+
+def function_machine_svg(input_val=3, expression="x + 5", output_val=8, **kw):
+    """Input -> RULE machine -> Output, for substitution/evaluation.
+    Pass output_val=None to leave the output blank (student solves it)."""
+    w, h = 420, 160
+    out_label = str(output_val) if output_val is not None else "?"
+    parts = []
+    parts.append('<circle cx="50" cy="80" r="34" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="50" y="87" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#0C3A5C">{input_val}</text>')
+    parts.append('<text x="50" y="128" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#5D6D7E">INPUT (x)</text>')
+    parts.append('<line x1="90" y1="80" x2="136" y2="80" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append('<polygon points="136,80 124,73 124,87" fill="#2C3E50"/>')
+    parts.append('<rect x="145" y="45" width="130" height="70" rx="10" fill="#FFF8E1" stroke="#9A7209" stroke-width="2.5"/>')
+    parts.append(f'<text x="210" y="87" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#5c4708">{expression}</text>')
+    parts.append('<text x="210" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#5D6D7E">RULE</text>')
+    parts.append('<line x1="280" y1="80" x2="326" y2="80" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append('<polygon points="326,80 314,73 314,87" fill="#2C3E50"/>')
+    parts.append('<circle cx="370" cy="80" r="34" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2.5"/>')
+    parts.append(f'<text x="370" y="87" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#0B4F30">{out_label}</text>')
+    parts.append('<text x="370" y="128" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#5D6D7E">OUTPUT</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def substitution_steps_svg(steps=None, **kw):
+    """A vertical chain of boxes showing a substitution worked step by
+    step, e.g. '2x+1' -> '2(3)+1' -> '6+1' -> '7', the last box
+    highlighted as the final answer."""
+    steps = steps or ["2x + 1", "2(3) + 1", "6 + 1", "7"]
+    w, box_h, gap = 260, 40, 24
+    h = len(steps) * (box_h + gap) - gap + 26
+    parts = []
+    y = 14
+    for i, s in enumerate(steps):
+        is_last = (i == len(steps) - 1)
+        fill, stroke, tcol = ("#E7F8ED", "#1E7A44", "#0B4F30") if is_last else ("#EAF4FC", "#1B5E8C", "#0C3A5C")
+        parts.append(f'<rect x="20" y="{y}" width="{w-40}" height="{box_h}" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"/>')
+        parts.append(f'<text x="{w/2}" y="{y+box_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="{tcol}">{s}</text>')
+        if not is_last:
+            ay = y + box_h
+            parts.append(f'<line x1="{w/2}" y1="{ay+3}" x2="{w/2}" y2="{ay+gap-7}" stroke="#2C3E50" stroke-width="2"/>')
+            parts.append(f'<polygon points="{w/2},{ay+gap-2} {w/2-6},{ay+gap-11} {w/2+6},{ay+gap-11}" fill="#2C3E50"/>')
+        y += box_h + gap
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def repeated_addition_svg(coefficient=3, variable="x", **kw):
+    """Shows a term like '3x' as repeated addition: x + x + x -- builds
+    the intuition for what a coefficient means."""
+    box_w, box_h, gap = 50, 42, 16
+    x, y = 16, 36
+    parts = []
+    for i in range(max(coefficient, 1)):
+        parts.append(f'<rect x="{x}" y="{y}" width="{box_w}" height="{box_h}" rx="8" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{x+box_w/2}" y="{y+box_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0C3A5C">{variable}</text>')
+        x += box_w
+        if i < coefficient - 1:
+            parts.append(f'<text x="{x+gap/2}" y="{y+box_h/2+7}" text-anchor="middle" font-family="Helvetica-Bold" font-size="19" fill="#2C3E50">+</text>')
+            x += gap
+    width = x + 16
+    height = y + box_h + 46
+    cap = f"{coefficient}{variable}  =  " + " + ".join([variable] * coefficient)
+    parts.append(f'<text x="{width/2}" y="{height-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
+
+
+SVG_DIAGRAM_FUNCTIONS = {
+    "algebra_tiles": algebra_tiles_svg,
+    "balance_scale": balance_scale_svg,
+    "term_label": term_label_svg,
+    "like_terms_sort": like_terms_sort_svg,
+    "function_machine_svg": function_machine_svg,
+    "substitution_steps": substitution_steps_svg,
+    "repeated_addition": repeated_addition_svg,
+}
+
+
+def generate_svg_diagram(diagram_type: str, params: dict) -> str | None:
+    """Returns a raw SVG string for vector-based diagram types, or None if
+    diagram_type isn't one of them. Used by pdf_engine to distinguish SVG
+    diagrams (rendered via svglib as true vector PDF content) from the
+    PNG raster diagrams above."""
+    fn = SVG_DIAGRAM_FUNCTIONS.get(diagram_type)
+    if fn is None:
+        return None
+    try:
+        return fn(**params)
+    except Exception as e:
+        print(f"SVG diagram error [{diagram_type}]: {e}")
+        return None
+
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:
     """Main entry point. Returns BytesIO PNG or None if type unknown."""
     fn = DIAGRAM_FUNCTIONS.get(diagram_type)

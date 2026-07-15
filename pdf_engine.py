@@ -4,6 +4,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.graphics import renderPDF
 import os, tempfile
 from io import BytesIO
 from content import get_questions
@@ -45,6 +46,21 @@ def _diag(dtype,dpar):
         f=tempfile.NamedTemporaryFile(suffix='.png',delete=False)
         f.write(buf.read()); f.close(); _TEMP.append(f.name); return f.name
     except: return None
+
+def _diag_svg(dtype,dpar):
+    """Returns a ReportLab Drawing object for SVG-sourced diagram types
+    (vector, sharper than the PNG path above), or None if dtype isn't an
+    SVG diagram type or conversion fails."""
+    try:
+        from diagram_engine import generate_svg_diagram
+        svg_str=generate_svg_diagram(dtype,dpar)
+        if not svg_str: return None
+        from svglib.svglib import svg2rlg
+        from io import StringIO
+        drawing=svg2rlg(StringIO(svg_str))
+        return drawing
+    except Exception:
+        return None
 
 def _clean():
     for p in _TEMP:
@@ -275,19 +291,36 @@ class Col:
             if line: c.drawString(tx2,self.y,line)
         self.y-=lh+1.5*mm
         if dtype:
-            path=_diag(dtype,dparm)
-            if path:
+            svg_drawing=_diag_svg(dtype,dparm)
+            if svg_drawing is not None:
                 try:
                     big_diag = dtype in ("base10_blocks", "compare_blocks",
                                           "vertical_numberline_blank", "vertical_numberline_example",
                                           "math_maze_blank", "function_machine_blank",
-                                          "number_pyramid_blank")
+                                          "number_pyramid_blank", "algebra_tiles", "balance_scale")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
-                    c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
+                    scale=min(iw/svg_drawing.width, ih/svg_drawing.height)
+                    svg_drawing.scale(scale,scale)
+                    drawn_w=svg_drawing.width*scale
+                    renderPDF.draw(svg_drawing,c,x+1.5*mm+(iw-drawn_w)/2,self.y-ih)
                     self.y-=ih+1.5*mm
-                except: pass
+                except Exception: pass
+            else:
+                path=_diag(dtype,dparm)
+                if path:
+                    try:
+                        big_diag = dtype in ("base10_blocks", "compare_blocks",
+                                              "vertical_numberline_blank", "vertical_numberline_example",
+                                              "math_maze_blank", "function_machine_blank",
+                                              "number_pyramid_blank")
+                        matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
+                        iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
+                        ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
+                        c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
+                        self.y-=ih+1.5*mm
+                    except: pass
         c.setFont("Helvetica-Bold",12); c.setFillColor(BLACK); c.drawString(x+1.5*mm,self.y,albl); self.y-=4*mm
         n_lines=1 if dtype else 3; c.setFont("Helvetica",4.5); c.setFillColor(LGRAY)
         du=c.stringWidth(". ","Helvetica",4.5); ds=". "*int(cw/max(du,0.1))

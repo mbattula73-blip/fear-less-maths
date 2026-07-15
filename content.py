@@ -12081,67 +12081,41 @@ def _L11C_4():
     ]
 
 # ─── 11CUM1: Mixed A+B+C ────────────────────────────────────
+# ─── 11CUM1: Term Structure & Repeated Addition ──────────────
 def _L11CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Variables, Expressions, Simplifying — Summary", [
-                "Variable: a letter for an unknown number.",
-                "Expression: numbers, variables, operations (no equals sign).",
-                "Coefficient: number in front of a variable.",
-                "Simplify: collect like terms (same letter), add/subtract coefficients.",
-            ], "If x=4, x+3=7. 3x+5x=8x. In 4x, coefficient is 4."),
-            q("If x = 6, then x + 5 = ____", "fill", "Answer = ____"),
-            q("If n = 4, then 2n = ____", "fill", "Answer = ____"),
-            q("Write '3 more than x': ____", "fill", "Answer = ____"),
-            q("Write '5 times n': ____", "fill", "Answer = ____"),
-            q("In 4x + 7, the coefficient of x is ____", "fill", "Answer = ____"),
-            q("In 6n - 2, the constant term is ____", "fill", "Answer = ____"),
-            q("How many terms in 3x + 2y - 1? ____", "fill", "Answer = ____"),
-            q("Simplify: 3x + 4x = ____", "fill", "Answer = ____"),
-            q("Simplify: 7n - 2n = ____", "fill", "Answer = ____"),
-            q("Simplify: 2x + 3y + 5x = ____", "fill", "Answer = ____"),
-            q("Simplify: 4a + 2 + 3a = ____", "fill", "Answer = ____"),
-            q("True or False: If x=6, then x+5 = 11.", "fill", "Answer = ____"),
-            q("True or False: 2n means 2 times n.", "fill", "Answer = ____"),
-            q("True or False: In 4x+7, the coefficient is 4.", "fill", "Answer = ____"),
-            q("True or False: 3x + 4x = 7x.", "fill", "Answer = ____"),
-            q("True or False: 2x + 3y + 5x = 7x + 3y.", "fill", "Answer = ____"),
-            q("Spot: 7n - 2n = 5. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: '3 more than x' is x + 3.", "fill", "Answer = ____"),
-            q("True or False: 4a + 2 + 3a = 7a + 2.", "fill", "Answer = ____"),
-            q("True or False: An expression has no equals sign.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 11A+11B+11C — Tips", [
-                "Variable: letter for unknown. Substitute to find value.",
-                "Expression: numbers + variables + operations (no = sign).",
-                "Coefficient = number in front. Constant = plain number term.",
-                "Simplify: collect like terms (same letter), combine coefficients.",
-                "Different letters cannot be combined.",
-            ]),
-            q("If x = 8, then x - 3 = ____", "fill", "Answer = ____"),
-            q("If n = 5, then 3n = ____", "fill", "Answer = ____"),
-            q("If y = 4, then 2y + 1 = ____", "fill", "Answer = ____"),
-            q("Write 'double x plus 3': ____", "fill", "Answer = ____"),
-            q("In 5x + 9, the coefficient of x is ____", "fill", "Answer = ____"),
-            q("In 7n - 3, the constant is ____", "fill", "Answer = ____"),
-            q("How many terms in 4a + 3b + 2? ____", "fill", "Answer = ____"),
-            q("Simplify: 5x + 6x = ____", "fill", "Answer = ____"),
-            q("Simplify: 9y - 4y = ____", "fill", "Answer = ____"),
-            q("Simplify: 4x + 2y + 3x = ____", "fill", "Answer = ____"),
-            q("Simplify: 6a + 3 - 2a + 1 = ____", "fill", "Answer = ____"),
-            q("Simplify: 3x + 5y - x - 2y = ____", "fill", "Answer = ____"),
-            q("True or False: If x=8, then x-3 = 5.", "fill", "Answer = ____"),
-            q("True or False: If n=5, then 3n = 15.", "fill", "Answer = ____"),
-            q("True or False: 'double x plus 3' is 2x + 3.", "fill", "Answer = ____"),
-            q("True or False: 5x + 6x = 11x.", "fill", "Answer = ____"),
-            q("True or False: 4x + 2y + 3x = 7x + 2y.", "fill", "Answer = ____"),
-            q("Spot: If y=4, someone says 2y+1 = 24. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: 6a + 3 - 2a + 1 = 4a + 4.", "fill", "Answer = ____"),
-            q("True or False: 3x + 5y - x - 2y = 2x + 3y.", "fill", "Answer = ____"),
-        ]
-
+    random.seed(1100 + sheet)
+    ranges = {1: (2, 6), 2: (3, 8), 3: (4, 10), 4: (5, 12)}
+    lo, hi = ranges[sheet]
+    VARS = ["x", "y", "a", "b", "n"]
+    items = [
+        cb("Term Structure & Repeated Addition", [
+            "A term like 5x has a COEFFICIENT (5) and a VARIABLE (x).",
+            "5x means x added to itself 5 times: x+x+x+x+x.",
+            "The coefficient tells you HOW MANY of the variable you have.",
+        ], "5x = x+x+x+x+x"),
+    ]
+    for _ in range(5):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        items.append(q(f"Label the parts of the term {c}{v}. What is the coefficient? What is the variable?", "diagram", "____", "", "term_label", {"coefficient": c, "variable": v}))
+    for _ in range(5):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        items.append(q(f"This shows why {c}{v} means {v} added to itself. Write it as a repeated sum: ____", "diagram", "____", "", "repeated_addition", {"coefficient": c, "variable": v}))
+    for _ in range(4):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        items.append(q(f"In the term {c}{v}, what is the coefficient? What is the variable?", "fill", "Answer = ____"))
+    for _ in range(3):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        items.append(q(f"Write {c}{v} as a sum of {v}'s added together.", "fill", "Answer = ____"))
+    for _ in range(3):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        shown = c if random.random() > 0.4 else c + random.choice([1, -1])
+        items.append(q(f"True or False: The coefficient of {c}{v} is {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 11D: Like / unlike terms ───────────────────────────────
 def _L11D_1():
@@ -12508,66 +12482,57 @@ def _L11F_4():
     ]
 
 # ─── 11CUM2: Mixed D+E+F ────────────────────────────────────
+# ─── 11CUM2: Function Machines & Substitution ────────────────
 def _L11CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Like Terms, Substitution, Evaluation — Summary", [
-                "Like terms: same letter. Combine by adding coefficients.",
-                "Substitution: replace letter with its number.",
-                "Evaluate: substitute, then simplify using order of operations.",
-            ], "3x+5x=8x. If x=4, 2x=8. Evaluate 3x+1 when x=2: 7."),
-            q("Are 3x and 7x like or unlike? ____", "fill", "Answer = ____"),
-            q("Combine: 4x + 5x = ____", "fill", "Answer = ____"),
-            q("Combine: 3a + 2b + 5a = ____", "fill", "Answer = ____"),
-            q("If x = 5, then 2x = ____", "fill", "Answer = ____"),
-            q("If n = 3, then 3n + 1 = ____", "fill", "Answer = ____"),
-            q("If x = 4, y = 2, then x + y = ____", "fill", "Answer = ____"),
-            q("Evaluate x + 6 when x = 3. ____", "fill", "Answer = ____"),
-            q("Evaluate 2x + 1 when x = 4. ____", "fill", "Answer = ____"),
-            q("Evaluate 2x + y when x = 3, y = 2. ____", "fill", "Answer = ____"),
-            q("Combine: 6n + 2 + 3n = ____", "fill", "Answer = ____"),
-            q("True or False: 3x and 7x are like terms.", "fill", "Answer = ____"),
-            q("True or False: 4x + 5x = 9x.", "fill", "Answer = ____"),
-            q("True or False: If x=5, then 2x = 10.", "fill", "Answer = ____"),
-            q("True or False: If n=3, then 3n+1 = 10.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 2x+1 when x=4 is 9.", "fill", "Answer = ____"),
-            q("True or False: 3a + 2b + 5a = 8a + 2b.", "fill", "Answer = ____"),
-            q("Spot: If x=4, y=2, someone says x+y = 42. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: 6n + 2 + 3n = 9n + 2.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 2x+y when x=3, y=2 is 8.", "fill", "Answer = ____"),
-            q("True or False: Evaluate x+6 when x=3 is 9.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 11D+11E+11F — Tips", [
-                "Like terms: same letter, combine coefficients.",
-                "Substitution: replace each letter with its number.",
-                "Evaluate: substitute, then use order of operations.",
-                "Multiplication before addition. 2x means 2 times x.",
-                "Only like terms can be combined.",
-            ]),
-            q("Combine: 5x + 7x = ____", "fill", "Answer = ____"),
-            q("Combine: 4a + 3b + 2a + b = ____", "fill", "Answer = ____"),
-            q("If x = 6, then 3x = ____", "fill", "Answer = ____"),
-            q("If n = 4, then 2n + 3 = ____", "fill", "Answer = ____"),
-            q("If x = 5, y = 3, then x + 2y = ____", "fill", "Answer = ____"),
-            q("Evaluate 4x - 2 when x = 3. ____", "fill", "Answer = ____"),
-            q("Evaluate 2x + 3y when x = 2, y = 4. ____", "fill", "Answer = ____"),
-            q("Evaluate xy when x = 5, y = 4. ____", "fill", "Answer = ____"),
-            q("Combine: 7x + 3y - 2x - y = ____", "fill", "Answer = ____"),
-            q("Combine: 8n - 3n + 2m = ____", "fill", "Answer = ____"),
-            q("Are 4x and 4y like or unlike? ____", "fill", "Answer = ____"),
-            q("Evaluate 3(x + 2) when x = 4. ____", "fill", "Answer = ____"),
-            q("True or False: 5x + 7x = 12x.", "fill", "Answer = ____"),
-            q("True or False: If x=6, then 3x = 18.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 4x-2 when x=3 is 10.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 2x+3y when x=2, y=4 is 16.", "fill", "Answer = ____"),
-            q("True or False: xy when x=5, y=4 is 20.", "fill", "Answer = ____"),
-            q("Spot: 7x+3y-2x-y = 5x+2y. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 4a + 3b + 2a + b = 6a + 4b.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 3(x+2) when x=4 is 18.", "fill", "Answer = ____"),
-        ]
+    random.seed(1110 + sheet)
+    c_ranges = {1: (2, 6), 2: (3, 9), 3: (4, 12), 4: (5, 15)}
+    x_ranges = {1: (2, 6), 2: (2, 8), 3: (3, 10), 4: (3, 12)}
+    clo, chi = c_ranges[sheet]
+    xlo, xhi = x_ranges[sheet]
+    items = [
+        cb("Function Machines & Substitution", [
+            "A function machine takes an INPUT, applies a RULE, and gives an OUTPUT.",
+            "Substitution: replace the variable with its given value, then follow order of operations.",
+        ], "Input x=3, rule 2x+1: output = 2(3)+1 = 7"),
+    ]
 
+    def make_rule():
+        a = random.randint(clo, chi)
+        b = random.randint(1, chi)
+        op = random.choice(["+", "-"])
+        return a, b, op
+
+    for _ in range(6):
+        a, b, op = make_rule()
+        xv = random.randint(xlo, xhi)
+        expr = f"{a}x {op} {b}"
+        items.append(q(f"The function machine takes x={xv} as input and applies the rule {expr}. Find the output.", "diagram", "____", "", "function_machine_svg", {"input_val": xv, "expression": expr, "output_val": None}))
+    for _ in range(5):
+        a, b, op = make_rule()
+        xv = random.randint(xlo, xhi)
+        expr = f"{a}x {op} {b}"
+        step2 = f"{a}({xv}) {op} {b}"
+        mid = a * xv
+        step3 = f"{mid} {op} {b}"
+        out = mid + b if op == "+" else mid - b
+        items.append(q(f"Follow the substitution steps for x={xv} in {expr}. What is the final answer?", "diagram", "____", "", "substitution_steps", {"steps": [expr, step2, step3, str(out)]}))
+    for _ in range(4):
+        a, b, op = make_rule()
+        xv = random.randint(xlo, xhi)
+        expr = f"{a}x {op} {b}"
+        items.append(q(f"If x={xv}, evaluate {expr}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a = random.randint(clo, chi)
+        xv = random.randint(xlo, xhi)
+        items.append(q(f"A function machine's rule is 'multiply by {a}'. If the output is {a*xv}, what was the input?", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, op = make_rule()
+        xv = random.randint(xlo, xhi)
+        out = a * xv + b if op == "+" else a * xv - b
+        shown = out if random.random() > 0.4 else out + random.choice([1, -1])
+        expr = f"{a}x {op} {b}"
+        items.append(q(f"True or False: When x={xv}, {expr} = {shown}.", "fill", "Answer = ____ (True/False)"))
+    return items
 
 # ─── 11G: Word problems ─────────────────────────────────────
 def _L11G_1():
@@ -12588,7 +12553,7 @@ def _L11G_1():
         q("Ravi had x rupees. He spent Rs 10. He has ____ rupees left.", "fill", "Answer = ____"),
         q("A bag has y sweets. They are shared among 3 friends. Each gets ____ sweets.", "fill", "Answer = ____"),
         q("Meena is x years old. Her sister is twice as old. Sister is ____ years.", "fill", "Answer = ____"),
-        q("A班 has b boys and g girls. Total students = ____", "fill", "Answer = ____"),
+        q("A class has b boys and g girls. Total students = ____", "fill", "Answer = ____"),
         q("If x = 5, Ravi has x + 4 = ____ sweets.", "fill", "Answer = ____"),
         q("True or False: 'x sweets plus 4 more' is x + 4.", "fill", "Answer = ____"),
         q("True or False: 5 books at n rupees each = 5n rupees.", "fill", "Answer = ____"),
@@ -12689,121 +12654,41 @@ def _L11G_4():
     ]
 
 # ─── 11H: Mixed expressions ─────────────────────────────────
+# ─── 11H: Algebra Tiles — Collecting Like Terms ──────────────
 def _L11H_s(sheet):
-    s1 = [
-        cb("Mixed — All Algebra Skills", [
-            "Variable: letter for unknown. Expression: numbers + letters.",
-            "Simplify: collect like terms. Substitute: replace letter with number.",
-            "Evaluate: substitute, then work out the value.",
-        ], "If x=4, 2x+1=9. Simplify 3x+5x=8x. Coefficient of 4x is 4."),
-        q("If x = 5, then x + 7 = ____", "fill", "Answer = ____"),
-        q("If n = 3, then 4n = ____", "fill", "Answer = ____"),
-        q("Write '5 more than x': ____", "fill", "Answer = ____"),
-        q("In 6x + 2, the coefficient of x is ____", "fill", "Answer = ____"),
-        q("Simplify: 4x + 3x = ____", "fill", "Answer = ____"),
-        q("Simplify: 5n + 2m + 3n = ____", "fill", "Answer = ____"),
-        q("Are 3x and 5x like or unlike? ____", "fill", "Answer = ____"),
-        q("Evaluate 2x + 1 when x = 4. ____", "fill", "Answer = ____"),
-        q("Evaluate x + y when x = 3, y = 5. ____", "fill", "Answer = ____"),
-        q("If x = 6, y = 2, then 2x + y = ____", "fill", "Answer = ____"),
-        q("A box has n pens. 3 boxes have ____ pens.", "fill", "Answer = ____"),
-        q("Simplify: 7x + 2 - 3x = ____", "fill", "Answer = ____"),
-        q("True or False: If x=5, then x+7 = 12.", "fill", "Answer = ____"),
-        q("True or False: 4x + 3x = 7x.", "fill", "Answer = ____"),
-        q("True or False: Evaluate 2x+1 when x=4 is 9.", "fill", "Answer = ____"),
-        q("True or False: 5n + 2m + 3n = 8n + 2m.", "fill", "Answer = ____"),
-        q("Spot: If n=3, someone says 4n = 7. Correct? Fix. ____", "fill", "Answer = ____"),
-        q("True or False: 3 boxes of n pens = 3n pens.", "fill", "Answer = ____"),
-        q("True or False: 7x + 2 - 3x = 4x + 2.", "fill", "Answer = ____"),
-        q("True or False: x+y when x=3, y=5 is 8.", "fill", "Answer = ____"),
+    random.seed(1120 + sheet)
+    ranges = {1: (1, 4), 2: (2, 5), 3: (2, 6), 4: (3, 8)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Algebra Tiles: Collecting Like Terms", [
+            "Each long tile = x. Each small tile = 1.",
+            "To collect like terms, count all the x-tiles together, then all the unit tiles together.",
+            "Only LIKE terms (same variable, same power) can be combined.",
+        ], "3x + 2 shown as 3 long tiles + 2 small tiles."),
     ]
-    s2 = [
-        cb("Mixed — Connecting Algebra Skills", [
-            "Build expressions, simplify, then evaluate.",
-            "Read carefully — write the right operation.",
-        ], "If x=2, 3x+4 = 10. Simplify 2x+3x+1 = 5x+1."),
-        q("Simplify: 6x + 4x = ____", "fill", "Answer = ____"),
-        q("Simplify: 3a + 2b + 5a + b = ____", "fill", "Answer = ____"),
-        q("If x = 4, then 3x - 2 = ____", "fill", "Answer = ____"),
-        q("If n = 5, then 2n + 6 = ____", "fill", "Answer = ____"),
-        q("Evaluate 2x + 3y when x = 3, y = 1. ____", "fill", "Answer = ____"),
-        q("Write 'twice n plus 4': ____", "fill", "Answer = ____"),
-        q("In 8x - 3, the constant is ____", "fill", "Answer = ____"),
-        q("Simplify: 5x + 3 + 2x - 1 = ____", "fill", "Answer = ____"),
-        q("Evaluate xy when x = 4, y = 3. ____", "fill", "Answer = ____"),
-        q("A pen costs x rupees. 6 pens cost ____ rupees.", "fill", "Answer = ____"),
-        q("If x = 2, then 4x + 1 = ____", "fill", "Answer = ____"),
-        q("Combine: 9n - 4n - 2n = ____", "fill", "Answer = ____"),
-        q("True or False: 6x + 4x = 10x.", "fill", "Answer = ____"),
-        q("True or False: If x=4, then 3x-2 = 10.", "fill", "Answer = ____"),
-        q("True or False: 2x+3y when x=3, y=1 is 9.", "fill", "Answer = ____"),
-        q("True or False: 'twice n plus 4' is 2n + 4.", "fill", "Answer = ____"),
-        q("Spot: 5x + 3 + 2x - 1 = 7x + 2. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: xy when x=4, y=3 is 12.", "fill", "Answer = ____"),
-        q("True or False: 6 pens at Rs x = 6x rupees.", "fill", "Answer = ____"),
-        q("True or False: 9n - 4n - 2n = 3n.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Algebra — Tips", [
-            "Variable = letter for unknown. Substitute to evaluate.",
-            "Simplify: collect like terms (same letter).",
-            "Coefficient = number in front. Constant = plain number.",
-            "Word problems: 'more'=add, 'each'=multiply, 'shared'=divide.",
-            "Order: brackets, ×÷, then +-.",
-        ]),
-        q("If x = 7, then 2x - 3 = ____", "fill", "Answer = ____"),
-        q("Simplify: 5x + 6x - 2x = ____", "fill", "Answer = ____"),
-        q("Simplify: 4a + 3b + 2a - b = ____", "fill", "Answer = ____"),
-        q("Evaluate 3x + 2 when x = 5. ____", "fill", "Answer = ____"),
-        q("Evaluate 2x + y when x = 4, y = 3. ____", "fill", "Answer = ____"),
-        q("Write '3 less than twice x': ____", "fill", "Answer = ____"),
-        q("In 7x + 5, coefficient of x = ____, constant = ____", "fill", "Answer = ____"),
-        q("A book costs n rupees. 5 books and Rs 2 postage = ____", "fill", "Answer = ____"),
-        q("Evaluate 2(x + 3) when x = 4. ____", "fill", "Answer = ____"),
-        q("Simplify: 8x - 3 - 5x + 1 = ____", "fill", "Answer = ____"),
-        q("If x = 3, y = 5, then x + 2y = ____", "fill", "Answer = ____"),
-        q("Combine: 6m + 2n + 3m + 4n = ____", "fill", "Answer = ____"),
-        q("True or False: If x=7, then 2x-3 = 11.", "fill", "Answer = ____"),
-        q("True or False: 5x + 6x - 2x = 9x.", "fill", "Answer = ____"),
-        q("True or False: Evaluate 3x+2 when x=5 is 17.", "fill", "Answer = ____"),
-        q("True or False: '3 less than twice x' is 2x - 3.", "fill", "Answer = ____"),
-        q("Spot: 2(x+3) when x=4, someone says 11. Correct? Fix (14). ____", "fill", "Answer = ____"),
-        q("True or False: 5 books at Rs n plus Rs 2 = 5n + 2.", "fill", "Answer = ____"),
-        q("True or False: 8x - 3 - 5x + 1 = 3x - 2.", "fill", "Answer = ____"),
-        q("True or False: 6m + 2n + 3m + 4n = 9m + 6n.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        tb("Mixed Algebra — Mastery Tips", [
-            "Multi-step: simplify first, then substitute if needed.",
-            "Watch signs and powers carefully.",
-            "Brackets: 2(x+3) = 2x + 6 (multiply each term inside).",
-            "Always double-check by substituting a value.",
-        ]),
-        q("Simplify: 3x + 2y + 5x - y + 4 = ____", "fill", "Answer = ____"),
-        q("Evaluate 2x squared when x = 3 (x squared=9). ____", "fill", "Answer = ____"),
-        q("If x = 4, y = 2, then 3x - 2y = ____", "fill", "Answer = ____"),
-        q("Simplify: 7a - 2a + 3b - b = ____", "fill", "Answer = ____"),
-        q("Evaluate 5(x - 1) when x = 4. ____", "fill", "Answer = ____"),
-        q("A taxi charges Rs 15 + Rs 3/km. For 6 km, cost = ____", "fill", "Answer = ____"),
-        q("If x = 5, then 2x + 3x = 5x = ____", "fill", "Answer = ____"),
-        q("Combine then evaluate: 2x + 3x when x = 4 → 5x = ____", "fill", "Answer = ____"),
-        q("A class has x boys and 2x girls. Total = 3x. If x=10, total = ____", "fill", "Answer = ____"),
-        q("Evaluate 3x + 2y - 1 when x = 2, y = 4. ____", "fill", "Answer = ____"),
-        q("True or False: 3x + 2y + 5x - y + 4 = 8x + y + 4.", "fill", "Answer = ____"),
-        q("True or False: 2x squared when x=3 is 18.", "fill", "Answer = ____"),
-        q("True or False: If x=4, y=2, then 3x-2y = 8.", "fill", "Answer = ____"),
-        q("True or False: 7a - 2a + 3b - b = 5a + 2b.", "fill", "Answer = ____"),
-        q("True or False: 5(x-1) when x=4 is 15.", "fill", "Answer = ____"),
-        q("Spot: Taxi Rs 15 + Rs 3/km for 6 km = Rs 33. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: x boys + 2x girls = 3x students.", "fill", "Answer = ____"),
-        q("True or False: If x=10, total 3x = 30.", "fill", "Answer = ____"),
-        q("True or False: Evaluate 3x+2y-1 when x=2, y=4 is 13.", "fill", "Answer = ____"),
-        q("True or False: 2x+3x when x=4 is 20.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        px = random.randint(lo, hi)
+        pc = random.randint(lo, hi)
+        items.append(q("The tiles show an expression. Write it using algebra.", "diagram", "____", "", "algebra_tiles", {"pos_x": px, "pos_const": pc}))
+    for _ in range(4):
+        px = random.randint(lo, hi)
+        nc = random.randint(1, hi)
+        items.append(q("The tiles show an expression with a negative term. Write it.", "diagram", "____", "", "algebra_tiles", {"pos_x": px, "neg_const": nc}))
+    for _ in range(5):
+        terms_x = [f"{random.randint(1,hi)}x" for _ in range(3)]
+        terms_c = [str(random.randint(1, hi*2)) for _ in range(2)]
+        items.append(q(f"Sort these terms into their groups and collect like terms: {', '.join(terms_x+terms_c)}", "diagram", "____", "", "like_terms_sort", {"groups": {"x-terms": terms_x, "constants": terms_c}}))
+    for _ in range(3):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"Simplify: {a}x + {b}x = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
+        shown = a+b if random.random() > 0.4 else a+b+1
+        items.append(q(f"True or False: {a}x + {b}x = {shown}x", "fill", "Answer = ____"))
+    return items
 
-
-# ─── 11I: Puzzle algebra ────────────────────────────────────
+# ─── 11CUM3: Mixed G+H+I ────────────────────────────────────
+# ─── 11I: Puzzle algebra ─────────────────────────────────────
 def _L11I_s(sheet):
     s1 = [
         cb("Algebra Puzzles", [
@@ -12917,142 +12802,126 @@ def _L11I_s(sheet):
     ]
     return [s1, s2, s3, s4][sheet - 1]
 
-# ─── 11CUM3: Mixed G+H+I ────────────────────────────────────
-def _L11CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Word Problems, Mixed, Puzzles — Summary", [
-                "Word problems: choose a letter, write the expression.",
-                "Simplify and evaluate as needed.",
-                "Puzzles: find the value that makes the statement true.",
-            ], "x sweets + 5 = x+5. Solve x+3=8 → x=5. Simplify 3x+2x=5x."),
-            q("Ravi has x books, buys 4 more. Total = ____", "fill", "Answer = ____"),
-            q("A pen costs n rupees. 5 pens cost ____", "fill", "Answer = ____"),
-            q("Simplify: 4x + 3x = ____", "fill", "Answer = ____"),
-            q("If x = 5, then 2x + 1 = ____", "fill", "Answer = ____"),
-            q("Evaluate x + y when x = 4, y = 6. ____", "fill", "Answer = ____"),
-            q("x + 4 = 9. x = ____", "fill", "Answer = ____"),
-            q("2x = 14. x = ____", "fill", "Answer = ____"),
-            q("3x - 1 = 8. x = ____", "fill", "Answer = ____"),
-            q("Simplify: 5n + 2 + 3n = ____", "fill", "Answer = ____"),
-            q("Evaluate 2x + 3 when x = 4. ____", "fill", "Answer = ____"),
-            q("True or False: x books + 4 more = x + 4.", "fill", "Answer = ____"),
-            q("True or False: 4x + 3x = 7x.", "fill", "Answer = ____"),
-            q("True or False: x + 4 = 9 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 2x = 14 means x = 7.", "fill", "Answer = ____"),
-            q("True or False: If x=5, then 2x+1 = 11.", "fill", "Answer = ____"),
-            q("Spot: 3x - 1 = 8, someone says x = 4. Correct? Fix (x=3). ____", "fill", "Answer = ____"),
-            q("True or False: 5 pens at Rs n = 5n rupees.", "fill", "Answer = ____"),
-            q("True or False: 5n + 2 + 3n = 8n + 2.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 2x+3 when x=4 is 11.", "fill", "Answer = ____"),
-            q("True or False: x+y when x=4, y=6 is 10.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 11G+11H+11I — Tips", [
-                "Word problems: choose a letter, write the expression.",
-                "Simplify: collect like terms. Evaluate: substitute numbers.",
-                "Puzzles: undo operations to find the unknown.",
-                "Two-step puzzle: undo +/- first, then ×/÷.",
-                "Always check by substituting back.",
-            ]),
-            q("A box has n balls. 6 boxes have ____ balls.", "fill", "Answer = ____"),
-            q("Ravi is x years old. In 4 years, he will be ____", "fill", "Answer = ____"),
-            q("Simplify: 6x + 2x - 3x = ____", "fill", "Answer = ____"),
-            q("If x = 6, then 3x - 4 = ____", "fill", "Answer = ____"),
-            q("Evaluate 2x + y when x = 3, y = 5. ____", "fill", "Answer = ____"),
-            q("x + 7 = 12. x = ____", "fill", "Answer = ____"),
-            q("4x = 24. x = ____", "fill", "Answer = ____"),
-            q("2x + 3 = 15. x = ____", "fill", "Answer = ____"),
-            q("Simplify: 3a + 4b + 2a - b = ____", "fill", "Answer = ____"),
-            q("Evaluate 3(x + 1) when x = 4. ____", "fill", "Answer = ____"),
-            q("A taxi charges Rs 10 + Rs 2/km. For x km = ____", "fill", "Answer = ____"),
-            q("5x - 3 = 17. x = ____", "fill", "Answer = ____"),
-            q("True or False: 6 boxes of n balls = 6n balls.", "fill", "Answer = ____"),
-            q("True or False: 6x + 2x - 3x = 5x.", "fill", "Answer = ____"),
-            q("True or False: If x=6, then 3x-4 = 14.", "fill", "Answer = ____"),
-            q("True or False: x + 7 = 12 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 2x + 3 = 15 means x = 6.", "fill", "Answer = ____"),
-            q("Spot: 5x - 3 = 17, someone says x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
-            q("True or False: 3a + 4b + 2a - b = 5a + 3b.", "fill", "Answer = ____"),
-            q("True or False: Evaluate 3(x+1) when x=4 is 15.", "fill", "Answer = ____"),
-        ]
 
+# ─── 11CUM3: Distributive Property & Exponents ───────────────
+def _L11CUM3_s(sheet):
+    random.seed(1130 + sheet)
+    ranges = {1: (2, 6), 2: (2, 8), 3: (3, 10), 4: (3, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Distributive Property & Exponents in Algebra", [
+            "Distributive property: a(b+c) = ab + ac -- multiply a by EACH term inside the brackets.",
+            "x^2 means x times x. x^2 and x are NOT like terms -- they have different powers.",
+            "3x^2 + 5x^2 = 8x^2 (same power, can combine). 3x^2 + 5x CANNOT be combined.",
+        ], "3(x+4) = 3x + 12"),
+    ]
+    for _ in range(6):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        items.append(q(f"Expand using the distributive property: {a}(x + {b}) = ____", "fill", "Answer = ____"))
+    for _ in range(5):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        items.append(q(f"Expand: {a}(x - {b}) = ____", "fill", "Answer = ____"))
+    for _ in range(4):
+        c1, c2 = random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"Simplify: {c1}x^2 + {c2}x^2 = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        c1, c2 = random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"True or False: {c1}x^2 + {c2}x can be combined into one term.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
+        correct = f"{a}x + {a*b}"
+        wrong = f"{a}x + {b}"
+        shown = correct if random.random() > 0.4 else wrong
+        items.append(q(f"True or False: {a}(x + {b}) = {shown}", "fill", "Answer = ____"))
+    return items
 
 # ─── 11J: Mixed challenge ───────────────────────────────────
+# ─── 11J: Equation Balance Challenge ─────────────────────────
 def _L11J_s(sheet):
-    s1 = [
-        tb("Level 11 Mixed Challenge — Tips", [
-            "11A: variable = letter for unknown. Substitute to find value.",
-            "11B: expression = numbers + letters (no = sign). Coefficient, constant.",
-            "11C/11D: simplify by collecting like terms (same letter).",
-            "11E/11F: substitute numbers, then evaluate.",
-            "11G: word problems — write the expression.",
-            "11I: puzzles — find the unknown value.",
-        ]),
-        q("If x = 7, then x + 3 = ____", "fill", "Answer = ____"),
-        q("If n = 4, then 3n = ____", "fill", "Answer = ____"),
-        q("Write '5 more than x': ____", "fill", "Answer = ____"),
-        q("In 6x + 2, the coefficient of x is ____", "fill", "Answer = ____"),
-        q("Simplify: 5x + 3x = ____", "fill", "Answer = ____"),
-        q("Simplify: 4a + 2b + 3a = ____", "fill", "Answer = ____"),
-        q("Are 3x and 5y like or unlike? ____", "fill", "Answer = ____"),
-        q("Evaluate 2x + 1 when x = 5. ____", "fill", "Answer = ____"),
-        q("Evaluate x + y when x = 3, y = 4. ____", "fill", "Answer = ____"),
-        q("A box has n pens. 4 boxes = ____ pens.", "fill", "Answer = ____"),
-        q("x + 5 = 12. x = ____", "fill", "Answer = ____"),
-        q("2x = 16. x = ____", "fill", "Answer = ____"),
-        q("3x - 2 = 10. x = ____", "fill", "Answer = ____"),
-        q("Simplify: 7x + 3 - 2x = ____", "fill", "Answer = ____"),
-        q("If x = 4, y = 2, then 2x + 3y = ____", "fill", "Answer = ____"),
-        q("True or False: 5x + 3x = 8x.", "fill", "Answer = ____"),
-        q("True or False: If x=7, then x+3 = 10.", "fill", "Answer = ____"),
-        q("True or False: x + 5 = 12 means x = 7.", "fill", "Answer = ____"),
-        q("Spot: 2x = 16, someone says x = 14. Correct? Fix (x=8). ____", "fill", "Answer = ____"),
-        q("True or False: 4a + 2b + 3a = 7a + 2b.", "fill", "Answer = ____"),
+    random.seed(1140 + sheet)
+    ranges = {1: (5, 20), 2: (10, 40), 3: (20, 70), 4: (30, 100)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Equation Balance Challenge", [
+            "A balance scale shows both sides of an equation are EQUAL.",
+            "To solve, do the SAME operation to both sides to isolate x.",
+            "Speed challenge: each question has a point value. Bronze 20+, Silver 30+, Gold 38+ (all correct).",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    return [s1, s1, s1, s1][sheet - 1]
 
+    def make_add_eq():
+        xv = random.randint(2, 12)
+        b = random.randint(lo, hi)
+        return xv, b, xv + b
+
+    def make_mul_eq():
+        xv = random.randint(2, 12)
+        a = random.randint(2, 9)
+        return xv, a, xv * a
+
+    for _ in range(6):
+        xv, b, total = make_add_eq()
+        items.append(q("The balance scale shows an equation. Solve for x.  [2 points]", "diagram", "____", "", "balance_scale", {"left_text": f"x + {b}", "right_text": str(total)}))
+    for _ in range(5):
+        xv, a, total = make_mul_eq()
+        items.append(q("The balance scale shows an equation. Solve for x.  [2 points]", "diagram", "____", "", "balance_scale", {"left_text": f"{a}x", "right_text": str(total)}))
+    for _ in range(4):
+        xv, b, total = make_add_eq()
+        items.append(q(f"x + {b} = {total}. Find x.  [1 point]", "fill", "x = ____"))
+    for _ in range(3):
+        xv, b, total = make_add_eq()
+        shown = xv if random.random() > 0.4 else xv + 1
+        items.append(q(f"True or False: x + {b} = {total} means x = {shown}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    for _ in range(2):
+        xv, a, total = make_mul_eq()
+        items.append(q(f"{a}x = {total}. Find x.  [1 point]", "fill", "x = ____"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 11REV: Level 11 Revision ───────────────────────────────
+# ─── 11REV: Level 11 Revision (samples every topic, climbs in difficulty) ───
 def _L11REV_s(sheet):
-    return [
-        tb("Level 11 Revision — Algebra: Expressions", [
-            "Variable: a letter standing for an unknown number.",
-            "Expression: numbers, variables, operations (no equals sign).",
-            "Coefficient = number in front of a variable. Constant = plain number.",
-            "Simplify: collect like terms (same letter), combine coefficients.",
-            "Substitute: replace letter with number. Evaluate: then work out value.",
-            "Puzzles: find the value that makes the statement true.",
+    random.seed(1150 + sheet)
+    ranges = {1: (2, 6), 2: (4, 12), 3: (8, 25), 4: (15, 50)}
+    lo, hi = ranges[sheet]
+    VARS = ["x", "y", "a"]
+    items = [
+        tb("Level 11 Revision — Tips", [
+            "Term = coefficient x variable. 5x: 5 is the coefficient, x is the variable.",
+            "Like terms have the SAME variable and power -- only these can be combined.",
+            "Substitution: replace the variable with its value, then compute (follow BODMAS).",
+            "Distributive property: a(b+c) = ab + ac.",
+            "Equations: do the same operation to both sides to solve for x.",
         ]),
-        q("If x = 6, then x + 4 = ____", "fill", "Answer = ____"),
-        q("If n = 5, then 2n = ____", "fill", "Answer = ____"),
-        q("Write '3 more than x': ____", "fill", "Answer = ____"),
-        q("In 5x + 8, the coefficient of x is ____", "fill", "Answer = ____"),
-        q("In 7n - 2, the constant is ____", "fill", "Answer = ____"),
-        q("Simplify: 4x + 5x = ____", "fill", "Answer = ____"),
-        q("Simplify: 3a + 2b + 4a = ____", "fill", "Answer = ____"),
-        q("Are 4x and 7x like or unlike? ____", "fill", "Answer = ____"),
-        q("If x = 4, then 2x + 3 = ____", "fill", "Answer = ____"),
-        q("Evaluate x + y when x = 5, y = 2. ____", "fill", "Answer = ____"),
-        q("Evaluate 2x + y when x = 3, y = 4. ____", "fill", "Answer = ____"),
-        q("A pen costs n rupees. 5 pens cost ____", "fill", "Answer = ____"),
-        q("x + 6 = 11. x = ____", "fill", "Answer = ____"),
-        q("3x = 15. x = ____", "fill", "Answer = ____"),
-        q("2x + 1 = 9. x = ____", "fill", "Answer = ____"),
-        q("Simplify: 6x + 2 - 3x = ____", "fill", "Answer = ____"),
-        q("True or False: 4x + 5x = 9x.", "fill", "Answer = ____"),
-        q("True or False: If x=4, then 2x+3 = 11.", "fill", "Answer = ____"),
-        q("True or False: x + 6 = 11 means x = 5.", "fill", "Answer = ____"),
-        q("Spot: 2x + 1 = 9, someone says x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
     ]
-
-
-
-# ═══ LEVEL 12 ═══
-# Level 12 — Algebra: Equations
-# FORMAT: Pages 1-2 = questions only. Page 3 = concept + tips reference.
-# Target: very weak students. Very simple, clear steps, build confidence.
+    for _ in range(3):
+        c = random.randint(lo, hi)
+        v = random.choice(VARS)
+        items.append(q(f"In the term {c}{v}, what is the coefficient?", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"Simplify: {a}x + {b}x = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        a = random.randint(lo, hi)
+        xv = random.randint(2, 10)
+        items.append(q(f"If x={xv}, evaluate {a}x + 1.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = random.randint(2, max(min(hi, 9), 3)), random.randint(lo, hi)
+        items.append(q(f"Expand: {a}(x + {b}) = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        b = random.randint(lo, hi)
+        total = random.randint(lo, hi * 2)
+        items.append(q(f"Solve: x + {b} = {total}. Find x.", "fill", "x = ____"))
+    for _ in range(2):
+        c1, c2 = random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"True or False: {c1}x^2 and {c2}x are like terms.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = random.randint(lo, hi), random.randint(lo, hi)
+        shown = a+b if random.random() > 0.4 else a+b+1
+        items.append(q(f"True or False: {a}x + {b}x = {shown}x", "fill", "Answer = ____"))
+    return items
 
 # ─── 12A: Equation concept ──────────────────────────────────
 def _L12A_1():
