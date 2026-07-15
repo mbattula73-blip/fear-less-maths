@@ -2164,7 +2164,105 @@ def number_pyramid_blank(rows=4, given=None, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
-# ─── DISPATCHER ───────────────────────────────────────────────────────────────
+# ─── FACTOR TREE & VENN DIAGRAM (Level 9 additions) ────────────────────────────
+
+def _is_prime_ft(x):
+    if x < 2: return False
+    for k in range(2, int(x**0.5) + 1):
+        if x % k == 0: return False
+    return True
+
+def _smallest_factor(n):
+    for p in range(2, int(n**0.5) + 1):
+        if n % p == 0:
+            return p, n // p
+    return None, None
+
+def factor_tree(n=60, **kw) -> BytesIO:
+    """Draws a factor tree for n down to prime leaves, splitting off the
+    smallest prime factor at each step (the standard way students draw it
+    by hand)."""
+    def build(n):
+        if _is_prime_ft(n) or n < 2:
+            return (n, None, None)
+        p, rest = _smallest_factor(n)
+        left = (p, None, None)
+        right = build(rest)
+        return (n, left, right)
+
+    tree = build(n)
+
+    def depth(node):
+        if node[1] is None: return 1
+        return 1 + max(depth(node[1]), depth(node[2]))
+    d_levels = depth(tree)
+
+    def leaves(node):
+        if node[1] is None: return [node[0]]
+        return leaves(node[1]) + leaves(node[2])
+    prime_leaves = sorted(leaves(tree))
+
+    w = max(500, 130 * (2 ** (d_levels - 1)))
+    h = 110 * d_levels + 70
+    img, dr = _blank(w, h)
+    fnt = _font(15)
+    radius = 24
+
+    def draw(node, x, y, spread):
+        val, l, r = node
+        is_leaf = l is None
+        color = C_RED if is_leaf else C_BLUE
+        dr.ellipse([x - radius, y - radius, x + radius, y + radius], fill=color, outline=C_BORDER, width=2)
+        txt = str(val)
+        tw = dr.textlength(txt, font=fnt)
+        dr.text((x - tw/2, y - 9), txt, fill=C_TEXT, font=fnt)
+        if not is_leaf:
+            ny = y + 95
+            lx, rx = x - spread, x + spread
+            dr.line([x, y + radius, lx, ny - radius], fill=C_BORDER, width=2)
+            dr.line([x, y + radius, rx, ny - radius], fill=C_BORDER, width=2)
+            draw(l, lx, ny, spread / 2)
+            draw(r, rx, ny, spread / 2)
+
+    draw(tree, w // 2, 35, w // 4)
+    caption = f"{n} = " + " x ".join(str(p) for p in prime_leaves)
+    cw = dr.textlength(caption, font=_font(14))
+    dr.text((w/2 - cw/2, h - 28), caption, fill=C_TEAL_D, font=_font(14))
+    return _to_bytes(img)
+
+
+def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", **kw) -> BytesIO:
+    """Two-circle Venn diagram for shared vs. unique prime factors --
+    standard visual for building HCF/LCM intuition. a_only/common/b_only
+    are lists of numbers (or strings) to place in each region."""
+    a_only = a_only or []; common = common or []; b_only = b_only or []
+    w, h = 560, 340
+    img, dr = _blank(w, h)
+    r = 130
+    cx_a, cx_b, cy = w//2 - 70, w//2 + 70, 160
+    fnt = _font_reg(13)
+    fnt_lab = _font(15)
+
+    dr.ellipse([cx_a - r, cy - r, cx_a + r, cy + r], outline=C_BLUE_D, width=3)
+    dr.ellipse([cx_b - r, cy - r, cx_b + r, cy + r], outline=C_TEAL_D, width=3)
+
+    la = f"{label_a} only"; lb = f"{label_b} only"
+    dr.text((cx_a - r - 10, cy - r - 24), la, fill=C_BLUE_D, font=fnt_lab)
+    dr.text((cx_b + r - dr.textlength(lb, font=fnt_lab) + 10, cy - r - 24), lb, fill=C_TEAL_D, font=fnt_lab)
+    dr.text((w/2 - dr.textlength("common", font=fnt_lab)/2, cy + r + 6), "common", fill=C_BORDER, font=fnt_lab)
+
+    def place_list(items, cx, cy_offset):
+        text = ", ".join(str(x) for x in items) if items else "--"
+        tw = dr.textlength(text, font=fnt)
+        dr.text((cx - tw/2, cy + cy_offset), text, fill=C_TEXT, font=fnt)
+
+    place_list(a_only, cx_a - 45, -8)
+    place_list(common, w//2, -8)
+    place_list(b_only, cx_b + 45, -8)
+    return _to_bytes(img)
+
+
+
 
 DIAGRAM_FUNCTIONS = {
     "tenths_grid": tenths_grid,
@@ -2234,6 +2332,8 @@ DIAGRAM_FUNCTIONS = {
     "number_pyramid_blank": number_pyramid_blank,
     "mascot_splitter": mascot_splitter,
     "factor_groups_icon": factor_groups_icon,
+    "factor_tree": factor_tree,
+    "venn_two": venn_two,
 }
 
 def generate_diagram(diagram_type: str, params: dict) -> BytesIO | None:

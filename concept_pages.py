@@ -4656,7 +4656,7 @@ _L9 = {
 
     # ---- 9CUM1 Mixed A+B+C ----
     "9CUM1": {
-        "title": "Review: Factors, Multiples, Prime Factorisation",
+        "title": "Factor Trees",
         "intro": [
             "Factor: divides exactly, no remainder.",
             "Multiple: number \u00d7 1, 2, 3...",
@@ -4790,7 +4790,7 @@ _L9 = {
 
     # ---- 9CUM2 Mixed D+E+F ----
     "9CUM2": {
-        "title": "Review: HCF, LCM, Word Problems",
+        "title": "HCF & LCM via Venn Diagrams",
         "intro": [
             "HCF = biggest shared factor.",
             "LCM = smallest shared multiple.",
@@ -4925,44 +4925,43 @@ _L9 = {
 
     # ---- 9H Mixed ----
     "9H": {
-        "title": "Factors & Multiples — Mixed",
+        "title": "The Euclidean Algorithm for HCF",
         "intro": [
-            "Mix factors, multiples, and checks.",
-            "Factors: divide exactly, list in pairs.",
-            "Multiples: skip-count, list in order.",
-            "Check division: remainder 0 means factor.",
-            "Bigger numbers may have many factors.",
+            "For BIG numbers, listing factors or prime-factorising takes too long. The Euclidean Algorithm is much faster.",
+            "Divide the bigger number by the smaller one. Note the remainder.",
+            "Replace the bigger number with the smaller, and the smaller with the remainder. Repeat.",
+            "Stop when the remainder is 0 -- the LAST divisor used is the HCF.",
+            "This method works on ANY size of number, and is what calculators and computers actually use.",
         ],
         "real_life": [
-            {"text": "1. All factors of 42",
+            {"text": "1. HCF(252,105): 252=105x2+42",
              "diagram": "factor_pairs", "n": 42, "pairs": [(1, 42), (2, 21), (3, 14), (6, 7)],
-             "caption": "1,2,3,6,7,14,21,42"},
-            {"text": "2. First 6 multiples of 9",
-             "diagram": "multiples_strip", "base": 9, "count": 6,
-             "caption": "9,18,27,36,45,54"},
-            {"text": "3. Is 7 a factor of 56? 56\u00f77=8 \u2192 Yes",
-             "diagram": "factor_pairs", "n": 56, "pairs": [(7, 8), (4, 14)],
-             "caption": "7\u00d78=56"},
+             "caption": "first remainder is 42"},
+            {"text": "2. Next: 105=42x2+21",
+             "diagram": "factor_pairs", "n": 21, "pairs": [(1, 21), (3, 7)],
+             "caption": "next remainder is 21"},
+            {"text": "3. Next: 42=21x2+0 -> HCF=21",
+             "diagram": "factor_pairs", "n": 21, "pairs": [(1, 21), (3, 7)],
+             "caption": "remainder 0 -- done! HCF=21"},
         ],
-        "card": card_factors,
+        "card": card_factor_tree,
         "solved": [
-            {"q": "Ex: List all factors of 42.",
-             "steps": ["Pairs: 1\u00d742, 2\u00d721, 3\u00d714, 6\u00d77",
-                       "Answer: 1,2,3,6,7,14,21,42"]},
+            {"q": "Ex: Find HCF(252,105) using the Euclidean Algorithm.",
+             "steps": ["252 = 105x2 + 42", "105 = 42x2 + 21", "42 = 21x2 + 0", "Last divisor = 21 -> HCF=21"]},
         ],
         "tips": [
-            "List factor pairs systematically.",
-            "Skip-count for multiples.",
-            "Remainder 0 \u2192 it's a factor.",
-            "Double-check with multiplication.",
+            "Bigger = smaller x quotient + remainder.",
+            "Swap: new pair is (smaller, remainder).",
+            "Repeat until remainder = 0.",
+            "The LAST divisor (not remainder) is the HCF.",
         ],
         "try_it": {
             "questions": [
-                "1. List all factors of 36.",
-                "2. First 5 multiples of 11.",
-                "3. Is 8 a factor of 64?",
+                "1. Find HCF(48,18) using the Euclidean Algorithm.",
+                "2. Find HCF(140,84) using the Euclidean Algorithm.",
+                "3. Which is faster for HCF(500,375): listing factors, or this method?",
             ],
-            "answers": "1) 1,2,3,4,6,9,12,18,36    2) 11,22,33,44,55    3) Yes",
+            "answers": "1) 6    2) 28    3) The Euclidean Algorithm",
         },
     },
 
@@ -5012,56 +5011,55 @@ _L9 = {
 
     # ---- 9CUM3 Mixed G+H+I ----
     "9CUM3": {
-        "title": "Review: Applications, Mixed, Puzzles",
+        "title": "Prime Number Enrichment",
         "intro": [
-            "Simplify with HCF: divide top & bottom.",
-            "List factors/multiples to solve mixes.",
-            "Puzzles: use every clue, then check.",
-            "HCF \u2192 biggest shared; LCM \u2192 smallest shared.",
-            "Re-check answers against the question.",
+            "Sieve of Eratosthenes: cross out multiples of 2, then 3, then 5, then 7... whatever is LEFT is prime.",
+            "Twin primes: two primes that differ by exactly 2 -- like 11 & 13, or 17 & 19.",
+            "A perfect number equals the sum of its own factors (excluding itself). 6 = 1+2+3.",
+            "The next perfect number after 6 is 28 = 1+2+4+7+14.",
+            "Mathematicians have studied these patterns in primes for thousands of years -- some are still unsolved mysteries today!",
         ],
         "real_life": [
-            {"text": "1. Simplify 8/12 using HCF=4",
-             "diagram": "venn", "leftname": "8", "rightname": "12",
-             "left_only": [2, 8], "common": [1, 2, 4], "right_only": [3, 6, 12],
-             "hcf": 4, "caption": "8/12 = 2/3"},
-            {"text": "2. All factors of 36",
-             "diagram": "factor_pairs", "n": 36, "pairs": [(1, 36), (2, 18), (3, 12), (4, 9), (6, 6)],
-             "caption": "1,2,3,4,6,9,12,18,36"},
-            {"text": "3. Multiple of 4, factor of 24, between 10-20 \u2192 12",
-             "diagram": "multiples_strip", "base": 4, "count": 5,
-             "caption": "checking multiples of 4"},
+            {"text": "1. Factors of 6 (excluding itself): 1,2,3",
+             "diagram": "factor_pairs", "n": 6, "pairs": [(1, 6), (2, 3)],
+             "caption": "1+2+3=6 -- perfect number!"},
+            {"text": "2. Factors of 28 (excluding itself): 1,2,4,7,14",
+             "diagram": "factor_pairs", "n": 28, "pairs": [(1, 28), (2, 14), (4, 7)],
+             "caption": "1+2+4+7+14=28 -- perfect!"},
+            {"text": "3. Twin primes: 17 and 19 (differ by 2)",
+             "diagram": "multiples_strip", "base": 17, "count": 3,
+             "caption": "check: both prime, 2 apart"},
         ],
-        "card": card_factors,
+        "card": card_factor_tree,
         "solved": [
-            {"q": "Ex: Simplify 9/12, then list factors of 9.",
-             "steps": ["HCF(9,12)=3 \u2192 9/12 = 3/4", "Factors of 9: 1,3,9"]},
+            {"q": "Ex: Is 6 a perfect number? Are 29 and 31 twin primes?",
+             "steps": ["Factors of 6 (not 6 itself): 1,2,3. Sum=6 -> YES perfect", "29 and 31 are both prime, and 31-29=2 -> YES twin primes"]},
         ],
         "tips": [
-            "Simplify: divide by HCF.",
-            "List systematically, don't guess.",
-            "Puzzles: filter by every clue.",
-            "Always double-check.",
+            "Sieve: cross out multiples of each prime in turn.",
+            "Twin primes differ by exactly 2.",
+            "Perfect number = sum of its own factors (not itself).",
+            "1 is NEVER prime -- it only has one factor.",
         ],
         "try_it": {
             "questions": [
-                "1. Simplify 12/16.",
-                "2. List all factors of 28.",
-                "3. Multiple of 6, factor of 48, under 20.",
+                "1. List the primes between 20 and 40 using the Sieve idea.",
+                "2. Are 41 and 43 twin primes?",
+                "3. Is 10 a perfect number? (factors: 1,2,5)",
             ],
-            "answers": "1) 3/4    2) 1,2,4,7,14,28    3) 6,12",
+            "answers": "1) 23,29,31,37    2) Yes    3) No (1+2+5=8, not 10)",
         },
     },
 
     # ---- 9J Mixed challenge ----
     "9J": {
-        "title": "Factors/Multiples — Mixed Challenge",
+        "title": "Level 9 Mastery Challenge",
         "intro": [
-            "Mix every skill from this level.",
-            "Factors: list in pairs, check division.",
-            "Multiples: skip-count, list in order.",
-            "Use HCF/LCM where the story needs it.",
-            "Prime factorise for power-of forms.",
+            "This challenge uses BIGGER numbers than earlier sublevels -- choose your method wisely.",
+            "Small numbers: listing factors is fine. Medium: try prime factorisation.",
+            "Large numbers: the Euclidean Algorithm is fastest for HCF.",
+            "HCF x LCM = a x b -- use this shortcut to check your work or find a missing value.",
+            "Speed AND accuracy both count -- score points on every question.",
         ],
         "real_life": [
             {"text": "1. All factors of 48",
@@ -5076,35 +5074,34 @@ _L9 = {
         ],
         "card": card_factor_tree,
         "solved": [
-            {"q": "Ex: List all factors of 48, then check if 9 is a factor of 72.",
-             "steps": ["Factors of 48: 1,2,3,4,6,8,12,16,24,48",
-                       "72\u00f79=8, no remainder \u2192 yes"]},
+            {"q": "Ex: Find HCF(408,204) -- which method is fastest here?",
+             "steps": ["Numbers are big, so use the Euclidean Algorithm", "408=204x2+0", "HCF=204 (found in ONE step!)"]},
         ],
         "tips": [
-            "List factor pairs in order.",
-            "Skip-count for multiples.",
-            "Check remainder for factor tests.",
-            "Use HCF/LCM where needed.",
+            "Match your method to the size of the numbers.",
+            "HCF x LCM = a x b -- a useful check.",
+            "For 3 numbers: find HCF of the first two, then HCF that with the third.",
+            "Score every question -- aim for Gold!",
         ],
         "try_it": {
             "questions": [
-                "1. List all factors of 40.",
-                "2. First 5 multiples of 12.",
-                "3. Is 8 a factor of 96?",
+                "1. HCF(360, 240) = ?",
+                "2. LCM(45, 60) = ?",
+                "3. HCF(24, 36, 60) = ?",
             ],
-            "answers": "1) 1,2,4,5,8,10,20,40    2) 12,24,36,48,60    3) Yes",
+            "answers": "1) 120    2) 180    3) 12",
         },
     },
 
     # ---- 9REV Revision ----
     "9REV": {
-        "title": "Level 9 Revision — Factors, Multiples, HCF/LCM",
+        "title": "Level 9 Revision — Factors, Multiples, HCF/LCM & Primes",
         "intro": [
-            "Factor: divides exactly, no remainder.",
-            "Multiple: number \u00d7 1,2,3... (infinite).",
-            "Prime factorisation: split to primes only.",
-            "HCF = biggest shared factor.",
-            "LCM = smallest shared multiple.",
+            "Factor: divides exactly, no remainder. Multiple: number \u00d7 1,2,3... (infinite).",
+            "Prime factorisation: split to primes only, using a factor tree.",
+            "HCF = biggest shared factor. LCM = smallest shared multiple. HCF x LCM = a x b.",
+            "For BIG numbers, the Euclidean Algorithm finds HCF fast (repeated division).",
+            "Enrichment: twin primes (differ by 2), perfect numbers (sum of own factors = itself).",
         ],
         "real_life": [
             {"text": "1. Factors of 12: 1,2,3,4,6,12",

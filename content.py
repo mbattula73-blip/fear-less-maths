@@ -9526,67 +9526,71 @@ def _L9C_4():
 
 
 # ─── 9CUM1: Mixed A+B+C ─────────────────────────────────────
-def _L9CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Factors, Multiples, Prime Factorisation — Summary", [
-                "Factor: divides the number exactly. List by testing 1, 2, 3, ...",
-                "Multiple: n×1, n×2, n×3, ... (the n-times table).",
-                "Prime factorisation: write the number as a product of primes only.",
-                "Common factor: divides BOTH numbers. Common multiple: in BOTH times tables.",
-            ], "Factors of 12: 1,2,3,4,6,12.  Multiples of 4: 4,8,12,16.  12=2²×3"),
-            q("List all factors of 18: ____", "fill", "Answer = ____"),
-            q("List all factors of 24: ____", "fill", "Answer = ____"),
-            q("Common factors of 18 and 24: ____", "fill", "Answer = ____"),
-            q("Is 7 a factor of 42? ____", "fill", "Answer = ____"),
-            q("True or False: 5 is a factor of 35.", "fill", "Answer = ____"),
-            q("Write first 6 multiples of 6: ____", "fill", "Answer = ____"),
-            q("Write first 6 multiples of 8: ____", "fill", "Answer = ____"),
-            q("First common multiple of 6 and 8: ____", "fill", "Answer = ____"),
-            q("Is 54 a multiple of 9? ____", "fill", "Answer = ____"),
-            q("True or False: 36 is a multiple of both 4 and 9.", "fill", "Answer = ____"),
-            q("Prime factorisation of 24: ____", "fill", "Answer = ____"),
-            q("Prime factorisation of 30: ____", "fill", "Answer = ____"),
-            q("Prime factorisation of 45: ____", "fill", "Answer = ____"),
-            q("2²×3² = ____", "fill", "Answer = ____"),
-            q("True or False: 30 = 2×3×5.", "fill", "Answer = ____"),
-            q("True or False: 45 = 3²×5.", "fill", "Answer = ____"),
-            q("Spot: Factors of 18: 2,3,6,9,18. What is missing? ____", "fill", "Answer = ____"),
-            q("Spot: 24 = 2×4×3 as prime factorisation. Fix it. ____", "fill", "Answer = ____"),
-            q("True or False: Every even number has 2 as a prime factor.", "fill", "Answer = ____"),
-            q("True or False: 36 is a common multiple of 4 and 9.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 9A+9B+9C — Tips", [
-                "Factors: try dividing 1, 2, 3... No remainder = factor. Come in pairs.",
-                "Multiples: n×1, n×2, n×3... Check: divide, no remainder = yes.",
-                "Common factor: in BOTH factor lists. Common multiple: in BOTH times tables.",
-                "Prime factorisation: keep splitting by primes until all are prime.",
-                "Check: multiply back to get original number.",
-            ]),
-            q("List all factors of 36: ____", "fill", "Answer = ____"),
-            q("List all factors of 48: ____", "fill", "Answer = ____"),
-            q("Common factors of 36 and 48: ____", "fill", "Answer = ____"),
-            q("Is 9 a factor of 81? ____", "fill", "Answer = ____"),
-            q("Write first 5 multiples of 7: ____", "fill", "Answer = ____"),
-            q("Write first 5 multiples of 9: ____", "fill", "Answer = ____"),
-            q("First common multiple of 7 and 9: ____", "fill", "Answer = ____"),
-            q("Is 72 a multiple of both 8 and 9? ____", "fill", "Answer = ____"),
-            q("Prime factorisation of 60: ____", "fill", "Answer = ____"),
-            q("Prime factorisation of 72: ____", "fill", "Answer = ____"),
-            q("2³×3² = ____", "fill", "Answer = ____"),
-            q("True or False: 60 = 2²×3×5.", "fill", "Answer = ____"),
-            q("True or False: 72 = 2³×3².", "fill", "Answer = ____"),
-            q("How many factors does 36 have? ____", "fill", "Answer = ____"),
-            q("How many multiples of 7 are between 1 and 50? ____", "fill", "Answer = ____"),
-            q("True or False: Common factors of 36 and 48 include 12.", "fill", "Answer = ____"),
-            q("Spot: 72 = 2⁴×3. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("Spot: First common multiple of 7 and 9 is 63. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 2³×3² = 72.", "fill", "Answer = ____"),
-            q("True or False: Every factor of 36 is also a factor of 72.", "fill", "Answer = ____"),
-        ]
+def _l9_prime_factors_multiset(n):
+    factors = []
+    d = 2
+    while d * d <= n:
+        while n % d == 0:
+            factors.append(d)
+            n //= d
+        d += 1
+    if n > 1:
+        factors.append(n)
+    return factors
 
+def _l9_hcf(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def _l9_lcm(a, b):
+    return a * b // _l9_hcf(a, b)
+
+def _l9_is_prime(n):
+    if n < 2: return False
+    for k in range(2, int(n**0.5) + 1):
+        if n % k == 0: return False
+    return True
+
+
+# ─── 9CUM1: Factor Trees (visual prime factorisation) ───────
+def _L9CUM1_s(sheet):
+    random.seed(900 + sheet)
+    ranges = {1: (12, 40), 2: (20, 70), 3: (35, 100), 4: (50, 150)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Factor Trees — Prime Factorisation Visualised", [
+            "A factor tree splits a number into factors, then splits those factors again, until every branch ends in a PRIME number.",
+            "The prime numbers at the bottom (the leaves) are the number's prime factorisation.",
+            "It doesn't matter which factor pair you start with -- you always end up with the same set of primes.",
+        ], "60 = 2 x 2 x 3 x 5 (see the tree)"),
+    ]
+    composites = [n for n in range(lo, hi) if not _l9_is_prime(n) and n > 3]
+    for _ in range(6):
+        n = random.choice(composites)
+        items.append(q(f"Complete the factor tree for {n}, then write its prime factorisation.", "diagram", "____",
+                        "", "factor_tree", {"n": n}))
+    for _ in range(6):
+        n = random.choice(composites)
+        items.append(q(f"Find the prime factorisation of {n}.", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.choice(composites)
+        pf = _l9_prime_factors_multiset(n)
+        correct = " x ".join(str(p) for p in pf)
+        wrong_pf = pf[:-1] + [pf[-1] + 1] if len(pf) > 1 else [pf[0], pf[0]]
+        wrong = " x ".join(str(p) for p in wrong_pf)
+        shown = correct if random.random() > 0.4 else wrong
+        items.append(q(f"True or False: {n} = {shown}", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.choice(composites)
+        pf = _l9_prime_factors_multiset(n)
+        if len(pf) > 1:
+            bad = pf[:]; bad[0] = bad[0] + 1
+            bad_str = " x ".join(str(p) for p in bad)
+        else:
+            bad_str = f"{n} (no factors shown)"
+        items.append(q(f"Spot the mistake: a student wrote {n} = {bad_str}. What's wrong? Give the correct factorisation. ____", "fill", "Answer = ____"))
+    return items
 
 # ─── 9D: HCF ────────────────────────────────────────────────
 def _L9D_1():
@@ -9954,67 +9958,56 @@ def _L9F_4():
 
 
 # ─── 9CUM2: Mixed D+E+F ─────────────────────────────────────
+# ─── 9CUM2: HCF & LCM via Venn Diagrams ──────────────────────
 def _L9CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("HCF, LCM, Word Problems — Summary", [
-                "HCF: list factors, find largest common. Or: prime factorisation, lowest powers.",
-                "LCM: list multiples, find first common. Or: prime factorisation, highest powers.",
-                "HCF × LCM = a × b.",
-                "Word problems: sharing/cutting → HCF. Meeting/smallest → LCM.",
-            ], "HCF(12,18)=6. LCM(12,18)=36. Check: 6×36=216=12×18 ✓"),
-            q("HCF(15, 20) = ____", "fill", "HCF = ____"),
-            q("HCF(24, 36) = ____", "fill", "HCF = ____"),
-            q("HCF(18, 27) = ____", "fill", "HCF = ____"),
-            q("LCM(4, 6) = ____", "fill", "LCM = ____"),
-            q("LCM(8, 12) = ____", "fill", "LCM = ____"),
-            q("LCM(9, 15) = ____", "fill", "LCM = ____"),
-            q("HCF(a,b)=6, LCM(a,b)=36. Find a×b. ____", "fill", "a×b = ____"),
-            q("30 boys and 45 girls. Equal teams. Max team size = HCF(30,45) = ____", "word", "Team size = ____", "HCF of 30 and 45"),
-            q("Two buses: every 12 and 15 minutes. Next together = LCM(12,15) = ____ min", "word", "Minutes = ____", "LCM of 12 and 15"),
-            q("Smallest number divisible by 4 and 10 = LCM(4,10) = ____", "word", "Number = ____", "LCM of 4 and 10"),
-            q("HCF or LCM? Largest tile for a floor. ____", "fill", "Answer = ____"),
-            q("True or False: HCF(15,20) = 5.", "fill", "Answer = ____"),
-            q("True or False: HCF(24,36) = 12.", "fill", "Answer = ____"),
-            q("True or False: LCM(4,6) = 12.", "fill", "Answer = ____"),
-            q("True or False: LCM(8,12) = 24.", "fill", "Answer = ____"),
-            q("True or False: HCF(18,27) = 9.", "fill", "Answer = ____"),
-            q("True or False: HCF×LCM = a×b for any two numbers.", "fill", "Answer = ____"),
-            q("Spot: LCM(9,15) = 45. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: HCF(30,45) = 15.", "fill", "Answer = ____"),
-            q("True or False: LCM(12,15) = 60.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 9D+9E+9F — Tips", [
-                "HCF: list factors, largest common. Prime factorisation: common primes, lowest powers.",
-                "LCM: list multiples, first common. Prime factorisation: all primes, highest powers.",
-                "HCF word problem: dividing/sharing → largest equal part.",
-                "LCM word problem: meeting/coinciding → next time together.",
-                "Check: HCF × LCM = product of the two numbers.",
-            ]),
-            q("HCF(20, 30) = ____", "fill", "HCF = ____"),
-            q("HCF(36, 48) = ____", "fill", "HCF = ____"),
-            q("HCF(45, 75) = ____", "fill", "HCF = ____"),
-            q("LCM(6, 9) = ____", "fill", "LCM = ____"),
-            q("LCM(10, 15) = ____", "fill", "LCM = ____"),
-            q("LCM(12, 16) = ____", "fill", "LCM = ____"),
-            q("HCF(a,b)=4, LCM(a,b)=48. Find a×b. ____", "fill", "a×b = ____"),
-            q("Two ropes: 60m and 90m. Longest equal pieces = HCF(60,90) = ____ m", "word", "Length = ____ m", "HCF of 60 and 90"),
-            q("Three bells: every 6, 9, 12 min. Next all ring together = LCM(6,9,12) = ____ min", "word", "Minutes = ____", "LCM of 6, 9, 12"),
-            q("Smallest divisible by 5, 6, 9 = LCM(5,6,9) = ____", "word", "Number = ____", "LCM of 5, 6, 9"),
-            q("True or False: HCF(20,30) = 10.", "fill", "Answer = ____"),
-            q("True or False: HCF(45,75) = 15.", "fill", "Answer = ____"),
-            q("True or False: LCM(6,9) = 18.", "fill", "Answer = ____"),
-            q("True or False: LCM(12,16) = 48.", "fill", "Answer = ____"),
-            q("True or False: HCF(36,48) = 12.", "fill", "Answer = ____"),
-            q("Spot: LCM(6,9,12) = 18. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("Spot: LCM(5,6,9) = 90. Correct? Fix. ____", "fill", "Answer = ____"),
-            q("True or False: HCF(60,90) = 30.", "fill", "Answer = ____"),
-            q("True or False: LCM(10,15) = 30.", "fill", "Answer = ____"),
-            q("Verify: HCF(20,30)=10, LCM=60. Check: 10×60=____ and 20×30=____", "fill", "Answer = ____"),
-        ]
+    random.seed(910 + sheet)
+    ranges = {1: (20, 60), 2: (30, 90), 3: (45, 120), 4: (60, 200)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("HCF & LCM via Venn Diagrams", [
+            "Write each number's prime factors in a Venn diagram: shared primes go in the OVERLAP, unique primes go in their own circle.",
+            "HCF = multiply everything in the OVERLAP.",
+            "LCM = multiply EVERYTHING in the whole diagram (both circles combined).",
+        ], "24=2x2x2x3, 36=2x2x3x3 -> overlap: 2,2,3 (HCF=12); all: 2,2,2,3,3 (LCM=72)"),
+    ]
 
+    def make_pair():
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a == b:
+            b = random.randint(lo, hi)
+        return a, b
+
+    def venn_regions(a, b):
+        from collections import Counter
+        fa, fb = Counter(_l9_prime_factors_multiset(a)), Counter(_l9_prime_factors_multiset(b))
+        common = fa & fb
+        a_only = fa - fb
+        b_only = fb - fa
+        return sorted(a_only.elements()), sorted(common.elements()), sorted(b_only.elements())
+
+    for _ in range(6):
+        a, b = make_pair()
+        a_only, common, b_only = venn_regions(a, b)
+        items.append(q(f"Use the Venn diagram to find HCF({a},{b}) and LCM({a},{b}).", "diagram", "____", "",
+                        "venn_two", {"a_only": a_only, "common": common, "b_only": b_only, "label_a": str(a), "label_b": str(b)}))
+    for _ in range(5):
+        a, b = make_pair()
+        items.append(q(f"HCF({a}, {b}) = ____", "fill", "HCF = ____"))
+    for _ in range(5):
+        a, b = make_pair()
+        items.append(q(f"LCM({a}, {b}) = ____", "fill", "LCM = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        h = _l9_hcf(a, b)
+        shown = h if random.random() > 0.4 else h + random.choice([2, -3])
+        items.append(q(f"True or False: HCF({a},{b}) = {shown}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        l = _l9_lcm(a, b)
+        shown = l if random.random() > 0.4 else l + random.choice([10, -15])
+        items.append(q(f"True or False: LCM({a},{b}) = {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 9G: Applications ───────────────────────────────────────
 def _L9G_1():
@@ -10137,120 +10130,44 @@ def _L9G_4():
 
 
 # ─── 9H: Mixed ──────────────────────────────────────────────
+# ─── 9H: Euclidean Algorithm for HCF (big numbers) ───────────
 def _L9H_s(sheet):
-    s1 = [
-        cb("Mixed — All Level 9 Skills", [
-            "Factors: list all numbers that divide exactly.",
-            "Multiples: times table of a number.",
-            "HCF: largest common factor. LCM: smallest common multiple.",
-            "Applications: HCF to simplify, LCM for common denominators.",
-        ], "HCF(18,30)=6. LCM(6,10)=30. Simplify 15/25=3/5. 1/4+1/6=5/12"),
-        q("List all factors of 42: ____", "fill", "Answer = ____"),
-        q("Write first 6 multiples of 9: ____", "fill", "Answer = ____"),
-        q("Is 7 a factor of 56? 56÷7=____. Answer: ____", "fill", "Answer = ____"),
-        q("Is 72 a multiple of 8? 72÷8=____. Answer: ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 42: ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 50: ____", "fill", "Answer = ____"),
-        q("HCF(18, 30) = ____", "fill", "HCF = ____"),
-        q("HCF(24, 40) = ____", "fill", "HCF = ____"),
-        q("LCM(6, 10) = ____", "fill", "LCM = ____"),
-        q("LCM(8, 14) = ____", "fill", "LCM = ____"),
-        q("Simplify fraction 15/25: ____", "fill", "Answer = ____"),
-        q("Simplify ratio 12:18: ____", "fill", "Answer = ____"),
-        q("Common factors of 24 and 36: ____", "fill", "Answer = ____"),
-        q("First common multiple of 4 and 7: ____", "fill", "Answer = ____"),
-        q("Cut 36m and 54m ropes into equal pieces. Longest piece = HCF(36,54) = ____ m", "word", "Length = ____ m", "HCF of 36 and 54"),
-        q("Lights flash every 8 and 12 seconds. Next together = LCM(8,12) = ____ seconds", "word", "Seconds = ____", "LCM of 8 and 12"),
-        q("True or False: HCF(18,30) = 6.", "fill", "Answer = ____"),
-        q("True or False: LCM(6,10) = 30.", "fill", "Answer = ____"),
-        q("Spot: Prime factorisation of 50 = 5×10. Fix it. ____", "fill", "Answer = ____"),
-        q("True or False: LCM(8,14) = 56.", "fill", "Answer = ____"),
+    random.seed(920 + sheet)
+    ranges = {1: (50, 200), 2: (100, 400), 3: (200, 600), 4: (300, 999)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("The Euclidean Algorithm — a FASTER way to find HCF", [
+            "For big numbers, listing factors or prime-factorising takes too long. The Euclidean Algorithm is much faster.",
+            "Divide the bigger number by the smaller. Note the remainder.",
+            "Replace the bigger number with the smaller, and the smaller with the remainder. Repeat.",
+            "Stop when the remainder is 0 -- the LAST divisor is the HCF.",
+        ], "HCF(252,105): 252=105x2+42; 105=42x2+21; 42=21x2+0 -> HCF=21"),
     ]
-    s2 = [
-        cb("Mixed — Connecting All Concepts", [
-            "HCF and LCM are related: HCF(a,b) × LCM(a,b) = a × b.",
-            "Use HCF to simplify. Use LCM to add fractions or find meeting times.",
-        ], "HCF(12,18)=6, LCM(12,18)=36. Check: 6×36=216=12×18 ✓"),
-        q("HCF(36, 48) = ____", "fill", "HCF = ____"),
-        q("LCM(9, 12) = ____", "fill", "LCM = ____"),
-        q("HCF(a,b)=8, LCM(a,b)=48. Find a×b. ____", "fill", "a×b = ____"),
-        q("Prime factorisation of 60: ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 84: ____", "fill", "Answer = ____"),
-        q("How many factors does 48 have? ____", "fill", "Answer = ____"),
-        q("Common multiples of 4 and 9 (first 2): ____", "fill", "Answer = ____"),
-        q("Simplify 28/42: ____", "fill", "Answer = ____"),
-        q("Simplify ratio 24:32: ____", "fill", "Answer = ____"),
-        q("Add 1/6 + 1/9. LCD=____. Answer: ____", "fill", "Answer = ____"),
-        q("Add 2/5 + 3/10. LCD=____. Answer: ____", "fill", "Answer = ____"),
-        q("48 boys, 72 girls. Equal teams. Max team = HCF(48,72) = ____", "word", "Team size = ____", "HCF of 48 and 72"),
-        q("Bells every 9 and 12 min. Next together = LCM(9,12) = ____ min", "word", "Minutes = ____", "LCM of 9 and 12"),
-        q("True or False: HCF(36,48) = 12.", "fill", "Answer = ____"),
-        q("True or False: LCM(9,12) = 36.", "fill", "Answer = ____"),
-        q("True or False: 28/42 simplifies to 2/3.", "fill", "Answer = ____"),
-        q("True or False: 1/6+1/9 = 5/18.", "fill", "Answer = ____"),
-        q("Spot: HCF(a,b)=8, LCM=48: a×b=8×48=384. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 60 = 2²×3×5.", "fill", "Answer = ____"),
-        q("True or False: Ratio 24:32 simplifies to 3:4.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Level 9 — Tips", [
-            "Factors: try dividing 1, 2, 3, ... No remainder = factor.",
-            "Multiples: n×1, n×2, n×3, ...",
-            "HCF: largest common. LCM: smallest common.",
-            "HCF × LCM = a × b.",
-            "Simplify fraction: ÷HCF. Add fractions: ÷LCD (=LCM of denominators).",
-        ]),
-        q("List all factors of 54: ____", "fill", "Answer = ____"),
-        q("Is 8 a factor of 72? ____", "fill", "Answer = ____"),
-        q("Is 63 a multiple of 7? ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 90: ____", "fill", "Answer = ____"),
-        q("HCF(40, 60) = ____", "fill", "HCF = ____"),
-        q("HCF(36, 54, 90) = ____", "fill", "HCF = ____"),
-        q("LCM(12, 18) = ____", "fill", "LCM = ____"),
-        q("LCM(4, 6, 10) = ____", "fill", "LCM = ____"),
-        q("Simplify 54/72. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Simplify ratio 36:54. HCF=____. Ratio: ____", "fill", "Answer = ____"),
-        q("Add 1/4 + 1/6. LCD=____. Answer: ____", "fill", "Answer = ____"),
-        q("Compare 5/9 and 7/12. LCD=____. Larger = ____", "fill", "Answer = ____"),
-        q("Three pipes: 36cm, 54cm, 90cm. Max equal length = ____ cm", "word", "Length = ____ cm", "HCF of 36, 54, 90"),
-        q("True or False: HCF(40,60) = 20.", "fill", "Answer = ____"),
-        q("True or False: LCM(12,18) = 36.", "fill", "Answer = ____"),
-        q("True or False: 54/72 simplifies to 3/4.", "fill", "Answer = ____"),
-        q("True or False: 1/4+1/6 = 5/12.", "fill", "Answer = ____"),
-        q("True or False: 90 = 2×3²×5.", "fill", "Answer = ____"),
-        q("True or False: LCM(4,6,10) = 60.", "fill", "Answer = ____"),
-        q("True or False: HCF(36,54,90) = 18.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        tb("Mixed Level 9 — Mastery Tips", [
-            "HCF(a,b,c): common prime factors of ALL three, lowest powers.",
-            "LCM(a,b,c): ALL prime factors from all three, highest powers.",
-            "Use HCF×LCM=a×b to find unknown when one is given.",
-            "Word problems: identify the operation needed from context.",
-        ]),
-        q("HCF(60, 90, 120) = ____", "fill", "HCF = ____"),
-        q("LCM(8, 12, 18) = ____", "fill", "LCM = ____"),
-        q("Prime factorisation of 360: ____", "fill", "Answer = ____"),
-        q("HCF(a,b)=15, LCM(a,b)=180. Find a×b. ____", "fill", "a×b = ____"),
-        q("How many factors does 360 have? (360=2³×3²×5, so (3+1)(2+1)(1+1)=____)", "fill", "Answer = ____"),
-        q("Simplify 90/126. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Add 5/6+3/8. LCD=____. Answer: ____. Simplify: ____", "fill", "Answer = ____"),
-        q("Order ascending: 3/4, 5/6, 7/9, 11/12. LCD=____. Order: ____", "fill", "Answer = ____"),
-        q("120 boys, 90 girls, 60 teachers. Equal groups. Max group size = HCF(60,90,120) = ____", "word", "Group size = ____", "HCF of 60, 90, 120"),
-        q("True or False: HCF(60,90,120) = 30.", "fill", "Answer = ____"),
-        q("True or False: LCM(8,12,18) = 72.", "fill", "Answer = ____"),
-        q("True or False: 360 = 2³×3²×5.", "fill", "Answer = ____"),
-        q("True or False: 360 has 24 factors.", "fill", "Answer = ____"),
-        q("True or False: 90/126 simplifies to 5/7.", "fill", "Answer = ____"),
-        q("True or False: 5/6+3/8 = 29/24 = 1 and 5/24.", "fill", "Answer = ____"),
-        q("True or False: Order 3/4, 5/6, 7/9, 11/12: LCD=36: 27,30,28,33 → 3/4<7/9<5/6<11/12.", "fill", "Answer = ____"),
-        q("Spot: LCM(8,12,18) = 36. Correct? Fix. ____", "fill", "Answer = ____"),
-        q("Spot: HCF(60,90,120)=30. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: HCF(a,b)=15, LCM=180: a×b=15×180=2700.", "fill", "Answer = ____"),
-        q("True or False: 5/6+3/8: LCD=LCM(6,8)=24.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
 
+    def make_pair():
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        if a < b: a, b = b, a
+        while a == b:
+            b = random.randint(lo, hi)
+            if a < b: a, b = b, a
+        return a, b
+
+    for _ in range(6):
+        a, b = make_pair()
+        items.append(q(f"Step 1 of the Euclidean Algorithm for HCF({a},{b}): {a} = {b} x ____ + ____. Find the quotient and remainder.", "fill", "Answer = ____"))
+    for _ in range(8):
+        a, b = make_pair()
+        items.append(q(f"Use the Euclidean Algorithm to find HCF({a}, {b}).", "fill", "HCF = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        h = _l9_hcf(a, b)
+        shown = h if random.random() > 0.4 else h + random.choice([3, -5])
+        items.append(q(f"True or False: HCF({a},{b}) = {shown} (using the Euclidean Algorithm).", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        items.append(q(f"Compare methods: find HCF({a},{b}) using the Euclidean Algorithm. Would listing every factor of both numbers be faster or slower than this method here? ____", "fill", "Answer = ____"))
+    return items
 
 # ─── 9I: Puzzle ─────────────────────────────────────────────
 def _L9I_s(sheet):
@@ -10368,134 +10285,134 @@ def _L9I_s(sheet):
 
 
 # ─── 9CUM3: Mixed G+H+I ─────────────────────────────────────
+# ─── 9CUM3: Prime Number Enrichment ──────────────────────────
 def _L9CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Applications, Mixed, Puzzles — Summary", [
-                "Applications: HCF to simplify fractions/ratios. LCM to add fractions.",
-                "Mixed: combine all L9 skills — factors, multiples, HCF, LCM.",
-                "Puzzles: use clues, HCF×LCM=a×b, find hidden numbers.",
-            ], "Simplify 12/18=2/3(HCF=6). Add 1/4+1/6=5/12(LCD=12). HCF(a,b)=4,LCM=24→a×b=96"),
-            q("Simplify 20/30. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify ratio 12:18. HCF=____. Ratio: ____", "fill", "Answer = ____"),
-            q("Add 1/3+1/5. LCD=LCM(3,5)=____. Answer: ____", "fill", "Answer = ____"),
-            q("Add 3/4+1/8. LCD=____. Answer: ____", "fill", "Answer = ____"),
-            q("True or False: 20/30 = 2/3.", "fill", "Answer = ____"),
-            q("HCF(36, 54) = ____", "fill", "HCF = ____"),
-            q("LCM(8, 18) = ____", "fill", "LCM = ____"),
-            q("Prime factorisation of 126: ____", "fill", "Answer = ____"),
-            q("List all factors of 56: ____", "fill", "Answer = ____"),
-            q("Is 81 a multiple of 9? ____", "fill", "Answer = ____"),
-            q("HCF(a,b)=9, LCM(a,b)=54. Find a×b. ____", "fill", "a×b = ____"),
-            q("I am a common factor of 36 and 54, greater than 6. I am ____", "fill", "Answer = ____"),
-            q("Two numbers: HCF=5, LCM=30. Find a×b. ____", "fill", "a×b = ____"),
-            q("72 boys, 90 girls. Equal teams. Max = HCF(72,90) = ____", "word", "Team size = ____", "HCF of 72 and 90"),
-            q("Bells every 8 and 12 min. Next together = LCM(8,12) = ____ min", "word", "Minutes = ____", "LCM of 8 and 12"),
-            q("True or False: HCF(36,54) = 18.", "fill", "Answer = ____"),
-            q("True or False: LCM(8,18) = 72.", "fill", "Answer = ____"),
-            q("Spot: 126 = 2×3²×7. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 1/3+1/5 = 8/15.", "fill", "Answer = ____"),
-            q("True or False: LCM(8,12) = 24.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 9G+9H+9I — Tips", [
-                "Simplify fractions/ratios: divide by HCF.",
-                "Add fractions: LCD = LCM of denominators. Convert then add.",
-                "Compare fractions: same LCD, compare numerators.",
-                "HCF × LCM = a × b. Use to find unknowns.",
-                "Puzzles: list possibilities, test each clue.",
-            ]),
-            q("Simplify 45/75. HCF=____. Answer: ____", "fill", "Answer = ____"),
-            q("Simplify ratio 36:48. HCF=____. Ratio: ____", "fill", "Answer = ____"),
-            q("Add 2/3+3/4. LCD=____. Answer: ____", "fill", "Answer = ____"),
-            q("Add 5/6+1/4. LCD=____. Answer: ____", "fill", "Answer = ____"),
-            q("HCF(48, 72) = ____", "fill", "HCF = ____"),
-            q("LCM(9, 15) = ____", "fill", "LCM = ____"),
-            q("LCM(6, 10, 15) = ____", "fill", "LCM = ____"),
-            q("HCF(a,b)=12, LCM=60. Find a×b. ____", "fill", "a×b = ____"),
-            q("I am between 20 and 40. I am a multiple of 6 and a factor of 72. I am ____", "fill", "Answer = ____"),
-            q("Two numbers: HCF=9, LCM=36. Find a×b. ____", "fill", "a×b = ____"),
-            q("Floor 90cm×120cm. Largest tile = HCF(90,120) = ____ cm", "word", "Side = ____ cm", "HCF of 90 and 120"),
-            q("Three lights: every 4, 6, 9 sec. Next all together = LCM(4,6,9) = ____ sec", "word", "Seconds = ____", "LCM of 4, 6, 9"),
-            q("True or False: 45/75 = 3/5.", "fill", "Answer = ____"),
-            q("True or False: 2/3+3/4 = 17/12.", "fill", "Answer = ____"),
-            q("True or False: HCF(48,72) = 24.", "fill", "Answer = ____"),
-            q("True or False: LCM(9,15) = 45.", "fill", "Answer = ____"),
-            q("True or False: LCM(6,10,15) = 30.", "fill", "Answer = ____"),
-            q("Spot: 5/6+1/4 = 10/12+3/12 = 13/12. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: HCF(90,120) = 30.", "fill", "Answer = ____"),
-            q("True or False: LCM(4,6,9) = 36.", "fill", "Answer = ____"),
-        ]
-
+    random.seed(930 + sheet)
+    ranges = {1: (2, 50), 2: (2, 100), 3: (50, 150), 4: (100, 200)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Prime Number Enrichment", [
+            "Sieve of Eratosthenes: cross out multiples of 2, then 3, then 5, then 7... whatever is LEFT is prime.",
+            "Twin primes: two primes that differ by exactly 2 (e.g. 11 and 13, 17 and 19).",
+            "A perfect number equals the sum of its own factors (not counting itself). 6 = 1+2+3. The next is 28.",
+        ], "Twin primes near 40-45: 41 and 43. Perfect number check: 6->1+2+3=6 YES"),
+    ]
+    for _ in range(4):
+        n = random.randint(max(lo, 2), hi)
+        items.append(q(f"Using the Sieve of Eratosthenes idea, is {n} prime? (Check: is it divisible by any prime up to its square root?)", "fill", "Answer = ____ (Yes/No)"))
+    for _ in range(4):
+        start = random.randint(max(lo, 2), max(hi - 20, lo + 1))
+        items.append(q(f"List all prime numbers between {start} and {start+20} using the Sieve method.", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.randint(max(lo, 3), hi)
+        items.append(q(f"Is {n} part of a twin prime pair? If so, what is its twin?", "fill", "Answer = ____"))
+    items.append(q("Verify that 6 is a perfect number (sum of its factors, excluding itself, equals 6).", "fill", "Answer = ____"))
+    items.append(q("Verify that 28 is a perfect number (sum of its factors, excluding itself, equals 28).", "fill", "Answer = ____"))
+    items.append(q("True or False: 12 is a perfect number.", "fill", "Answer = ____"))
+    items.append(q("True or False: 11 and 13 are twin primes.", "fill", "Answer = ____"))
+    items.append(q("True or False: Every even number greater than 2 is composite.", "fill", "Answer = ____"))
+    items.append(q("True or False: 2 and 3 are the only pair of consecutive prime numbers.", "fill", "Answer = ____"))
+    items.append(q("Spot: A student says 1 is a prime number. Correct? Explain why or why not. ____", "fill", "Answer = ____"))
+    items.append(q("Spot: A student lists 21 as prime. Correct? Fix it (21 = 3 x 7). ____", "fill", "Answer = ____"))
+    return items
 
 # ─── 9J: Mixed challenge ────────────────────────────────────
+# ─── 9J: Mastery Challenge (bigger numbers, gamified) ────────
 def _L9J_s(sheet):
-    s1 = [
-        tb("Level 9 Mixed Challenge — Tips", [
-            "9A: factors — list all, check with division, come in pairs.",
-            "9B: multiples — times table. First common multiple = LCM.",
-            "9C: prime factorisation — split into primes, use index notation.",
-            "9D: HCF — list factors, find largest common. Or: prime factorisation, lowest powers.",
-            "9E: LCM — list multiples, first common. Or: prime factorisation, highest powers.",
-            "9G: HCF to simplify. LCM for adding fractions.",
-        ]),
-        q("List all factors of 48: ____", "fill", "Answer = ____"),
-        q("Write first 5 multiples of 8: ____", "fill", "Answer = ____"),
-        q("Is 9 a factor of 72? ____", "fill", "Answer = ____"),
-        q("Is 63 a multiple of 7? ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 36: ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 60: ____", "fill", "Answer = ____"),
-        q("HCF(18, 24) = ____", "fill", "HCF = ____"),
-        q("HCF(30, 45) = ____", "fill", "HCF = ____"),
-        q("LCM(8, 12) = ____", "fill", "LCM = ____"),
-        q("LCM(9, 15) = ____", "fill", "LCM = ____"),
-        q("Simplify 18/24. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Add 1/4+1/6. LCD=____. Answer: ____", "fill", "Answer = ____"),
-        q("48 boys, 60 girls. Equal teams. Max = HCF(48,60) = ____", "word", "Team size = ____", "HCF of 48 and 60"),
-        q("Bells every 9 and 12 min. Next together = LCM(9,12) = ____ min", "word", "Minutes = ____", "LCM of 9 and 12"),
-        q("HCF(a,b)=6, LCM=72. Find a×b. ____", "fill", "a×b = ____"),
-        q("True or False: 36 = 2²×3².", "fill", "Answer = ____"),
-        q("True or False: HCF(18,24) = 6.", "fill", "Answer = ____"),
-        q("True or False: LCM(8,12) = 24.", "fill", "Answer = ____"),
-        q("Spot: LCM(9,15) = 45. Correct? Fix. ____", "fill", "Answer = ____"),
-        q("True or False: 1/4+1/6 = 5/12.", "fill", "Answer = ____"),
+    random.seed(940 + sheet)
+    ranges = {1: (100, 400), 2: (200, 600), 3: (300, 800), 4: (500, 999)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Level 9 Mastery Challenge", [
+            "Every skill: factors, multiples, prime factorisation, HCF (listing, prime factorisation, OR the Euclidean Algorithm), LCM, and applications.",
+            "Numbers are bigger here -- choose your method wisely!",
+            "Speed challenge: each question has a point value. Bronze 20+, Silver 30+, Gold 38+ (all correct).",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    return [s1, s1, s1, s1][sheet - 1]
 
+    def make_pair():
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a == b:
+            b = random.randint(lo, hi)
+        return a, b
+
+    for _ in range(5):
+        a, b = make_pair()
+        items.append(q(f"HCF({a}, {b}) = ____  [2 points]", "fill", "HCF = ____"))
+    for _ in range(5):
+        a, b = make_pair()
+        items.append(q(f"LCM({a}, {b}) = ____  [2 points]", "fill", "LCM = ____"))
+    for _ in range(4):
+        a, b, c = random.randint(lo//2, hi//2), random.randint(lo//2, hi//2), random.randint(lo//2, hi//2)
+        items.append(q(f"HCF({a}, {b}, {c}) = ____  [3 points]", "fill", "HCF = ____"))
+    for _ in range(3):
+        n = random.randint(lo, hi)
+        items.append(q(f"Find the prime factorisation of {n}.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        h = _l9_hcf(a, b)
+        shown = h if random.random() > 0.4 else h + random.choice([5, -7])
+        items.append(q(f"True or False: HCF({a},{b}) = {shown}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 9REV: Level 9 Revision ─────────────────────────────────
+# ─── 9REV: Level 9 Revision (samples every topic, climbs in difficulty) ───
 def _L9REV_s(sheet):
-    return [
-        tb("Level 9 Revision — Factors, Multiples, HCF, LCM", [
-            "Factors: divide exactly. List by trying 1, 2, 3, ...",
-            "Multiples: n×1, n×2, n×3, ... (n-times table).",
-            "Prime factorisation: write as product of primes only.",
-            "HCF: list factors of each, find largest common. Or: prime factorisation, lowest powers.",
-            "LCM: list multiples of each, find first common. Or: prime factorisation, highest powers.",
-            "Applications: HCF to simplify fractions. LCM to add fractions. HCF×LCM = a×b.",
+    random.seed(950 + sheet)
+    ranges = {1: (10, 40), 2: (30, 100), 3: (80, 300), 4: (200, 700)}
+    lo, hi = ranges[sheet]
+    items = [
+        tb("Level 9 Revision — Tips", [
+            "Factors: divide exactly, come in pairs. Multiples: n x 1, n x 2, ...",
+            "HCF: listing, prime factorisation, OR the Euclidean Algorithm (fastest for big numbers).",
+            "LCM: smallest common multiple. HCF x LCM = a x b.",
+            "Applications: HCF simplifies fractions/ratios. LCM finds common denominators / meeting times.",
+            "Enrichment: Sieve of Eratosthenes for primes, twin primes, perfect numbers.",
         ]),
-        q("List all factors of 36: ____", "fill", "Answer = ____"),
-        q("Write first 6 multiples of 7: ____", "fill", "Answer = ____"),
-        q("Is 8 a factor of 56? ____", "fill", "Answer = ____"),
-        q("Is 45 a multiple of 9? ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 48: ____", "fill", "Answer = ____"),
-        q("Prime factorisation of 90: ____", "fill", "Answer = ____"),
-        q("HCF(24, 36) = ____", "fill", "HCF = ____"),
-        q("HCF(42, 70) = ____", "fill", "HCF = ____"),
-        q("LCM(6, 9) = ____", "fill", "LCM = ____"),
-        q("LCM(8, 12) = ____", "fill", "LCM = ____"),
-        q("Simplify 30/45. HCF=____. Answer: ____", "fill", "Answer = ____"),
-        q("Add 1/4+1/6. LCD=____. Answer: ____", "fill", "Answer = ____"),
-        q("HCF(a,b)=8, LCM=48. Find a×b. ____", "fill", "a×b = ____"),
-        q("24 apples, 36 oranges. Equal bags. Max bag size = HCF(24,36) = ____", "word", "Bag size = ____", "HCF of 24 and 36"),
-        q("Bells every 6 and 9 min. Next together = LCM(6,9) = ____ min", "word", "Minutes = ____", "LCM of 6 and 9"),
-        q("True or False: 48 = 2⁴×3.", "fill", "Answer = ____"),
-        q("True or False: HCF(24,36) = 12.", "fill", "Answer = ____"),
-        q("True or False: LCM(6,9) = 18.", "fill", "Answer = ____"),
-        q("Spot: HCF(42,70) = 7. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 1/4+1/6 = 5/12 using LCD=12.", "fill", "Answer = ____"),
     ]
+
+    def make_pair():
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a == b:
+            b = random.randint(lo, hi)
+        return a, b
+
+    for _ in range(3):
+        n = random.randint(lo, hi)
+        items.append(q(f"List all factors of {n}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.randint(max(lo, 2), hi)
+        items.append(q(f"Find the prime factorisation of {n}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        items.append(q(f"HCF({a}, {b}) = ____", "fill", "HCF = ____"))
+    for _ in range(3):
+        a, b = make_pair()
+        items.append(q(f"LCM({a}, {b}) = ____", "fill", "LCM = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        items.append(q(f"Use the Euclidean Algorithm to find HCF({a}, {b}).", "fill", "HCF = ____"))
+    for _ in range(2):
+        n = random.randint(max(lo, 2), hi)
+        items.append(q(f"Is {n} prime or composite?", "fill", "Answer = ____ (Prime/Composite)"))
+    for _ in range(2):
+        a, b = make_pair()
+        h = _l9_hcf(a, b)
+        shown = h if random.random() > 0.4 else h + random.choice([2, -3])
+        items.append(q(f"True or False: HCF({a},{b}) = {shown}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b = make_pair()
+        l = _l9_lcm(a, b)
+        shown = l if random.random() > 0.4 else l + random.choice([6, -9])
+        items.append(q(f"True or False: LCM({a},{b}) = {shown}.", "fill", "Answer = ____"))
+    num = random.randint(max(lo, 4), hi)
+    den = random.randint(max(lo, 4), hi)
+    items.append(q(f"Simplify the fraction {min(num,den)}/{max(num,den)} using HCF.", "fill", "Answer = ____"))
+    return items
+
 
 
 
