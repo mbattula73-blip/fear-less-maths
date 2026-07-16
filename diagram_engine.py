@@ -2784,11 +2784,32 @@ def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
+def _svg_power_label(x, y, exp, font_size=13, color="#000", weight="Helvetica-Bold", anchor="end"):
+    """Returns SVG for '10^exp' with a TRUE raised, smaller exponent --
+    built from two ordinary text elements rather than unicode superscript
+    characters, which don't reliably render via svglib's font handling
+    (they showed as missing-glyph boxes when tested)."""
+    base_str = "10"
+    exp_str = str(exp)
+    sup_size = font_size * 0.66
+    sup_dy = -font_size * 0.42
+    base_w = len(base_str) * font_size * 0.62
+    exp_w = len(exp_str) * sup_size * 0.64
+    if anchor == "end":
+        bx = x - base_w - exp_w
+    else:
+        bx = x
+    out = f'<text x="{bx:.1f}" y="{y}" font-family="{weight}" font-size="{font_size}" fill="{color}">{base_str}</text>'
+    out += f'<text x="{bx+base_w:.1f}" y="{y+sup_dy:.1f}" font-family="{weight}" font-size="{sup_size:.1f}" fill="{color}">{exp_str}</text>'
+    return out
+
+
 def powers_of_ten_scale_svg(lo=-8, hi=8, highlight=None, **kw):
-    """A vertical 'order of magnitude' scale from 10^hi down to 10^lo
+    """A two-column 'order of magnitude' scale from 10^hi down to 10^lo
     metres, with real-world reference objects marked -- makes abstract
-    exponents like 10^-6 vs 10^8 viscerally comparable. Vertical layout
-    fits the worksheet column far better than a wide horizontal strip."""
+    exponents like 10⁻⁶ vs 10⁸ viscerally comparable. Two columns use
+    the worksheet box's width and height far more evenly than a single
+    long vertical list, giving each row more room."""
     references = [
         (-9, "DNA width"), (-7, "Virus"), (-6, "Bacterium"),
         (-3, "Grain of sand"), (-2, "Ant"), (0, "Human height"),
@@ -2798,25 +2819,41 @@ def powers_of_ten_scale_svg(lo=-8, hi=8, highlight=None, **kw):
     ref_map = {e: lbl for e, lbl in references if lo <= e <= hi}
     exps = list(range(hi, lo - 1, -1))
     n = len(exps)
-    row_h = 24
-    w = 320
-    h = n * row_h + 30
-    margin_left = 66
+    half = (n + 1) // 2
+    col1, col2 = exps[:half], exps[half:]
+
+    row_h = 32
+    margin_left = 54
+    label_w = 118
+    col_w = margin_left + 20 + label_w
+    inter_col_gap = 24
+    top_margin = 24
+    max_rows = max(len(col1), len(col2), 1)
+    h = top_margin + max_rows * row_h + 14
+    w = col_w * (2 if col2 else 1) + (inter_col_gap if col2 else 0)
+
     parts = []
-    y = 22
-    for exp in exps:
-        label = ref_map.get(exp)
-        is_hi = (highlight == exp)
-        color = "#A6362B" if is_hi else ("#1B5E8C" if label else "#95A5A6")
-        parts.append(f'<line x1="{margin_left}" y1="{y}" x2="{w-14}" y2="{y}" stroke="#EEF1F3" stroke-width="1"/>')
-        weight = "Helvetica-Bold"
-        parts.append(f'<text x="{margin_left-8}" y="{y+4}" text-anchor="end" font-family="{weight}" font-size="11" fill="{color}">10^{exp}</text>')
-        if label:
-            parts.append(f'<circle cx="{margin_left+12}" cy="{y}" r="4" fill="{color}"/>')
-            parts.append(f'<text x="{margin_left+22}" y="{y+4}" font-family="{weight}" font-size="11" fill="{color}">{label}</text>')
-        elif is_hi:
-            parts.append(f'<circle cx="{margin_left+12}" cy="{y}" r="4" fill="{color}"/>')
-        y += row_h
+    weight = "Helvetica-Bold"
+
+    def draw_column(exps_list, x0):
+        y = top_margin
+        for exp in exps_list:
+            label = ref_map.get(exp)
+            is_hi = (highlight == exp)
+            color = "#A6362B" if is_hi else ("#1B5E8C" if label else "#95A5A6")
+            lx = x0 + margin_left
+            parts.append(f'<line x1="{lx}" y1="{y}" x2="{x0+col_w-10}" y2="{y}" stroke="#EEF1F3" stroke-width="1"/>')
+            parts.append(_svg_power_label(lx - 8, y + 5, exp, font_size=13, color=color))
+            if label:
+                parts.append(f'<circle cx="{lx+13}" cy="{y}" r="4.5" fill="{color}"/>')
+                parts.append(f'<text x="{lx+24}" y="{y+5}" font-family="{weight}" font-size="12" fill="{color}">{label}</text>')
+            elif is_hi:
+                parts.append(f'<circle cx="{lx+13}" cy="{y}" r="4.5" fill="{color}"/>')
+            y += row_h
+
+    draw_column(col1, 0)
+    if col2:
+        draw_column(col2, col_w + inter_col_gap)
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 

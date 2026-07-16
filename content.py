@@ -15049,7 +15049,6 @@ def _L13F_4():
     ]
 
 
-# ─── 13CUM2: Mixed D+E+F ────────────────────────────────────
 # ─── 13CUM2: Surds ────────────────────────────────────────────
 def _gen_surd(hi_k=6):
     k = random.randint(2, hi_k)
@@ -15064,29 +15063,29 @@ def _L13CUM2_s(sheet):
     lo, hi = ranges[sheet]
     items = [
         cb("Surds — Simplifying Square Roots", [
-            "A surd is a root that can't be simplified to a whole number, like sqrt(8).",
+            "A surd is a root that can't be simplified to a whole number, like √8.",
             "To simplify: find the LARGEST perfect square factor, then pull it out.",
-            "sqrt(8) = sqrt(4x2) = sqrt(4) x sqrt(2) = 2sqrt(2)",
-            "Rationalizing: 1/sqrt(2) = sqrt(2)/2 (multiply top and bottom by sqrt(2)).",
-        ], "sqrt(18) = sqrt(9x2) = 3sqrt(2)"),
+            "√8 = √(4×2) = √4 x √2 = 2√2",
+            "Rationalizing: 1/√2 = √2/2 (multiply top and bottom by √2).",
+        ], "√18 = √(9×2) = 3√2"),
     ]
     for _ in range(6):
         n, k, m = _gen_surd(hi)
-        items.append(q(f"Simplify sqrt({n}). Find the largest perfect square factor first.", "fill", "Answer = ____"))
+        items.append(q(f"Simplify √{n}. Find the largest perfect square factor first.", "fill", "Answer = ____"))
     for _ in range(5):
         n, k, m = _gen_surd(hi)
-        items.append(q(f"sqrt({n}) = {k}sqrt(____)  -- fill in the remaining number under the root.", "fill", "Answer = ____"))
+        items.append(q(f"√{n} = {k}√____  -- fill in the remaining number under the root.", "fill", "Answer = ____"))
     for _ in range(4):
         base = random.choice([2, 3, 5])
-        items.append(q(f"Rationalize the denominator: 1/sqrt({base}) = sqrt({base})/____", "fill", "Answer = ____"))
+        items.append(q(f"Rationalize the denominator: 1/√{base} = √{base}/____", "fill", "Answer = ____"))
     for _ in range(3):
         n, k, m = _gen_surd(hi)
-        shown = f"{k}sqrt({m})" if random.random() > 0.4 else f"{k+1}sqrt({m})"
-        items.append(q(f"True or False: sqrt({n}) = {shown}.", "fill", "Answer = ____"))
+        shown = f"{k}√{m}" if random.random() > 0.4 else f"{k+1}√{m}"
+        items.append(q(f"True or False: √{n} = {shown}.", "fill", "Answer = ____"))
     for _ in range(2):
         k1, k2 = random.randint(2, 5), random.randint(2, 5)
         m = random.choice([2, 3, 5])
-        items.append(q(f"Simplify: {k1}sqrt({m}) + {k2}sqrt({m}) = ____sqrt({m})", "fill", "Answer = ____"))
+        items.append(q(f"Simplify: {k1}√{m} + {k2}√{m} = ____√{m}", "fill", "Answer = ____"))
     return items
 
 # ─── 13G: Word problems ─────────────────────────────────────
@@ -15416,7 +15415,7 @@ def _L13J_s(sheet):
         items.append(q(f"Simplify: {base}^{m} x {base}^{n} / {base}^{n}  [2 points]", "fill", "Answer = ____"))
     for _ in range(4):
         n, k, m = _gen_surd(hi_k=6)
-        items.append(q(f"Simplify sqrt({n}).  [2 points]", "fill", "Answer = ____"))
+        items.append(q(f"Simplify √{n}.  [2 points]", "fill", "Answer = ____"))
     for _ in range(4):
         start = random.randint(1, 4)
         factor = random.randint(2, 3)
@@ -15459,7 +15458,7 @@ def _L13REV_s(sheet):
         items.append(q(f"Evaluate: {sq}^(1/2)", "fill", "Answer = ____"))
     for _ in range(3):
         n, k, m = _gen_surd(hi_k=5)
-        items.append(q(f"Simplify sqrt({n}).", "fill", "Answer = ____"))
+        items.append(q(f"Simplify √{n}.", "fill", "Answer = ____"))
     for _ in range(3):
         num = random.randint(2, 9)
         exp = random.randint(2, 6)
