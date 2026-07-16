@@ -3006,6 +3006,130 @@ def polynomial_graph_svg(coeffs=None, xrange=6, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
+def _quadrant_bg(parts, margin, size, rng):
+    """Adds faint quadrant background shading behind the grid."""
+    ox = margin + rng / (2 * rng) * (size - 2 * margin)
+    colors = ["#F7FBFF", "#FFFBF2", "#FFF7F5", "#F5FBF8"]  # I, II, III, IV (soft tints)
+    half = (size - 2 * margin) / 2
+    quads = [
+        (ox, margin, ox + half, margin + half, colors[1]),          # top-left = QII
+        (ox, margin, ox + half, margin + half, colors[1]),
+    ]
+    # simpler: just tint the 4 rectangles directly
+    parts.insert(0, f'<rect x="{ox:.1f}" y="{margin}" width="{half:.1f}" height="{half:.1f}" fill="{colors[0]}"/>')      # QI (top-right)
+    parts.insert(0, f'<rect x="{margin}" y="{margin}" width="{half:.1f}" height="{half:.1f}" fill="{colors[1]}"/>')      # QII (top-left)
+    parts.insert(0, f'<rect x="{margin}" y="{margin+half:.1f}" width="{half:.1f}" height="{half:.1f}" fill="{colors[2]}"/>')  # QIII (bottom-left)
+    parts.insert(0, f'<rect x="{ox:.1f}" y="{margin+half:.1f}" width="{half:.1f}" height="{half:.1f}" fill="{colors[3]}"/>')   # QIV (bottom-right)
+
+
+def plot_points_grid_svg(points=None, labels=None, rng=8, show_quadrants=True, **kw):
+    """Plots one or more labelled points on a coordinate grid, with
+    optional soft quadrant shading -- the basic 'see where a point is'
+    visual for the coordinate plane."""
+    points = points or [(3, 2)]
+    labels = labels or [f"({x},{y})" for x, y in points]
+    size = 320
+    margin = 34
+    parts, to_px = _grid_svg_base(rng, size, margin)
+    if show_quadrants:
+        _quadrant_bg(parts, margin, size, rng)
+    colors = ["#A6362B", "#1B5E8C", "#1E7A44", "#7D3C98"]
+    for i, (x, y) in enumerate(points):
+        px, py = to_px(x, y)
+        color = colors[i % len(colors)]
+        parts.append(f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{px:.1f}" y2="{to_px(0,0)[1]:.1f}" stroke="{color}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>')
+        parts.append(f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{to_px(0,0)[0]:.1f}" y2="{py:.1f}" stroke="{color}" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>')
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="{color}"/>')
+        lbl = labels[i] if i < len(labels) else f"({x},{y})"
+        parts.append(f'<text x="{px+9:.1f}" y="{py-9:.1f}" font-family="Helvetica-Bold" font-size="12" fill="{color}">{lbl}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
+def distance_segment_svg(p1=(1, 1), p2=(5, 4), rng=8, **kw):
+    """Plots two points joined by a segment, WITH the horizontal/vertical
+    'legs' shown as a right triangle -- visualizes that the distance
+    formula is just Pythagoras on the grid."""
+    size = 320
+    margin = 34
+    parts, to_px = _grid_svg_base(rng, size, margin)
+    x1, y1 = p1; x2, y2 = p2
+    px1, py1 = to_px(x1, y1)
+    px2, py2 = to_px(x2, y2)
+    pxc, pyc = to_px(x2, y1)  # corner point for the right-angle
+    parts.append(f'<polygon points="{px1:.1f},{py1:.1f} {pxc:.1f},{pyc:.1f} {px2:.1f},{py2:.1f}" fill="#FFF3CD" opacity="0.5" stroke="none"/>')
+    parts.append(f'<line x1="{px1:.1f}" y1="{py1:.1f}" x2="{pxc:.1f}" y2="{pyc:.1f}" stroke="#B7950B" stroke-width="2" stroke-dasharray="4,3"/>')
+    parts.append(f'<line x1="{pxc:.1f}" y1="{pyc:.1f}" x2="{px2:.1f}" y2="{py2:.1f}" stroke="#B7950B" stroke-width="2" stroke-dasharray="4,3"/>')
+    parts.append(f'<line x1="{px1:.1f}" y1="{py1:.1f}" x2="{px2:.1f}" y2="{py2:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    hlen = abs(x2 - x1); vlen = abs(y2 - y1)
+    parts.append(f'<text x="{(px1+pxc)/2:.1f}" y="{pyc+14:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#7D5A00">{hlen:g}</text>')
+    parts.append(f'<text x="{pxc+8:.1f}" y="{(pyc+py2)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#7D5A00">{vlen:g}</text>')
+    for (px, py, x, y, color) in [(px1, py1, x1, y1, "#A6362B"), (px2, py2, x2, y2, "#1E7A44")]:
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="{color}"/>')
+        parts.append(f'<text x="{px+8:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="11" fill="{color}">({x:g},{y:g})</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
+def midpoint_segment_svg(p1=(1, 1), p2=(7, 5), rng=8, **kw):
+    """Plots two points joined by a segment with the midpoint marked."""
+    size = 320
+    margin = 34
+    parts, to_px = _grid_svg_base(rng, size, margin)
+    x1, y1 = p1; x2, y2 = p2
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
+    px1, py1 = to_px(x1, y1)
+    px2, py2 = to_px(x2, y2)
+    pmx, pmy = to_px(mx, my)
+    parts.append(f'<line x1="{px1:.1f}" y1="{py1:.1f}" x2="{px2:.1f}" y2="{py2:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for (px, py, x, y, color) in [(px1, py1, x1, y1, "#A6362B"), (px2, py2, x2, y2, "#1E7A44")]:
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="{color}"/>')
+        parts.append(f'<text x="{px+8:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="11" fill="{color}">({x:g},{y:g})</text>')
+    parts.append(f'<circle cx="{pmx:.1f}" cy="{pmy:.1f}" r="6.5" fill="#7D3C98" stroke="white" stroke-width="1.5"/>')
+    mx_lbl = mx if mx != int(mx) else int(mx)
+    my_lbl = my if my != int(my) else int(my)
+    parts.append(f'<text x="{pmx:.1f}" y="{pmy+20:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#7D3C98">M({mx_lbl:g},{my_lbl:g})</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
+def section_segment_svg(p1=(0, 0), p2=(8, 4), m=1, n=3, rng=8, **kw):
+    """Plots two points joined by a segment, with the point dividing it
+    in ratio m:n marked -- the visual for the section formula."""
+    size = 320
+    margin = 34
+    parts, to_px = _grid_svg_base(rng, size, margin)
+    x1, y1 = p1; x2, y2 = p2
+    px_, py_ = (m * x2 + n * x1) / (m + n), (m * y2 + n * y1) / (m + n)
+    pp1x, pp1y = to_px(x1, y1)
+    pp2x, pp2y = to_px(x2, y2)
+    ppx, ppy = to_px(px_, py_)
+    parts.append(f'<line x1="{pp1x:.1f}" y1="{pp1y:.1f}" x2="{pp2x:.1f}" y2="{pp2y:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for (px, py, x, y, color) in [(pp1x, pp1y, x1, y1, "#A6362B"), (pp2x, pp2y, x2, y2, "#1E7A44")]:
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="{color}"/>')
+        parts.append(f'<text x="{px+8:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="11" fill="{color}">({x:g},{y:g})</text>')
+    parts.append(f'<circle cx="{ppx:.1f}" cy="{ppy:.1f}" r="6.5" fill="#7D3C98" stroke="white" stroke-width="1.5"/>')
+    px_lbl = round(px_, 2); px_lbl = int(px_lbl) if px_lbl == int(px_lbl) else px_lbl
+    py_lbl = round(py_, 2); py_lbl = int(py_lbl) if py_lbl == int(py_lbl) else py_lbl
+    parts.append(f'<text x="{ppx:.1f}" y="{ppy+20:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#7D3C98">P({px_lbl:g},{py_lbl:g})</text>')
+    parts.insert(0, f'<text x="{size/2}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">P divides AB in ratio {m}:{n}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
+def triangle_coords_svg(p1=(0, 0), p2=(6, 0), p3=(3, 5), rng=8, **kw):
+    """Plots three points as a shaded triangle on the coordinate grid --
+    the visual for the area-of-a-triangle-by-coordinates formula."""
+    size = 320
+    margin = 34
+    parts, to_px = _grid_svg_base(rng, size, margin)
+    pts_px = [to_px(*p) for p in (p1, p2, p3)]
+    poly = " ".join(f"{px:.1f},{py:.1f}" for px, py in pts_px)
+    parts.append(f'<polygon points="{poly}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    labels_lc = ["A", "B", "C"]
+    colors = ["#A6362B", "#1E7A44", "#7D3C98"]
+    for i, ((px, py), (x, y)) in enumerate(zip(pts_px, (p1, p2, p3))):
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="{colors[i]}"/>')
+        parts.append(f'<text x="{px+8:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="12" fill="{colors[i]}">{labels_lc[i]}({x:g},{y:g})</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -3020,6 +3144,11 @@ SVG_DIAGRAM_FUNCTIONS = {
     "exponential_growth": exponential_growth_svg,
     "area_model": area_model_svg,
     "polynomial_graph": polynomial_graph_svg,
+    "plot_points_grid": plot_points_grid_svg,
+    "distance_segment": distance_segment_svg,
+    "midpoint_segment": midpoint_segment_svg,
+    "section_segment": section_segment_svg,
+    "triangle_coords": triangle_coords_svg,
 }
 
 

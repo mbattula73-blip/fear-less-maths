@@ -12,6 +12,7 @@ Sublevels:
   15J Mixed challenge      15REV Level 15 Revision
 """
 from content import cb, tb, q
+import random
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -837,112 +838,48 @@ def _L15G_s(sheet):
     return [s1, s2, s3, s4][sheet - 1]
 
 
+def _triangle_area2(p1, p2, p3):
+    """Returns 2*area (always an integer for integer coordinates)."""
+    x1, y1 = p1; x2, y2 = p2; x3, y3 = p3
+    return x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)
+
+
+def _gen_triangle(hi=6):
+    while True:
+        p1 = (random.randint(-hi, hi), random.randint(-hi, hi))
+        p2 = (random.randint(-hi, hi), random.randint(-hi, hi))
+        p3 = (random.randint(-hi, hi), random.randint(-hi, hi))
+        a2 = _triangle_area2(p1, p2, p3)
+        if a2 != 0 and a2 % 2 == 0:
+            return p1, p2, p3, abs(a2) // 2
+
+
+# ─── 15H: Area of a Triangle Using Coordinates ────────────────
 def _L15H_s(sheet):
-    s1 = [
-        cb("Mixed Coordinate Geometry", [
-            "Combine all skills: quadrants, distance, midpoint, section, slope.",
-            "Read each question and pick the right formula.",
-            "Show working step by step.",
-        ], "Distance, midpoint, slope and section all on one sheet."),
-        q("Quadrant of (-5, 8): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (6,8): ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,4),(8,10): ____", "fill", "Answer = ____"),
-        q("Slope through (1,2),(4,11): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(9,0) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Distance (3,0) to (3,7): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 4x - 5: ____", "fill", "Answer = ____"),
-        q("Reflect (4,5) over x-axis: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-3,-3),(3,3): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (5,12): ____", "fill", "Answer = ____"),
-        q("Slope through (2,2),(6,2): ____", "fill", "Answer = ____"),
-        q("Quadrant of (7, -3): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 2x - 8: ____", "fill", "Answer = ____"),
-        q("Midpoint of (0,0),(10,6): ____", "fill", "Answer = ____"),
-        q("Distance (1,1) to (4,5): ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (6,8) is 10.", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (2,4),(8,10) is (5,7).", "fill", "Answer = ____"),
-        q("True or False: Slope through (2,2),(6,2) is 0.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (5,12) = 12. Correct? Fix (13). ____", "fill", "Answer = ____"),
-        q("True or False: Reflect (4,5) over x-axis gives (4,-5).", "fill", "Answer = ____"),
+    random.seed(1520 + sheet)
+    ranges = {1: (4, 6), 2: (5, 7), 3: (6, 8), 4: (6, 10)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Area of a Triangle from Coordinates", [
+            "For A(x1,y1), B(x2,y2), C(x3,y3):",
+            "Area = 1/2 |x1(y2-y3) + x2(y3-y1) + x3(y1-y2)|",
+            "The bars mean take the positive value -- area can't be negative.",
+        ], "A(0,0), B(6,0), C(3,5): Area = 1/2|0(0-5)+6(5-0)+3(0-0)| = 1/2(30) = 15"),
     ]
-    s2 = [
-        cb("Mixed Practice — All Tools", [
-            "Identify the right formula from the wording.",
-            "Distance for length, midpoint for centre, slope for steepness.",
-            "Section formula for ratio division.",
-        ], "Centre of a circle = midpoint of a diameter."),
-        q("Distance (2,3) to (10,18): ____", "fill", "Answer = ____"),
-        q("Midpoint of (1,7),(9,3): ____", "fill", "Answer = ____"),
-        q("Slope through (0,5),(5,0): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(12,0) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (8,15): ____", "fill", "Answer = ____"),
-        q("Reflect (-2,6) over y-axis: ____", "fill", "Answer = ____"),
-        q("Quadrant of (-1,-1): ____", "fill", "Answer = ____"),
-        q("Midpoint of (4,4),(4,4): ____", "fill", "Answer = ____"),
-        q("y = 5x - 15: x-intercept: ____", "fill", "Answer = ____"),
-        q("Slope through (3,1),(3,9): ____", "fill", "Answer = ____"),
-        q("Distance (6,0) to (0,8): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (1,2),(7,8): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(20,10) ratio 2:3 → P: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (7,24): ____", "fill", "Answer = ____"),
-        q("y = 3x + 6: y-intercept: ____", "fill", "Answer = ____"),
-        q("True or False: Slope through (3,1),(3,9) is undefined.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (8,15) is 17.", "fill", "Answer = ____"),
-        q("True or False: Centre of diameter (1,2),(7,8) is (4,5).", "fill", "Answer = ____"),
-        q("Spot: A(0,0),B(12,0) at 3:1 gives (3,0). Correct? Fix (9,0). ____", "fill", "Answer = ____"),
-        q("True or False: Reflect (-2,6) over y-axis gives (2,6).", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Coordinate Geometry — Tips", [
-            "Distance = √[(Δx)²+(Δy)²]; midpoint = averages; slope = Δy/Δx.",
-            "Section m:n → m with far point, n with near point.",
-            "Quadrant by signs; reflections flip one coordinate's sign.",
-            "y = mx + c: read slope and intercepts directly.",
-        ]),
-        q("Distance (0,0) to (9,12): ____", "fill", "Answer = ____"),
-        q("Midpoint of (3,9),(11,1): ____", "fill", "Answer = ____"),
-        q("Slope through (1,1),(5,9): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(15,0) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Quadrant of (-4, 9): ____", "fill", "Answer = ____"),
-        q("Distance (5,5) to (5,17): ____", "fill", "Answer = ____"),
-        q("y = 6x - 12: x-intercept: ____", "fill", "Answer = ____"),
-        q("Reflect (3,-7) over x-axis: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-5,-5),(5,5): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (20,21): ____", "fill", "Answer = ____"),
-        q("Slope through (2,8),(6,8): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,18) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("y = -2x + 10: y-intercept: ____", "fill", "Answer = ____"),
-        q("Midpoint of (0,0),(14,8): ____", "fill", "Answer = ____"),
-        q("Distance (1,2) to (7,10): ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (20,21) is 29.", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(15,0) at 2:1 gives (10,0).", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (3,9),(11,1) is (7,5).", "fill", "Answer = ____"),
-        q("Spot: Distance (5,5) to (5,17) = 11. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: y = 6x - 12 has x-intercept 2.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Distance (2,1) to (14,10): ____", "fill", "Answer = ____"),
-        q("Midpoint of (-4,8),(10,2): ____", "fill", "Answer = ____"),
-        q("Slope through (-2,-3),(2,5): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(24,16) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (11,60): ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(6,0),(3,4): is it isosceles? ____", "fill", "Answer = ____"),
-        q("Centre of diameter (-3,-4),(3,4): ____", "fill", "Answer = ____"),
-        q("y = 4x - 24: x-intercept: ____", "fill", "Answer = ____"),
-        q("Reflect (5,-2) over y-axis: ____", "fill", "Answer = ____"),
-        q("Slope through (0,0),(6,9): ____", "fill", "Answer = ____"),
-        q("Quadrant of (12, -5): ____", "fill", "Answer = ____"),
-        q("Midpoint of hypotenuse of triangle (0,0),(8,0),(0,6): ____", "fill", "Answer = ____"),
-        q("A point three-quarters from (0,0) to (8,0): ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (12,16): ____", "fill", "Answer = ____"),
-        q("Is (0,0),(4,0),(4,3),(0,3) a rectangle? ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (11,60) is 61.", "fill", "Answer = ____"),
-        q("True or False: Slope through (-2,-3),(2,5) is 2.", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(6,0),(3,4) is isosceles.", "fill", "Answer = ____"),
-        q("Spot: A(0,0),B(24,16) at 3:1 gives (6,4). Correct? Fix (18,12). ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (12,16) is 20.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(6):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Use the diagram to find the area of triangle ABC with A{p1}, B{p2}, C{p3}.", "diagram", "____", "", "triangle_coords", {"p1": p1, "p2": p2, "p3": p3}))
+    for _ in range(6):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Find the area of the triangle with vertices A{p1}, B{p2}, C{p3} using the coordinate formula.", "fill", "Answer = ____"))
+    for _ in range(4):
+        p1, p2, p3, area = _gen_triangle(hi)
+        shown = area if random.random() > 0.4 else area + 1
+        items.append(q(f"True or False: The triangle with vertices A{p1}, B{p2}, C{p3} has area {shown}.", "fill", "Answer = ____"))
+    for _ in range(4):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"A{p1}, B{p2}, C{p3}. Find x1(y2-y3) + x2(y3-y1) + x3(y1-y2) first, then halve and take the positive value.", "fill", "Answer = ____"))
+    return items
 
 
 def _L15I_s(sheet):
@@ -1053,543 +990,245 @@ def _L15I_s(sheet):
     return [s1, s2, s3, s4][sheet - 1]
 
 
+# ─── 15J: Coordinate Geometry Mastery Challenge ───────────────
 def _L15J_s(sheet):
-    s1 = [
-        cb("Mixed Challenge — Coordinate Geometry", [
-            "Hardest mix: multi-step distance, section, area of triangles by coordinates.",
-            "Area of triangle = ½|x1(y2-y3)+x2(y3-y1)+x3(y1-y2)|.",
-            "Plan before you compute; show all steps.",
-        ], "Area of (0,0),(4,0),(0,3) = ½·4·3 = 6."),
-        q("Area of triangle (0,0),(4,0),(0,3): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(6,0),(0,8): ____", "fill", "Answer = ____"),
-        q("Distance (1,1) to (4,5): ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,9),(10,1): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(12,9) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (1,2),(5,14): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(5,0),(0,4): ____", "fill", "Answer = ____"),
-        q("Perimeter of triangle (0,0),(3,4),(0,8): sides 5,5,8 → ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (9,40): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (2,2),(10,10): ____", "fill", "Answer = ____"),
-        q("Is (0,0),(4,0),(4,3),(0,3) a rectangle? ____", "fill", "Answer = ____"),
-        q("Area of rectangle (0,0),(7,0),(7,5),(0,5): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,15) ratio 2:3 → P: ____", "fill", "Answer = ____"),
-        q("Distance (3,4) to (6,8): ____", "fill", "Answer = ____"),
-        q("Slope of line parallel to y = 3x - 7: ____", "fill", "Answer = ____"),
-        q("True or False: Area of triangle (0,0),(4,0),(0,3) is 6.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (9,40) is 41.", "fill", "Answer = ____"),
-        q("True or False: Perimeter of triangle with sides 5,5,8 is 18.", "fill", "Answer = ____"),
-        q("Spot: A(0,0),B(12,9) at 2:1 gives (4,3). Correct? Fix (8,6). ____", "fill", "Answer = ____"),
-        q("True or False: Slope of line parallel to y=3x-7 is 3.", "fill", "Answer = ____"),
+    random.seed(1540 + sheet)
+    ranges = {1: (6, 10), 2: (8, 12), 3: (10, 15), 4: (12, 18)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Coordinate Geometry Mastery Challenge", [
+            "Every skill: distance, midpoint, section formula, area of a triangle, collinearity.",
+            "Bigger numbers here -- this challenge covers the whole level.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    s2 = [
-        cb("Advanced Coordinate Problems", [
-            "Use area to test collinearity: three points collinear ⇔ area = 0.",
-            "Combine section and midpoint for medians/centroids.",
-            "Centroid of a triangle = average of the three vertices.",
-        ], "Centroid of (0,0),(6,0),(0,9) = (2, 3)."),
-        q("Centroid of (0,0),(6,0),(0,9): ____", "fill", "Answer = ____"),
-        q("Centroid of (0,0),(3,0),(0,3): ____", "fill", "Answer = ____"),
-        q("Centroid of (1,1),(4,1),(1,7): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(8,0),(0,5): ____", "fill", "Answer = ____"),
-        q("Are (0,0),(2,2),(5,5) collinear? ____", "fill", "Answer = ____"),
-        q("Are (0,0),(1,2),(2,5) collinear? ____", "fill", "Answer = ____"),
-        q("Distance (2,3) to (14,8): ____", "fill", "Answer = ____"),
-        q("Midpoint of (-6,4),(6,-4): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(18,12) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(10,0),(0,6): ____", "fill", "Answer = ____"),
-        q("Centroid of (3,3),(9,3),(3,9): ____", "fill", "Answer = ____"),
-        q("Slope through (0,0),(4,12): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (28,45): ____", "fill", "Answer = ____"),
-        q("Perimeter of triangle (0,0),(6,0),(3,4): sides 5,5,6 → ____", "fill", "Answer = ____"),
-        q("Centre of diameter (0,0),(8,6): ____", "fill", "Answer = ____"),
-        q("True or False: Centroid of (0,0),(6,0),(0,9) is (2,3).", "fill", "Answer = ____"),
-        q("True or False: (0,0),(2,2),(5,5) are collinear.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (28,45) is 53.", "fill", "Answer = ____"),
-        q("Spot: Area of triangle (0,0),(8,0),(0,5) = 40. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Centroid of (1,1),(4,1),(1,7) is (2,3).", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Coordinate Challenge — Tips", [
-            "Triangle area = ½|x1(y2-y3)+x2(y3-y1)+x3(y1-y2)|.",
-            "Collinear ⇔ area = 0 ⇔ equal slopes.",
-            "Centroid = ((x1+x2+x3)/3, (y1+y2+y3)/3).",
-            "Always sketch to sanity-check the answer.",
-        ]),
-        q("Area of triangle (0,0),(12,0),(0,7): ____", "fill", "Answer = ____"),
-        q("Centroid of (0,0),(9,0),(0,9): ____", "fill", "Answer = ____"),
-        q("Distance (1,2) to (9,17): ____", "fill", "Answer = ____"),
-        q("Are (0,0),(3,3),(7,7) collinear? ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,2),(14,10): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(20,15) ratio 3:2 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (2,1),(8,4): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(6,0),(0,10): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (16,30): ____", "fill", "Answer = ____"),
-        q("Centroid of (2,0),(0,6),(4,0): ____", "fill", "Answer = ____"),
-        q("Perimeter triangle (0,0),(8,0),(4,3): sides 5,5,8 → ____", "fill", "Answer = ____"),
-        q("Centre of diameter (3,1),(9,7): ____", "fill", "Answer = ____"),
-        q("Are (1,1),(2,3),(3,5) collinear? ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,20) ratio 1:3 → P: ____", "fill", "Answer = ____"),
-        q("Distance (5,5) to (5,20): ____", "fill", "Answer = ____"),
-        q("True or False: Centroid of (0,0),(9,0),(0,9) is (3,3).", "fill", "Answer = ____"),
-        q("True or False: (1,1),(2,3),(3,5) are collinear.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (16,30) is 34.", "fill", "Answer = ____"),
-        q("Spot: Area of triangle (0,0),(12,0),(0,7) = 84. Correct? Fix (42). ____", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(20,15) at 3:2 gives (12,9).", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Area of triangle (1,1),(5,1),(1,4): ____", "fill", "Answer = ____"),
-        q("Centroid of (0,0),(12,0),(0,15): ____", "fill", "Answer = ____"),
-        q("Distance (2,3) to (26,10): ____", "fill", "Answer = ____"),
-        q("Are (0,0),(4,8),(7,14) collinear (on y=2x)? ____", "fill", "Answer = ____"),
-        q("A(0,0),B(30,20) ratio 2:3 → P: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-7,5),(13,-3): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(14,0),(0,9): ____", "fill", "Answer = ____"),
-        q("Slope through (1,3),(7,21): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (33,56): ____", "fill", "Answer = ____"),
-        q("Centroid of (1,2),(4,6),(7,10): ____", "fill", "Answer = ____"),
-        q("Perimeter triangle (0,0),(0,9),(12,0): sides 9,12,15 → ____", "fill", "Answer = ____"),
-        q("Is triangle (0,0),(0,9),(12,0) right-angled? ____", "fill", "Answer = ____"),
-        q("Centre of diameter (-4,-3),(4,3): ____", "fill", "Answer = ____"),
-        q("A(2,2),B(14,14) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Area of triangle with base 14 and height 9: ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (33,56) is 65.", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(0,9),(12,0) has perimeter 36.", "fill", "Answer = ____"),
-        q("True or False: Centroid of (0,0),(12,0),(0,15) is (4,5).", "fill", "Answer = ____"),
-        q("Spot: Area of triangle (1,1),(5,1),(1,4) = 12. Correct? Fix (6). ____", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(0,9),(12,0) is right-angled.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+
+    def gen_pythag_points(hi):
+        triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (9, 12, 15)]
+        a, b, c = random.choice(triples)
+        if random.random() > 0.5: a, b = b, a
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        return (x1, y1), (x1 + a, y1 + b), c
+
+    for _ in range(5):
+        p1, p2, dist = gen_pythag_points(hi)
+        items.append(q(f"Find the distance between {p1} and {p2}.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        x2, y2 = x1 + 2 * random.randint(1, 5), y1 + 2 * random.randint(1, 5)
+        items.append(q(f"Find the midpoint of ({x1},{y1}) and ({x2},{y2}).  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Find the area of the triangle A{p1}, B{p2}, C{p3}.  [3 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        dx, dy = random.choice([(1, 1), (1, 2), (2, 1), (1, -1)])
+        k1, k2 = sorted(random.sample(range(1, 5), 2))
+        p1, p2, p3 = (x1, y1), (x1 + k1 * dx, y1 + k1 * dy), (x1 + k2 * dx, y1 + k2 * dy)
+        items.append(q(f"Are A{p1}, B{p2}, C{p3} collinear?  [2 points]", "fill", "Answer = ____"))
+    for _ in range(3):
+        p1, p2, dist = gen_pythag_points(hi)
+        shown = dist if random.random() > 0.4 else dist + 1
+        items.append(q(f"True or False: Distance between {p1} and {p2} is {shown}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 
+import random
+
+
+def _gen_two_points(hi=8):
+    x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+    x2, y2 = random.randint(-hi, hi), random.randint(-hi, hi)
+    while (x1, y1) == (x2, y2):
+        x2, y2 = random.randint(-hi, hi), random.randint(-hi, hi)
+    return (x1, y1), (x2, y2)
+
+
+def _gen_pythag_points(hi=6):
+    """Two points whose x/y gaps form a clean 3-4-5-style right triangle."""
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (7, 24, 25)]
+    a, b, c = random.choice(triples)
+    if random.random() > 0.5:
+        a, b = b, a
+    x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+    x2, y2 = x1 + a, y1 + b
+    return (x1, y1), (x2, y2), c
+
+
+def _quadrant_of(x, y):
+    if x > 0 and y > 0: return "I"
+    if x < 0 and y > 0: return "II"
+    if x < 0 and y < 0: return "III"
+    if x > 0 and y < 0: return "IV"
+    return "on an axis"
+
+
+# ─── 15CUM1: Coordinate Plane, Plotting & Distance — Visual Practice ───
 def _L15CUM1_s(sheet):
-    # Mixed A+B+C: plane, plotting, distance
-    s1 = [
-        cb("Cumulative A+B+C", [
-            "Covers: coordinate plane, plotting points, distance formula.",
-            "Identify quadrants, plot/locate, and compute distances.",
-        ], "Quadrants, segment lengths, and √(Δx²+Δy²)."),
-        q("Quadrant of (-3, 7): ____", "fill", "Answer = ____"),
-        q("Quadrant of (5, -2): ____", "fill", "Answer = ____"),
-        q("Where is (0, 6)? ____", "fill", "Answer = ____"),
-        q("Length of segment (2,3) to (2,11): ____", "fill", "Answer = ____"),
-        q("Length of segment (1,5) to (9,5): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (3,4): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (6,8): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(8,0),(8,6),(0,6): area: ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(8,0),(8,6),(0,6): perimeter: ____", "fill", "Answer = ____"),
-        q("Reflect (4,5) over x-axis: ____", "fill", "Answer = ____"),
-        q("Distance (1,1) to (4,5): ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(6,0),(0,8): hypotenuse: ____", "fill", "Answer = ____"),
-        q("Quadrant of (-4,-9): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (5,12): ____", "fill", "Answer = ____"),
-        q("Where is (-7, 0)? ____", "fill", "Answer = ____"),
-        q("True or False: (-3,7) is in Quadrant II.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (6,8) is 10.", "fill", "Answer = ____"),
-        q("True or False: Segment (2,3) to (2,11) has length 8.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (5,12) = 12. Correct? Fix (13). ____", "fill", "Answer = ____"),
-        q("True or False: Rectangle 8 by 6 has area 48.", "fill", "Answer = ____"),
+    random.seed(1500 + sheet)
+    ranges = {1: (4, 6), 2: (5, 7), 3: (6, 8), 4: (6, 9)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Seeing the Coordinate Plane", [
+            "A point (x,y): x tells you how far left/right, y tells you how far up/down.",
+            "Distance uses the horizontal and vertical gaps -- it's Pythagoras in disguise.",
+        ], "Distance (1,1) to (5,4): horizontal gap 4, vertical gap 3, distance 5."),
     ]
-    s2 = [
-        cb("Cumulative A+B+C — Practice", [
-            "Mix quadrants, shape coordinates, and distances.",
-            "Use Pythagorean triples to speed up distances.",
-        ], "3-4-5, 5-12-13, 8-15-17."),
-        q("Quadrant of (9, 4): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (8,15): ____", "fill", "Answer = ____"),
-        q("Length (3,2) to (3,14): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(10,0),(10,4),(0,4): area: ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(12,0),(0,5): area: ____", "fill", "Answer = ____"),
-        q("Distance (2,3) to (5,7): ____", "fill", "Answer = ____"),
-        q("Reflect (-2,6) over y-axis: ____", "fill", "Answer = ____"),
-        q("Where is (0,-9)? ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (7,24): ____", "fill", "Answer = ____"),
-        q("Quadrant of (-6,-1): ____", "fill", "Answer = ____"),
-        q("Fourth corner of rectangle (1,1),(7,1),(7,4): ____", "fill", "Answer = ____"),
-        q("Distance (6,0) to (0,8): ____", "fill", "Answer = ____"),
-        q("Square side 9: area: ____", "fill", "Answer = ____"),
-        q("Length (4,7) to (12,7): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (20,21): ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (8,15) is 17.", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(12,0),(0,5) has area 30.", "fill", "Answer = ____"),
-        q("True or False: (9,4) is in Quadrant I.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (7,24) = 24. Correct? Fix (25). ____", "fill", "Answer = ____"),
-        q("True or False: Square of side 9 has area 81.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative A+B+C — Tips", [
-            "Quadrant signs: (+,+) I, (-,+) II, (-,-) III, (+,-) IV.",
-            "Horizontal/vertical lengths = coordinate differences.",
-            "Distance = √(Δx²+Δy²); recall the triples.",
-            "Rectangle area = l×w; triangle = ½bh.",
-        ]),
-        q("Quadrant of (-8, 2): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (9,12): ____", "fill", "Answer = ____"),
-        q("Length (5,5) to (5,20): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(11,0),(11,6),(0,6): perimeter: ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(8,0),(0,15): hypotenuse: ____", "fill", "Answer = ____"),
-        q("Distance (1,2) to (7,10): ____", "fill", "Answer = ____"),
-        q("Where is (13, 0)? ____", "fill", "Answer = ____"),
-        q("Reflect (5,-2) over x-axis: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (12,16): ____", "fill", "Answer = ____"),
-        q("Quadrant of (3,-11): ____", "fill", "Answer = ____"),
-        q("Square area 144, side: ____", "fill", "Answer = ____"),
-        q("Length (2,9) to (14,9): ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(10,0),(0,24): hypotenuse: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (40,9): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(15,0),(15,8),(0,8): area: ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (9,12) is 15.", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(8,0),(0,15) has hypotenuse 17.", "fill", "Answer = ____"),
-        q("True or False: Square of area 144 has side 12.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (12,16) = 18. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Length (5,5) to (5,20) is 15.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Quadrant of (-5, 14): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (11,60): ____", "fill", "Answer = ____"),
-        q("Length (3,4) to (3,19): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(13,0),(13,9),(0,9): area: ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(20,0),(0,21): hypotenuse: ____", "fill", "Answer = ____"),
-        q("Distance (2,1) to (14,10): ____", "fill", "Answer = ____"),
-        q("Fourth corner of rectangle (2,3),(2,9),(6,9): ____", "fill", "Answer = ____"),
-        q("Reflect (-3,7) over y-axis: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (16,30): ____", "fill", "Answer = ____"),
-        q("Where is (0, 17)? ____", "fill", "Answer = ____"),
-        q("Square diagonal of side 10 = √200 = 10√2; side: ____", "fill", "Answer = ____"),
-        q("Triangle (0,0),(9,0),(0,12): perimeter (9,12,15): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (28,45): ____", "fill", "Answer = ____"),
-        q("Quadrant of (-2,-2): ____", "fill", "Answer = ____"),
-        q("Rectangle (0,0),(7,0),(7,24),(0,24): diagonal: ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (11,60) is 61.", "fill", "Answer = ____"),
-        q("True or False: Triangle (0,0),(9,0),(0,12) has perimeter 36.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (28,45) is 53.", "fill", "Answer = ____"),
-        q("Spot: Triangle (0,0),(20,0),(0,21) hypotenuse = 28. Correct? Fix (29). ____", "fill", "Answer = ____"),
-        q("True or False: Rectangle 7 by 24 has diagonal 25.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        pts = [(random.randint(-hi, hi), random.randint(-hi, hi)) for _ in range(2)]
+        items.append(q("Plot the points shown. Name the quadrant (or axis) for each.", "diagram", "____", "", "plot_points_grid", {"points": pts, "labels": [f"({x},{y})" for x, y in pts]}))
+    for _ in range(6):
+        p1, p2, dist = _gen_pythag_points(hi)
+        items.append(q(f"The diagram shows the segment from {p1} to {p2}. Use the right triangle to find the distance.", "diagram", "____", "", "distance_segment", {"p1": p1, "p2": p2}))
+    for _ in range(4):
+        x, y = random.randint(-hi, hi), random.randint(-hi, hi)
+        while x == 0 or y == 0: x, y = random.randint(-hi, hi), random.randint(-hi, hi)
+        items.append(q(f"Which quadrant is ({x},{y}) in?", "fill", "Answer = ____"))
+    for _ in range(3):
+        p1, p2, dist = _gen_pythag_points(hi)
+        items.append(q(f"Find the distance between {p1} and {p2}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        p1, p2, dist = _gen_pythag_points(hi)
+        shown = dist if random.random() > 0.4 else dist + 1
+        items.append(q(f"True or False: The distance between {p1} and {p2} is {shown}.", "fill", "Answer = ____"))
+    return items
 
 
+# ─── 15CUM2: Midpoint, Section & Graphing — Visual Practice ──
 def _L15CUM2_s(sheet):
-    # Mixed D+E+F: midpoint, section, graph basics
-    s1 = [
-        cb("Cumulative D+E+F", [
-            "Covers: midpoint formula, section formula, graph basics (slope/intercepts).",
-            "Pick the right tool for each question.",
-        ], "Midpoint averages; section divides by ratio; slope = Δy/Δx."),
-        q("Midpoint of (2,4),(8,12): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(9,0) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (1,2),(4,11): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 3x - 7: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-4,2),(6,8): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(12,0) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (0,0),(5,15): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 2x - 10: ____", "fill", "Answer = ____"),
-        q("M(5,5), A(2,3): find B: ____", "fill", "Answer = ____"),
-        q("Midpoint of (0,0),(10,6): ____", "fill", "Answer = ____"),
-        q("Slope through (2,3),(7,3): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,15) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("y = 4x + 1 at x = 2: ____", "fill", "Answer = ____"),
-        q("Midpoint of (3,7),(11,1): ____", "fill", "Answer = ____"),
-        q("Slope through (1,1),(3,7): ____", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (2,4),(8,12) is (5,8).", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(9,0) at 1:2 gives (3,0).", "fill", "Answer = ____"),
-        q("True or False: Slope through (1,2),(4,11) is 3.", "fill", "Answer = ____"),
-        q("Spot: x-intercept of y = 2x - 10 is 10. Correct? Fix (5). ____", "fill", "Answer = ____"),
-        q("True or False: y-intercept of y = 3x - 7 is -7.", "fill", "Answer = ____"),
+    random.seed(1510 + sheet)
+    ranges = {1: (4, 8), 2: (5, 9), 3: (6, 10), 4: (6, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Seeing the Midpoint, Section & Graphs", [
+            "Midpoint: exactly halfway between two points.",
+            "Section formula: a point dividing a segment in a given ratio m:n.",
+            "y=mx+c graphs as a straight line -- m is the slope, c is the y-intercept.",
+        ], "Midpoint of (1,1) and (7,5) is (4,3)."),
     ]
-    s2 = [
-        cb("Cumulative D+E+F — Practice", [
-            "Combine midpoint, section and line equations.",
-            "Check 1:1 ratio equals the midpoint.",
-        ], "Section 1:1 = midpoint, always."),
-        q("Midpoint of (1,7),(9,3): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(20,10) ratio 2:3 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (0,5),(5,0): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = -2x + 9: ____", "fill", "Answer = ____"),
-        q("M(7,7), A(3,5): find B: ____", "fill", "Answer = ____"),
-        q("A(2,3),B(8,9) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 5x - 15: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-5,-5),(5,5): ____", "fill", "Answer = ____"),
-        q("Slope through (1,3),(4,12): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(18,0) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("y = 2x - 3 at x = 5: ____", "fill", "Answer = ____"),
-        q("Midpoint of (4,8),(10,2): ____", "fill", "Answer = ____"),
-        q("Slope of line parallel to y = 6x: ____", "fill", "Answer = ____"),
-        q("A(2,2),B(8,8) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 7x: ____", "fill", "Answer = ____"),
-        q("True or False: Slope through (0,5),(5,0) is -1.", "fill", "Answer = ____"),
-        q("True or False: M(7,7),A(3,5) gives B=(11,9).", "fill", "Answer = ____"),
-        q("True or False: A(2,3),B(8,9) at 1:2 gives (4,5).", "fill", "Answer = ____"),
-        q("Spot: x-intercept of y = 5x - 15 is 15. Correct? Fix (3). ____", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (1,7),(9,3) is (5,5).", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative D+E+F — Tips", [
-            "Midpoint = averages; endpoint = 2M - A.",
-            "Section m:n → m with far point B, n with near point A.",
-            "y = mx + c: slope m, intercept c; x-intercept set y=0.",
-            "Slope between points = Δy/Δx.",
-        ]),
-        q("Midpoint of (3,9),(15,1): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(15,0) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (1,1),(5,9): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 8x - 2: ____", "fill", "Answer = ____"),
-        q("M(0,0), A(-4,6): find B: ____", "fill", "Answer = ____"),
-        q("A(0,0),B(24,16) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 3x - 12: ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,2),(14,10): ____", "fill", "Answer = ____"),
-        q("Slope through (2,8),(6,8): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,20) ratio 1:3 → P: ____", "fill", "Answer = ____"),
-        q("y = -x + 8: x-intercept: ____", "fill", "Answer = ____"),
-        q("M(6,4), A(10,6): find B: ____", "fill", "Answer = ____"),
-        q("Slope through (3,7),(6,13): ____", "fill", "Answer = ____"),
-        q("A(2,2),B(14,14) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-7,-1),(3,9): ____", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (3,9),(15,1) is (9,5).", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(15,0) at 2:1 gives (10,0).", "fill", "Answer = ____"),
-        q("True or False: Slope through (2,8),(6,8) is 0.", "fill", "Answer = ____"),
-        q("Spot: M(6,4),A(10,6) gives B=(2,2). Correct? ____", "fill", "Answer = ____"),
-        q("True or False: x-intercept of y = 3x - 12 is 4.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Midpoint of (3,7),(15,1): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(21,14) ratio 4:3 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (-3,2),(3,-4): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = -5x + 11: ____", "fill", "Answer = ____"),
-        q("M(5,9), A(1,3): find B: ____", "fill", "Answer = ____"),
-        q("A(0,0),B(30,0) ratio 1:5 → P: ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 4x - 20: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-8,4),(4,-10): ____", "fill", "Answer = ____"),
-        q("Slope through (2,1),(8,4): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(8,12) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Line slope 2 through (0,-5): equation: ____", "fill", "Answer = ____"),
-        q("M(0,0) midpoint of (-3,-4),B: find B: ____", "fill", "Answer = ____"),
-        q("Slope through (10,0),(0,5): ____", "fill", "Answer = ____"),
-        q("A(1,1),B(10,10) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Midpoint of (12,0),(0,16): ____", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(21,14) at 4:3 gives (12,8).", "fill", "Answer = ____"),
-        q("True or False: Slope through (-3,2),(3,-4) is -1.", "fill", "Answer = ____"),
-        q("True or False: Line slope 2 through (0,-5) is y = 2x - 5.", "fill", "Answer = ____"),
-        q("Spot: A(0,0),B(8,12) at 3:1 gives (2,3). Correct? Fix (6,9). ____", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (12,0),(0,16) is (6,8).", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+
+    def gen_even_points(hi):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        x2 = x1 + 2 * random.randint(1, 4) * random.choice([1, -1])
+        y2 = y1 + 2 * random.randint(1, 4) * random.choice([1, -1])
+        return (x1, y1), (x2, y2)
+
+    for _ in range(5):
+        p1, p2 = gen_even_points(hi)
+        items.append(q(f"The diagram shows the segment from {p1} to {p2}. Find the midpoint.", "diagram", "____", "", "midpoint_segment", {"p1": p1, "p2": p2}))
+    for _ in range(5):
+        x1, y1 = 0, 0
+        m, n = random.choice([(1, 1), (1, 2), (1, 3), (2, 1), (3, 1)])
+        total = m + n
+        x2, y2 = total * random.randint(1, 3), total * random.randint(1, 3)
+        items.append(q(f"The diagram shows P dividing AB in ratio {m}:{n}. Find P's coordinates.", "diagram", "____", "", "section_segment", {"p1": (x1, y1), "p2": (x2, y2), "m": m, "n": n}))
+    for _ in range(5):
+        a = random.randint(-4, 4) or 1
+        c = random.randint(-hi, hi)
+        items.append(q(f"Graph y={a}x{'+' if c>=0 else ''}{c}. Find the y-intercept.", "diagram", "____", "", "linear_equation_graph", {"a": -a, "b": 1, "c": c}))
+    for _ in range(3):
+        p1, p2 = gen_even_points(hi)
+        items.append(q(f"Find the midpoint of {p1} and {p2}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(2, 5)
+        c = random.randint(-hi, hi)
+        items.append(q(f"In y={a}x{'+' if c>=0 else ''}{c}, what is the slope?", "fill", "Answer = ____"))
+    return items
 
 
+# ─── 15CUM3: Collinearity — the Area=0 Test ───────────────────
 def _L15CUM3_s(sheet):
-    # Mixed G+H+I: graph applications, mixed, puzzles
-    s1 = [
-        cb("Cumulative G+H+I", [
-            "Covers: graph applications, mixed coordinate skills, puzzles.",
-            "Apply rates, distances, midpoints and solve for unknowns.",
-        ], "Real-world lines plus distance/midpoint puzzles."),
-        q("Cost y = 50x: cost of 4: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (6,8): ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,4),(8,10): ____", "fill", "Answer = ____"),
-        q("(a,0) is 5 from origin, a>0: a = ____", "fill", "Answer = ____"),
-        q("Taxi y = 30 + 10x: fare for 5 km: ____", "fill", "Answer = ____"),
-        q("Slope through (1,2),(4,11): ____", "fill", "Answer = ____"),
-        q("Midpoint of (a,3),(9,3) is (6,3): a = ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (5,12): ____", "fill", "Answer = ____"),
-        q("Savings y = 500 + 100x: after 6 months: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (8,b) = 10, b>0: b = ____", "fill", "Answer = ____"),
-        q("Phone y = 100 + 2x: cost at 50 min: ____", "fill", "Answer = ____"),
-        q("Slope through (2,2),(6,2): ____", "fill", "Answer = ____"),
-        q("Midpoint of (1,1),(x,9) is (4,5): x = ____", "fill", "Answer = ____"),
-        q("Line through (0,10),(5,0): slope: ____", "fill", "Answer = ____"),
-        q("Distance (1,1) to (4,5): ____", "fill", "Answer = ____"),
-        q("True or False: Cost y = 50x gives 200 for 4 units.", "fill", "Answer = ____"),
-        q("True or False: (a,0) at 5 from origin gives a = 5.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (5,12) is 13.", "fill", "Answer = ____"),
-        q("Spot: Taxi y = 30 + 10x for 5 km = 50. Correct? Fix (80). ____", "fill", "Answer = ____"),
-        q("True or False: Savings y = 500 + 100x is 1100 after 6 months.", "fill", "Answer = ____"),
+    random.seed(1530 + sheet)
+    ranges = {1: (4, 6), 2: (5, 7), 3: (5, 8), 4: (6, 9)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Collinearity — the Area Test", [
+            "Three points are COLLINEAR (lie on one straight line) exactly when the 'triangle' they form has AREA = 0.",
+            "Use the same formula: Area = 1/2|x1(y2-y3)+x2(y3-y1)+x3(y1-y2)|.",
+            "This is more reliable than checking slopes -- it works even for vertical lines.",
+        ], "A(1,1), B(2,3), C(3,5): area formula gives 0 -- collinear!"),
     ]
-    s2 = [
-        cb("Cumulative G+H+I — Practice", [
-            "Blend real-world graphs with coordinate computations and puzzles.",
-            "Translate words to equations; solve and verify.",
-        ], "Rate problems, distances, and find-the-unknown."),
-        q("Distance y = 60x: time for 300 km: ____", "fill", "Answer = ____"),
-        q("Midpoint of (3,9),(11,1): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (9,12): ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,k),(8,10) is (5,7): k = ____", "fill", "Answer = ____"),
-        q("Plan y = 200 + 8x: cost at 25 units: ____", "fill", "Answer = ____"),
-        q("Slope through (1,1),(5,9): ____", "fill", "Answer = ____"),
-        q("(0,b) is 12 from origin, b>0: b = ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (20,21): ____", "fill", "Answer = ____"),
-        q("Tank y = 200 - 20x: empty at x = ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (a,4) = 5, a>0: a = ____", "fill", "Answer = ____"),
-        q("Table (0,2),(1,5),(2,8): rule y = ____", "fill", "Answer = ____"),
-        q("A(0,0),B(15,0) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Midpoint of (1,1),(7,9) is (4,5)? ____", "fill", "Answer = ____"),
-        q("Two plans A y=10x, B y=50+5x equal at x = ____", "fill", "Answer = ____"),
-        q("Distance (2,3) to (14,8): ____", "fill", "Answer = ____"),
-        q("True or False: Distance y = 60x covers 300 km in 5 hours.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (20,21) is 29.", "fill", "Answer = ____"),
-        q("True or False: Tank y = 200 - 20x empties at x = 10.", "fill", "Answer = ____"),
-        q("Spot: Table (0,2),(1,5),(2,8) is y = 2x + 3. Correct? Fix (3x+2). ____", "fill", "Answer = ____"),
-        q("True or False: Plans y=10x and y=50+5x meet at x=10.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative G+H+I — Tips", [
-            "Real-world: slope = rate, intercept = starting value.",
-            "Distance/midpoint as usual; solve puzzles by equations.",
-            "Set distances equal for equidistant points.",
-            "Verify by substitution.",
-        ]),
-        q("Cost y = 40x: cost of 6: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (8,15): ____", "fill", "Answer = ____"),
-        q("Midpoint of (4,8),(10,2): ____", "fill", "Answer = ____"),
-        q("(a,12) is 13 from origin, a>0: a = ____", "fill", "Answer = ____"),
-        q("Plan y = 25 + 5x: at x = 10: ____", "fill", "Answer = ____"),
-        q("Slope through (2,1),(8,4): ____", "fill", "Answer = ____"),
-        q("Midpoint of (k,2),(6,2) is (4,2): k = ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (28,45): ____", "fill", "Answer = ____"),
-        q("Savings y = 1000 + 200x: after 5 months: ____", "fill", "Answer = ____"),
-        q("(x,0) equidistant from (0,0),(8,0): x = ____", "fill", "Answer = ____"),
-        q("Table (0,3),(1,7),(2,11): rule y = ____", "fill", "Answer = ____"),
-        q("A(0,0),B(12,0) ratio 1:3 → P: ____", "fill", "Answer = ____"),
-        q("Distance (1,2) to (7,10): ____", "fill", "Answer = ____"),
-        q("Line through (0,20),(4,0): slope: ____", "fill", "Answer = ____"),
-        q("Midpoint of (-3,y),(7,3) is (2,5): y = ____", "fill", "Answer = ____"),
-        q("True or False: Cost y = 40x gives 240 for 6.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (28,45) is 53.", "fill", "Answer = ____"),
-        q("True or False: (x,0) equidistant from (0,0),(8,0) is x = 4.", "fill", "Answer = ____"),
-        q("Spot: Table (0,3),(1,7),(2,11) is y = 3x + 4. Correct? Fix (4x+3). ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (8,15) is 17.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Car y = 70x: distance in 6 hours: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (11,60): ____", "fill", "Answer = ____"),
-        q("Midpoint of (-4,8),(10,2): ____", "fill", "Answer = ____"),
-        q("(a,24) is 25 from origin, a>0: a = ____", "fill", "Answer = ____"),
-        q("Plan y = 200 + 8x: base cost: ____", "fill", "Answer = ____"),
-        q("Slope through (-2,-3),(2,5): ____", "fill", "Answer = ____"),
-        q("Midpoint of (a,5),(11,5) is (7,5): a = ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (33,56): ____", "fill", "Answer = ____"),
-        q("Tank y = 500 - 25x: empty at x = ____", "fill", "Answer = ____"),
-        q("(x,0) equidistant from (2,0),(10,0): x = ____", "fill", "Answer = ____"),
-        q("Table (0,4),(3,16),(6,28): rule y = ____", "fill", "Answer = ____"),
-        q("A(0,0),B(24,16) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Distance (2,1) to (14,10): ____", "fill", "Answer = ____"),
-        q("Two plans A y=10x, B y=50+5x equal at x = ____", "fill", "Answer = ____"),
-        q("Midpoint of (-5,y),(9,3) is (2,6): y = ____", "fill", "Answer = ____"),
-        q("True or False: Car y = 70x covers 420 km in 6 hours.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (33,56) is 65.", "fill", "Answer = ____"),
-        q("True or False: Tank y = 500 - 25x empties at x = 20.", "fill", "Answer = ____"),
-        q("Spot: (a,24) at 25 from origin gives a = 6. Correct? Fix (7). ____", "fill", "Answer = ____"),
-        q("True or False: Table (0,4),(3,16),(6,28) is y = 4x + 4.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+
+    def gen_collinear(hi):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        dx, dy = random.choice([(1, 1), (1, 2), (2, 1), (1, 0), (0, 1), (1, -1), (2, -1), (1, -2)])
+        k1, k2 = sorted(random.sample(range(1, 5), 2))
+        return (x1, y1), (x1 + k1 * dx, y1 + k1 * dy), (x1 + k2 * dx, y1 + k2 * dy)
+
+    for _ in range(4):
+        p1, p2, p3 = gen_collinear(hi)
+        items.append(q(f"Use the diagram to check: are A{p1}, B{p2}, C{p3} collinear?", "diagram", "____", "", "triangle_coords", {"p1": p1, "p2": p2, "p3": p3}))
+    for _ in range(2):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Use the diagram to check: are A{p1}, B{p2}, C{p3} collinear?", "diagram", "____", "", "triangle_coords", {"p1": p1, "p2": p2, "p3": p3}))
+    for _ in range(6):
+        p1, p2, p3 = gen_collinear(hi)
+        items.append(q(f"Are A{p1}, B{p2}, C{p3} collinear? Use the area test to check.", "fill", "Answer = ____"))
+    for _ in range(4):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Are A{p1}, B{p2}, C{p3} collinear? Use the area test to check.", "fill", "Answer = ____"))
+    for _ in range(4):
+        p1, p2, p3 = gen_collinear(hi)
+        items.append(q(f"True or False: A{p1}, B{p2}, C{p3} are collinear (area=0).", "fill", "Answer = ____"))
+    return items
 
 
+# ─── 15REV: Level 15 Revision (samples every topic, climbs in difficulty) ───
 def _L15REV_s(sheet):
-    # Level 15 revision: everything
-    s1 = [
-        cb("Level 15 Revision", [
-            "All Coordinate Geometry: plane, plotting, distance, midpoint, section, graphs.",
-            "Identify the tool, compute carefully, verify.",
-        ], "One sheet touching every skill in Level 15."),
-        q("Quadrant of (-6, 3): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (3,4): ____", "fill", "Answer = ____"),
-        q("Midpoint of (2,4),(6,8): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(6,0) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (1,2),(3,8): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 2x + 1: ____", "fill", "Answer = ____"),
-        q("Reflect (4,5) over x-axis: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (5,12): ____", "fill", "Answer = ____"),
-        q("Midpoint of (0,0),(10,0): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(4,0),(0,3): ____", "fill", "Answer = ____"),
-        q("Cost y = 50x: cost of 3: ____", "fill", "Answer = ____"),
-        q("Slope through (2,3),(5,3): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (0,0),(6,8): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 2x - 6: ____", "fill", "Answer = ____"),
-        q("Distance (1,1) to (4,5): ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (3,4) is 5.", "fill", "Answer = ____"),
-        q("True or False: Midpoint of (2,4),(6,8) is (4,6).", "fill", "Answer = ____"),
-        q("True or False: Slope through (1,2),(3,8) is 3.", "fill", "Answer = ____"),
-        q("Spot: A(0,0),B(6,0) at 1:2 gives (4,0). Correct? Fix (2,0). ____", "fill", "Answer = ____"),
-        q("True or False: Area of triangle (0,0),(4,0),(0,3) is 6.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Level 15 Revision — Practice", [
-            "Faster pass through all Level 15 skills with bigger numbers.",
-            "Use triples and averages to speed up.",
-        ], "Mixed revision, sheet 2."),
-        q("Quadrant of (8, -5): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (8,15): ____", "fill", "Answer = ____"),
-        q("Midpoint of (3,9),(11,1): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(12,0) ratio 3:1 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (1,1),(5,9): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = -2x + 9: ____", "fill", "Answer = ____"),
-        q("Reflect (-2,6) over y-axis: ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (7,24): ____", "fill", "Answer = ____"),
-        q("Centroid of (0,0),(6,0),(0,9): ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(8,0),(0,5): ____", "fill", "Answer = ____"),
-        q("Distance y = 80x: time for 400 km: ____", "fill", "Answer = ____"),
-        q("Slope through (3,7),(6,13): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (2,2),(10,10): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 5x - 15: ____", "fill", "Answer = ____"),
-        q("Distance (2,3) to (14,8): ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (8,15) is 17.", "fill", "Answer = ____"),
-        q("True or False: Centroid of (0,0),(6,0),(0,9) is (2,3).", "fill", "Answer = ____"),
-        q("True or False: Area of triangle (0,0),(8,0),(0,5) is 20.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (7,24) = 24. Correct? Fix (25). ____", "fill", "Answer = ____"),
-        q("True or False: Distance y = 80x covers 400 km in 5 hours.", "fill", "Answer = ____"),
-    ]
-    s3 = [
+    random.seed(1550 + sheet)
+    ranges = {1: (3, 6), 2: (5, 8), 3: (6, 10), 4: (8, 12)}
+    lo, hi = ranges[sheet]
+    items = [
         tb("Level 15 Revision — Tips", [
-            "Plane: quadrant by signs. Distance: √(Δx²+Δy²).",
-            "Midpoint: averages. Section: m:n weighting.",
-            "Graphs: y = mx + c, slope = Δy/Δx, intercepts.",
-            "Area of triangle = ½|...|; centroid = average of vertices.",
+            "Quadrants: (+,+)=I, (-,+)=II, (-,-)=III, (+,-)=IV.",
+            "Distance = sqrt[(x2-x1)^2+(y2-y1)^2] -- it's Pythagoras.",
+            "Midpoint = average of the x's, average of the y's.",
+            "Section formula (ratio m:n): P = ((m x2+n x1)/(m+n), (m y2+n y1)/(m+n)).",
+            "Area of a triangle = 1/2|x1(y2-y3)+x2(y3-y1)+x3(y1-y2)|. Area=0 means collinear.",
         ]),
-        q("Quadrant of (-9,-2): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (9,12): ____", "fill", "Answer = ____"),
-        q("Midpoint of (4,8),(10,2): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(15,0) ratio 2:1 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (2,1),(8,4): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = 8x - 2: ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(12,0),(0,7): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (20,21): ____", "fill", "Answer = ____"),
-        q("Centroid of (0,0),(9,0),(0,9): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 3x - 12: ____", "fill", "Answer = ____"),
-        q("Cost y = 40x: cost of 6: ____", "fill", "Answer = ____"),
-        q("Slope through (0,0),(6,9): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (3,1),(9,7): ____", "fill", "Answer = ____"),
-        q("Distance (1,2) to (7,10): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(0,20) ratio 1:3 → P: ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (20,21) is 29.", "fill", "Answer = ____"),
-        q("True or False: Centroid of (0,0),(9,0),(0,9) is (3,3).", "fill", "Answer = ____"),
-        q("True or False: Area of triangle (0,0),(12,0),(0,7) is 42.", "fill", "Answer = ____"),
-        q("Spot: Distance (0,0) to (9,12) = 13. Correct? Fix (15). ____", "fill", "Answer = ____"),
-        q("True or False: A(0,0),B(15,0) at 2:1 gives (10,0).", "fill", "Answer = ____"),
     ]
-    s4 = [
-        q("Quadrant of (-3, 14): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (11,60): ____", "fill", "Answer = ____"),
-        q("Midpoint of (-8,4),(4,-10): ____", "fill", "Answer = ____"),
-        q("A(0,0),B(21,14) ratio 4:3 → P: ____", "fill", "Answer = ____"),
-        q("Slope through (-3,2),(3,-4): ____", "fill", "Answer = ____"),
-        q("y-intercept of y = -5x + 11: ____", "fill", "Answer = ____"),
-        q("Area of triangle (0,0),(14,0),(0,9): ____", "fill", "Answer = ____"),
-        q("Distance (0,0) to (16,30): ____", "fill", "Answer = ____"),
-        q("Centroid of (1,2),(4,6),(7,10): ____", "fill", "Answer = ____"),
-        q("x-intercept of y = 4x - 20: ____", "fill", "Answer = ____"),
-        q("Car y = 70x: distance in 7 hours: ____", "fill", "Answer = ____"),
-        q("Slope through (1,3),(7,21): ____", "fill", "Answer = ____"),
-        q("Centre of diameter (-4,-3),(4,3): ____", "fill", "Answer = ____"),
-        q("Distance (2,1) to (14,10): ____", "fill", "Answer = ____"),
-        q("A(2,2),B(14,14) ratio 1:2 → P: ____", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (11,60) is 61.", "fill", "Answer = ____"),
-        q("True or False: Slope through (-3,2),(3,-4) is -1.", "fill", "Answer = ____"),
-        q("True or False: Distance (0,0) to (16,30) is 34.", "fill", "Answer = ____"),
-        q("Spot: Area of triangle (0,0),(14,0),(0,9) = 126. Correct? Fix (63). ____", "fill", "Answer = ____"),
-        q("True or False: Car y = 70x covers 490 km in 7 hours.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
 
+    def gen_pythag_points(hi):
+        triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
+        a, b, c = random.choice(triples)
+        if random.random() > 0.5: a, b = b, a
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        return (x1, y1), (x1 + a, y1 + b), c
 
-# ═══════════════════════════════════════════════════════════════════════════════
+    for _ in range(2):
+        x, y = random.randint(-hi, hi), random.randint(-hi, hi)
+        while x == 0 or y == 0: x, y = random.randint(-hi, hi), random.randint(-hi, hi)
+        items.append(q(f"Which quadrant is ({x},{y}) in?", "fill", "Answer = ____"))
+    for _ in range(3):
+        p1, p2, dist = gen_pythag_points(hi)
+        items.append(q("The diagram shows a segment. Find its length.", "diagram", "____", "", "distance_segment", {"p1": p1, "p2": p2}))
+    for _ in range(2):
+        p1, p2, dist = gen_pythag_points(hi)
+        items.append(q(f"Find the distance between {p1} and {p2}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        x2, y2 = x1 + 2 * random.randint(1, 4), y1 + 2 * random.randint(1, 4)
+        items.append(q("The diagram shows a segment. Find its midpoint.", "diagram", "____", "", "midpoint_segment", {"p1": (x1, y1), "p2": (x2, y2)}))
+    for _ in range(2):
+        x1, y1 = 0, 0
+        m, n = random.choice([(1, 1), (1, 2), (2, 1)])
+        x2, y2 = (m + n) * 2, (m + n) * 2
+        items.append(q(f"P divides ({x1},{y1}) to ({x2},{y2}) in ratio {m}:{n}. Find P.", "fill", "Answer = ____"))
+    for _ in range(3):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q("The diagram shows a triangle. Find its area.", "diagram", "____", "", "triangle_coords", {"p1": p1, "p2": p2, "p3": p3}))
+    for _ in range(3):
+        p1, p2, p3, area = _gen_triangle(hi)
+        items.append(q(f"Find the area of triangle A{p1}, B{p2}, C{p3}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        x1, y1 = random.randint(-hi, hi), random.randint(-hi, hi)
+        dx, dy = random.choice([(1, 1), (1, 2), (2, 1)])
+        k1, k2 = sorted(random.sample(range(1, 4), 2))
+        p1, p2, p3 = (x1, y1), (x1 + k1 * dx, y1 + k1 * dy), (x1 + k2 * dx, y1 + k2 * dy)
+        items.append(q(f"Are A{p1}, B{p2}, C{p3} collinear?", "fill", "Answer = ____"))
+    return items
+
 # DISPATCH for Level 15
 # ═══════════════════════════════════════════════════════════════════════════════
 DISPATCH_L15 = {
