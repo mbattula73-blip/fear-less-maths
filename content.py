@@ -13355,67 +13355,87 @@ def _L12C_3B():
     ]
 
 # ─── 12CUM1: Mixed A+B+C ────────────────────────────────────
-def _L12CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Equation Concept, Solving, Multi-step — Summary", [
-                "Equation: has =. Two sides equal.",
-                "One-step: undo with opposite operation.",
-                "Two-step: undo +/- first, then ×/÷.",
-                "Check by substituting back.",
-            ], "x+3=7→x=4. 2x=10→x=5. 2x+1=9→x=4."),
-            q("Is 'x + 5 = 10' an equation? ____", "fill", "Answer = ____"),
-            q("Solve x + 4 = 9. x = ____", "fill", "Answer = ____"),
-            q("Solve x - 3 = 6. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x = 12. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x = 18. x = ____", "fill", "Answer = ____"),
-            q("Solve x/2 = 5. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x + 1 = 11. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x - 2 = 10. x = ____", "fill", "Answer = ____"),
-            q("Solve 4x + 3 = 15. x = ____", "fill", "Answer = ____"),
-            q("Check: x = 5 in x + 4 = 9. 5+4 = ____. ____", "fill", "Answer = ____"),
-            q("Is x = 4 the solution to 2x = 8? ____", "fill", "Answer = ____"),
-            q("True or False: x + 5 = 10 is an equation.", "fill", "Answer = ____"),
-            q("True or False: x + 4 = 9 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 2x = 12 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 2x + 1 = 11 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 3x - 2 = 10 means x = 4.", "fill", "Answer = ____"),
-            q("Spot: Solve 4x + 3 = 15, someone says x = 4. Correct? Fix (x=3). ____", "fill", "Answer = ____"),
-            q("True or False: x/2 = 5 means x = 10.", "fill", "Answer = ____"),
-            q("True or False: Two-step: undo +/- first, then ×/÷.", "fill", "Answer = ____"),
-            q("True or False: x - 3 = 6 means x = 9.", "fill", "Answer = ____"),
-        ]
+def _gen_clean_line(hi=6):
+    """Returns (a,b,c) for ax+by=c with guaranteed-clean integer intercepts.
+    Mode A fixes b=1 (clean x-intercept by construction). Mode B fixes
+    a=1 (clean y-intercept by construction)."""
+    mode = random.choice(["A", "B"])
+    if mode == "A":
+        a = random.randint(1, 4)
+        xi = random.choice([x for x in range(-hi, hi + 1) if x != 0])
+        c = a * xi
+        b = 1
     else:
-        return [
-            tb("Cumulative 12A+12B+12C — Tips", [
-                "Equation has =. Solution is the value of the letter.",
-                "One-step: undo with opposite operation.",
-                "Two-step: undo +/- first, then ×/÷.",
-                "Like terms: combine before solving.",
-                "Always check by substituting back.",
-            ]),
-            q("Solve x + 6 = 13. x = ____", "fill", "Answer = ____"),
-            q("Solve x - 5 = 8. x = ____", "fill", "Answer = ____"),
-            q("Solve 5x = 25. x = ____", "fill", "Answer = ____"),
-            q("Solve x/3 = 4. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x + 5 = 13. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x - 4 = 14. x = ____", "fill", "Answer = ____"),
-            q("Solve 4x + 1 = 17. x = ____", "fill", "Answer = ____"),
-            q("Solve 5x - 3 = 12. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x + 3x = 20. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x = x + 10. x = ____", "fill", "Answer = ____"),
-            q("Is x = 7 the solution to x + 5 = 12? ____", "fill", "Answer = ____"),
-            q("Is x = 4 the solution to 3x + 1 = 13? ____", "fill", "Answer = ____"),
-            q("True or False: x + 6 = 13 means x = 7.", "fill", "Answer = ____"),
-            q("True or False: 5x = 25 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 2x + 5 = 13 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: 3x - 4 = 14 means x = 6.", "fill", "Answer = ____"),
-            q("Spot: 4x + 1 = 17, someone says x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
-            q("True or False: 2x + 3x = 20 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: 3x = x + 10 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 5x - 3 = 12 means x = 3.", "fill", "Answer = ____"),
-        ]
+        b = random.randint(1, 4)
+        yi = random.choice([y for y in range(-hi, hi + 1) if y != 0])
+        c = b * yi
+        a = 1
+    return a, b, c
 
+
+def _gen_pair_with_solution(hi=8):
+    """Returns two equations (a,b,c) guaranteed to intersect at integer
+    point (x0,y0) -- for the graphical method / substitution."""
+    x0 = random.randint(1, hi)
+    y0 = random.randint(1, hi)
+    a1, b1 = random.randint(1, 3), 1
+    c1 = a1 * x0 + b1 * y0
+    a2, b2 = random.randint(1, 4), random.randint(2, 4)
+    while a1 * b2 == a2 * b1:
+        a2, b2 = random.randint(1, 4), random.randint(2, 4)
+    c2 = a2 * x0 + b2 * y0
+    return (a1, b1, c1), (a2, b2, c2), (x0, y0)
+
+
+def _gen_pair_for_elimination(hi=8):
+    """Returns two equations sharing the SAME x-coefficient, guaranteed
+    integer solution -- clean for the elimination method (subtract to
+    cancel x directly)."""
+    x0 = random.randint(1, hi)
+    y0 = random.randint(1, hi)
+    a = random.randint(2, 5)
+    b1 = random.randint(1, 4)
+    b2 = random.randint(1, 4)
+    while b1 == b2:
+        b2 = random.randint(1, 4)
+    c1 = a * x0 + b1 * y0
+    c2 = a * x0 + b2 * y0
+    return (a, b1, c1), (a, b2, c2), (x0, y0)
+
+
+def _fmt_eq_text(a, b, c):
+    bt = f"+ y" if b == 1 else (f"- y" if b == -1 else (f"+ {b}y" if b > 0 else f"- {abs(b)}y"))
+    at = f"{a}x" if a != 1 else "x"
+    return f"{at} {bt} = {c}"
+
+
+# ─── 12CUM1: Graphing Linear Equations ───────────────────────
+def _L12CUM1_s(sheet):
+    random.seed(1200 + sheet)
+    ranges = {1: (4, 6), 2: (5, 8), 3: (6, 10), 4: (8, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Graphing Linear Equations", [
+            "A linear equation ax+by=c makes a STRAIGHT LINE when graphed.",
+            "x-intercept: set y=0, solve for x. y-intercept: set x=0, solve for y.",
+            "Plot both intercepts, then draw a straight line through them.",
+        ], "2x + 3y = 12: x-intercept (6,0), y-intercept (0,4)"),
+    ]
+    for _ in range(6):
+        a, b, c = _gen_clean_line(hi)
+        items.append(q(f"Graph {_fmt_eq_text(a,b,c)}. Find the x-intercept and y-intercept.", "diagram", "____", "", "linear_equation_graph", {"a": a, "b": b, "c": c}))
+    for _ in range(5):
+        a, b, c = _gen_clean_line(hi)
+        items.append(q(f"For {_fmt_eq_text(a,b,c)}, find the x-intercept (set y=0).", "fill", "Answer = ____"))
+    for _ in range(5):
+        a, b, c = _gen_clean_line(hi)
+        items.append(q(f"For {_fmt_eq_text(a,b,c)}, find the y-intercept (set x=0).", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = _gen_clean_line(hi)
+        xi = c // a if a != 0 else None
+        shown = xi if random.random() > 0.4 else xi + random.choice([1, -1])
+        items.append(q(f"True or False: {_fmt_eq_text(a,b,c)} has x-intercept ({shown}, 0).", "fill", "Answer = ____"))
+    return items
 
 # ─── 12D: Word problems ─────────────────────────────────────
 def _L12D_1():
@@ -13780,186 +13800,69 @@ def _L12F_4():
     ]
 
 # ─── 12CUM2: Mixed D+E+F ────────────────────────────────────
+# ─── 12CUM2: Two-Variable Solutions & Substitution Method ────
 def _L12CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Word Problems, Applications, Puzzles — Summary", [
-                "Word problems: choose letter, write equation, solve.",
-                "Applications: real-life situations (cost, age, distance).",
-                "Puzzles: find unknown from clues.",
-                "Always check by substituting back.",
-            ], "5 books at Rs x = Rs 25 → x = 5. Add 3 get 12 → x = 9."),
-            q("3 books at Rs x cost Rs 24. x = ____", "fill", "Answer = ____"),
-            q("Ravi has x. He gets 4 more, has 11. x + 4 = 11. x = ____", "fill", "Answer = ____"),
-            q("Meena lost 5, has 8 left. x - 5 = 8. x = ____", "fill", "Answer = ____"),
-            q("Twice my number is 18. x = ____", "fill", "Answer = ____"),
-            q("3 times my number plus 2 is 14. 3x + 2 = 14. x = ____", "fill", "Answer = ____"),
-            q("A taxi: Rs 10 + Rs 3/km. Cost Rs 22. 3x + 10 = 22. x = ____ km", "fill", "Answer = ____"),
-            q("Sum of two consecutive numbers is 19. x + (x+1) = 19. x = ____", "fill", "Answer = ____"),
-            q("Ravi is x. In 5 years he is 14. x = ____", "fill", "Answer = ____"),
-            q("Solve 4x + 2 = 18. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x - 1 = 11. x = ____", "fill", "Answer = ____"),
-            q("True or False: 3 books at Rs x = 24 means x = 8.", "fill", "Answer = ____"),
-            q("True or False: x + 4 = 11 means x = 7.", "fill", "Answer = ____"),
-            q("True or False: 2x = 18 means x = 9.", "fill", "Answer = ____"),
-            q("True or False: 3x + 2 = 14 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: Sum of two consecutive numbers 19 → 9 and 10.", "fill", "Answer = ____"),
-            q("True or False: Ravi x, in 5 years he is 14 → x = 9.", "fill", "Answer = ____"),
-            q("Spot: 3x + 10 = 22 means x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
-            q("True or False: 4x + 2 = 18 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: 2x - 1 = 11 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: x - 5 = 8 means x = 13.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 12D+12E+12F — Tips", [
-                "Choose letter, write equation, solve.",
-                "Use keywords: 'is/equals'=, 'more'=+, 'less'=-, 'times'=×.",
-                "Multi-step: combine operations, undo in reverse.",
-                "Check the answer fits the original problem.",
-            ]),
-            q("4 books at Rs x cost Rs 36. x = ____", "fill", "Answer = ____"),
-            q("Twice a number plus 4 is 16. x = ____", "fill", "Answer = ____"),
-            q("Three times a number minus 3 is 18. x = ____", "fill", "Answer = ____"),
-            q("Ravi is x. In 6 years he is 17. x = ____", "fill", "Answer = ____"),
-            q("A taxi: Rs 15 + Rs 4/km. Cost Rs 35. 4x + 15 = 35. x = ____", "fill", "Answer = ____"),
-            q("Sum of two consecutive even numbers is 30. x + (x+2) = 30. x = ____", "fill", "Answer = ____"),
-            q("Numbers are ____ and ____", "fill", "Answer = ____"),
-            q("Solve 5x + 3 = 28. x = ____", "fill", "Answer = ____"),
-            q("Solve 6x - 4 = 20. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x = x + 12. x = ____", "fill", "Answer = ____"),
-            q("Solve 2(x + 4) = 14. x + 4 = 7. x = ____", "fill", "Answer = ____"),
-            q("Solve 3(x - 1) = 15. x - 1 = 5. x = ____", "fill", "Answer = ____"),
-            q("True or False: 4 books at Rs x = 36 means x = 9.", "fill", "Answer = ____"),
-            q("True or False: 2x + 4 = 16 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 3x - 3 = 18 means x = 7.", "fill", "Answer = ____"),
-            q("True or False: Sum of two consecutive even numbers 30 → 14 and 16.", "fill", "Answer = ____"),
-            q("True or False: 5x + 3 = 28 means x = 5.", "fill", "Answer = ____"),
-            q("Spot: 4x + 15 = 35 means x = 5. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 3x = x + 12 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 2(x + 4) = 14 means x = 3.", "fill", "Answer = ____"),
-        ]
-
+    random.seed(1210 + sheet)
+    ranges = {1: (4, 6), 2: (5, 8), 3: (6, 10), 4: (8, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Two-Variable Equations & the Substitution Method", [
+            "ax+by=c has INFINITELY many solutions -- any (x,y) pair that fits.",
+            "Substitution method: solve ONE equation for one letter, then substitute into the OTHER equation.",
+            "Once you find one variable, substitute back to find the other.",
+        ], "x+3=7 has one answer. x+y=7 has many: (1,6),(2,5),(3,4)..."),
+    ]
+    for _ in range(5):
+        a, b, c = _gen_clean_line(hi)
+        xv = random.randint(-3, 3)
+        yv = (c - a * xv) / b if b != 0 else None
+        items.append(q(f"For {_fmt_eq_text(a,b,c)}, if x={xv}, find y.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = _gen_clean_line(hi)
+        items.append(q(f"Give any THREE (x,y) pairs that satisfy {_fmt_eq_text(a,b,c)}.", "fill", "Answer = ____"))
+    for _ in range(6):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(hi)
+        step1 = f"y = {c1} - {a1}x" if a1 != 1 else f"y = {c1} - x"
+        items.append(q(f"Solve by substitution: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}. Find x and y.",
+                        "diagram", "____", "", "substitution_steps",
+                        {"steps": [f"{_fmt_eq_text(a1,b1,c1)}", step1, f"substitute into eqn 2", f"x={x0}, y={y0}"]}))
+    for _ in range(3):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(hi)
+        items.append(q(f"From {_fmt_eq_text(a1,b1,c1)}, write y in terms of x.", "fill", "Answer = ____"))
+    for _ in range(2):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(hi)
+        shown_x = x0 if random.random() > 0.4 else x0 + 1
+        items.append(q(f"True or False: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)} have solution x={shown_x}, y={y0}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 12G: Mixed equations ───────────────────────────────────
-def _L12G_1():
-    return [
-        cb("Mixed Equation Practice", [
-            "Solve all types: one-step, two-step, with brackets, both sides.",
-            "Take it step by step.",
-            "Always check.",
-        ], "Mix of types to practice. Show all steps."),
-        q("Solve x + 8 = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve x - 4 = 9. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x = 30. x = ____", "fill", "Answer = ____"),
-        q("Solve x/3 = 7. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 5 = 13. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x - 7 = 8. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x + 1 = 21. x = ____", "fill", "Answer = ____"),
-        q("Solve 6x - 2 = 22. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 3x = 25. x = ____", "fill", "Answer = ____"),
-        q("Solve 7x - 2x = 20. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x = x + 12. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x = 2x + 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x + 3) = 16. x = ____", "fill", "Answer = ____"),
-        q("True or False: x + 8 = 15 means x = 7.", "fill", "Answer = ____"),
-        q("True or False: 5x = 30 means x = 6.", "fill", "Answer = ____"),
-        q("True or False: 2x + 5 = 13 means x = 4.", "fill", "Answer = ____"),
-        q("True or False: 3x = x + 12 means x = 6.", "fill", "Answer = ____"),
-        q("Spot: 6x - 2 = 22 means x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
-        q("True or False: 2(x + 3) = 16 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 7x - 2x = 20 means x = 4.", "fill", "Answer = ____"),
+# ─── 12G: Pair of Equations — Graphical & Elimination Methods ───
+def _L12G_s(sheet):
+    random.seed(1220 + sheet)
+    ranges = {1: (4, 6), 2: (5, 8), 3: (6, 10), 4: (8, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Pair of Linear Equations: Graphical & Elimination Methods", [
+            "Graphical method: plot BOTH lines. Where they cross IS the solution.",
+            "Elimination method: make one variable's coefficients match, then ADD or SUBTRACT the equations to cancel it.",
+            "Both methods give the SAME answer -- graphing shows it visually, elimination finds it algebraically.",
+        ], "x+y=6 and x-y=2 cross at (4,2)"),
     ]
-
-def _L12G_2():
-    return [
-        cb("More Mixed Equations", [
-            "Look at each problem carefully.",
-            "Decide what type and which method to use.",
-            "Solve step by step.",
-        ], "Show working: 3x + 7 = 22 → 3x = 15 → x = 5."),
-        q("Solve x + 12 = 20. x = ____", "fill", "Answer = ____"),
-        q("Solve x - 7 = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 8x = 56. x = ____", "fill", "Answer = ____"),
-        q("Solve x/5 = 8. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x + 4 = 19. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x - 2 = 23. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x + 7 = 27. x = ____", "fill", "Answer = ____"),
-        q("Solve 7x - 3 = 25. x = ____", "fill", "Answer = ____"),
-        q("Solve x + x = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x - x = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 6x = 4x + 10. x = ____", "fill", "Answer = ____"),
-        q("Solve 3(x + 2) = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x - 1) = 12. x = ____", "fill", "Answer = ____"),
-        q("True or False: x + 12 = 20 means x = 8.", "fill", "Answer = ____"),
-        q("True or False: 8x = 56 means x = 7.", "fill", "Answer = ____"),
-        q("True or False: 3x + 4 = 19 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 7x - 3 = 25 means x = 4.", "fill", "Answer = ____"),
-        q("Spot: 5x - 2 = 23 means x = 4. Correct? Fix (x=5). ____", "fill", "Answer = ____"),
-        q("True or False: 6x = 4x + 10 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 3(x + 2) = 18 means x = 4.", "fill", "Answer = ____"),
-    ]
-
-def _L12G_3():
-    return [
-        tb("Mixed Equations — Tips", [
-            "One-step: undo with opposite operation.",
-            "Two-step: undo +/- first, then ×/÷.",
-            "Brackets: divide both sides by number, OR expand brackets.",
-            "Both sides: get letters on one side.",
-            "Always check by substituting back.",
-        ]),
-        q("Solve 6 + x = 14. x = ____", "fill", "Answer = ____"),
-        q("Solve x/4 = 6. x = ____", "fill", "Answer = ____"),
-        q("Solve 9 = x - 3. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x + 5 = 25. x = ____", "fill", "Answer = ____"),
-        q("Solve 6x - 1 = 23. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 8 = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x + 3x = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x - 2x = 24. x = ____", "fill", "Answer = ____"),
-        q("Solve 4(x + 1) = 16. x = ____", "fill", "Answer = ____"),
-        q("Solve 5(x - 2) = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 7x = 3x + 20. x = ____", "fill", "Answer = ____"),
-        q("Solve 8x - 3 = 5x + 12. 3x = 15. x = ____", "fill", "Answer = ____"),
-        q("True or False: 6 + x = 14 means x = 8.", "fill", "Answer = ____"),
-        q("True or False: x/4 = 6 means x = 24.", "fill", "Answer = ____"),
-        q("True or False: 4x + 5 = 25 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 3x + 3x = 18 means x = 3.", "fill", "Answer = ____"),
-        q("Spot: 5(x - 2) = 15 means x = 3. Correct? Fix (x=5). ____", "fill", "Answer = ____"),
-        q("True or False: 7x = 3x + 20 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 8x - 3 = 5x + 12 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 4(x + 1) = 16 means x = 3.", "fill", "Answer = ____"),
-    ]
-
-def _L12G_4():
-    return [
-        tb("Mixed Equations — Mastery Tips", [
-            "Combine like terms before solving.",
-            "If letters on both sides, move all letters to one side.",
-            "Brackets: expand or divide both sides.",
-            "Watch signs carefully.",
-        ]),
-        q("Solve 3x + 5 + 2x = 25. 5x + 5 = 25. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x + 3x - x = 18. 6x = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x - 2x + 4 = 19. 3x + 4 = 19. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 7 = 4x - 3. 10 = 2x. x = ____", "fill", "Answer = ____"),
-        q("Solve 6x - 1 = 3x + 14. 3x = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x + 8 = 3x + 18. 2x = 10. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x + 3) + 1 = 13. 2x + 7 = 13. x = ____", "fill", "Answer = ____"),
-        q("Solve 3(x - 1) + 2x = 12. 3x - 3 + 2x = 12. 5x = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x + 5) = 3x + 4. 2x + 10 = 3x + 4. x = ____", "fill", "Answer = ____"),
-        q("Solve 7x - 2 = 3(x + 2). 7x - 2 = 3x + 6. 4x = 8. x = ____", "fill", "Answer = ____"),
-        q("True or False: 5x + 5 = 25 means x = 4.", "fill", "Answer = ____"),
-        q("True or False: 4x + 3x - x = 18 means x = 3.", "fill", "Answer = ____"),
-        q("True or False: 2x + 7 = 4x - 3 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 6x - 1 = 3x + 14 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 5x + 8 = 3x + 18 means x = 5.", "fill", "Answer = ____"),
-        q("Spot: 2(x + 3) + 1 = 13, someone says x = 4. Correct? Fix (x=3). ____", "fill", "Answer = ____"),
-        q("True or False: 3(x-1) + 2x = 12 means x = 3.", "fill", "Answer = ____"),
-        q("True or False: 2(x + 5) = 3x + 4 means x = 6.", "fill", "Answer = ____"),
-        q("True or False: 7x - 2 = 3(x + 2) means x = 2.", "fill", "Answer = ____"),
-        q("True or False: 5x - 2x + 4 = 19 means x = 5.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(hi)
+        items.append(q(f"Solve graphically: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}. Read off the intersection point.",
+                        "diagram", "____", "", "two_line_graph", {"a1": a1, "b1": b1, "c1": c1, "a2": a2, "b2": b2, "c2": c2}))
+    for _ in range(6):
+        (a, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_for_elimination(hi)
+        items.append(q(f"Solve by elimination: {_fmt_eq_text(a,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}. (Same x-coefficient -- subtract to cancel x.) Find x and y.", "fill", "Answer = ____"))
+    for _ in range(4):
+        (a, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_for_elimination(hi)
+        items.append(q(f"Subtract the equations {_fmt_eq_text(a,b1,c1)} and {_fmt_eq_text(a,b2,c2)}. What do you get?", "fill", "Answer = ____"))
+    for _ in range(4):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(hi)
+        shown_x = x0 if random.random() > 0.4 else x0 + 1
+        items.append(q(f"True or False: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)} intersect at ({shown_x}, {y0}).", "fill", "Answer = ____"))
+    return items
 
 # ─── 12H: Speed solving ─────────────────────────────────────
 def _L12H_s(sheet):
@@ -14189,141 +14092,175 @@ def _L12I_s(sheet):
     return [s1, s2, s3, s4][sheet - 1]
 
 # ─── 12CUM3: Mixed G+H+I ────────────────────────────────────
-def _L12CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Mixed, Speed Solving, Hard Problems — Summary", [
-                "Solve all types of equations.",
-                "One-step, two-step, brackets, both sides.",
-                "Word problems and applications.",
-            ], "Mix of types. Show working clearly."),
-            q("Solve x + 11 = 19. x = ____", "fill", "Answer = ____"),
-            q("Solve 6x = 36. x = ____", "fill", "Answer = ____"),
-            q("Solve 2x + 5 = 17. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x - 4 = 11. x = ____", "fill", "Answer = ____"),
-            q("Solve 4x + 2x = 24. x = ____", "fill", "Answer = ____"),
-            q("Solve 5x = 2x + 15. x = ____", "fill", "Answer = ____"),
-            q("Solve 2(x + 3) = 14. x = ____", "fill", "Answer = ____"),
-            q("Twice a number plus 4 equals 16. x = ____", "fill", "Answer = ____"),
-            q("3 times a number minus 5 is 13. x = ____", "fill", "Answer = ____"),
-            q("Sum of two consecutive numbers is 23. First = ____", "fill", "Answer = ____"),
-            q("Ravi has x. He doubles his money, has Rs 20. 2x = 20. x = ____", "fill", "Answer = ____"),
-            q("True or False: x + 11 = 19 means x = 8.", "fill", "Answer = ____"),
-            q("True or False: 6x = 36 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 2x + 5 = 17 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 3x - 4 = 11 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 4x + 2x = 24 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: 5x = 2x + 15 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 2(x + 3) = 14 means x = 4.", "fill", "Answer = ____"),
-            q("Spot: 2x + 4 = 16 means x = 5. Correct? Fix (x=6). ____", "fill", "Answer = ____"),
-            q("True or False: Sum of two consecutive numbers 23 → 11 and 12.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 12G+12H+12I — Tips", [
-                "Practice all equation types.",
-                "Speed solving for one-step and easy two-step.",
-                "Show working for harder problems.",
-                "Word problems: define variable, write equation, solve.",
-                "Always check by substituting back.",
-            ]),
-            q("Solve x - 7 = 9. x = ____", "fill", "Answer = ____"),
-            q("Solve 9x = 54. x = ____", "fill", "Answer = ____"),
-            q("Solve 3x + 7 = 22. x = ____", "fill", "Answer = ____"),
-            q("Solve 4x - 5 = 15. x = ____", "fill", "Answer = ____"),
-            q("Solve 5x + 3x = 32. x = ____", "fill", "Answer = ____"),
-            q("Solve 6x = 4x + 14. x = ____", "fill", "Answer = ____"),
-            q("Solve 3(x - 2) = 12. x = ____", "fill", "Answer = ____"),
-            q("Solve 4(x + 1) = 24. x = ____", "fill", "Answer = ____"),
-            q("4 times a number plus 3 equals 23. x = ____", "fill", "Answer = ____"),
-            q("Sum of two consecutive even numbers is 38. First = ____", "fill", "Answer = ____"),
-            q("A taxi: Rs 20 + Rs 5/km. Cost Rs 50. x = ____ km", "fill", "Answer = ____"),
-            q("Solve 7x - 3 = 4x + 12. x = ____", "fill", "Answer = ____"),
-            q("True or False: x - 7 = 9 means x = 16.", "fill", "Answer = ____"),
-            q("True or False: 9x = 54 means x = 6.", "fill", "Answer = ____"),
-            q("True or False: 3x + 7 = 22 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 4x - 5 = 15 means x = 5.", "fill", "Answer = ____"),
-            q("True or False: 6x = 4x + 14 means x = 7.", "fill", "Answer = ____"),
-            q("Spot: 3(x - 2) = 12 means x = 5. Correct? Fix (x=6). ____", "fill", "Answer = ____"),
-            q("True or False: 5x + 3x = 32 means x = 4.", "fill", "Answer = ____"),
-            q("True or False: 7x - 3 = 4x + 12 means x = 5.", "fill", "Answer = ____"),
-        ]
+def _gen_intersecting(hi=6):
+    x0 = random.randint(1, hi)
+    y0 = random.randint(1, hi)
+    a1, b1 = random.randint(1, 3), 1
+    c1 = a1 * x0 + b1 * y0
+    a2, b2 = random.randint(1, 4), random.randint(2, 4)
+    while a1 * b2 == a2 * b1:
+        a2, b2 = random.randint(1, 4), random.randint(2, 4)
+    c2 = a2 * x0 + b2 * y0
+    return (a1, b1, c1), (a2, b2, c2)
 
+
+def _gen_parallel(hi=6):
+    a1, b1 = random.randint(1, 4), random.randint(1, 4)
+    k = random.randint(2, 3)
+    a2, b2 = a1 * k, b1 * k
+    c1 = random.randint(1, hi)
+    c2 = c1 * k + random.choice([1, -1, 2, -2, 3])
+    while c2 == c1 * k:
+        c2 = c1 * k + random.choice([1, -1, 2, -2, 3, -3])
+    return (a1, b1, c1), (a2, b2, c2)
+
+
+def _gen_coincident(hi=6):
+    a1, b1, c1 = random.randint(1, 4), random.randint(1, 4), random.randint(1, hi)
+    k = random.randint(2, 3)
+    return (a1, b1, c1), (a1 * k, b1 * k, c1 * k)
+
+
+# ─── 12CUM3: Consistent, Inconsistent & Dependent Systems ────
+def _L12CUM3_s(sheet):
+    random.seed(1230 + sheet)
+    ranges = {1: (4, 6), 2: (5, 8), 3: (6, 10), 4: (8, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Consistent, Inconsistent & Dependent Systems", [
+            "Intersecting lines -> ONE solution -> CONSISTENT.",
+            "Parallel lines -> NO solution -> INCONSISTENT.",
+            "Coincident (same) lines -> INFINITE solutions -> DEPENDENT (also consistent).",
+            "Algebraic test: compare a1/a2, b1/b2, c1/c2 -- no graph needed!",
+            "a1/a2 != b1/b2 -> unique. a1/a2=b1/b2 != c1/c2 -> no solution. All three equal -> infinite.",
+        ], "Compare ratios to classify without graphing"),
+    ]
+    gens = [(_gen_intersecting, "intersecting"), (_gen_parallel, "parallel"), (_gen_coincident, "coincident")]
+    for _ in range(6):
+        gen, kind = random.choice(gens)
+        (a1, b1, c1), (a2, b2, c2) = gen(hi)
+        items.append(q(f"Graph {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}. Are they intersecting, parallel, or coincident?",
+                        "diagram", "____", "", "two_line_graph", {"a1": a1, "b1": b1, "c1": c1, "a2": a2, "b2": b2, "c2": c2}))
+    for _ in range(6):
+        gen, kind = random.choice(gens)
+        (a1, b1, c1), (a2, b2, c2) = gen(hi)
+        items.append(q(f"Without graphing, compare a1/a2, b1/b2, c1/c2 for {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}. Is the system consistent, inconsistent, or dependent?", "fill", "Answer = ____"))
+    LABELS = {"intersecting": "consistent (unique solution)", "parallel": "inconsistent (no solution)", "coincident": "dependent (infinite solutions)"}
+    for _ in range(4):
+        gen, kind = random.choice(gens)
+        (a1, b1, c1), (a2, b2, c2) = gen(hi)
+        correct = LABELS[kind]
+        wrong = random.choice([v for v in LABELS.values() if v != correct])
+        shown = correct if random.random() > 0.4 else wrong
+        items.append(q(f"True or False: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)} form a {shown} system.", "fill", "Answer = ____"))
+    for _ in range(4):
+        statements = [
+            "Parallel lines represent an inconsistent pair of equations (no solution).",
+            "Coincident lines represent a dependent pair of equations (infinite solutions).",
+            "Intersecting lines always represent a consistent pair with exactly one solution.",
+            "If a1/a2 = b1/b2 = c1/c2, the system has infinitely many solutions.",
+        ]
+        items.append(q(f"True or False: {random.choice(statements)}", "fill", "Answer = ____"))
+    return items
 
 # ─── 12J: Mixed challenge ───────────────────────────────────
-def _L12J_s(sheet):
-    s1 = [
-        tb("Level 12 Mixed Challenge — Tips", [
-            "12A: equation = sentence with = sign.",
-            "12B: one-step — undo with opposite operation.",
-            "12C: multi-step — undo +/- first, then ×/÷.",
-            "12D: word problems — choose letter, form equation.",
-            "12E/F: applications and puzzles.",
-            "12G/H/I: practice all types.",
-        ]),
-        q("Is 'x + 5 = 10' an equation or expression? ____", "fill", "Answer = ____"),
-        q("Solve x + 6 = 11. x = ____", "fill", "Answer = ____"),
-        q("Solve x - 4 = 7. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x = 20. x = ____", "fill", "Answer = ____"),
-        q("Solve x/3 = 5. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 1 = 9. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x - 5 = 10. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x + 3 = 19. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 3x = 25. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x = 2x + 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x + 4) = 16. x = ____", "fill", "Answer = ____"),
-        q("Twice a number plus 5 is 13. x = ____", "fill", "Answer = ____"),
-        q("5 books at Rs x cost Rs 35. x = ____", "fill", "Answer = ____"),
-        q("Sum of two consecutive numbers is 21. First = ____", "fill", "Answer = ____"),
-        q("Ravi is x. In 6 years he is 14. x = ____", "fill", "Answer = ____"),
-        q("True or False: x + 5 = 10 is an equation.", "fill", "Answer = ____"),
-        q("True or False: Solve 2x + 1 = 9 means x = 4.", "fill", "Answer = ____"),
-        q("True or False: 5x = 2x + 15 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: 2(x + 4) = 16 means x = 4.", "fill", "Answer = ____"),
-        q("Spot: 4x + 3 = 19, someone says x = 5. Correct? Fix (x=4). ____", "fill", "Answer = ____"),
-    ]
-    return [s1, s1, s1, s1][sheet - 1]
+def _gen_pair_cbse_form(hi=8):
+    """Returns two equations in CBSE 'a1x+b1y+c1=0' form, guaranteed
+    integer solution (x0,y0) -- for the cross-multiplication method."""
+    x0 = random.randint(1, hi)
+    y0 = random.randint(1, hi)
+    a1, b1 = random.randint(1, 4), random.randint(1, 4)
+    c1 = -(a1 * x0 + b1 * y0)
+    a2, b2 = random.randint(1, 5), random.randint(1, 5)
+    while a1 * b2 == a2 * b1:
+        a2, b2 = random.randint(1, 5), random.randint(1, 5)
+    c2 = -(a2 * x0 + b2 * y0)
+    return (a1, b1, c1), (a2, b2, c2), (x0, y0)
 
+
+def _fmt_eq_zero(a, b, c):
+    s = f"{a}x" if a != 1 else "x"
+    s += f" + y" if b == 1 else (f" - y" if b == -1 else (f" + {b}y" if b > 0 else f" - {abs(b)}y"))
+    if c > 0:
+        s += f" + {c}"
+    elif c < 0:
+        s += f" - {abs(c)}"
+    return s + " = 0"
+
+
+# ─── 12J: Cross-Multiplication Method Challenge ──────────────
+def _L12J_s(sheet):
+    random.seed(1240 + sheet)
+    ranges = {1: (5, 15), 2: (8, 25), 3: (12, 35), 4: (15, 50)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Cross-Multiplication Method", [
+            "For a1x+b1y+c1=0 and a2x+b2y+c2=0:",
+            "x / (b1c2-b2c1) = y / (c1a2-c2a1) = 1 / (a1b2-a2b1)",
+            "Compute each of the three parts, then solve for x and y.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
+    ]
+    for _ in range(6):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_cbse_form(min(hi, 9))
+        items.append(q(f"Use cross-multiplication to solve: {_fmt_eq_zero(a1,b1,c1)} and {_fmt_eq_zero(a2,b2,c2)}. Find x and y.  [3 points]", "fill", "Answer = ____"))
+    for _ in range(5):
+        age_diff = random.randint(2, 10)
+        total = random.randint(lo, hi)
+        items.append(q(f"A father is {age_diff} years older than his son. The sum of their ages is {total}. Find both ages using a pair of equations.  [3 points]", "word", "Answer = ____", "let son=x, father=x+diff"))
+    for _ in range(4):
+        total = random.randint(lo, hi)
+        diff = random.randint(2, min(hi, 20))
+        items.append(q(f"Two numbers differ by {diff} and add up to {total}. Find the numbers using a pair of equations.  [2 points]", "word", "Answer = ____"))
+    for _ in range(3):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_cbse_form(min(hi, 9))
+        shown_x = x0 if random.random() > 0.4 else x0 + 1
+        items.append(q(f"True or False: {_fmt_eq_zero(a1,b1,c1)} and {_fmt_eq_zero(a2,b2,c2)} give x={shown_x}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    for _ in range(2):
+        items.append(q("True or False: In cross-multiplication, the denominator (a1b2-a2b1) must NOT be zero for a unique solution.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 12REV: Level 12 Revision ───────────────────────────────
+# ─── 12REV: Level 12 Revision (samples every method, climbs in difficulty) ───
 def _L12REV_s(sheet):
-    return [
-        tb("Level 12 Revision — Algebra: Equations", [
-            "Equation: a sentence with an equals sign. Two sides are equal.",
-            "Solving: find the value of the letter.",
-            "One-step: use the opposite operation.",
-            "Two-step: undo +/- first, then ×/÷.",
-            "Word problems: choose a letter, write the equation, solve.",
-            "Always check by substituting your answer back.",
+    random.seed(1250 + sheet)
+    ranges = {1: (2, 8), 2: (5, 12), 3: (8, 20), 4: (12, 30)}
+    lo, hi = ranges[sheet]
+    items = [
+        tb("Level 12 Revision — Tips", [
+            "Single-variable: x+3=7 -> x=4 (one letter, one answer).",
+            "Graphing: ax+by=c is a line. Intercepts: set x=0 or y=0.",
+            "Pair of equations: solve by graphing, substitution, elimination, OR cross-multiplication.",
+            "Consistency: compare a1/a2, b1/b2, c1/c2 -- unique, no solution, or infinite solutions.",
+            "Always check your answer by substituting back into BOTH equations.",
         ]),
-        q("Is 'x + 7 = 12' an equation or expression? ____", "fill", "Answer = ____"),
-        q("Solve x + 5 = 12. x = ____", "fill", "Answer = ____"),
-        q("Solve x - 3 = 8. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x = 18. x = ____", "fill", "Answer = ____"),
-        q("Solve x/4 = 6. x = ____", "fill", "Answer = ____"),
-        q("Solve 2x + 5 = 15. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x - 3 = 13. x = ____", "fill", "Answer = ____"),
-        q("Solve 5x + 2 = 22. x = ____", "fill", "Answer = ____"),
-        q("Solve 3x + 2x = 20. x = ____", "fill", "Answer = ____"),
-        q("Solve 4x = 2x + 10. x = ____", "fill", "Answer = ____"),
-        q("Solve 2(x + 3) = 12. x = ____", "fill", "Answer = ____"),
-        q("Is x = 4 the solution to 2x + 1 = 9? ____", "fill", "Answer = ____"),
-        q("4 books at Rs x cost Rs 32. x = ____", "fill", "Answer = ____"),
-        q("Twice a number plus 3 is 11. x = ____", "fill", "Answer = ____"),
-        q("Sum of two consecutive numbers is 19. First = ____", "fill", "Answer = ____"),
-        q("Ravi is x. In 4 years he is 13. x = ____", "fill", "Answer = ____"),
-        q("True or False: x + 7 = 12 is an equation.", "fill", "Answer = ____"),
-        q("True or False: Solve 2x + 5 = 15 means x = 5.", "fill", "Answer = ____"),
-        q("True or False: Solve 4x = 2x + 10 means x = 5.", "fill", "Answer = ____"),
-        q("Spot: Solve 2(x + 3) = 12, someone says x = 5. Correct? Fix (x=3). ____", "fill", "Answer = ____"),
     ]
-
-
-
-# ═══ LEVEL 13 ═══
-# Level 13 — Powers & Indices
-# FORMAT: Pages 1-2 = questions only. Page 3 = concept + tips reference.
-# Target: very weak students. Very simple, clear steps, build confidence.
+    for _ in range(3):
+        b = random.randint(lo, hi)
+        total = random.randint(lo, hi * 2)
+        items.append(q(f"Solve: x + {b} = {total}. Find x.", "fill", "x = ____"))
+    for _ in range(3):
+        a, b, c = _gen_clean_line(hi)
+        items.append(q(f"For {_fmt_eq_text(a,b,c)}, find the x-intercept and y-intercept.", "fill", "Answer = ____"))
+    for _ in range(3):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(min(hi, 8))
+        items.append(q(f"Solve by substitution: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        (a, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_for_elimination(min(hi, 8))
+        items.append(q(f"Solve by elimination: {_fmt_eq_text(a,b1,c1)} and {_fmt_eq_text(a2,b2,c2)}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        gen = random.choice([_gen_intersecting, _gen_parallel, _gen_coincident])
+        (a1, b1, c1), (a2, b2, c2) = gen(min(hi, 6))
+        items.append(q(f"Is {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)} consistent, inconsistent, or dependent?", "fill", "Answer = ____"))
+    for _ in range(2):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_cbse_form(min(hi, 8))
+        items.append(q(f"Use cross-multiplication: {_fmt_eq_zero(a1,b1,c1)} and {_fmt_eq_zero(a2,b2,c2)}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        (a1, b1, c1), (a2, b2, c2), (x0, y0) = _gen_pair_with_solution(min(hi, 8))
+        shown_y = y0 if random.random() > 0.4 else y0 + 1
+        items.append(q(f"True or False: {_fmt_eq_text(a1,b1,c1)} and {_fmt_eq_text(a2,b2,c2)} give y={shown_y}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 13A: Powers concept ────────────────────────────────────
 def _L13A_1():
@@ -17192,7 +17129,7 @@ _DISPATCH = {
     "12D":   {1:_L12D_1, 2:_L12D_2, 3:_L12D_3, 4:_L12D_4},
     "12E":   {1:_L12E_1, 2:_L12E_2, 3:_L12E_3, 4:_L12E_4},
     "12F":   {1:_L12F_1, 2:_L12F_2, 3:_L12F_3, 4:_L12F_4},
-    "12G":   {1:_L12G_1, 2:_L12G_2, 3:_L12G_3, 4:_L12G_4},
+    "12G":   {1:lambda:_L12G_s(1), 2:lambda:_L12G_s(2), 3:lambda:_L12G_s(3), 4:lambda:_L12G_s(4)},
     "12H":   {1:lambda:_L12H_s(1), 2:lambda:_L12H_s(2), 3:lambda:_L12H_s(3), 4:lambda:_L12H_s(4)},
     "12I":   {1:lambda:_L12I_s(1), 2:lambda:_L12I_s(2), 3:lambda:_L12I_s(3), 4:lambda:_L12I_s(4)},
     "12J":   {1:lambda:_L12J_s(1), 2:lambda:_L12J_s(2), 3:lambda:_L12J_s(3), 4:lambda:_L12J_s(4)},

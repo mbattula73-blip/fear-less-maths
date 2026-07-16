@@ -298,7 +298,8 @@ class Col:
                                           "vertical_numberline_blank", "vertical_numberline_example",
                                           "math_maze_blank", "function_machine_blank",
                                           "number_pyramid_blank", "algebra_tiles", "balance_scale")
-                    matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
+                    matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
+                                               "linear_equation_graph", "two_line_graph")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)

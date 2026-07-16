@@ -2650,6 +2650,140 @@ def repeated_addition_svg(coefficient=3, variable="x", **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
 
 
+def _fmt_term(coef, var):
+    """Formats a coefficient*variable term with correct sign, e.g. -1x -> '-x'."""
+    if coef == 1:
+        return f"+ {var}"
+    if coef == -1:
+        return f"- {var}"
+    if coef >= 0:
+        return f"+ {coef}{var}"
+    return f"- {abs(coef)}{var}"
+
+
+def _fmt_equation(a, b, c):
+    """Formats ax + by = c as readable text, e.g. (2,-3,6) -> '2x - 3y = 6'."""
+    parts = []
+    parts.append(f"{a}x" if a != 1 else "x")
+    parts.append(_fmt_term(b, "y"))
+    return " ".join(parts) + f" = {c}"
+
+
+def _line_points(a, b, c, rng):
+    """Returns two endpoint (x,y) pairs where the line ax+by=c crosses the
+    boundary of a [-rng,rng] x [-rng,rng] box, for drawing purposes."""
+    candidates = []
+    if b != 0:
+        for xv in (-rng, rng):
+            yv = (c - a * xv) / b
+            if -rng - 1e-9 <= yv <= rng + 1e-9:
+                candidates.append((xv, yv))
+    if a != 0:
+        for yv in (-rng, rng):
+            xv = (c - b * yv) / a
+            if -rng - 1e-9 <= xv <= rng + 1e-9:
+                candidates.append((xv, yv))
+    uniq = []
+    for p in candidates:
+        if not any(abs(p[0]-u[0]) < 1e-6 and abs(p[1]-u[1]) < 1e-6 for u in uniq):
+            uniq.append(p)
+    if len(uniq) < 2:
+        return None
+    uniq.sort()
+    return uniq[0], uniq[-1]
+
+
+def _grid_svg_base(rng=10, size=340, margin=36):
+    """Builds the shared axes/gridlines for a coordinate-plane SVG.
+    Returns (parts_list, to_px_function)."""
+    def to_px(x, y):
+        plot = size - 2 * margin
+        px = margin + (x + rng) / (2 * rng) * plot
+        py = size - margin - (y + rng) / (2 * rng) * plot
+        return px, py
+
+    parts = []
+    for i in range(-rng, rng + 1, 2):
+        if i == 0: continue
+        gx, _ = to_px(i, 0)
+        _, gy = to_px(0, i)
+        parts.append(f'<line x1="{gx:.1f}" y1="{margin}" x2="{gx:.1f}" y2="{size-margin}" stroke="#EEF1F3" stroke-width="1"/>')
+        parts.append(f'<line x1="{margin}" y1="{gy:.1f}" x2="{size-margin}" y2="{gy:.1f}" stroke="#EEF1F3" stroke-width="1"/>')
+    ox, oy = to_px(0, 0)
+    parts.append(f'<line x1="{margin}" y1="{oy:.1f}" x2="{size-margin}" y2="{oy:.1f}" stroke="#2C3E50" stroke-width="2"/>')
+    parts.append(f'<line x1="{ox:.1f}" y1="{margin}" x2="{ox:.1f}" y2="{size-margin}" stroke="#2C3E50" stroke-width="2"/>')
+    parts.append(f'<text x="{size-margin+10}" y="{oy+4:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">x</text>')
+    parts.append(f'<text x="{ox-6:.1f}" y="{margin+2}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">y</text>')
+    return parts, to_px
+
+
+def linear_equation_graph_svg(a=1, b=1, c=6, rng=10, **kw):
+    """Plots the single line ax+by=c on a coordinate grid, marking its
+    x- and y-intercepts. The core visual for graphing linear equations."""
+    size = 340
+    parts, to_px = _grid_svg_base(rng, size)
+    pts = _line_points(a, b, c, rng)
+    if pts:
+        (x1, y1), (x2, y2) = pts
+        px1, py1 = to_px(x1, y1)
+        px2, py2 = to_px(x2, y2)
+        parts.append(f'<line x1="{px1:.1f}" y1="{py1:.1f}" x2="{px2:.1f}" y2="{py2:.1f}" stroke="#1B5E8C" stroke-width="3"/>')
+    if a != 0:
+        xi = c / a
+        if -rng <= xi <= rng:
+            px, py = to_px(xi, 0)
+            parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#A6362B"/>')
+            xi_lbl = int(xi) if xi == int(xi) else round(xi, 1)
+            parts.append(f'<text x="{px+7:.1f}" y="{py-7:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">({xi_lbl},0)</text>')
+    if b != 0:
+        yi = c / b
+        if -rng <= yi <= rng:
+            px, py = to_px(0, yi)
+            parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5" fill="#1E7A44"/>')
+            yi_lbl = int(yi) if yi == int(yi) else round(yi, 1)
+            parts.append(f'<text x="{px+7:.1f}" y="{py-7:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">(0,{yi_lbl})</text>')
+    eqn = _fmt_equation(a, b, c)
+    parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{eqn}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
+def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, **kw):
+    """Plots two lines on one grid and marks their intersection, or notes
+    if they're parallel/coincident -- the visual for the graphical method
+    and for consistent/inconsistent/dependent systems."""
+    size = 360
+    parts, to_px = _grid_svg_base(rng, size)
+    for (a, b, c, color) in [(a1, b1, c1, "#1B5E8C"), (a2, b2, c2, "#1E7A44")]:
+        pts = _line_points(a, b, c, rng)
+        if pts:
+            (x1, y1), (x2, y2) = pts
+            px1, py1 = to_px(x1, y1)
+            px2, py2 = to_px(x2, y2)
+            parts.append(f'<line x1="{px1:.1f}" y1="{py1:.1f}" x2="{px2:.1f}" y2="{py2:.1f}" stroke="{color}" stroke-width="3"/>')
+
+    det = a1 * b2 - a2 * b1
+    status_text = ""
+    if det != 0:
+        xi = (c1 * b2 - c2 * b1) / det
+        yi = (a1 * c2 - a2 * c1) / det
+        if -rng <= xi <= rng and -rng <= yi <= rng:
+            px, py = to_px(xi, yi)
+            parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="6" fill="#A6362B" stroke="white" stroke-width="1.5"/>')
+            xi_lbl = int(xi) if xi == int(xi) else round(xi, 2)
+            yi_lbl = int(yi) if yi == int(yi) else round(yi, 2)
+            parts.append(f'<text x="{px+8:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">({xi_lbl},{yi_lbl})</text>')
+        status_text = "Intersecting -- ONE solution"
+    else:
+        prop_c = (a1 * c2 == a2 * c1) and (b1 * c2 == b2 * c1)
+        status_text = "Coincident -- INFINITE solutions" if prop_c else "Parallel -- NO solution"
+
+    eqn1 = _fmt_equation(a1, b1, c1)
+    eqn2 = _fmt_equation(a2, b2, c2)
+    parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{eqn1}   and   {eqn2}</text>')
+    parts.append(f'<text x="{size/2}" y="{size-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">{status_text}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -2658,6 +2792,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "function_machine_svg": function_machine_svg,
     "substitution_steps": substitution_steps_svg,
     "repeated_addition": repeated_addition_svg,
+    "linear_equation_graph": linear_equation_graph_svg,
+    "two_line_graph": two_line_graph_svg,
 }
 
 
