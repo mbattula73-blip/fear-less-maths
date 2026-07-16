@@ -16,6 +16,7 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 import math
+import re
 
 BLACK = colors.black
 WHITE = colors.white
@@ -41,6 +42,74 @@ def _wrap(text, font, size, maxw):
             lines.append(line); line = w
     if line: lines.append(line)
     return lines or [""]
+
+
+_SUPER_PATTERN = re.compile(r'\^(-?\d+(?:\.\d+)?|\([^)]*\))')
+
+
+def _draw_str_super(c, x, y, text, font=None, size=None, color=None):
+    """Drop-in replacement for c.drawString that renders 'base^exp'
+    patterns (e.g. '10^-6 m', '3x10^5') with a TRUE raised, smaller
+    exponent instead of a literal caret character. Left-aligned, starts
+    at the same (x,y) as plain drawString would. If font/size aren't
+    given, uses whatever font is currently set on the canvas."""
+    if font is None: font = c._fontname
+    if size is None: size = c._fontsize
+    if color is not None:
+        c.setFillColor(color)
+    segments = []
+    pos = 0
+    for m in _SUPER_PATTERN.finditer(text):
+        if m.start() > pos:
+            segments.append((text[pos:m.start()], False))
+        exp_text = m.group(1)
+        if exp_text.startswith("(") and exp_text.endswith(")"):
+            exp_text = exp_text[1:-1]
+        segments.append((exp_text, True))
+        pos = m.end()
+    if pos < len(text):
+        segments.append((text[pos:], False))
+    if not segments:
+        c.setFont(font, size)
+        c.drawString(x, y, text)
+        return
+    sup_size = size * 0.68
+    sup_dy = size * 0.4
+    xx = x
+    for seg_text, is_super in segments:
+        fsize = sup_size if is_super else size
+        c.setFont(font, fsize)
+        yy = y + sup_dy if is_super else y
+        c.drawString(xx, yy, seg_text)
+        xx += stringWidth(seg_text, font, fsize)
+    c.setFont(font, size)
+
+
+def _draw_centred_super(c, cx, y, text, font=None, size=None, color=None):
+    """Centred version of _draw_str_super -- computes total width first
+    (accounting for the smaller exponent segments) then draws left-aligned
+    from the computed start so the whole string is centred on cx. If
+    font/size aren't given, uses whatever font is currently set on the
+    canvas (so it's a safe drop-in for c.drawCentredString too)."""
+    if font is None: font = c._fontname
+    if size is None: size = c._fontsize
+    segments = []
+    pos = 0
+    for m in _SUPER_PATTERN.finditer(text):
+        if m.start() > pos:
+            segments.append((text[pos:m.start()], False))
+        exp_text = m.group(1)
+        if exp_text.startswith("(") and exp_text.endswith(")"):
+            exp_text = exp_text[1:-1]
+        segments.append((exp_text, True))
+        pos = m.end()
+    if pos < len(text):
+        segments.append((text[pos:], False))
+    if not segments:
+        segments = [(text, False)]
+    sup_size = size * 0.68
+    total_w = sum(stringWidth(t, font, sup_size if s else size) for t, s in segments)
+    _draw_str_super(c, cx - total_w / 2, y, text, font, size, color)
 
 
 def fraction_circle_vec(c, cx, cy, r, total, shaded, accent=GREEN):
@@ -456,7 +525,7 @@ def equation_steps_vec(c, x, y, w, steps, accent=GOLD):
     c.setFont("Helvetica-Bold", 13)
     for i, step in enumerate(steps):
         c.setFillColor(BLACK)
-        c.drawCentredString(cxm, cy, step)
+        _draw_centred_super(c, cxm, cy, step, "Helvetica-Bold", 13, BLACK)
         if i < len(steps) - 1:
             ay = cy - 7 * mm
             c.setStrokeColor(accent); c.setLineWidth(1.3)
@@ -1272,7 +1341,7 @@ def render_rich_concept_page(c, spec, frame):
         # short caption line(s)
         c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 9)
         for ln in _wrap(rl["text"], "Helvetica-Bold", 9, CW):
-            c.drawString(RXc, ry, ln); ry -= 4.2 * mm
+            _draw_str_super(c, RXc, ry, ln, "Helvetica-Bold", 9, BLACK); ry -= 4.2 * mm
         ry -= 1 * mm
         # diagram, drawn centered
         dh = _draw_example_diagram(c, RXc, ry, CW, rl)
@@ -1286,11 +1355,11 @@ def render_rich_concept_page(c, spec, frame):
             if ry < BOT + 14 * mm: break
             c.setFillColor(PINK); c.setFont("Helvetica-Bold", 8.5)
             for ln in _wrap(ex["q"], "Helvetica-Bold", 8.5, CW):
-                c.drawString(RXc, ry, ln); ry -= 4.0 * mm
+                _draw_str_super(c, RXc, ry, ln, "Helvetica-Bold", 8.5, PINK); ry -= 4.0 * mm
             c.setFillColor(BLACK); c.setFont("Helvetica", 8.5)
             for step in ex["steps"]:
                 for ln in _wrap(step, "Helvetica", 8.5, CW - 3 * mm):
-                    c.drawString(RXc + 3 * mm, ry, ln); ry -= 4.0 * mm
+                    _draw_str_super(c, RXc + 3 * mm, ry, ln, "Helvetica", 8.5, BLACK); ry -= 4.0 * mm
             ry -= 1.2 * mm
 
     # ════════════ TRY IT YOURSELF — fills bottom, spans both columns ════════════
@@ -1308,13 +1377,13 @@ def render_rich_concept_page(c, spec, frame):
         yy = ty - 11 * mm
         for t in spec["try_it"]["questions"]:
             for ln in _wrap(t, "Helvetica", 10, full_w - 6 * mm):
-                c.drawString(LXc + 4 * mm, yy, ln); yy -= 5 * mm
+                _draw_str_super(c, LXc + 4 * mm, yy, ln, "Helvetica", 10, BLACK); yy -= 5 * mm
         # answers line: anchored near the bottom, but pushed lower if the
         # questions ran long enough to risk overlapping it (never below the box)
         ans_y = min(by + 2.5 * mm, yy - 3 * mm)
         ans_y = max(ans_y, by + 1 * mm)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 8)
-        c.drawString(LXc + 4 * mm, ans_y, "Answers: " + spec["try_it"]["answers"])
+        _draw_str_super(c, LXc + 4 * mm, ans_y, "Answers: " + spec["try_it"]["answers"], "Helvetica-Oblique", 8, MGRAY)
 
 
 def _bullets(c, x, y, w, items, size=10):
@@ -1326,7 +1395,7 @@ def _bullets(c, x, y, w, items, size=10):
     for t in items:
         wrapped = _wrap("\u2022 " + t, "Helvetica", size, w - 1 * mm)
         for j, ln in enumerate(wrapped):
-            c.drawString(x + (0 if j == 0 else 2.5 * mm), yy, ln)
+            _draw_str_super(c, x + (0 if j == 0 else 2.5 * mm), yy, ln, "Helvetica", size, BLACK)
             yy -= (size * 1.5) * 0.3528 * mm
         yy -= 0.8 * mm
     return yy
@@ -1340,14 +1409,14 @@ def _draw_example_diagram(c, x, y, w, rl):
         fraction_circle_vec(c, cxm, y - 22 * mm, 20 * mm,
                             rl["total"], rl["shaded"], accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 47 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 47 * mm, rl.get("caption", ""))
         return 52 * mm
     if kind == "fraction_bar":
         bw = w - 8 * mm
         fraction_bar_vec(c, x + 4 * mm, y - 16 * mm, bw, 14 * mm,
                         rl["total"], rl["shaded"], accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 25 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 25 * mm, rl.get("caption", ""))
         return 30 * mm
     if kind == "fraction_grid":
         total = rl["total"]; shaded = rl["shaded"]
@@ -1363,68 +1432,68 @@ def _draw_example_diagram(c, x, y, w, rl):
                 c.rect(gx + cc * cw, gy + (rows - 1 - rr) * ch, cw, ch, fill=1, stroke=1)
                 k += 1
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, gy - 7 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, gy - 7 * mm, rl.get("caption", ""))
         return gh + 13 * mm
     if kind == "two_bars":
         used = two_bars_vec(c, x + 4 * mm, y, w - 8 * mm, 11 * mm,
                             rl["t1"], rl["s1"], rl["t2"], rl["s2"],
                             rl.get("lab1", ""), rl.get("lab2", ""), accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 1 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 1 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "number_line":
         used = number_line_vec(c, x + 6 * mm, y - 8 * mm, w - 12 * mm,
                                rl["ticks"], rl.get("marks"), accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 20 * mm, rl.get("caption", ""))
         return 24 * mm
     if kind == "tenths_grid":
         tenths_grid_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 12 * mm,
                        rl["shaded"], accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 20 * mm, rl.get("caption", ""))
         return 24 * mm
     if kind == "hundredths_grid":
         side = 30 * mm
         hundredths_grid_vec(c, cxm - side / 2, y - 2 * mm - side, side,
                            rl["shaded"], accent=GOLD)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - side - 7 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - side - 7 * mm, rl.get("caption", ""))
         return side + 11 * mm
     if kind == "place_value":
         used = place_value_vec(c, x + 4 * mm, y, w - 8 * mm,
                               rl["headers"], rl["digits"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 7 * mm
     if kind == "integer_line":
         used = int_line_vec(c, x + 5 * mm, y - 10 * mm, w - 10 * mm,
                            rl["lo"], rl["hi"], rl.get("marks"), rl.get("jump"))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 24 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 24 * mm, rl.get("caption", ""))
         return 28 * mm
     if kind == "sign_rule":
         used = sign_rule_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["pairs"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
     if kind == "factor_tree":
         used = factor_tree_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                               rl["root"], rl["splits"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
     if kind == "multiples_strip":
         used = multiples_strip_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm,
                                   rl["base"], rl["count"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 16 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 16 * mm, rl.get("caption", ""))
         return 20 * mm
     if kind == "factor_pairs":
         used = factor_pairs_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                                rl["n"], rl["pairs"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 5 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 5 * mm, rl.get("caption", ""))
         return used + 9 * mm
     if kind == "venn":
         used = venn_hcf_lcm_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
@@ -1432,81 +1501,81 @@ def _draw_example_diagram(c, x, y, w, rl):
                                rl["left_only"], rl["common"], rl["right_only"],
                                rl.get("hcf"), rl.get("lcm"))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "ratio_bar":
         ratio_bar_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 11 * mm,
                      rl["a"], rl["b"], color_a=GOLD, color_b=BLUE)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - 20 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - 20 * mm, rl.get("caption", ""))
         return 24 * mm
     if kind == "cross_multiply":
         used = cross_multiply_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                                  rl["a"], rl["b"], rl["c2"], rl["d"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "table":
         used = small_table_vec(c, x + 4 * mm, y, w - 8 * mm,
                               rl["headers"], rl["rows"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 7 * mm
     if kind == "balance_scale":
         used = balance_scale_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                                 rl["left_text"], rl["right_text"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 6 * mm, rl.get("caption", ""))
         return used + 10 * mm
     if kind == "function_machine":
         used = function_machine_vec(c, x + 4 * mm, y - 4 * mm, w - 8 * mm,
                                    rl["input_val"], rl["operation"], rl["output_val"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 6 * mm, rl.get("caption", ""))
         return used + 10 * mm
     if kind == "term_breakdown":
         used = term_breakdown_vec(c, x + 4 * mm, y, w - 8 * mm,
                                  rl["coeff"], rl["var"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "like_terms":
         used = like_terms_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                              rl["group_a"], rl["label_a"], rl["group_b"], rl["label_b"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
     if kind == "equation_steps":
         used = equation_steps_vec(c, x + 4 * mm, y - 4 * mm, w - 8 * mm, rl["steps"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 6 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 6 * mm, rl.get("caption", ""))
         return used + 10 * mm
     if kind == "power_breakdown":
         used = power_breakdown_vec(c, x + 4 * mm, y, w - 8 * mm, rl["base"], rl["exp"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "rule_box":
         used = rule_box_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["pairs"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
     if kind == "square_root":
         used = square_root_vec(c, x + 4 * mm, y - 6 * mm, w - 8 * mm,
                               rl["side"], rl["area"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 9 * mm
     if kind == "area_model":
         used = area_model_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                              rl["col_labels"], rl["row_labels"], rl["cell_values"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 3 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 3 * mm, rl.get("caption", ""))
         return used + 7 * mm
     if kind == "degree_terms":
         used = degree_terms_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["terms"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9.5)
-        c.drawCentredString(cxm, y - used - 4 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 4 * mm, rl.get("caption", ""))
         return used + 8 * mm
     if kind == "coord_plane":
         used = coord_plane_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
@@ -1515,142 +1584,142 @@ def _draw_example_diagram(c, x, y, w, rl):
                               ymin=rl.get("ymin", -4), ymax=rl.get("ymax", 4),
                               quadrant_labels=rl.get("quadrant_labels", True))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "distance_triangle":
         used = distance_triangle_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                                     rl["p1"], rl["p2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "midpoint":
         used = midpoint_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm, rl["p1"], rl["p2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "line_graph":
         used = line_graph_vec(c, x + 4 * mm, y - 2 * mm, w - 8 * mm,
                              rl["slope"], rl["intercept"],
                              xmin=rl.get("xmin", -1), xmax=rl.get("xmax", 4))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "triangle_types":
         fig_w = min(w - 8 * mm, 56 * mm)
         used = triangle_types_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["tkind"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "angle_sum":
         fig_w = min(w - 8 * mm, 56 * mm)
         used = angle_sum_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["angles"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "exterior_angle":
         fig_w = min(w - 8 * mm, 58 * mm)
         used = exterior_angle_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                                  rl["int1"], rl["int2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "congruence":
         fig_w = min(w - 4 * mm, 65 * mm)
         used = congruence_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["rule_label"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "similar_triangles":
         fig_w = min(w - 4 * mm, 65 * mm)
         used = similar_triangles_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["scale"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "pythagoras":
         fig_w = min(w - 10 * mm, 52 * mm)
         used = pythagoras_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                              rl["leg1"], rl["leg2"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "ladder":
         fig_w = min(w - 8 * mm, 52 * mm)
         used = ladder_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                          rl["base"], rl["height"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "circle_parts":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = circle_parts_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                                parts=rl.get("parts", ("radius", "diameter", "chord")))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "tangent":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = tangent_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                           two_tangents=rl.get("two_tangents", False))
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "central_inscribed_angle":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = central_inscribed_angle_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                                           rl["center_angle"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 5 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 5 * mm, rl.get("caption", ""))
         return used + 9 * mm
     if kind == "semicircle":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = semicircle_vec(c, x + 4 * mm, y - 2 * mm, fig_w)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "rect_shape":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = rect_shape_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                              rl["length"], rl["width"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "triangle_base_height":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = triangle_base_height_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                                        rl["base"], rl["height"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "cuboid":
         fig_w = min(w - 8 * mm, 50 * mm)
         used = cuboid_vec(c, x + 4 * mm, y - 2 * mm, fig_w,
                          rl["l"], rl["wd"], rl["h"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "cylinder":
         fig_w = min(w - 8 * mm, 48 * mm)
         used = cylinder_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"], rl["h"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "cone":
         fig_w = min(w - 8 * mm, 48 * mm)
         used = cone_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"], rl["h"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "sphere":
         fig_w = min(w - 8 * mm, 48 * mm)
         used = sphere_vec(c, x + 4 * mm, y - 2 * mm, fig_w, rl["r"])
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     if kind == "trig_triangle":
         fig_w = min(w - 8 * mm, 46 * mm)
         used = trig_triangle_vec(c, x + 4 * mm, y - 2 * mm, fig_w)
         c.setFillColor(MGRAY); c.setFont("Helvetica-Oblique", 9)
-        c.drawCentredString(cxm, y - used - 2 * mm, rl.get("caption", ""))
+        _draw_centred_super(c, cxm, y - used - 2 * mm, rl.get("caption", ""))
         return used + 6 * mm
     return 0
 
@@ -1910,7 +1979,7 @@ def card_factor_tree(c, x, y, w):
     factor_tree_vec(c, x + 4 * mm, y - 11 * mm, w - 8 * mm, 12,
                     [(2, 6, False), (2, 3, True)])
     c.setFillColor(GREEN); c.setFont("Helvetica-Bold", 11)
-    c.drawCentredString(x + w / 2, y - 44 * mm, "12 = 2 \u00d7 2 \u00d7 3 = 2^2 × 3")
+    _draw_centred_super(c, x + w / 2, y - 44 * mm, "12 = 2 \u00d7 2 \u00d7 3 = 2^2 × 3")
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
     c.drawCentredString(x + w / 2, y - 51 * mm, "Keep splitting until every branch is PRIME.")
     return y - card_h - 2 * mm
@@ -2192,7 +2261,7 @@ def card_power_concept(c, x, y, w):
     power_breakdown_vec(c, x + 4 * mm, y - 9 * mm, w - 8 * mm, 3, 2)
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 38 * mm, "3^2 means 3 \u00d7 3 (base used 2 times).")
+    _draw_str_super(c, bx, y - 38 * mm, "3^2 means 3 \u00d7 3 (base used 2 times).")
     c.drawString(bx, y - 44 * mm, "The exponent counts how many times")
     c.drawString(bx, y - 50 * mm, "the base multiplies itself.")
     return y - card_h - 2 * mm
@@ -2241,7 +2310,7 @@ def card_fractional_power(c, x, y, w):
     square_root_vec(c, x + 4 * mm, y - 13 * mm, w - 8 * mm, 4, 16)
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 57 * mm, "16^(1/2) = \u221a16 = 4")
+    _draw_str_super(c, bx, y - 57 * mm, "16^(1/2) = \u221a16 = 4")
     return y - card_h - 2 * mm
 
 
@@ -2268,7 +2337,7 @@ def card_poly_basics(c, x, y, w):
     c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
     c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
     c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
-    c.drawString(x + 5 * mm, y - 7 * mm, "x^2 + 3x + 1 \u2014 three terms:")
+    _draw_str_super(c, x + 5 * mm, y - 7 * mm, "x^2 + 3x + 1 \u2014 three terms:")
     degree_terms_vec(c, x + 4 * mm, y - 11 * mm, w - 8 * mm,
                      [("x^2", "degree 2"), ("3x", "degree 1"), ("1", "degree 0")])
     bx = x + 5 * mm
@@ -2304,7 +2373,7 @@ def card_area_model(c, x, y, w):
                   [["x^2", "2x"], ["5x", "10"]])
     bx = x + 5 * mm
     c.setFont("Helvetica-Bold", 10.5); c.setFillColor(GREEN)
-    c.drawString(bx, y - 57 * mm, "= x^2 + 2x + 5x + 10 = x^2 + 7x + 10")
+    _draw_str_super(c, bx, y - 57 * mm, "= x^2 + 2x + 5x + 10 = x^2 + 7x + 10")
     return y - card_h - 2 * mm
 
 
@@ -2314,12 +2383,12 @@ def card_identity(c, x, y, w):
     c.setFillColor(WHITE); c.setStrokeColor(GREEN); c.setLineWidth(1.1)
     c.roundRect(x, y - card_h, w, card_h, 2 * mm, fill=1, stroke=1)
     c.setFillColor(BLACK); c.setFont("Helvetica-Bold", 11)
-    c.drawString(x + 5 * mm, y - 7 * mm, "(x+3)^2 \u2014 same factor twice:")
+    _draw_str_super(c, x + 5 * mm, y - 7 * mm, "(x+3)^2 \u2014 same factor twice:")
     area_model_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, ["x", "3"], ["x", "3"],
                   [["x^2", "3x"], ["3x", "9"]])
     bx = x + 5 * mm
     c.setFont("Helvetica-Bold", 10.5); c.setFillColor(GREEN)
-    c.drawString(bx, y - 57 * mm, "= x^2 + 6x + 9  (the two 3x's combine)")
+    _draw_str_super(c, bx, y - 57 * mm, "= x^2 + 6x + 9  (the two 3x's combine)")
     return y - card_h - 2 * mm
 
 
@@ -2376,7 +2445,7 @@ def card_distance(c, x, y, w):
     used = distance_triangle_vec(c, x + 4 * mm, y - 10 * mm, w - 8 * mm, (0, 0), (3, 4))
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 10 * mm - used - 4 * mm, "dist = sqrt(3^2 + 4^2) = sqrt(25) = 5")
+    _draw_str_super(c, bx, y - 10 * mm - used - 4 * mm, "dist = \u221a(3^2 + 4^2) = \u221a25 = 5")
     return y - card_h - 2 * mm
 
 
@@ -2495,7 +2564,7 @@ def card_pythagoras(c, x, y, w):
     used = pythagoras_vec(c, x + 6 * mm, y - 10 * mm, fig_w, 3, 4)
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 10 * mm - used - 4 * mm, "a^2 + b^2 = c^2 for a right triangle.")
+    _draw_str_super(c, bx, y - 10 * mm - used - 4 * mm, "a^2 + b^2 = c^2 for a right triangle.")
     return y - card_h - 2 * mm
 
 
@@ -2615,7 +2684,7 @@ def card_cylinder(c, x, y, w):
     used = cylinder_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 7, 10)
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Volume = \u03c0r^2h.")
+    _draw_str_super(c, bx, y - 10 * mm - used - 4 * mm, "Volume = \u03c0r^2h.")
     return y - card_h - 2 * mm
 
 
@@ -2630,7 +2699,7 @@ def card_sphere(c, x, y, w):
     used = sphere_vec(c, x + 4 * mm, y - 10 * mm, fig_w, 7)
     bx = x + 5 * mm
     c.setFont("Helvetica", 9.5); c.setFillColor(MGRAY)
-    c.drawString(bx, y - 10 * mm - used - 4 * mm, "Surface area = 4\u03c0r^2.")
+    _draw_str_super(c, bx, y - 10 * mm - used - 4 * mm, "Surface area = 4\u03c0r^2.")
     return y - card_h - 2 * mm
 
 
