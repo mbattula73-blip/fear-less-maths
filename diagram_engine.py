@@ -3130,6 +3130,253 @@ def triangle_coords_svg(p1=(0, 0), p2=(6, 0), p3=(3, 5), rng=8, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
+def points_lines_rays_svg(**kw):
+    """Shows a point, a line, a ray, and a line segment side by side --
+    the four basic building blocks of geometry, visually distinguished."""
+    w, h = 600, 190
+    parts = []
+    panel_w = w / 4
+    y = 80
+
+    cx0 = panel_w * 0.5
+    parts.append(f'<circle cx="{cx0}" cy="{y}" r="4.5" fill="#1B5E8C"/>')
+    parts.append(f'<text x="{cx0}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">A</text>')
+
+    cx1 = panel_w * 1.5
+    x1a, x1b = cx1 - 55, cx1 + 55
+    parts.append(f'<line x1="{x1a}" y1="{y}" x2="{x1b}" y2="{y}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<polygon points="{x1a},{y} {x1a+11},{y-5.5} {x1a+11},{y+5.5}" fill="#1B5E8C"/>')
+    parts.append(f'<polygon points="{x1b},{y} {x1b-11},{y-5.5} {x1b-11},{y+5.5}" fill="#1B5E8C"/>')
+    parts.append(f'<text x="{cx1-32}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">A</text>')
+    parts.append(f'<text x="{cx1+32}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">B</text>')
+
+    cx2 = panel_w * 2.5
+    x2a, x2b = cx2 - 55, cx2 + 55
+    parts.append(f'<line x1="{x2a}" y1="{y}" x2="{x2b}" y2="{y}" stroke="#1E7A44" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{x2a}" cy="{y}" r="4.5" fill="#1E7A44"/>')
+    parts.append(f'<polygon points="{x2b},{y} {x2b-11},{y-5.5} {x2b-11},{y+5.5}" fill="#1E7A44"/>')
+    parts.append(f'<text x="{x2a}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">A</text>')
+    parts.append(f'<text x="{x2b}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">B</text>')
+
+    cx3 = panel_w * 3.5
+    x3a, x3b = cx3 - 55, cx3 + 55
+    parts.append(f'<line x1="{x3a}" y1="{y}" x2="{x3b}" y2="{y}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{x3a}" cy="{y}" r="4.5" fill="#A6362B"/>')
+    parts.append(f'<circle cx="{x3b}" cy="{y}" r="4.5" fill="#A6362B"/>')
+    parts.append(f'<text x="{x3a}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">A</text>')
+    parts.append(f'<text x="{x3b}" y="{y-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">B</text>')
+
+    labels = ["Point", "Line", "Ray", "Line Segment"]
+    colors = ["#1B5E8C", "#1B5E8C", "#1E7A44", "#A6362B"]
+    for i, lbl in enumerate(labels):
+        cx = panel_w * (i + 0.5)
+        parts.append(f'<text x="{cx}" y="{y+42}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="{colors[i]}">{lbl}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def angle_pair_svg(kind="complementary", a1=35, **kw):
+    """Illustrates a pair of angles: complementary (sum 90, right-angle
+    mark), supplementary/linear pair (sum 180, straight line), or
+    vertical (two crossing lines, opposite angles equal)."""
+    import math as _m
+    w, h = 320, 260
+    cx, cy = 160, 190
+    r = 95
+    parts = []
+    if kind == "complementary":
+        parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#2C3E50" stroke-width="2.5"/>')
+        parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx}" y2="{cy-r}" stroke="#2C3E50" stroke-width="2.5"/>')
+        rad = _m.radians(a1)
+        mx, my = cx + r * _m.cos(rad), cy - r * _m.sin(rad)
+        parts.append(f'<line x1="{cx}" y1="{cy}" x2="{mx:.1f}" y2="{my:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+        parts.append(f'<rect x="{cx}" y="{cy-14}" width="14" height="14" fill="none" stroke="#7F8C8D" stroke-width="1.5"/>')
+        parts.append(f'<text x="{cx+38:.1f}" y="{cy-18}" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{a1}°</text>')
+        parts.append(f'<text x="{cx+12}" y="{cy-60}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{90-a1}°</text>')
+        cap = f"{a1}° + {90-a1}° = 90°  (Complementary)"
+    elif kind in ("supplementary", "linear"):
+        parts.append(f'<line x1="{cx-r}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#2C3E50" stroke-width="2.5"/>')
+        rad = _m.radians(a1)
+        mx, my = cx + r * _m.cos(rad), cy - r * _m.sin(rad)
+        parts.append(f'<line x1="{cx}" y1="{cy}" x2="{mx:.1f}" y2="{my:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+        parts.append(f'<text x="{cx+42:.1f}" y="{cy-22}" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{a1}°</text>')
+        parts.append(f'<text x="{cx-56}" y="{cy-22}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{180-a1}°</text>')
+        nm = "Linear Pair" if kind == "linear" else "Supplementary"
+        cap = f"{a1}° + {180-a1}° = 180°  ({nm})"
+    else:
+        rad1 = _m.radians(a1)
+        x1, y1 = cx + r * _m.cos(rad1), cy - r * _m.sin(rad1)
+        x2, y2 = cx - r * _m.cos(rad1), cy + r * _m.sin(rad1)
+        rad2 = _m.radians(a1 + 55)
+        x3, y3 = cx + r * _m.cos(rad2), cy - r * _m.sin(rad2)
+        x4, y4 = cx - r * _m.cos(rad2), cy + r * _m.sin(rad2)
+        parts.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+        parts.append(f'<line x1="{x3:.1f}" y1="{y3:.1f}" x2="{x4:.1f}" y2="{y4:.1f}" stroke="#A6362B" stroke-width="2.5"/>')
+        mid1 = _m.radians(a1 + 27)
+        lx1, ly1 = cx + 40 * _m.cos(mid1), cy - 40 * _m.sin(mid1)
+        lx2, ly2 = cx - 40 * _m.cos(mid1), cy + 40 * _m.sin(mid1)
+        parts.append(f'<text x="{lx1:.1f}" y="{ly1:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">x</text>')
+        parts.append(f'<text x="{lx2:.1f}" y="{ly2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">x</text>')
+        cap = "Vertically opposite angles are EQUAL"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def transversal_angles_svg(**kw):
+    """Two parallel lines cut by a transversal, all 8 angles numbered --
+    the standard visual for corresponding/alternate/co-interior angles."""
+    w, h = 340, 300
+    y1, y2 = 90, 210
+    x_left, x_right = 30, 310
+    parts = []
+    parts.append(f'<line x1="{x_left}" y1="{y1}" x2="{x_right}" y2="{y1}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{x_left}" y1="{y2}" x2="{x_right}" y2="{y2}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for yv in (y1, y2):
+        parts.append(f'<polyline points="{x_right-26},{yv-7} {x_right-16},{yv} {x_right-26},{yv+7}" fill="none" stroke="#1B5E8C" stroke-width="1.8"/>')
+    ix1, iy1 = 148, y1
+    ix2, iy2 = 212, y2
+    parts.append(f'<line x1="122" y1="42" x2="238" y2="258" stroke="#A6362B" stroke-width="2.5"/>')
+    off = 26
+    labels1 = {1: (-off, -14), 2: (off * 0.65, -14), 3: (-off, 20), 4: (off * 0.65, 20)}
+    labels2 = {5: (-off, -14), 6: (off * 0.65, -14), 7: (-off, 20), 8: (off * 0.65, 20)}
+    for num, (dx, dy) in labels1.items():
+        parts.append(f'<text x="{ix1+dx:.1f}" y="{iy1+dy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{num}</text>')
+    for num, (dx, dy) in labels2.items():
+        parts.append(f'<text x="{ix2+dx:.1f}" y="{iy2+dy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{num}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">Parallel lines cut by a transversal</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def bpt_triangle_svg(ad=4, db=2, ae=6, ec=3, **kw):
+    """Triangle with DE parallel to BC (D on AB, E on AC), illustrating
+    the Basic Proportionality Theorem: AD/DB = AE/EC."""
+    w, h = 320, 300
+    ax, ay = 160, 45
+    bx, by = 40, 260
+    cx, cy = 280, 260
+    frac = ad / (ad + db)
+    dx, dy = ax + (bx - ax) * frac, ay + (by - ay) * frac
+    ex, ey = ax + (cx - ax) * frac, ay + (cy - ay) * frac
+    parts = []
+    parts.append(f'<polygon points="{ax},{ay} {bx},{by} {cx},{cy}" fill="none" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{dx:.1f}" y1="{dy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" stroke="#1B5E8C" stroke-width="2.5" stroke-dasharray="5,3"/>')
+    for (px, py, lbl) in [(ax, ay, "A"), (bx, by, "B"), (cx, cy, "C"), (dx, dy, "D"), (ex, ey, "E")]:
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="#A6362B"/>')
+        if lbl == "A":
+            lx, ly = px, py + 18
+        elif lbl in ("B", "D"):
+            lx, ly = px - 14, py + (16 if lbl == "B" else -10)
+        else:
+            lx, ly = px + 14, py + (16 if lbl == "C" else -10)
+        parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{lbl}</text>')
+    parts.append(f'<text x="{(ax+dx)/2-20:.1f}" y="{(ay+dy)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ad}</text>')
+    parts.append(f'<text x="{(dx+bx)/2-20:.1f}" y="{(dy+by)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{db}</text>')
+    parts.append(f'<text x="{(ax+ex)/2+10:.1f}" y="{(ay+ey)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ae}</text>')
+    parts.append(f'<text x="{(ex+cx)/2+10:.1f}" y="{(ey+cy)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ec}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">DE || BC:  AD/DB = AE/EC</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+_QUAD_SHAPES = {
+    "parallelogram": {"pts": [(60, 220), (200, 220), (240, 80), (100, 80)], "ticks": [(0, 1, 1), (2, 3, 1), (1, 2, 2), (3, 0, 2)], "right_angles": []},
+    "rectangle":     {"pts": [(60, 220), (260, 220), (260, 80), (60, 80)], "ticks": [(0, 1, 1), (2, 3, 1), (1, 2, 2), (3, 0, 2)], "right_angles": [0, 1, 2, 3]},
+    "rhombus":       {"pts": [(160, 230), (240, 150), (160, 70), (80, 150)], "ticks": [(0, 1, 1), (1, 2, 1), (2, 3, 1), (3, 0, 1)], "right_angles": []},
+    "square":        {"pts": [(80, 220), (240, 220), (240, 60), (80, 60)], "ticks": [(0, 1, 1), (1, 2, 1), (2, 3, 1), (3, 0, 1)], "right_angles": [0, 1, 2, 3]},
+    "trapezium":     {"pts": [(60, 220), (260, 220), (200, 80), (120, 80)], "ticks": [], "right_angles": []},
+    "kite":          {"pts": [(160, 230), (225, 145), (160, 60), (95, 145)], "ticks": [(0, 1, 1), (1, 2, 1), (2, 3, 2), (3, 0, 2)], "right_angles": []},
+}
+
+
+def _side_ticks(p1, p2, n):
+    mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    length = (dx ** 2 + dy ** 2) ** 0.5 or 1
+    ux, uy = -dy / length, dx / length
+    out = []
+    for i in range(n):
+        off = (i - (n - 1) / 2) * 7
+        cx_, cy_ = mx + ux * 0 + (dx / length) * off, my + uy * 0 + (dy / length) * off
+        out.append(f'<line x1="{cx_-ux*6:.1f}" y1="{cy_-uy*6:.1f}" x2="{cx_+ux*6:.1f}" y2="{cy_+uy*6:.1f}" stroke="#B7950B" stroke-width="2"/>')
+    return "".join(out)
+
+
+def quadrilateral_types_svg(kind="parallelogram", **kw):
+    """Draws the given quadrilateral type with tick marks for equal
+    sides and right-angle marks where applicable."""
+    cfg = _QUAD_SHAPES.get(kind, _QUAD_SHAPES["parallelogram"])
+    pts = cfg["pts"]
+    w, h = 320, 280
+    parts = []
+    poly = " ".join(f"{x},{y}" for x, y in pts)
+    parts.append(f'<polygon points="{poly}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for i, j, n in cfg["ticks"]:
+        parts.append(_side_ticks(pts[i], pts[j], n))
+    for vi in cfg["right_angles"]:
+        x, y = pts[vi]
+        parts.append(f'<rect x="{x-10}" y="{y-10}" width="10" height="10" fill="none" stroke="#7F8C8D" stroke-width="1.3"/>')
+    vertex_labels = ["A", "B", "C", "D"]
+    for (x, y), lbl in zip(pts, vertex_labels):
+        parts.append(f'<circle cx="{x}" cy="{y}" r="4" fill="#A6362B"/>')
+        ly = y - 12 if y < 150 else y + 18
+        parts.append(f'<text x="{x}" y="{ly}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{lbl}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{kind.title()}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def quadrilateral_diagonals_svg(kind="parallelogram", **kw):
+    """Draws the given quadrilateral with its diagonals, marking the
+    intersection point -- for bisection/perpendicularity properties."""
+    cfg = _QUAD_SHAPES.get(kind, _QUAD_SHAPES["parallelogram"])
+    pts = cfg["pts"]
+    w, h = 320, 280
+    parts = []
+    poly = " ".join(f"{x},{y}" for x, y in pts)
+    parts.append(f'<polygon points="{poly}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{pts[0][0]}" y1="{pts[0][1]}" x2="{pts[2][0]}" y2="{pts[2][1]}" stroke="#A6362B" stroke-width="2" stroke-dasharray="5,3"/>')
+    parts.append(f'<line x1="{pts[1][0]}" y1="{pts[1][1]}" x2="{pts[3][0]}" y2="{pts[3][1]}" stroke="#1E7A44" stroke-width="2" stroke-dasharray="5,3"/>')
+    (ax_, ay_), (cx_, cy_) = pts[0], pts[2]
+    (bx_, by_), (dx_, dy_) = pts[1], pts[3]
+    denom = (ax_ - cx_) * (by_ - dy_) - (ay_ - cy_) * (bx_ - dx_)
+    if abs(denom) > 1e-9:
+        t = ((ax_ - bx_) * (by_ - dy_) - (ay_ - by_) * (bx_ - dx_)) / denom
+        ox = ax_ + t * (cx_ - ax_)
+        oy = ay_ + t * (cy_ - ay_)
+    else:
+        ox, oy = (ax_ + cx_) / 2, (ay_ + cy_) / 2
+    parts.append(f'<circle cx="{ox:.1f}" cy="{oy:.1f}" r="4.5" fill="#7D3C98"/>')
+    vertex_labels = ["A", "B", "C", "D"]
+    for (x, y), lbl in zip(pts, vertex_labels):
+        parts.append(f'<circle cx="{x}" cy="{y}" r="4" fill="#2C3E50"/>')
+        ly = y - 12 if y < 150 else y + 18
+        parts.append(f'<text x="{x}" y="{ly}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{lbl}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{kind.title()} -- diagonals AC and BD</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def polygon_angle_sum_svg(n=5, **kw):
+    """A regular n-gon triangulated from one vertex -- the standard
+    visual proof that interior angle sum = (n-2) x 180."""
+    import math as _m
+    w, h = 320, 320
+    cx, cy, r = 160, 168, 108
+    pts = []
+    for i in range(n):
+        ang = -_m.pi / 2 + i * 2 * _m.pi / n
+        pts.append((cx + r * _m.cos(ang), cy + r * _m.sin(ang)))
+    parts = []
+    poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    parts.append(f'<polygon points="{poly}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    x0, y0 = pts[0]
+    for i in range(2, n - 1):
+        xi, yi = pts[i]
+        parts.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{xi:.1f}" y2="{yi:.1f}" stroke="#A6362B" stroke-width="1.5" stroke-dasharray="4,3"/>')
+    for x, y in pts:
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="#1E7A44"/>')
+    n_tri = n - 2
+    cap = f"{n}-gon: {n_tri} triangles x 180 = {n_tri*180}"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -3149,6 +3396,13 @@ SVG_DIAGRAM_FUNCTIONS = {
     "midpoint_segment": midpoint_segment_svg,
     "section_segment": section_segment_svg,
     "triangle_coords": triangle_coords_svg,
+    "points_lines_rays": points_lines_rays_svg,
+    "angle_pair": angle_pair_svg,
+    "transversal_angles": transversal_angles_svg,
+    "bpt_triangle": bpt_triangle_svg,
+    "quadrilateral_types": quadrilateral_types_svg,
+    "quadrilateral_diagonals": quadrilateral_diagonals_svg,
+    "polygon_angle_sum": polygon_angle_sum_svg,
 }
 
 

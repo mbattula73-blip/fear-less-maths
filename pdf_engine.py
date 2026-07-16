@@ -339,7 +339,10 @@ class Col:
                                                "powers_of_ten_scale", "exponential_growth",
                                                "area_model", "polynomial_graph",
                                                "plot_points_grid", "distance_segment",
-                                               "midpoint_segment", "section_segment", "triangle_coords")
+                                               "midpoint_segment", "section_segment", "triangle_coords",
+                                               "points_lines_rays", "angle_pair", "transversal_angles",
+                                               "bpt_triangle", "quadrilateral_types",
+                                               "quadrilateral_diagonals", "polygon_angle_sum")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)
