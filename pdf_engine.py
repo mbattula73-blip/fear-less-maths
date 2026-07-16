@@ -5,7 +5,7 @@ from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.graphics import renderPDF
-import os, tempfile
+import os, tempfile, re
 from io import BytesIO
 from content import get_questions
 
@@ -20,6 +20,42 @@ def _wrap(text, font, size, maxw):
             lines.append(line); line=w
     if line: lines.append(line)
     return lines or [""]
+
+
+_SUPER_PATTERN = re.compile(r'\^(-?\d+(?:\.\d+)?|\([^)]*\))')
+
+
+def _draw_str_super(c, x, y, text, font, size):
+    """Drop-in replacement for c.drawString that renders 'base^exp'
+    patterns (e.g. '2^3', 'x^(-2)') with a TRUE raised, smaller exponent
+    instead of a literal caret character. Returns the total rendered
+    width (like stringWidth would), so callers can track x position."""
+    segments = []
+    pos = 0
+    for m in _SUPER_PATTERN.finditer(text):
+        if m.start() > pos:
+            segments.append((text[pos:m.start()], False))
+        exp_text = m.group(1)
+        if exp_text.startswith("(") and exp_text.endswith(")"):
+            exp_text = exp_text[1:-1]
+        segments.append((exp_text, True))
+        pos = m.end()
+    if pos < len(text):
+        segments.append((text[pos:], False))
+    if not segments:
+        c.drawString(x, y, text)
+        return stringWidth(text, font, size)
+    sup_size = size * 0.68
+    sup_dy = size * 0.4
+    xx = x
+    for seg_text, is_super in segments:
+        fsize = sup_size if is_super else size
+        c.setFont(font, fsize)
+        yy = y + sup_dy if is_super else y
+        c.drawString(xx, yy, seg_text)
+        xx += stringWidth(seg_text, font, fsize)
+    c.setFont(font, size)
+    return xx - x
 
 
 # Re-import level metadata
@@ -273,22 +309,22 @@ class Col:
         tx=x+nw; avail=cw-nw; lh=sz*1.45
         if bph and bph in text:
             bef,_,aft=text.partition(bph)
-            c.setFont("Helvetica",sz); bw=c.stringWidth(bef,"Helvetica",sz); c.drawString(tx,self.y,bef); tx+=bw
-            c.setFont("Helvetica-Bold",sz); pw_=c.stringWidth(bph,"Helvetica-Bold",sz)
+            c.setFont("Helvetica",sz); bw=stringWidth(bef,"Helvetica",sz); _draw_str_super(c,tx,self.y,bef,"Helvetica",sz); tx+=bw
+            c.setFont("Helvetica-Bold",sz); pw_=stringWidth(bph,"Helvetica-Bold",sz)
             if tx+pw_>x+cw: self.y-=lh; tx=x+nw
-            c.drawString(tx,self.y,bph); tx+=pw_
+            _draw_str_super(c,tx,self.y,bph,"Helvetica-Bold",sz); tx+=pw_
             c.setFont("Helvetica",sz)
-            if tx+c.stringWidth(aft,"Helvetica",sz)>x+cw: self.y-=lh; tx=x+nw
-            c.drawString(tx,self.y,aft[:55])
+            if tx+stringWidth(aft,"Helvetica",sz)>x+cw: self.y-=lh; tx=x+nw
+            _draw_str_super(c,tx,self.y,aft[:55],"Helvetica",sz)
         else:
             words=text.split(); line=""; c.setFont("Helvetica",sz); c.setFillColor(BLACK); tx2=tx
             for w in words:
                 test=(line+" "+w).strip()
                 if c.stringWidth(test,"Helvetica",sz)<=avail: line=test
                 else:
-                    if line: c.drawString(tx2,self.y,line)
+                    if line: _draw_str_super(c,tx2,self.y,line,"Helvetica",sz)
                     self.y-=lh; line=w; tx2=x+nw
-            if line: c.drawString(tx2,self.y,line)
+            if line: _draw_str_super(c,tx2,self.y,line,"Helvetica",sz)
         self.y-=lh+1.5*mm
         if dtype:
             svg_drawing=_diag_svg(dtype,dparm)
