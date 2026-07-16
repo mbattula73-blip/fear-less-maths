@@ -15854,66 +15854,46 @@ def _L14C_4():
     ]
 
 # ─── 14CUM1: Mixed A+B+C ────────────────────────────────────
-def _L14CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Polynomial Basics, Addition, Subtraction — Summary", [
-                "Degree = highest power. Coefficient = number before variable.",
-                "Add: remove brackets, collect like terms.",
-                "Subtract: change all signs in second bracket, then add.",
-            ], "3x^2+2x+1: degree 2, leading coeff 3. (x^2+x)+(2x^2-x)=3x^2."),
-            q("Degree of 5x^3 - 2x + 7: ____", "fill", "Answer = ____"),
-            q("Coefficient of x^2 in 3x^2 - x + 4: ____", "fill", "Answer = ____"),
-            q("Constant of 2x^3 + x - 5: ____", "fill", "Answer = ____"),
-            q("p(x) = x^2 - x + 2. p(0) = ____", "fill", "Answer = ____"),
-            q("p(x) = x^2 - x + 2. p(1) = ____", "fill", "Answer = ____"),
-            q("(3x^2 + 2x + 1) + (x^2 + 3x - 2) = ____", "fill", "Answer = ____"),
-            q("(4x^2 - x + 3) + (2x^2 + x - 3) = ____", "fill", "Answer = ____"),
-            q("(5x^2 + 3x - 1) - (2x^2 + x + 1) = ____", "fill", "Answer = ____"),
-            q("(4x^2 - 3x + 2) - (x^2 - 3x + 2) = ____", "fill", "Answer = ____"),
-            q("(x^3 + 2x - 1) + (x^3 - 2x + 1) = ____", "fill", "Answer = ____"),
-            q("True or False: Degree of 5x^3 - 2x + 7 is 3.", "fill", "Answer = ____"),
-            q("True or False: (3x^2+2x+1)+(x^2+3x-2) = 4x^2+5x-1.", "fill", "Answer = ____"),
-            q("True or False: (5x^2+3x-1)-(2x^2+x+1) = 3x^2+2x-2.", "fill", "Answer = ____"),
-            q("True or False: p(0) = constant term.", "fill", "Answer = ____"),
-            q("True or False: (4x^2-3x+2)-(x^2-3x+2) = 3x^2.", "fill", "Answer = ____"),
-            q("Spot: (4x^2-x+3)+(2x^2+x-3) = 6x^2+0 = 6x^2. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: To subtract, change signs of second poly then add.", "fill", "Answer = ____"),
-            q("True or False: (x^3+2x-1)+(x^3-2x+1) = 2x^3.", "fill", "Answer = ____"),
-            q("True or False: Coefficient of x^2 in 3x^2-x+4 is 3.", "fill", "Answer = ____"),
-            q("True or False: p(1) = 1 - 1 + 2 = 2 for p(x) = x^2 - x + 2.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 14A+14B+14C — Tips", [
-                "Polynomial: terms with non-negative integer powers.",
-                "Degree = highest power. Leading coefficient = its number.",
-                "Add: collect like terms. Subtract: change signs then add.",
-                "Only same-power terms combine.",
-                "Always simplify fully and write in standard form.",
-            ]),
-            q("Degree of 7x^4 - 3x^2 + x - 1: ____", "fill", "Answer = ____"),
-            q("Leading coefficient of -3x^5 + x^2 - 4: ____", "fill", "Answer = ____"),
-            q("p(x) = 2x^2 - 3x + 1. p(2) = ____", "fill", "Answer = ____"),
-            q("p(x) = 2x^2 - 3x + 1. p(-1) = ____", "fill", "Answer = ____"),
-            q("(3x^3-2x^2+x)+(x^3+2x^2-x+4) = ____", "fill", "Answer = ____"),
-            q("(5x^2-4x+3)+(2x^2+x-3)+(x^2-x) = ____", "fill", "Answer = ____"),
-            q("(6x^3+x^2-3x+2)-(2x^3-x^2+x-4) = ____", "fill", "Answer = ____"),
-            q("(x^4-3x^2+2)-(x^4+x^2-1) = ____", "fill", "Answer = ____"),
-            q("True or False: Degree of 7x^4-3x^2+x-1 is 4.", "fill", "Answer = ____"),
-            q("True or False: p(2)=2(4)-3(2)+1=3 for p=2x^2-3x+1.", "fill", "Answer = ____"),
-            q("True or False: (3x^3-2x^2+x)+(x^3+2x^2-x+4) = 4x^3+4.", "fill", "Answer = ____"),
-            q("True or False: (6x^3+x^2-3x+2)-(2x^3-x^2+x-4) = 4x^3+2x^2-4x+6.", "fill", "Answer = ____"),
-            q("True or False: (x^4-3x^2+2)-(x^4+x^2-1) = -4x^2+3.", "fill", "Answer = ____"),
-            q("Spot: (5x^2-4x+3)+(2x^2+x-3)+(x^2-x) = 8x^2-4x. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: p(-1)=2(1)-3(-1)+1=6 for p=2x^2-3x+1.", "fill", "Answer = ____"),
-            q("True or False: Leading coefficient of -3x^5+x^2-4 is -3.", "fill", "Answer = ____"),
-            q("True or False: Adding two polynomials is the same as adding their like terms.", "fill", "Answer = ____"),
-            q("True or False: The sum of a polynomial and its negative is always 0.", "fill", "Answer = ____"),
-            q("True or False: Any polynomial minus itself = 0.", "fill", "Answer = ____"),
-            q("True or False: Degree of sum ≤ max degree of the addends.", "fill", "Answer = ____"),
-        ]
+def _gen_binomial_pair(hi=5):
+    a = random.randint(1, 3)
+    b = random.randint(-hi, hi) or 1
+    c = random.randint(1, 3)
+    d = random.randint(-hi, hi) or 1
+    return a, b, c, d
 
+
+def _fmt_binom(a, b, var="x"):
+    at = f"{a}{var}" if a != 1 else var
+    return f"({at}{'+' if b>=0 else '-'}{abs(b)})"
+
+
+# ─── 14CUM1: Area Model for Multiplication ───────────────────
+def _L14CUM1_s(sheet):
+    random.seed(1400 + sheet)
+    ranges = {1: (2, 4), 2: (2, 5), 3: (3, 6), 4: (3, 8)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("The Area Model — Multiplying Binomials", [
+            "Split each binomial into two parts, make a 2x2 grid, multiply each pair.",
+            "(x+3)(x+2): grid gives x^2, 2x, 3x, 6 -- add them all: x^2+5x+6.",
+            "This is exactly what FOIL does, but you SEE why it works.",
+        ], "(x+3)(x+2) = x^2+5x+6"),
+    ]
+    for _ in range(6):
+        a, b, c, d = _gen_binomial_pair(hi)
+        items.append(q(f"Use the area model to expand {_fmt_binom(a,b)}{_fmt_binom(c,d)}.", "diagram", "____", "", "area_model", {"a": a, "b": b, "c": c, "d": d}))
+    for _ in range(5):
+        a, b, c, d = _gen_binomial_pair(hi)
+        items.append(q(f"Expand {_fmt_binom(a,b)}{_fmt_binom(c,d)} using the distributive property.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c, d = _gen_binomial_pair(hi)
+        items.append(q(f"In the expansion of {_fmt_binom(a,b)}{_fmt_binom(c,d)}, what is the coefficient of x^2?", "fill", "Answer = ____"))
+    for _ in range(5):
+        a, b, c, d = _gen_binomial_pair(hi)
+        correct_x2 = a * c
+        shown = correct_x2 if random.random() > 0.4 else correct_x2 + 1
+        items.append(q(f"True or False: {_fmt_binom(a,b)}{_fmt_binom(c,d)} has x^2 coefficient {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 14D: Multiplication ────────────────────────────────────
 def _L14D_1():
@@ -16286,64 +16266,37 @@ def _L14F_4():
     ]
 
 # ─── 14CUM2: Mixed D+E+F ────────────────────────────────────
+# ─── 14CUM2: Cube Identities ──────────────────────────────────
 def _L14CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Multiplication, Identities, Factorisation — Summary", [
-                "(a+b)^2=a^2+2ab+b^2. (a-b)^2=a^2-2ab+b^2. (a+b)(a-b)=a^2-b^2.",
-                "Factorise: take out HCF, or use identity, or find p,q for quadratic.",
-            ], "(x+3)^2=x^2+6x+9. x^2-9=(x+3)(x-3). x^2+5x+6=(x+2)(x+3)."),
-            q("2x(3x + 4) = ____", "fill", "Answer = ____"),
-            q("(x+5)(x+2) = ____", "fill", "Answer = ____"),
-            q("(x-3)(x+3) = ____", "fill", "Answer = ____"),
-            q("(x+4)^2 = ____", "fill", "Answer = ____"),
-            q("(x-2)^2 = ____", "fill", "Answer = ____"),
-            q("(2x+3)^2 = ____", "fill", "Answer = ____"),
-            q("Factorise: 6x^2 + 9x = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 - 16 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 + 6x + 8 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 - 4x + 3 = ____", "fill", "Answer = ____"),
-            q("True or False: 2x(3x+4) = 6x^2+8x.", "fill", "Answer = ____"),
-            q("True or False: (x+5)(x+2) = x^2+7x+10.", "fill", "Answer = ____"),
-            q("True or False: (x+4)^2 = x^2+8x+16.", "fill", "Answer = ____"),
-            q("True or False: x^2-16 = (x+4)(x-4).", "fill", "Answer = ____"),
-            q("True or False: x^2+6x+8 = (x+2)(x+4).", "fill", "Answer = ____"),
-            q("True or False: x^2-4x+3 = (x-1)(x-3).", "fill", "Answer = ____"),
-            q("Spot: (2x+3)^2 = 4x^2+6x+9. Correct? Fix (12x). ____", "fill", "Answer = ____"),
-            q("True or False: 6x^2+9x = 3x(2x+3).", "fill", "Answer = ____"),
-            q("True or False: (x-2)^2 = x^2-4x+4.", "fill", "Answer = ____"),
-            q("True or False: (x-3)(x+3) = x^2-9.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 14D+14E+14F — Tips", [
-                "Monomial×poly: multiply each term. FOIL for binomials.",
-                "(a+b)^2=a^2+2ab+b^2. (a-b)^2=a^2-2ab+b^2. (a+b)(a-b)=a^2-b^2.",
-                "Factorise: HCF first, then identity or p,q method.",
-                "Check factorisation by expanding back.",
-            ]),
-            q("3x^2(2x - 5) = ____", "fill", "Answer = ____"),
-            q("(x+7)(x-3) = ____", "fill", "Answer = ____"),
-            q("(3x+4)^2 = ____", "fill", "Answer = ____"),
-            q("(5x-2)^2 = ____", "fill", "Answer = ____"),
-            q("(4x+1)(4x-1) = ____", "fill", "Answer = ____"),
-            q("Factorise: 12x^3 - 8x^2 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 - 36 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 + 8x + 15 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2 - 6x + 8 = ____", "fill", "Answer = ____"),
-            q("Factorise: 2x^2 + 6x + 4 = ____", "fill", "Answer = ____"),
-            q("True or False: 3x^2(2x-5) = 6x^3-15x^2.", "fill", "Answer = ____"),
-            q("True or False: (x+7)(x-3) = x^2+4x-21.", "fill", "Answer = ____"),
-            q("True or False: (3x+4)^2 = 9x^2+24x+16.", "fill", "Answer = ____"),
-            q("True or False: (4x+1)(4x-1) = 16x^2-1.", "fill", "Answer = ____"),
-            q("True or False: 12x^3-8x^2 = 4x^2(3x-2).", "fill", "Answer = ____"),
-            q("True or False: x^2+8x+15 = (x+3)(x+5).", "fill", "Answer = ____"),
-            q("Spot: x^2-6x+8 = (x-2)(x-4). Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 2x^2+6x+4 = 2(x+1)(x+2).", "fill", "Answer = ____"),
-            q("True or False: (5x-2)^2 = 25x^2-20x+4.", "fill", "Answer = ____"),
-            q("True or False: x^2-36 = (x+6)(x-6).", "fill", "Answer = ____"),
-        ]
-
+    random.seed(1410 + sheet)
+    ranges = {1: (2, 5), 2: (2, 6), 3: (3, 7), 4: (3, 9)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Cube Identities", [
+            "(a+b)^3 = a^3 + 3a^2b + 3ab^2 + b^3",
+            "(a-b)^3 = a^3 - 3a^2b + 3ab^2 - b^3",
+            "a^3+b^3 = (a+b)(a^2-ab+b^2)  -- sum of cubes",
+            "a^3-b^3 = (a-b)(a^2+ab+b^2)  -- difference of cubes",
+        ], "(x+2)^3 = x^3+6x^2+12x+8"),
+    ]
+    for _ in range(6):
+        n = random.randint(lo, hi)
+        items.append(q(f"Expand (x+{n})^3 using the identity.", "fill", "Answer = ____"))
+    for _ in range(5):
+        n = random.randint(lo, hi)
+        items.append(q(f"Expand (x-{n})^3 using the identity.", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.randint(2, min(hi, 6))
+        items.append(q(f"Factorise x^3+{n**3} using a^3+b^3=(a+b)(a^2-ab+b^2).", "fill", "Answer = ____"))
+    for _ in range(3):
+        n = random.randint(2, min(hi, 6))
+        items.append(q(f"Factorise x^3-{n**3} using a^3-b^3=(a-b)(a^2+ab+b^2).", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.randint(lo, hi)
+        actual = n**3
+        shown = actual if random.random() > 0.4 else actual + 1
+        items.append(q(f"True or False: 2^3 + 3(2^2)({n}) + 3(2)({n}^2) + {n}^3 = (2+{n})^3.", "fill", "Answer = ____"))
+    return items
 
 # ─── 14G: Polynomial problems ────────────────────────────────
 def _L14G_1():
@@ -16465,117 +16418,58 @@ def _L14G_4():
 
 
 # ─── 14H: Mixed ─────────────────────────────────────────────
+def _gen_quadratic_with_roots(hi=6):
+    r1 = random.randint(-hi, hi)
+    r2 = random.randint(-hi, hi)
+    while r2 == r1:
+        r2 = random.randint(-hi, hi)
+    b = -(r1 + r2)
+    c = r1 * r2
+    return [1, b, c], tuple(sorted([r1, r2]))
+
+
+def _gen_cubic_with_roots(hi=4):
+    roots = random.sample(range(-hi, hi + 1), 3)
+    r1, r2, r3 = roots
+    b = -(r1 + r2 + r3)
+    c = r1 * r2 + r2 * r3 + r3 * r1
+    d = -r1 * r2 * r3
+    return [1, b, c, d], tuple(sorted(roots))
+
+
+# ─── 14H: Geometrical Meaning of Zeroes ───────────────────────
 def _L14H_s(sheet):
-    s1 = [
-        cb("Mixed Polynomials", [
-            "All skills: basics, add, subtract, multiply, identities, factorise.",
-            "Show working step by step.",
-        ], "Degree, add/subtract like terms, FOIL, identities, common factor, quadratic."),
-        q("Degree of 4x^5 - 3x^3 + x: ____", "fill", "Answer = ____"),
-        q("p(x)=x^2+2x-3. p(1)=____", "fill", "Answer = ____"),
-        q("(3x^2-x+2)+(x^2+4x-1) = ____", "fill", "Answer = ____"),
-        q("(5x^2+3x-2)-(2x^2-x+4) = ____", "fill", "Answer = ____"),
-        q("3x(2x^2-x+4) = ____", "fill", "Answer = ____"),
-        q("(x+4)(x+6) = ____", "fill", "Answer = ____"),
-        q("(x+5)^2 = ____", "fill", "Answer = ____"),
-        q("(x+8)(x-8) = ____", "fill", "Answer = ____"),
-        q("Factorise: 8x^2-12x = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-49 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2+9x+20 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-9x+20 = ____", "fill", "Answer = ____"),
-        q("True or False: (3x^2-x+2)+(x^2+4x-1) = 4x^2+3x+1.", "fill", "Answer = ____"),
-        q("True or False: (x+5)^2 = x^2+10x+25.", "fill", "Answer = ____"),
-        q("True or False: x^2-49 = (x+7)(x-7).", "fill", "Answer = ____"),
-        q("True or False: x^2+9x+20 = (x+4)(x+5).", "fill", "Answer = ____"),
-        q("Spot: (5x^2+3x-2)-(2x^2-x+4) = 3x^2+4x-6. Correct? Fix (2x). ____", "fill", "Answer = ____"),
-        q("True or False: 8x^2-12x = 4x(2x-3).", "fill", "Answer = ____"),
-        q("True or False: (x+4)(x+6) = x^2+10x+24.", "fill", "Answer = ____"),
-        q("True or False: 3x(2x^2-x+4) = 6x^3-3x^2+12x.", "fill", "Answer = ____"),
+    random.seed(1420 + sheet)
+    ranges = {1: (3, 5), 2: (4, 6), 3: (4, 7), 4: (5, 8)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Geometrical Meaning of Zeroes", [
+            "The zeroes of p(x) are exactly where the graph y=p(x) crosses the x-axis.",
+            "A polynomial of degree n has AT MOST n zeroes.",
+            "A quadratic's graph (a parabola) can cross the x-axis 0, 1 (touching), or 2 times -- never more.",
+            "A cubic's graph can cross the x-axis at most 3 times.",
+        ], "x^2-5x+6 crosses the x-axis at x=2 and x=3 -- its two zeroes."),
     ]
-    s2 = [
-        cb("Mixed Practice — All Skills", [
-            "Work methodically. Show all steps.",
-            "Check each answer.",
-        ], "Factorise→expand to verify. p(a)=0→a is root."),
-        q("p(x)=2x^3-x^2+3x-1. p(0)=____", "fill", "Answer = ____"),
-        q("(4x^3-2x^2+x)+(x^3+3x^2-2x+5) = ____", "fill", "Answer = ____"),
-        q("(3x^3+x^2-4)-(x^3-2x^2+x+3) = ____", "fill", "Answer = ____"),
-        q("(2x-3)(3x+4) = ____", "fill", "Answer = ____"),
-        q("(4x-1)^2 = ____", "fill", "Answer = ____"),
-        q("(7x+2)(7x-2) = ____", "fill", "Answer = ____"),
-        q("Factorise: 15x^3-10x^2+5x = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-81 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2+12x+35 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-4x-21 = ____", "fill", "Answer = ____"),
-        q("p(x)=x^2-4x-21. p(7)=49-28-21=____. Root? ____", "fill", "Answer = ____"),
-        q("True or False: p(0)=-1 for p(x)=2x^3-x^2+3x-1.", "fill", "Answer = ____"),
-        q("True or False: (2x-3)(3x+4) = 6x^2-x-12.", "fill", "Answer = ____"),
-        q("True or False: (4x-1)^2 = 16x^2-8x+1.", "fill", "Answer = ____"),
-        q("True or False: x^2+12x+35 = (x+5)(x+7).", "fill", "Answer = ____"),
-        q("True or False: x^2-4x-21 = (x-7)(x+3).", "fill", "Answer = ____"),
-        q("Spot: (7x+2)(7x-2) = 49x^2-2. Correct? Fix (-4). ____", "fill", "Answer = ____"),
-        q("True or False: 15x^3-10x^2+5x = 5x(3x^2-2x+1).", "fill", "Answer = ____"),
-        q("True or False: p(7)=0 for p(x)=x^2-4x-21.", "fill", "Answer = ____"),
-        q("True or False: (4x^3-2x^2+x)+(x^3+3x^2-2x+5) = 5x^3+x^2-x+5.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Polynomials — Tips", [
-            "Add/subtract: collect like terms only.",
-            "Multiply: FOIL or distributive law.",
-            "Identities: (a±b)^2=a^2±2ab+b^2. (a+b)(a-b)=a^2-b^2.",
-            "Factorise: HCF first, then identity or p,q method.",
-            "Factor theorem: p(a)=0 iff (x-a) is a factor.",
-        ]),
-        q("Degree of 3-5x+2x^4-x^2: ____", "fill", "Answer = ____"),
-        q("(5x^2-3x+1)+(2x^2-x-3)+(x^2+4x+2) = ____", "fill", "Answer = ____"),
-        q("(6x^3+2x^2-x+4)-(3x^3-x^2+2x-1) = ____", "fill", "Answer = ____"),
-        q("(2x+1)(3x^2-x+2) = ____", "fill", "Answer = ____"),
-        q("(3x-5)^2 = ____", "fill", "Answer = ____"),
-        q("Factorise: 4x^2-36 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2+13x+42 = ____", "fill", "Answer = ____"),
-        q("Factorise: 2x^2+7x+3 = ____", "fill", "Answer = ____"),
-        q("p(x)=x^3-x^2-4x+4. p(1)=1-1-4+4=____. Root? ____", "fill", "Answer = ____"),
-        q("p(x)=x^3-x^2-4x+4. p(2)=8-4-8+4=____. Root? ____", "fill", "Answer = ____"),
-        q("True or False: Degree of 3-5x+2x^4-x^2 is 4.", "fill", "Answer = ____"),
-        q("True or False: (2x+1)(3x^2-x+2) = 6x^3+x^2+3x+2.", "fill", "Answer = ____"),
-        q("True or False: (3x-5)^2 = 9x^2-30x+25.", "fill", "Answer = ____"),
-        q("True or False: 4x^2-36 = 4(x+3)(x-3).", "fill", "Answer = ____"),
-        q("True or False: x^2+13x+42 = (x+6)(x+7).", "fill", "Answer = ____"),
-        q("Spot: 2x^2+7x+3: ac=6, p+q=7, p=1,q=6: (2x+1)(x+3). Correct? ____", "fill", "Answer = ____"),
-        q("True or False: p(x)=x^3-x^2-4x+4. p(1)=0 and p(2)=0.", "fill", "Answer = ____"),
-        q("True or False: (5x^2-3x+1)+(2x^2-x-3)+(x^2+4x+2) = 8x^2.", "fill", "Answer = ____"),
-        q("True or False: (6x^3+2x^2-x+4)-(3x^3-x^2+2x-1) = 3x^3+3x^2-3x+5.", "fill", "Answer = ____"),
-        q("True or False: A degree-n polynomial can have at most n roots.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        tb("Mixed Polynomials — Mastery Tips", [
-            "Combine all skills fluently.",
-            "Use Factor Theorem to find roots and then factorise.",
-            "Always write in standard form.",
-            "Check by substituting or expanding.",
-        ]),
-        q("p(x)=x^3+x^2-4x-4. Roots are ±2 and -1. Verify p(2)=8+4-8-4=____", "fill", "Answer = ____"),
-        q("Verify p(-2)=-8+4+8-4=____", "fill", "Answer = ____"),
-        q("Verify p(-1)=-1+1+4-4=____", "fill", "Answer = ____"),
-        q("So x^3+x^2-4x-4=(x-2)(x+2)(x+1). Expand (x^2-4)(x+1)=____", "fill", "Answer = ____"),
-        q("Find k: (x-3) factor of x^3+kx-6. p(3)=27+3k-6=0. 3k=-21. k=____", "fill", "Answer = ____"),
-        q("Factorise completely: x^4-5x^2+4=(x^2-1)(x^2-4)=____", "fill", "Answer = ____"),
-        q("(x+y+z)^2 = x^2+y^2+z^2+2xy+2yz+2zx. Find if x=2,y=3,z=1: ____", "fill", "Answer = ____"),
-        q("Rectangle area = 2x^2+5x+3. If length=2x+3, width=____", "fill", "Answer = ____"),
-        q("If p+q=5 and pq=6, find p^2+q^2=(p+q)^2-2pq=____", "fill", "Answer = ____"),
-        q("If p-q=3 and pq=10, find p^2+q^2=(p-q)^2+2pq=____", "fill", "Answer = ____"),
-        q("True or False: x^3+x^2-4x-4 = (x-2)(x+2)(x+1).", "fill", "Answer = ____"),
-        q("True or False: p(2)=p(-2)=p(-1)=0 for x^3+x^2-4x-4.", "fill", "Answer = ____"),
-        q("True or False: (x-3) factor of x^3+kx-6 gives k=-7.", "fill", "Answer = ____"),
-        q("True or False: x^4-5x^2+4 = (x+1)(x-1)(x+2)(x-2).", "fill", "Answer = ____"),
-        q("True or False: (x+y+z)^2 at x=2,y=3,z=1 equals 36.", "fill", "Answer = ____"),
-        q("True or False: Area=2x^2+5x+3 with length=2x+3 gives width=x+1.", "fill", "Answer = ____"),
-        q("Spot: p+q=5,pq=6. p^2+q^2=25-12=13. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: p-q=3,pq=10. p^2+q^2=9+20=29.", "fill", "Answer = ____"),
-        q("True or False: x^4-5x^2+4: substitute x^2=t → t^2-5t+4=(t-1)(t-4).", "fill", "Answer = ____"),
-        q("True or False: A polynomial of degree n factors into at most n linear factors.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        coeffs, roots = _gen_quadratic_with_roots(hi)
+        items.append(q("The graph of p(x) is shown. What are its zeroes?", "diagram", "____", "", "polynomial_graph", {"coeffs": coeffs, "xrange": hi + 2}))
+    for _ in range(3):
+        coeffs, roots = _gen_cubic_with_roots(min(hi - 2, 5))
+        items.append(q("The graph of p(x) is shown. What are its zeroes?", "diagram", "____", "", "polynomial_graph", {"coeffs": coeffs, "xrange": min(hi, 6)}))
+    for _ in range(4):
+        deg = random.choice([1, 2, 3])
+        items.append(q(f"A polynomial has degree {deg}. What is the MAXIMUM number of zeroes it can have?", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("How many times can a quadratic's graph (a parabola) cross the x-axis? List all possibilities.", "fill", "Answer = ____"))
+    for _ in range(3):
+        coeffs, roots = _gen_quadratic_with_roots(hi)
+        r = random.choice(roots)
+        items.append(q(f"Is x={r} a zero of p(x)=x^2{'+' if coeffs[1]>=0 else ''}{coeffs[1]}x{'+' if coeffs[2]>=0 else ''}{coeffs[2]}? Verify by substitution.", "fill", "Answer = ____"))
+    for _ in range(2):
+        deg = random.choice([2, 3])
+        shown = deg if random.random() > 0.4 else deg + 1
+        items.append(q(f"True or False: A degree-{deg} polynomial can have at most {shown} zeroes.", "fill", "Answer = ____"))
+    return items
 
 # ─── 14I: Puzzle algebra ────────────────────────────────────
 def _L14I_s(sheet):
@@ -16691,133 +16585,178 @@ def _L14I_s(sheet):
     return [s1, s2, s3, s4][sheet - 1]
 
 # ─── 14CUM3: Mixed G+H+I ────────────────────────────────────
-def _L14CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Polynomial Problems, Mixed, Puzzles — Summary", [
-                "Problems: perimeter, area, roots using Factor Theorem.",
-                "Mixed: all polynomial skills combined.",
-                "Puzzles: find missing coefficients, build polynomials from roots.",
-            ], "p(2)=0→(x-2) is factor. Roots 3,4→x^2-7x+12."),
-            q("p(x)=x^2-7x+10. p(2)=4-14+10=____. Root? ____", "fill", "Answer = ____"),
-            q("p(x)=x^2-7x+10. p(5)=25-35+10=____. Root? ____", "fill", "Answer = ____"),
-            q("Factorise x^2-7x+10 using roots 2 and 5: ____", "fill", "Answer = ____"),
-            q("Rectangle: l=x+4, w=x+2. Area=____", "fill", "Answer = ____"),
-            q("(3x^2+x-2)+(x^2-3x+5) = ____", "fill", "Answer = ____"),
-            q("(4x^2-2x+1)-(x^2+x-3) = ____", "fill", "Answer = ____"),
-            q("2x(x^2-3x+1) = ____", "fill", "Answer = ____"),
-            q("(x+6)^2 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2-64 = ____", "fill", "Answer = ____"),
-            q("Factorise: x^2+11x+18 = ____", "fill", "Answer = ____"),
-            q("True or False: p(2)=0 for x^2-7x+10.", "fill", "Answer = ____"),
-            q("True or False: Area=(x+4)(x+2)=x^2+6x+8.", "fill", "Answer = ____"),
-            q("True or False: (3x^2+x-2)+(x^2-3x+5)=4x^2-2x+3.", "fill", "Answer = ____"),
-            q("True or False: (4x^2-2x+1)-(x^2+x-3)=3x^2-3x+4.", "fill", "Answer = ____"),
-            q("True or False: (x+6)^2=x^2+12x+36.", "fill", "Answer = ____"),
-            q("True or False: x^2-64=(x+8)(x-8).", "fill", "Answer = ____"),
-            q("Spot: x^2+11x+18=(x+2)(x+9). Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 2x(x^2-3x+1)=2x^3-6x^2+2x.", "fill", "Answer = ____"),
-            q("True or False: x^2-7x+10=(x-2)(x-5).", "fill", "Answer = ____"),
-            q("True or False: p(5)=0 for x^2-7x+10.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 14G+14H+14I — Tips", [
-                "Problems: set up polynomial from context, solve.",
-                "Mixed: all skills together, show working.",
-                "Puzzles: use factor theorem, identities, sum/product of roots.",
-                "Always verify by substitution or expansion.",
-            ]),
-            q("p(x)=x^3-9x^2+26x-24. p(2)=8-36+52-24=____. Factor? ____", "fill", "Answer = ____"),
-            q("p(x)=x^3-9x^2+26x-24. p(3)=27-81+78-24=____. Factor? ____", "fill", "Answer = ____"),
-            q("p(x)=x^3-9x^2+26x-24. p(4)=64-144+104-24=____. Factor? ____", "fill", "Answer = ____"),
-            q("So x^3-9x^2+26x-24=(x-2)(x-3)(x-4). Verify sum=2+3+4=____", "fill", "Answer = ____"),
-            q("Find k: x^2+5x+k=(x+2)(x+m). k=2m and 2+m=5. m=____, k=____", "fill", "Answer = ____"),
-            q("Roots are 3 and -5. Write quadratic: sum=____, product=____. p(x)=____", "fill", "Answer = ____"),
-            q("a+b=6,ab=9. Find a^2+b^2=____", "fill", "Answer = ____"),
-            q("a+b=6,ab=9. Find (a-b)^2=____", "fill", "Answer = ____"),
-            q("Rectangle area = x^2-x-6. Length=x+2. Width=____", "fill", "Answer = ____"),
-            q("(2x+3)(x^2-x+1)=____", "fill", "Answer = ____"),
-            q("True or False: p(2)=p(3)=p(4)=0 for x^3-9x^2+26x-24.", "fill", "Answer = ____"),
-            q("True or False: k=6 and m=3 for x^2+5x+k=(x+2)(x+m).", "fill", "Answer = ____"),
-            q("True or False: Roots 3,-5: sum=-2, product=-15. p(x)=x^2+2x-15.", "fill", "Answer = ____"),
-            q("True or False: a+b=6,ab=9: a^2+b^2=18.", "fill", "Answer = ____"),
-            q("True or False: a+b=6,ab=9: (a-b)^2=0, so a=b=3.", "fill", "Answer = ____"),
-            q("True or False: Width of area x^2-x-6 with length x+2 is x-3.", "fill", "Answer = ____"),
-            q("Spot: (2x+3)(x^2-x+1)=2x^3+x^2-x+3. Correct? Fix (+x). ____", "fill", "Answer = ____"),
-            q("True or False: Sum of roots of x^3-9x^2+26x-24=0 is 9.", "fill", "Answer = ____"),
-            q("True or False: Product of roots 2×3×4=24.", "fill", "Answer = ____"),
-            q("True or False: (2x+3)(x^2-x+1)=2x^3+x^2-x+3.", "fill", "Answer = ____"),
-        ]
+def _poly_divide_by_linear(coeffs, root):
+    """Synthetic division of coeffs (highest degree first) by (x-root).
+    Returns (quotient_coeffs, remainder)."""
+    quotient = [coeffs[0]]
+    for c in coeffs[1:]:
+        quotient.append(quotient[-1] * root + c)
+    return quotient[:-1], quotient[-1]
 
+
+def _factors_of(n):
+    n = abs(n)
+    if n == 0: return [1]
+    return sorted(set(f for i in range(1, n + 1) if n % i == 0 for f in (i, -i)), key=abs)
+
+
+# ─── 14CUM3: Long Division & Finding Candidate Zeroes ─────────
+def _L14CUM3_s(sheet):
+    random.seed(1430 + sheet)
+    ranges = {1: (2, 3), 2: (2, 4), 3: (3, 4), 4: (3, 5)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Long Division & Finding Candidate Zeroes", [
+            "To factorise a cubic from scratch, first find ONE zero by trial.",
+            "Try factors of the CONSTANT TERM as candidates (e.g. for x^3-6x^2+11x-6, try ±1,±2,±3,±6).",
+            "Once you find a zero r, divide p(x) by (x-r) to get a quadratic -- then factorise that.",
+            "Division Algorithm: p(x) = (x-r) x Quotient + Remainder (remainder = 0 if r is a true zero).",
+        ], "x^3-6x^2+11x-6 ÷ (x-1) = x^2-5x+6, remainder 0"),
+    ]
+
+    def gen_cubic(hi):
+        roots = random.sample(range(-hi, hi + 1), 3)
+        r1, r2, r3 = roots
+        b = -(r1 + r2 + r3)
+        c = r1 * r2 + r2 * r3 + r3 * r1
+        d = -r1 * r2 * r3
+        return [1, b, c, d], roots
+
+    for _ in range(4):
+        coeffs, roots = gen_cubic(hi)
+        const = coeffs[-1]
+        items.append(q(f"p(x) = x^3{'+' if coeffs[1]>=0 else ''}{coeffs[1]}x^2{'+' if coeffs[2]>=0 else ''}{coeffs[2]}x{'+' if coeffs[3]>=0 else ''}{coeffs[3]}. "
+                        f"Which factors of {const} should you try as candidate zeroes? List at least 2.", "fill", "Answer = ____"))
+    for _ in range(5):
+        coeffs, roots = gen_cubic(hi)
+        r = roots[0]
+        q_coeffs, rem = _poly_divide_by_linear(coeffs, r)
+        step1 = f"x^3{'+' if coeffs[1]>=0 else ''}{coeffs[1]}x^2{'+' if coeffs[2]>=0 else ''}{coeffs[2]}x{'+' if coeffs[3]>=0 else ''}{coeffs[3]} / (x-({r}))"
+        step2 = f"Try x={r}: p({r}) = 0 -- confirmed zero"
+        qtext = f"x^2{'+' if q_coeffs[1]>=0 else ''}{q_coeffs[1]}x{'+' if q_coeffs[2]>=0 else ''}{q_coeffs[2]}"
+        step3 = f"Quotient: {qtext}"
+        step4 = f"Remainder: {rem}"
+        items.append(q("Divide p(x) by the linear factor shown. Find the quotient.", "diagram", "____", "", "substitution_steps",
+                        {"steps": [step1, step2, step3, step4]}))
+    for _ in range(5):
+        coeffs, roots = gen_cubic(hi)
+        r = roots[0]
+        q_coeffs, rem = _poly_divide_by_linear(coeffs, r)
+        items.append(q(f"Divide x^3{'+' if coeffs[1]>=0 else ''}{coeffs[1]}x^2{'+' if coeffs[2]>=0 else ''}{coeffs[2]}x{'+' if coeffs[3]>=0 else ''}{coeffs[3]} by (x-({r})). Find the quotient (a quadratic).", "fill", "Answer = ____"))
+    for _ in range(3):
+        coeffs, roots = gen_cubic(hi)
+        r = roots[0]
+        q_coeffs, rem = _poly_divide_by_linear(coeffs, r)
+        shown = rem if random.random() > 0.4 else rem + 1
+        items.append(q(f"True or False: Dividing p(x) by (x-({r})) (a known zero) gives remainder {shown}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        coeffs, roots = gen_cubic(hi)
+        r = roots[0]
+        q_coeffs, rem = _poly_divide_by_linear(coeffs, r)
+        items.append(q(f"Verify the Division Algorithm: Quotient x (x-({r})) + Remainder should equal the original p(x). Is this true here?", "fill", "Answer = ____"))
+    return items
 
 # ─── 14J: Mixed challenge ───────────────────────────────────
+# ─── 14J: Polynomial Mastery Challenge ────────────────────────
 def _L14J_s(sheet):
-    s1 = [
-        tb("Level 14 Mixed Challenge — Tips", [
-            "14A: degree, coefficients, evaluate p(a).",
-            "14B: add polynomials — collect like terms.",
-            "14C: subtract — change signs of second, then add.",
-            "14D: multiply — FOIL or distribute.",
-            "14E: identities — (a±b)^2, (a+b)(a-b).",
-            "14F: factorise — HCF, difference of squares, quadratic.",
-        ]),
-        q("Degree of 2x^5 - 3x^3 + x - 7: ____", "fill", "Answer = ____"),
-        q("p(x)=x^2-4x+3. p(1)=____", "fill", "Answer = ____"),
-        q("p(x)=x^2-4x+3. p(3)=____", "fill", "Answer = ____"),
-        q("(2x^2+5x-3)+(x^2-2x+4) = ____", "fill", "Answer = ____"),
-        q("(4x^2-3x+2)-(2x^2+x-5) = ____", "fill", "Answer = ____"),
-        q("2x^2(3x-4) = ____", "fill", "Answer = ____"),
-        q("(x+5)(x-3) = ____", "fill", "Answer = ____"),
-        q("(3x-2)^2 = ____", "fill", "Answer = ____"),
-        q("(6x+1)(6x-1) = ____", "fill", "Answer = ____"),
-        q("Factorise: 9x^2-12x = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-100 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2+7x+12 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2-7x+12 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2+x-12 = ____", "fill", "Answer = ____"),
-        q("Is x=1 a root of x^2-4x+3? p(1)=____", "fill", "Answer = ____"),
-        q("True or False: Degree of 2x^5-3x^3+x-7 is 5.", "fill", "Answer = ____"),
-        q("True or False: (x+5)(x-3) = x^2+2x-15.", "fill", "Answer = ____"),
-        q("True or False: (3x-2)^2 = 9x^2-12x+4.", "fill", "Answer = ____"),
-        q("True or False: x^2+7x+12 = (x+3)(x+4).", "fill", "Answer = ____"),
-        q("Spot: x^2+x-12=(x+4)(x-3). Correct? ____", "fill", "Answer = ____"),
+    random.seed(1440 + sheet)
+    ranges = {1: (2, 5), 2: (2, 6), 3: (3, 7), 4: (3, 8)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Polynomial Mastery Challenge", [
+            "x^3+y^3+z^3-3xyz = (x+y+z)(x^2+y^2+z^2-xy-yz-zx)",
+            "SPECIAL CASE: if a+b+c=0, then a^3+b^3+c^3 = 3abc (huge shortcut!)",
+            "For x^3+px^2+qx+r=0: sum of roots=-p, sum of pairwise products=q, product=-r.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    return [s1, s1, s1, s1][sheet - 1]
-
+    for _ in range(5):
+        x, y, z = random.randint(1, hi), random.randint(1, hi), random.randint(1, hi)
+        items.append(q(f"Evaluate x^3+y^3+z^3-3xyz for x={x}, y={y}, z={z} using the identity (find x+y+z and x^2+y^2+z^2-xy-yz-zx first).  [3 points]", "fill", "Answer = ____"))
+    for _ in range(5):
+        a = random.randint(1, hi)
+        b = random.randint(1, hi)
+        c = -(a + b)
+        items.append(q(f"a={a}, b={b}, c={c}. Since a+b+c=0, find a^3+b^3+c^3 using the shortcut a^3+b^3+c^3=3abc.  [3 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        r1, r2, r3 = random.sample(range(-hi, hi + 1), 3)
+        p = -(r1 + r2 + r3)
+        qc = r1 * r2 + r2 * r3 + r3 * r1
+        r_ = -r1 * r2 * r3
+        items.append(q(f"x^3+{p}x^2+{qc}x+{r_}=0 has roots {r1}, {r2}, {r3}. Verify: sum of roots = ____  [2 points]", "fill", "Answer = ____"))
+    for _ in range(2):
+        r1, r2, r3 = random.sample(range(-hi, hi + 1), 3)
+        p = -(r1 + r2 + r3)
+        qc = r1 * r2 + r2 * r3 + r3 * r1
+        r_ = -r1 * r2 * r3
+        items.append(q(f"x^3+{p}x^2+{qc}x+{r_}=0 has roots {r1}, {r2}, {r3}. Verify: product of roots = ____  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = random.randint(1, hi)
+        b = random.randint(1, hi)
+        c = -(a + b)
+        correct = 3 * a * b * c
+        shown = correct if random.random() > 0.4 else correct + 3
+        items.append(q(f"True or False: a={a}, b={b}, c={c} (so a+b+c=0) gives a^3+b^3+c^3={shown}.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 14REV: Level 14 Revision ───────────────────────────────
+# ─── 14REV: Level 14 Revision (samples every topic, climbs in difficulty) ───
 def _L14REV_s(sheet):
-    return [
-        tb("Level 14 Revision — Polynomials", [
-            "Degree = highest power. Evaluate p(a) by substituting x=a.",
-            "Add/subtract: collect like terms. Subtract: change signs first.",
-            "Multiply: distributive law or FOIL.",
-            "Identities: (a+b)^2, (a-b)^2, (a+b)(a-b).",
-            "Factorise: HCF, diff of squares, quadratic trinomial.",
-            "Factor Theorem: p(a)=0 iff (x-a) is a factor.",
+    random.seed(1450 + sheet)
+    ranges = {1: (2, 4), 2: (3, 5), 3: (3, 6), 4: (4, 7)}
+    lo, hi = ranges[sheet]
+    items = [
+        tb("Level 14 Revision — Tips", [
+            "Area model: split each binomial, multiply each pair, add all 4 areas.",
+            "Cube identities: (a+b)^3=a^3+3a^2b+3ab^2+b^3. a^3+b^3=(a+b)(a^2-ab+b^2).",
+            "Zeroes = where the graph crosses the x-axis. Degree n -> at most n zeroes.",
+            "To factorise a cubic: find one zero by trial (factors of the constant), then divide.",
+            "x^3+y^3+z^3-3xyz = (x+y+z)(...). If a+b+c=0: a^3+b^3+c^3=3abc.",
         ]),
-        q("Degree of 3x^4 - 7x^2 + 5x - 1: ____", "fill", "Answer = ____"),
-        q("p(x) = x^2 - 3x + 2. p(0) = ____", "fill", "Answer = ____"),
-        q("p(x) = x^2 - 3x + 2. p(1) = ____", "fill", "Answer = ____"),
-        q("p(x) = x^2 - 3x + 2. p(2) = ____", "fill", "Answer = ____"),
-        q("(3x^2 + 2x - 1) + (x^2 - 4x + 3) = ____", "fill", "Answer = ____"),
-        q("(5x^2 - 3x + 4) - (2x^2 + x - 1) = ____", "fill", "Answer = ____"),
-        q("3x(2x^2 - x + 4) = ____", "fill", "Answer = ____"),
-        q("(x + 3)(x + 7) = ____", "fill", "Answer = ____"),
-        q("(2x + 5)^2 = ____", "fill", "Answer = ____"),
-        q("(4x - 3)(4x + 3) = ____", "fill", "Answer = ____"),
-        q("Factorise: 6x^3 + 9x^2 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2 - 144 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2 + 8x + 12 = ____", "fill", "Answer = ____"),
-        q("Factorise: x^2 - 9x + 20 = ____", "fill", "Answer = ____"),
-        q("Is x=1 a root of x^2-3x+2? p(1)=____. Root? ____", "fill", "Answer = ____"),
-        q("Is x=2 a root of x^2-3x+2? p(2)=____. Root? ____", "fill", "Answer = ____"),
-        q("True or False: 3x(2x^2-x+4) = 6x^3-3x^2+12x.", "fill", "Answer = ____"),
-        q("True or False: (2x+5)^2 = 4x^2+20x+25.", "fill", "Answer = ____"),
-        q("True or False: x^2+8x+12 = (x+2)(x+6).", "fill", "Answer = ____"),
-        q("Spot: x^2-9x+20=(x-4)(x-5). Correct? ____", "fill", "Answer = ____"),
     ]
+
+    def gen_binom(hi):
+        a = random.randint(1, 2); b = random.randint(-hi, hi) or 1
+        c = random.randint(1, 2); d = random.randint(-hi, hi) or 1
+        return a, b, c, d
+
+    def gen_quad_roots(hi):
+        r1 = random.randint(-hi, hi); r2 = random.randint(-hi, hi)
+        while r2 == r1: r2 = random.randint(-hi, hi)
+        return [1, -(r1+r2), r1*r2], (r1, r2)
+
+    for _ in range(3):
+        a, b, c, d = gen_binom(hi)
+        at = f"{a}x" if a != 1 else "x"; ct = f"{c}x" if c != 1 else "x"
+        items.append(q(f"Expand ({at}{'+' if b>=0 else '-'}{abs(b)})({ct}{'+' if d>=0 else '-'}{abs(d)}).", "fill", "Answer = ____"))
+    for _ in range(3):
+        n = random.randint(lo, hi)
+        items.append(q(f"Expand (x+{n})^3.", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.randint(2, min(hi, 6))
+        items.append(q(f"Factorise x^3-{n**3}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        coeffs, roots = gen_quad_roots(hi)
+        items.append(q("The graph of p(x) is shown. What are its zeroes?", "diagram", "____", "", "polynomial_graph", {"coeffs": coeffs, "xrange": hi + 2}))
+    for _ in range(2):
+        deg = random.choice([2, 3])
+        items.append(q(f"A degree-{deg} polynomial has at most how many zeroes?", "fill", "Answer = ____"))
+    for _ in range(2):
+        roots = random.sample(range(-hi, hi + 1), 3)
+        r1, r2, r3 = roots
+        items.append(q(f"p(x)=x^3-{r1+r2+r3}x^2+... has roots {r1},{r2},{r3}. Which factors of the constant term should you try first to find a root?", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(1, hi); b = random.randint(1, hi); c = -(a + b)
+        items.append(q(f"a={a}, b={b}, c={c} (a+b+c=0). Find a^3+b^3+c^3 using the shortcut.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b, c, d = gen_binom(hi)
+        correct = a * c
+        shown = correct if random.random() > 0.4 else correct + 1
+        at = f"{a}x" if a != 1 else "x"; ct = f"{c}x" if c != 1 else "x"
+        items.append(q(f"True or False: ({at}{'+' if b>=0 else '-'}{abs(b)})({ct}{'+' if d>=0 else '-'}{abs(d)}) has x^2 coefficient {shown}.", "fill", "Answer = ____"))
+    return items
+
 
 
 _DISPATCH = {
