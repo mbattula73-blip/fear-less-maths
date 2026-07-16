@@ -2784,6 +2784,73 @@ def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
+def powers_of_ten_scale_svg(lo=-8, hi=8, highlight=None, **kw):
+    """A vertical 'order of magnitude' scale from 10^hi down to 10^lo
+    metres, with real-world reference objects marked -- makes abstract
+    exponents like 10^-6 vs 10^8 viscerally comparable. Vertical layout
+    fits the worksheet column far better than a wide horizontal strip."""
+    references = [
+        (-9, "DNA width"), (-7, "Virus"), (-6, "Bacterium"),
+        (-3, "Grain of sand"), (-2, "Ant"), (0, "Human height"),
+        (2, "Football field"), (4, "Mt. Everest"), (7, "Earth's diameter"),
+        (8, "10x Earth"),
+    ]
+    ref_map = {e: lbl for e, lbl in references if lo <= e <= hi}
+    exps = list(range(hi, lo - 1, -1))
+    n = len(exps)
+    row_h = 24
+    w = 320
+    h = n * row_h + 30
+    margin_left = 66
+    parts = []
+    y = 22
+    for exp in exps:
+        label = ref_map.get(exp)
+        is_hi = (highlight == exp)
+        color = "#A6362B" if is_hi else ("#1B5E8C" if label else "#95A5A6")
+        parts.append(f'<line x1="{margin_left}" y1="{y}" x2="{w-14}" y2="{y}" stroke="#EEF1F3" stroke-width="1"/>')
+        weight = "Helvetica-Bold"
+        parts.append(f'<text x="{margin_left-8}" y="{y+4}" text-anchor="end" font-family="{weight}" font-size="11" fill="{color}">10^{exp}</text>')
+        if label:
+            parts.append(f'<circle cx="{margin_left+12}" cy="{y}" r="4" fill="{color}"/>')
+            parts.append(f'<text x="{margin_left+22}" y="{y+4}" font-family="{weight}" font-size="11" fill="{color}">{label}</text>')
+        elif is_hi:
+            parts.append(f'<circle cx="{margin_left+12}" cy="{y}" r="4" fill="{color}"/>')
+        y += row_h
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def exponential_growth_svg(start=1, factor=2, steps=5, mode="growth", **kw):
+    """A sequence of bars, each scaled by 'factor' from the last (growth:
+    multiply, decay: divide), so the explosive/vanishing effect of
+    repeated multiplication is actually visible, not just stated."""
+    values = [start]
+    for _ in range(steps - 1):
+        values.append(values[-1] * factor if mode == "growth" else values[-1] / factor)
+    max_val = max(values) if max(values) > 0 else 1
+    w = max(520, steps * 95)
+    h = 260
+    margin = 44
+    bar_w = 50
+    gap = (w - 2 * margin - steps * bar_w) / max(steps - 1, 1)
+    max_bar_h = h - margin - 56
+    parts = []
+    x = margin
+    color = "#1B5E8C" if mode == "growth" else "#A6362B"
+    fillc = "#EAF4FC" if mode == "growth" else "#FDEDEB"
+    for i, v in enumerate(values):
+        bar_h = max(max_bar_h * (v / max_val), 3)
+        y = h - margin - bar_h
+        parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w}" height="{bar_h:.1f}" fill="{fillc}" stroke="{color}" stroke-width="2"/>')
+        vlabel = int(v) if float(v).is_integer() else round(v, 3)
+        parts.append(f'<text x="{x+bar_w/2:.1f}" y="{y-8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="{color}">{vlabel:g}</text>')
+        parts.append(f'<text x="{x+bar_w/2:.1f}" y="{h-margin+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#5D6D7E">step {i}</text>')
+        x += bar_w + gap
+    title = f"{'Growth' if mode=='growth' else 'Decay'}: {'x' if mode=='growth' else chr(247)}{factor} each step"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{title}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -2794,6 +2861,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "repeated_addition": repeated_addition_svg,
     "linear_equation_graph": linear_equation_graph_svg,
     "two_line_graph": two_line_graph_svg,
+    "powers_of_ten_scale": powers_of_ten_scale_svg,
+    "exponential_growth": exponential_growth_svg,
 }
 
 

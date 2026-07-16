@@ -14635,66 +14635,42 @@ def _L13C_4():
 
 
 # ─── 13CUM1: Mixed A+B+C ────────────────────────────────────
+# ─── 13CUM1: Index Law Verification ──────────────────────────
 def _L13CUM1_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Powers, Laws, Simplification — Summary", [
-                "a^m × a^n = a^(m+n)   [add]",
-                "a^m ÷ a^n = a^(m-n)   [subtract]",
-                "(a^m)^n = a^(m×n)     [multiply]",
-                "a^0 = 1. a^1 = a.",
-            ], "2^3 × 2^4 = 2^7. (3^2)^3 = 3^6. 4x^3 × 2x^2 = 8x^5."),
-            q("2^4 = ____", "fill", "Answer = ____"),
-            q("3^3 = ____", "fill", "Answer = ____"),
-            q("5^0 = ____", "fill", "Answer = ____"),
-            q("x^3 × x^5 = x^____", "fill", "Answer = ____"),
-            q("y^8 ÷ y^3 = y^____", "fill", "Answer = ____"),
-            q("(a^3)^4 = a^____", "fill", "Answer = ____"),
-            q("3x^2 × 4x^3 = ____x^____", "fill", "Answer = ____"),
-            q("12y^6 ÷ 4y^2 = ____y^____", "fill", "Answer = ____"),
-            q("(2x^3)^2 = ____x^____", "fill", "Answer = ____"),
-            q("2^5 × 2^3 = 2^____", "fill", "Answer = ____"),
-            q("3^6 ÷ 3^4 = 3^____", "fill", "Answer = ____"),
-            q("True or False: 2^4 = 16.", "fill", "Answer = ____"),
-            q("True or False: x^3 × x^5 = x^8.", "fill", "Answer = ____"),
-            q("True or False: y^8 ÷ y^3 = y^5.", "fill", "Answer = ____"),
-            q("True or False: (a^3)^4 = a^12.", "fill", "Answer = ____"),
-            q("True or False: 3x^2 × 4x^3 = 12x^5.", "fill", "Answer = ____"),
-            q("True or False: (2x^3)^2 = 4x^6.", "fill", "Answer = ____"),
-            q("Spot: 3^6 ÷ 3^4 = 3^2. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 12y^6 ÷ 4y^2 = 3y^4.", "fill", "Answer = ____"),
-            q("True or False: 2^5 × 2^3 = 2^8.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 13A+13B+13C — Tips", [
-                "a^m × a^n = a^(m+n). a^m ÷ a^n = a^(m-n). (a^m)^n = a^(m×n).",
-                "a^0 = 1. a^1 = a.",
-                "With coefficients: multiply numbers, add indices.",
-                "Bracket: raise each factor to that power.",
-                "Only combine same bases.",
-            ]),
-            q("4^3 = ____", "fill", "Answer = ____"),
-            q("2^8 = ____", "fill", "Answer = ____"),
-            q("a^4 × a^6 = a^____", "fill", "Answer = ____"),
-            q("b^9 ÷ b^5 = b^____", "fill", "Answer = ____"),
-            q("(x^5)^2 = x^____", "fill", "Answer = ____"),
-            q("5a^3 × 2a^4 = ____a^____", "fill", "Answer = ____"),
-            q("16b^8 ÷ 4b^3 = ____b^____", "fill", "Answer = ____"),
-            q("(3a^2)^3 = ____a^____", "fill", "Answer = ____"),
-            q("2^4 × 2^3 ÷ 2^5 = 2^____", "fill", "Answer = ____"),
-            q("(x^3 × x^2)^3 = x^____", "fill", "Answer = ____"),
-            q("True or False: 4^3 = 64.", "fill", "Answer = ____"),
-            q("True or False: a^4 × a^6 = a^10.", "fill", "Answer = ____"),
-            q("True or False: (x^5)^2 = x^10.", "fill", "Answer = ____"),
-            q("True or False: 5a^3 × 2a^4 = 10a^7.", "fill", "Answer = ____"),
-            q("True or False: (3a^2)^3 = 27a^6.", "fill", "Answer = ____"),
-            q("True or False: 2^4 × 2^3 ÷ 2^5 = 2^2.", "fill", "Answer = ____"),
-            q("Spot: (x^3 × x^2)^3 = x^15. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: 16b^8 ÷ 4b^3 = 4b^5.", "fill", "Answer = ____"),
-            q("True or False: b^9 ÷ b^5 = b^4.", "fill", "Answer = ____"),
-            q("True or False: 2^8 = 256.", "fill", "Answer = ____"),
-        ]
+    random.seed(1300 + sheet)
+    ranges = {1: (2, 5), 2: (2, 6), 3: (3, 7), 4: (3, 8)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Verifying the Index Laws", [
+            "a^m x a^n = a^(m+n)  -- multiply same base: ADD indices.",
+            "a^m / a^n = a^(m-n)  -- divide same base: SUBTRACT indices.",
+            "(a^m)^n = a^(mn)  -- power of a power: MULTIPLY indices.",
+            "Verify each law by computing BOTH sides with real numbers.",
+        ], "2^3 x 2^2 = 8x4 = 32. 2^(3+2)=2^5=32. Both sides match!"),
+    ]
+    for _ in range(5):
+        base = random.randint(2, 4)
+        m, n = random.randint(1, hi), random.randint(1, hi)
+        items.append(q(f"Verify: {base}^{m} x {base}^{n} = {base}^{m+n}. Compute both sides.", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.randint(2, 4)
+        m = random.randint(2, hi + 2)
+        n = random.randint(1, m - 1)
+        items.append(q(f"Verify: {base}^{m} / {base}^{n} = {base}^{m-n}. Compute both sides.", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.randint(2, 4)
+        m, n = random.randint(1, 3), random.randint(1, 3)
+        items.append(q(f"Verify: ({base}^{m})^{n} = {base}^{m*n}. Compute both sides.", "fill", "Answer = ____"))
+    for _ in range(3):
+        base = random.randint(2, 9)
+        items.append(q(f"Verify: {base}^0 = 1, no matter the base. What is {base}^0?", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.randint(2, 4)
+        m, n = random.randint(1, hi), random.randint(1, hi)
+        correct = base ** (m + n)
+        shown = correct if random.random() > 0.4 else correct + random.choice([base, -base])
+        items.append(q(f"True or False: {base}^{m} x {base}^{n} = {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 13D: Negative powers ───────────────────────────────────
 def _L13D_1():
@@ -15074,65 +15050,44 @@ def _L13F_4():
 
 
 # ─── 13CUM2: Mixed D+E+F ────────────────────────────────────
+# ─── 13CUM2: Surds ────────────────────────────────────────────
+def _gen_surd(hi_k=6):
+    k = random.randint(2, hi_k)
+    m = random.choice([2, 3, 5, 6, 7, 10, 11])
+    n = k * k * m
+    return n, k, m
+
+
 def _L13CUM2_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Negative Powers, Fractional Powers, Scientific Notation — Summary", [
-                "a^(-n) = 1/a^n.  a^(1/2) = √a.  a^(1/3) = ∛a.",
-                "a^(m/n) = (a^(1/n))^m.",
-                "Scientific notation: a × 10^n where 1 ≤ a < 10.",
-            ], "2^(-3)=1/8. 9^(1/2)=3. 27^(2/3)=9. 4500=4.5×10^3."),
-            q("2^(-2) = ____", "fill", "Answer = ____"),
-            q("5^(-1) = ____", "fill", "Answer = ____"),
-            q("10^(-3) = ____", "fill", "Answer = ____"),
-            q("16^(1/2) = ____", "fill", "Answer = ____"),
-            q("27^(1/3) = ____", "fill", "Answer = ____"),
-            q("8^(2/3) = ____", "fill", "Answer = ____"),
-            q("4^(3/2) = ____", "fill", "Answer = ____"),
-            q("Write 65000 in scientific notation: ____", "fill", "Answer = ____"),
-            q("Write 0.0032 in scientific notation: ____", "fill", "Answer = ____"),
-            q("Write 7.3 × 10^4 as ordinary number: ____", "fill", "Answer = ____"),
-            q("x^3 × x^(-5) = x^____", "fill", "Answer = ____"),
-            q("True or False: 2^(-2) = 1/4.", "fill", "Answer = ____"),
-            q("True or False: 16^(1/2) = 4.", "fill", "Answer = ____"),
-            q("True or False: 8^(2/3) = 4.", "fill", "Answer = ____"),
-            q("True or False: 4^(3/2) = 8.", "fill", "Answer = ____"),
-            q("True or False: 65000 = 6.5 × 10^4.", "fill", "Answer = ____"),
-            q("True or False: 0.0032 = 3.2 × 10^(-3).", "fill", "Answer = ____"),
-            q("Spot: 10^(-3) = -1000. Correct? Fix (0.001). ____", "fill", "Answer = ____"),
-            q("True or False: x^3 × x^(-5) = x^(-2).", "fill", "Answer = ____"),
-            q("True or False: 7.3 × 10^4 = 73000.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 13D+13E+13F — Tips", [
-                "Negative index: a^(-n) = 1/a^n. NOT a negative number.",
-                "Fractional index: a^(1/n) = nth root. a^(m/n) = root first, then power.",
-                "Scientific notation: 1 ≤ a < 10, then × 10^n.",
-                "Large numbers: positive power. Small: negative power.",
-                "Index laws still apply for negative and fractional indices.",
-            ]),
-            q("3^(-2) = ____", "fill", "Answer = ____"),
-            q("4^(-1) = ____", "fill", "Answer = ____"),
-            q("25^(1/2) = ____", "fill", "Answer = ____"),
-            q("64^(1/3) = ____", "fill", "Answer = ____"),
-            q("9^(3/2) = ____", "fill", "Answer = ____"),
-            q("27^(2/3) = ____", "fill", "Answer = ____"),
-            q("x^4 × x^(-6) = x^____", "fill", "Answer = ____"),
-            q("(a^(-2))^3 = a^____", "fill", "Answer = ____"),
-            q("Write 8400000 in scientific notation: ____", "fill", "Answer = ____"),
-            q("Write 0.000056 in scientific notation: ____", "fill", "Answer = ____"),
-            q("(3 × 10^4) × (2 × 10^5) = ____", "fill", "Answer = ____"),
-            q("(8 × 10^7) ÷ (4 × 10^3) = ____", "fill", "Answer = ____"),
-            q("True or False: 3^(-2) = 1/9.", "fill", "Answer = ____"),
-            q("True or False: 25^(1/2) = 5.", "fill", "Answer = ____"),
-            q("True or False: 9^(3/2) = 27.", "fill", "Answer = ____"),
-            q("True or False: 27^(2/3) = 9.", "fill", "Answer = ____"),
-            q("True or False: 8400000 = 8.4 × 10^6.", "fill", "Answer = ____"),
-            q("Spot: 0.000056 = 5.6 × 10^(-4). Correct? Fix (10^(-5)). ____", "fill", "Answer = ____"),
-            q("True or False: (3 × 10^4) × (2 × 10^5) = 6 × 10^9.", "fill", "Answer = ____"),
-            q("True or False: (8 × 10^7) ÷ (4 × 10^3) = 2 × 10^4.", "fill", "Answer = ____"),
-        ]
+    random.seed(1310 + sheet)
+    ranges = {1: (2, 4), 2: (2, 5), 3: (3, 6), 4: (3, 7)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Surds — Simplifying Square Roots", [
+            "A surd is a root that can't be simplified to a whole number, like sqrt(8).",
+            "To simplify: find the LARGEST perfect square factor, then pull it out.",
+            "sqrt(8) = sqrt(4x2) = sqrt(4) x sqrt(2) = 2sqrt(2)",
+            "Rationalizing: 1/sqrt(2) = sqrt(2)/2 (multiply top and bottom by sqrt(2)).",
+        ], "sqrt(18) = sqrt(9x2) = 3sqrt(2)"),
+    ]
+    for _ in range(6):
+        n, k, m = _gen_surd(hi)
+        items.append(q(f"Simplify sqrt({n}). Find the largest perfect square factor first.", "fill", "Answer = ____"))
+    for _ in range(5):
+        n, k, m = _gen_surd(hi)
+        items.append(q(f"sqrt({n}) = {k}sqrt(____)  -- fill in the remaining number under the root.", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.choice([2, 3, 5])
+        items.append(q(f"Rationalize the denominator: 1/sqrt({base}) = sqrt({base})/____", "fill", "Answer = ____"))
+    for _ in range(3):
+        n, k, m = _gen_surd(hi)
+        shown = f"{k}sqrt({m})" if random.random() > 0.4 else f"{k+1}sqrt({m})"
+        items.append(q(f"True or False: sqrt({n}) = {shown}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        k1, k2 = random.randint(2, 5), random.randint(2, 5)
+        m = random.choice([2, 3, 5])
+        items.append(q(f"Simplify: {k1}sqrt({m}) + {k2}sqrt({m}) = ____sqrt({m})", "fill", "Answer = ____"))
+    return items
 
 # ─── 13G: Word problems ─────────────────────────────────────
 def _L13G_1():
@@ -15254,117 +15209,43 @@ def _L13G_4():
 
 
 # ─── 13H: Mixed ─────────────────────────────────────────────
+# ─── 13H: Powers of Ten Scale ─────────────────────────────────
 def _L13H_s(sheet):
-    s1 = [
-        cb("Mixed — All Powers & Indices Skills", [
-            "Powers, laws, negative, fractional, scientific notation, word problems.",
-        ], "2^4=16. x^3×x^2=x^5. 3^(-2)=1/9. 9^(1/2)=3. 4500=4.5×10^3."),
-        q("3^4 = ____", "fill", "Answer = ____"),
-        q("2^0 = ____", "fill", "Answer = ____"),
-        q("x^4 × x^3 = x^____", "fill", "Answer = ____"),
-        q("y^8 ÷ y^5 = y^____", "fill", "Answer = ____"),
-        q("(a^3)^4 = a^____", "fill", "Answer = ____"),
-        q("3x^2 × 4x^3 = ____x^____", "fill", "Answer = ____"),
-        q("2^(-3) = ____", "fill", "Answer = ____"),
-        q("4^(-1) = ____", "fill", "Answer = ____"),
-        q("25^(1/2) = ____", "fill", "Answer = ____"),
-        q("8^(2/3) = ____", "fill", "Answer = ____"),
-        q("Write 75000 in scientific notation: ____", "fill", "Answer = ____"),
-        q("Write 0.004 in scientific notation: ____", "fill", "Answer = ____"),
-        q("Square side 6 cm. Area = ____cm^2", "fill", "Answer = ____"),
-        q("True or False: x^4 × x^3 = x^7.", "fill", "Answer = ____"),
-        q("True or False: 2^(-3) = 1/8.", "fill", "Answer = ____"),
-        q("True or False: 25^(1/2) = 5.", "fill", "Answer = ____"),
-        q("True or False: 75000 = 7.5 × 10^4.", "fill", "Answer = ____"),
-        q("Spot: 3^4 = 12. Correct? Fix (81). ____", "fill", "Answer = ____"),
-        q("True or False: 8^(2/3) = 4.", "fill", "Answer = ____"),
-        q("True or False: 0.004 = 4 × 10^(-3).", "fill", "Answer = ____"),
+    random.seed(1320 + sheet)
+    REFS = [(-9, "DNA width"), (-7, "Virus"), (-6, "Bacterium"), (-3, "Grain of sand"),
+            (-2, "Ant"), (0, "Human height"), (2, "Football field"), (4, "Mt. Everest"),
+            (7, "Earth's diameter"), (8, "10x Earth")]
+    items = [
+        cb("The Powers of Ten Scale", [
+            "Real-world sizes span a HUGE range of powers of 10 -- from atoms to planets.",
+            "A bigger exponent always means a bigger number, even if it's hard to picture.",
+            "Scientific notation lets us compare wildly different sizes fairly.",
+        ], "A virus (10^-7 m) is much smaller than an ant (10^-2 m) -- 100,000 times smaller!"),
     ]
-    s2 = [
-        cb("Mixed — Laws and Applications", [
-            "Combine laws fluently. Apply to word problems.",
-            "Show all working step by step.",
-        ], "3a^4 × 2a^3 ÷ a^2 = 6a^5. (2x^3)^2 = 4x^6."),
-        q("5^3 = ____", "fill", "Answer = ____"),
-        q("10^(-4) = ____", "fill", "Answer = ____"),
-        q("a^5 × a^(-3) = a^____", "fill", "Answer = ____"),
-        q("(x^4)^3 = x^____", "fill", "Answer = ____"),
-        q("4x^3 × 3x^4 = ____x^____", "fill", "Answer = ____"),
-        q("(3y^2)^3 = ____y^____", "fill", "Answer = ____"),
-        q("16^(3/4) = ____", "fill", "Answer = ____"),
-        q("27^(2/3) = ____", "fill", "Answer = ____"),
-        q("Write 3.6 × 10^5 as ordinary number: ____", "fill", "Answer = ____"),
-        q("(4 × 10^5) × (3 × 10^2) = ____", "fill", "Answer = ____"),
-        q("Cube side 3 cm. Volume = ____cm^3", "fill", "Answer = ____"),
-        q("2^n = 64. n = ____", "fill", "Answer = ____"),
-        q("True or False: 5^3 = 125.", "fill", "Answer = ____"),
-        q("True or False: a^5 × a^(-3) = a^2.", "fill", "Answer = ____"),
-        q("True or False: (3y^2)^3 = 27y^6.", "fill", "Answer = ____"),
-        q("True or False: 16^(3/4) = 8.", "fill", "Answer = ____"),
-        q("True or False: 27^(2/3) = 9.", "fill", "Answer = ____"),
-        q("Spot: (4×10^5)×(3×10^2)=12×10^7=1.2×10^8. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: 2^n = 64 means n = 6.", "fill", "Answer = ____"),
-        q("True or False: 3.6 × 10^5 = 360000.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Powers — Tips", [
-            "Laws: add for ×, subtract for ÷, multiply for power-of-power.",
-            "Negative index: reciprocal. Fractional: root then power.",
-            "Scientific notation: 1 ≤ a < 10, × 10^n.",
-            "Word problems: square=side^2, cube=side^3, growth=initial×r^n.",
-            "Always simplify fully.",
-        ]),
-        q("2^7 = ____", "fill", "Answer = ____"),
-        q("(-2)^4 = ____", "fill", "Answer = ____"),
-        q("b^6 × b^(-4) = b^____", "fill", "Answer = ____"),
-        q("(2a^3)^4 = ____a^____", "fill", "Answer = ____"),
-        q("24x^7 ÷ 6x^3 = ____x^____", "fill", "Answer = ____"),
-        q("9^(-1/2) = 1/√9 = ____", "fill", "Answer = ____"),
-        q("32^(3/5) = (^5√32)^3 = 2^3 = ____", "fill", "Answer = ____"),
-        q("Write 0.000037 in scientific notation: ____", "fill", "Answer = ____"),
-        q("(9 × 10^6) ÷ (3 × 10^2) = ____", "fill", "Answer = ____"),
-        q("Square area = 196 cm^2. Side = √196 = ____ cm", "fill", "Answer = ____"),
-        q("Rs 100, triples each year. After 4 years = 100 × 3^4 = Rs ____", "fill", "Answer = ____"),
-        q("x^(2/3) × x^(1/3) = x^____", "fill", "Answer = ____"),
-        q("True or False: 2^7 = 128.", "fill", "Answer = ____"),
-        q("True or False: b^6 × b^(-4) = b^2.", "fill", "Answer = ____"),
-        q("True or False: (2a^3)^4 = 16a^12.", "fill", "Answer = ____"),
-        q("True or False: 9^(-1/2) = 1/3.", "fill", "Answer = ____"),
-        q("True or False: 32^(3/5) = 8.", "fill", "Answer = ____"),
-        q("Spot: 0.000037 = 3.7 × 10^(-4). Correct? Fix (10^(-5)). ____", "fill", "Answer = ____"),
-        q("True or False: (9 × 10^6) ÷ (3 × 10^2) = 3 × 10^4.", "fill", "Answer = ____"),
-        q("True or False: x^(2/3) × x^(1/3) = x^1 = x.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        tb("Mixed Powers — Mastery Tips", [
-            "Combine all rules: negative, fractional, scientific, laws.",
-            "Always simplify step by step.",
-            "Watch signs carefully.",
-            "Check your final answer makes sense.",
-        ]),
-        q("Simplify: x^(3/2) × x^(1/2) = x^____", "fill", "Answer = ____"),
-        q("Simplify: (16x^8)^(1/2) = 4x^____", "fill", "Answer = ____"),
-        q("Simplify: (27a^9)^(1/3) = 3a^____", "fill", "Answer = ____"),
-        q("Simplify: 2^(-2) × 2^5 = 2^____ = ____", "fill", "Answer = ____"),
-        q("Simplify: (4^(1/2))^3 = 2^3 = ____", "fill", "Answer = ____"),
-        q("Simplify: (8x^6)^(2/3) = (8^(2/3)) × x^4 = ____ × x^4", "fill", "Answer = ____"),
-        q("Write in scientific notation: (3 × 10^4)^2 = 9 × 10^____ ", "fill", "Answer = ____"),
-        q("Rs 1000 with growth factor 1.1 each year. After 2 years ≈ 1000 × 1.1^2 = 1000 × 1.21 = Rs ____", "fill", "Answer = ____"),
-        q("Simplify: (x^(-2))^(-3) = x^(-2 × -3) = x^____", "fill", "Answer = ____"),
-        q("Evaluate: 4^(3/2) - 8^(2/3) = ____ - ____ = ____", "fill", "Answer = ____"),
-        q("True or False: x^(3/2) × x^(1/2) = x^2.", "fill", "Answer = ____"),
-        q("True or False: (16x^8)^(1/2) = 4x^4.", "fill", "Answer = ____"),
-        q("True or False: (27a^9)^(1/3) = 3a^3.", "fill", "Answer = ____"),
-        q("True or False: 2^(-2) × 2^5 = 2^3 = 8.", "fill", "Answer = ____"),
-        q("True or False: (4^(1/2))^3 = 8.", "fill", "Answer = ____"),
-        q("True or False: (8x^6)^(2/3) = 4x^4.", "fill", "Answer = ____"),
-        q("Spot: (3 × 10^4)^2 = 9 × 10^8. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: (x^(-2))^(-3) = x^6.", "fill", "Answer = ____"),
-        q("True or False: 4^(3/2) - 8^(2/3) = 8 - 4 = 4.", "fill", "Answer = ____"),
-        q("True or False: (8^(2/3)) = 4.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
+    for _ in range(6):
+        exp, label = random.choice(REFS)
+        items.append(q(f"Find {label} on the scale. What power of 10 (in metres) is it closest to?", "diagram", "____", "", "powers_of_ten_scale", {"lo": -9, "hi": 8, "highlight": exp}))
+    for _ in range(5):
+        exp1, label1 = random.choice(REFS)
+        exp2, label2 = random.choice([r for r in REFS if r[0] != exp1])
+        bigger = label1 if exp1 > exp2 else label2
+        items.append(q(f"Which is bigger: {label1} (10^{exp1} m) or {label2} (10^{exp2} m)?", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = round(random.uniform(1, 9.9), 1)
+        e1 = random.randint(-6, 8)
+        e2 = random.randint(-6, 8)
+        while e2 == e1:
+            e2 = random.randint(-6, 8)
+        items.append(q(f"Which is larger: {a} x 10^{e1} or {a} x 10^{e2}?", "fill", "Answer = ____"))
+    for _ in range(3):
+        vals = sorted(random.sample(range(-8, 9), 3))
+        random.shuffle(vals)
+        items.append(q(f"Order these from smallest to largest: 3 x 10^{vals[0]}, 3 x 10^{vals[1]}, 3 x 10^{vals[2]}", "fill", "Answer = ____"))
+    for _ in range(2):
+        exp, label = random.choice(REFS)
+        shown = exp if random.random() > 0.4 else exp + random.choice([1, -1, 2])
+        items.append(q(f"True or False: {label} is about 10^{shown} metres.", "fill", "Answer = ____"))
+    return items
 
 # ─── 13I: Puzzle problems ───────────────────────────────────
 def _L13I_s(sheet):
@@ -15480,141 +15361,125 @@ def _L13I_s(sheet):
     return [s1, s2, s3, s4][sheet - 1]
 
 # ─── 13CUM3: Mixed G+H+I ────────────────────────────────────
+# ─── 13CUM3: Exponential Growth vs Decay ──────────────────────
 def _L13CUM3_s(sheet):
-    if sheet <= 2:
-        return [
-            cb("Word Problems, Mixed, Puzzles — Summary", [
-                "Word problems: square=side^2, cube=side^3, growth=initial×r^n.",
-                "Mixed: apply all index laws fluently.",
-                "Puzzles: find missing index or base using laws.",
-            ], "Area=x^2. 2^?=32→?=5. (2x^3)^2=4x^6. 8^(2/3)=4."),
-            q("Square side 8 cm. Area = ____ cm^2", "fill", "Answer = ____"),
-            q("Cube side 2 cm. Volume = ____ cm^3", "fill", "Answer = ____"),
-            q("Area = 169 cm^2. Side = ____ cm", "fill", "Answer = ____"),
-            q("2^? = 128. ? = ____", "fill", "Answer = ____"),
-            q("?^3 = 216. ? = ____", "fill", "Answer = ____"),
-            q("x^? × x^4 = x^9. ? = ____", "fill", "Answer = ____"),
-            q("(b^3)^? = b^12. ? = ____", "fill", "Answer = ____"),
-            q("2^3 × 2^(-1) = 2^____", "fill", "Answer = ____"),
-            q("27^(1/3) = ____", "fill", "Answer = ____"),
-            q("16^(3/4) = ____", "fill", "Answer = ____"),
-            q("(3 × 10^4) × (4 × 10^3) = ____", "fill", "Answer = ____"),
-            q("True or False: Square side 8 → area 64 cm^2.", "fill", "Answer = ____"),
-            q("True or False: 2^? = 128 means ? = 7.", "fill", "Answer = ____"),
-            q("True or False: ?^3 = 216 means ? = 6.", "fill", "Answer = ____"),
-            q("True or False: x^? × x^4 = x^9 means ? = 5.", "fill", "Answer = ____"),
-            q("True or False: 27^(1/3) = 3.", "fill", "Answer = ____"),
-            q("True or False: 16^(3/4) = 8.", "fill", "Answer = ____"),
-            q("Spot: (3×10^4)×(4×10^3)=12×10^7=1.2×10^8. Correct? ____", "fill", "Answer = ____"),
-            q("True or False: (b^3)^? = b^12 means ? = 4.", "fill", "Answer = ____"),
-            q("True or False: 2^3 × 2^(-1) = 2^2 = 4.", "fill", "Answer = ____"),
-        ]
-    else:
-        return [
-            tb("Cumulative 13G+13H+13I — Tips", [
-                "Word problems: identify operation (square, cube, growth).",
-                "Mixed: use all three index laws + negative + fractional.",
-                "Puzzles: rewrite both sides with same base.",
-                "Scientific notation: multiply/divide by combining a-values and adding/subtracting powers.",
-                "Always check final answer.",
-            ]),
-            q("Square side 11 cm. Area = ____ cm^2", "fill", "Answer = ____"),
-            q("Volume = 343 cm^3. Side = ∛343 = ____ cm", "fill", "Answer = ____"),
-            q("Rs 300, doubles each year. After 4 years = Rs ____", "fill", "Answer = ____"),
-            q("3^? = 243. ? = ____", "fill", "Answer = ____"),
-            q("?^2 = 169. ? = ____", "fill", "Answer = ____"),
-            q("y^6 ÷ y^? = y^2. ? = ____", "fill", "Answer = ____"),
-            q("Solve: 2^x = 1/16. x = ____", "fill", "Answer = ____"),
-            q("(2a^4)^3 = ____a^____", "fill", "Answer = ____"),
-            q("64^(1/2) + 27^(1/3) = ____ + ____ = ____", "fill", "Answer = ____"),
-            q("Write 0.00000045 in scientific notation: ____", "fill", "Answer = ____"),
-            q("(5 × 10^6) ÷ (2.5 × 10^2) = ____", "fill", "Answer = ____"),
-            q("Side = 2x^2. Area = (2x^2)^2 = ____x^____", "fill", "Answer = ____"),
-            q("True or False: Square side 11 → area 121 cm^2.", "fill", "Answer = ____"),
-            q("True or False: ∛343 = 7.", "fill", "Answer = ____"),
-            q("True or False: Rs 300 doubled 4 times = Rs 4800.", "fill", "Answer = ____"),
-            q("True or False: 3^? = 243 means ? = 5.", "fill", "Answer = ____"),
-            q("True or False: 2^x = 1/16 means x = -4.", "fill", "Answer = ____"),
-            q("Spot: 0.00000045 = 4.5 × 10^(-6). Correct? Fix (10^(-7)). ____", "fill", "Answer = ____"),
-            q("True or False: (2a^4)^3 = 8a^12.", "fill", "Answer = ____"),
-            q("True or False: (5 × 10^6) ÷ (2.5 × 10^2) = 2 × 10^4.", "fill", "Answer = ____"),
-        ]
-
+    random.seed(1330 + sheet)
+    ranges = {1: (2, 4), 2: (2, 5), 3: (3, 5), 4: (3, 6)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Exponential Growth & Decay", [
+            "Growth: value x factor each step (gets bigger fast). After n steps = start x factor^n.",
+            "Decay: value / factor each step (gets smaller fast). After n steps = start / factor^n.",
+            "Growth and decay both use POWERS -- that's why they change so quickly.",
+        ], "Bacteria doubling: 1,2,4,8,16,32... after 5 steps = 1x2^5=32"),
+    ]
+    for _ in range(5):
+        start = random.randint(1, 3)
+        factor = random.randint(2, 3)
+        steps = random.randint(4, 6)
+        items.append(q(f"A population starts at {start} and doubles" if factor == 2 else f"A population starts at {start} and triples" if factor == 3 else f"A population starts at {start} and multiplies by {factor}",
+                        "diagram", "____", "", "exponential_growth", {"start": start, "factor": factor, "steps": steps, "mode": "growth"}))
+    for _ in range(5):
+        start = random.choice([100, 200, 300, 400])
+        factor = 2
+        steps = random.randint(4, 6)
+        items.append(q(f"A substance starts at {start}g and halves every year. Show the decay.",
+                        "diagram", "____", "", "exponential_growth", {"start": start, "factor": factor, "steps": steps, "mode": "decay"}))
+    for _ in range(4):
+        start = random.randint(1, hi)
+        factor = random.randint(2, 3)
+        n = random.randint(3, 6)
+        items.append(q(f"A colony starts at {start} and multiplies by {factor} each hour. Find the size after {n} hours: {start} x {factor}^{n} = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        start = random.choice([64, 128, 256, 512])
+        n = random.randint(2, 4)
+        items.append(q(f"A substance of {start}g halves every day. Find the amount after {n} days: {start} / 2^{n} = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("True or False: Exponential growth means the value increases by the SAME amount each step.", "fill", "Answer = ____"))
+    return items
 
 # ─── 13J: Mixed challenge ───────────────────────────────────
+# ─── 13J: Powers & Indices Mastery Challenge ──────────────────
 def _L13J_s(sheet):
-    s1 = [
-        tb("Level 13 Mixed Challenge — Tips", [
-            "13A: a^m means multiply base by itself m times. a^0=1.",
-            "13B: Laws — ×: add, ÷: subtract, (power)^n: multiply.",
-            "13C: Simplify with coefficients and brackets.",
-            "13D: Negative: a^(-n) = 1/a^n.",
-            "13E: Fractional: a^(1/2)=√a. a^(m/n)=(nth root of a)^m.",
-            "13F: Scientific notation: a × 10^n, 1 ≤ a < 10.",
-        ]),
-        q("2^5 = ____", "fill", "Answer = ____"),
-        q("3^0 = ____", "fill", "Answer = ____"),
-        q("x^4 × x^5 = x^____", "fill", "Answer = ____"),
-        q("y^9 ÷ y^4 = y^____", "fill", "Answer = ____"),
-        q("(a^3)^5 = a^____", "fill", "Answer = ____"),
-        q("4x^3 × 2x^4 = ____x^____", "fill", "Answer = ____"),
-        q("(3a^2)^3 = ____a^____", "fill", "Answer = ____"),
-        q("2^(-4) = ____", "fill", "Answer = ____"),
-        q("36^(1/2) = ____", "fill", "Answer = ____"),
-        q("8^(4/3) = ____", "fill", "Answer = ____"),
-        q("Write 0.00084 in scientific notation: ____", "fill", "Answer = ____"),
-        q("(6 × 10^5) × (2 × 10^3) = ____", "fill", "Answer = ____"),
-        q("Square side 12 cm. Area = ____ cm^2", "fill", "Answer = ____"),
-        q("2^? = 64. ? = ____", "fill", "Answer = ____"),
-        q("?^3 = 27. ? = ____", "fill", "Answer = ____"),
-        q("True or False: 2^5 = 32.", "fill", "Answer = ____"),
-        q("True or False: x^4 × x^5 = x^9.", "fill", "Answer = ____"),
-        q("True or False: 2^(-4) = 1/16.", "fill", "Answer = ____"),
-        q("True or False: 8^(4/3) = 16.", "fill", "Answer = ____"),
-        q("Spot: 0.00084 = 8.4 × 10^(-3). Correct? Fix (10^(-4)). ____", "fill", "Answer = ____"),
+    random.seed(1340 + sheet)
+    ranges = {1: (3, 6), 2: (4, 8), 3: (5, 10), 4: (6, 12)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Powers & Indices Mastery Challenge", [
+            "Every skill: laws of indices, negative/fractional powers, surds, scientific notation, growth/decay.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    return [s1, s1, s1, s1][sheet - 1]
-
+    for _ in range(5):
+        base = random.randint(2, 5)
+        m, n = random.randint(2, hi), random.randint(2, hi)
+        items.append(q(f"Simplify: {base}^{m} x {base}^{n} / {base}^{n}  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        n, k, m = _gen_surd(hi_k=6)
+        items.append(q(f"Simplify sqrt({n}).  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        start = random.randint(1, 4)
+        factor = random.randint(2, 3)
+        n = random.randint(3, 5)
+        items.append(q(f"{start} multiplied by {factor}, {n} times over: {start} x {factor}^{n} = ____  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.randint(2, 5)
+        neg = random.randint(1, 3)
+        items.append(q(f"Evaluate: {base}^(-{neg})  [2 points]", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("True or False: A negative index means the answer is negative.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 # ─── 13REV: Level 13 Revision ───────────────────────────────
+# ─── 13REV: Level 13 Revision (samples every topic, climbs in difficulty) ───
 def _L13REV_s(sheet):
-    return [
-        tb("Level 13 Revision — Powers & Indices", [
-            "Power: a^n = a × a × ... (n times). a^0 = 1. a^1 = a.",
-            "Law 1: a^m × a^n = a^(m+n).",
-            "Law 2: a^m ÷ a^n = a^(m-n).",
-            "Law 3: (a^m)^n = a^(m×n).",
-            "Negative: a^(-n) = 1/a^n. Fractional: a^(1/2) = √a. a^(m/n) = (nth root)^m.",
-            "Scientific notation: a × 10^n where 1 ≤ a < 10.",
+    random.seed(1350 + sheet)
+    ranges = {1: (2, 4), 2: (3, 6), 3: (4, 8), 4: (5, 10)}
+    lo, hi = ranges[sheet]
+    items = [
+        tb("Level 13 Revision — Tips", [
+            "Laws: a^m x a^n = a^(m+n). a^m / a^n = a^(m-n). (a^m)^n = a^(mn).",
+            "Negative index: a^(-n) = 1/a^n. Fractional: a^(1/n) = nth root of a.",
+            "Surds: simplify by pulling out the largest perfect square factor.",
+            "Scientific notation: a x 10^n, where 1<=a<10.",
+            "Growth: x factor each step. Decay: /factor each step.",
         ]),
-        q("2^6 = ____", "fill", "Answer = ____"),
-        q("5^0 = ____", "fill", "Answer = ____"),
-        q("x^3 × x^6 = x^____", "fill", "Answer = ____"),
-        q("a^10 ÷ a^4 = a^____", "fill", "Answer = ____"),
-        q("(y^4)^3 = y^____", "fill", "Answer = ____"),
-        q("3x^2 × 5x^4 = ____x^____", "fill", "Answer = ____"),
-        q("(2x^3)^4 = ____x^____", "fill", "Answer = ____"),
-        q("3^(-3) = ____", "fill", "Answer = ____"),
-        q("x^2 × x^(-5) = x^____", "fill", "Answer = ____"),
-        q("64^(1/2) = ____", "fill", "Answer = ____"),
-        q("27^(2/3) = ____", "fill", "Answer = ____"),
-        q("Write 530000 in scientific notation: ____", "fill", "Answer = ____"),
-        q("Write 0.0000072 in scientific notation: ____", "fill", "Answer = ____"),
-        q("(4 × 10^5) × (3 × 10^4) = ____", "fill", "Answer = ____"),
-        q("Square side 13 cm. Area = ____ cm^2", "fill", "Answer = ____"),
-        q("2^? = 256. ? = ____", "fill", "Answer = ____"),
-        q("True or False: 2^6 = 64.", "fill", "Answer = ____"),
-        q("True or False: x^3 × x^6 = x^9.", "fill", "Answer = ____"),
-        q("True or False: 27^(2/3) = 9.", "fill", "Answer = ____"),
-        q("Spot: 530000 = 53 × 10^4. Correct? Fix (5.3 × 10^5). ____", "fill", "Answer = ____"),
     ]
-
-
-
-# ═══ LEVEL 14 ═══
-# Level 14 — Polynomials
-# FORMAT: Pages 1-2 = questions only. Page 3 = concept + tips reference.
-# Target: very weak students. Very simple, clear steps, build confidence.
+    for _ in range(3):
+        base = random.randint(2, 5)
+        m, n = random.randint(1, hi), random.randint(1, hi)
+        items.append(q(f"Simplify: {base}^{m} x {base}^{n}", "fill", "Answer = ____"))
+    for _ in range(2):
+        base = random.randint(2, 5)
+        neg = random.randint(1, 3)
+        items.append(q(f"Evaluate: {base}^(-{neg})", "fill", "Answer = ____"))
+    for _ in range(2):
+        sq = random.choice([4, 9, 16, 25])
+        items.append(q(f"Evaluate: {sq}^(1/2)", "fill", "Answer = ____"))
+    for _ in range(3):
+        n, k, m = _gen_surd(hi_k=5)
+        items.append(q(f"Simplify sqrt({n}).", "fill", "Answer = ____"))
+    for _ in range(3):
+        num = random.randint(2, 9)
+        exp = random.randint(2, 6)
+        items.append(q(f"Write {num} x 10^{exp} as an ordinary number.", "fill", "Answer = ____"))
+    for _ in range(2):
+        start = random.randint(1, 3)
+        factor = 2
+        n = random.randint(3, 5)
+        items.append(q(f"{start} doubles {n} times: {start} x 2^{n} = ____", "fill", "Answer = ____"))
+    for _ in range(2):
+        start = random.choice([64, 128, 256])
+        n = random.randint(2, 4)
+        items.append(q(f"{start} halves {n} times: {start} / 2^{n} = ____", "fill", "Answer = ____"))
+    for _ in range(3):
+        base = random.randint(2, 5)
+        m, n = random.randint(1, hi), random.randint(1, hi)
+        correct = base ** (m + n)
+        shown = correct if random.random() > 0.4 else correct + base
+        items.append(q(f"True or False: {base}^{m} x {base}^{n} = {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ─── 14A: Polynomial basics ─────────────────────────────────
 def _L14A_1():
