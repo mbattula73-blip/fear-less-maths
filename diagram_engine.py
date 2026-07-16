@@ -2888,6 +2888,124 @@ def exponential_growth_svg(start=1, factor=2, steps=5, mode="growth", **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def _poly_term_str(coef, power, var="x"):
+    """Formats coef*var^power as readable text, e.g. (3,1,'x')->'3x',
+    (-1,2,'x')->'-x²', (1,3,'x')->'x³', (0,anything)->'0', (5,0)->'5'.
+    Uses the Latin-1 superscript characters ²/³ (confirmed to render
+    correctly via svglib, unlike the general Unicode superscript block
+    which renders as missing-glyph boxes) for powers 2-3; higher powers
+    fall back to a caret since they're not needed at this level."""
+    if coef == 0:
+        return "0"
+    sign = "-" if coef < 0 else ""
+    mag = abs(coef)
+    if power == 0:
+        return f"{sign}{mag}"
+    coefstr = "" if mag == 1 else str(mag)
+    if power == 1:
+        varstr = var
+    elif power == 2:
+        varstr = f"{var}²"
+    elif power == 3:
+        varstr = f"{var}³"
+    else:
+        varstr = f"{var}^{power}"
+    return f"{sign}{coefstr}{varstr}"
+
+
+def area_model_svg(a=1, b=3, c=1, d=2, var="x", **kw):
+    """(ax+b)(cx+d) shown as a 4-region area-model rectangle -- the
+    standard visual for binomial multiplication (FOIL made concrete)."""
+    col_labels = [_poly_term_str(a, 1, var), (f"+{b}" if b >= 0 else f"-{abs(b)}")]
+    row_labels = [_poly_term_str(c, 1, var), (f"+{d}" if d >= 0 else f"-{abs(d)}")]
+    cells = [
+        [_poly_term_str(a * c, 2, var), _poly_term_str(a * d, 1, var)],
+        [_poly_term_str(b * c, 1, var), _poly_term_str(b * d, 0, var)],
+    ]
+    cell_w, cell_h = 92, 62
+    x0, y0 = 56, 46
+    w = x0 + 2 * cell_w + 20
+    h = y0 + 2 * cell_h + 44
+    parts = []
+    expr = f"({_poly_term_str(a,1,var)}{'+' if b>=0 else '-'}{abs(b)})({_poly_term_str(c,1,var)}{'+' if d>=0 else '-'}{abs(d)})"
+    parts.append(f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{expr}</text>')
+    for j, lbl in enumerate(col_labels):
+        cx = x0 + j * cell_w + cell_w / 2
+        parts.append(f'<text x="{cx:.1f}" y="{y0-12}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#1B5E8C">{lbl}</text>')
+    for i, lbl in enumerate(row_labels):
+        cy = y0 + i * cell_h + cell_h / 2
+        parts.append(f'<text x="{x0-12:.1f}" y="{cy+5:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="16" fill="#1E7A44">{lbl}</text>')
+    bgs = ["#EAF4FC", "#FFF8E1", "#FFF8E1", "#E7F8ED"]
+    for i in range(2):
+        for j in range(2):
+            cx, cy = x0 + j * cell_w, y0 + i * cell_h
+            parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w}" height="{cell_h}" fill="{bgs[i*2+j]}" stroke="#2C3E50" stroke-width="1.5"/>')
+            parts.append(f'<text x="{cx+cell_w/2:.1f}" y="{cy+cell_h/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{cells[i][j]}</text>')
+    parts.append(f'<text x="{w/2}" y="{y0+2*cell_h+24}" text-anchor="middle" font-family="Helvetica-Oblique" font-size="11" fill="#5D6D7E">Add all 4 areas together</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def polynomial_graph_svg(coeffs=None, xrange=6, **kw):
+    """Plots y=p(x) for a polynomial (coeffs = highest degree first, e.g.
+    [1,-5,6] for x²-5x+6), marking the real zeroes (x-intercepts) found
+    within the visible range -- the geometric meaning of a zero."""
+    coeffs = coeffs or [1, -5, 6]
+
+    def evaluate(x):
+        y = 0
+        for c in coeffs:
+            y = y * x + c
+        return y
+
+    n_pts = 100
+    xs = [-xrange + i * (2 * xrange) / n_pts for i in range(n_pts + 1)]
+    ys = [evaluate(x) for x in xs]
+    yr = max(1.0, min(max(abs(min(ys)), abs(max(ys))), xrange * 5))
+
+    size = 340
+    margin = 36
+
+    def to_px(x, y):
+        yc = max(-yr, min(yr, y))
+        px = margin + (x + xrange) / (2 * xrange) * (size - 2 * margin)
+        py = size - margin - (yc + yr) / (2 * yr) * (size - 2 * margin)
+        return px, py
+
+    parts = []
+    for i in range(-int(xrange), int(xrange) + 1, 2):
+        if i == 0: continue
+        gx, _ = to_px(i, 0)
+        parts.append(f'<line x1="{gx:.1f}" y1="{margin}" x2="{gx:.1f}" y2="{size-margin}" stroke="#F2F3F4" stroke-width="1"/>')
+    ox, oy = to_px(0, 0)
+    parts.append(f'<line x1="{margin}" y1="{oy:.1f}" x2="{size-margin}" y2="{oy:.1f}" stroke="#2C3E50" stroke-width="2"/>')
+    parts.append(f'<line x1="{ox:.1f}" y1="{margin}" x2="{ox:.1f}" y2="{size-margin}" stroke="#2C3E50" stroke-width="2"/>')
+    parts.append(f'<text x="{size-margin+8}" y="{oy+4:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">x</text>')
+    parts.append(f'<text x="{ox-6:.1f}" y="{margin+2}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">y</text>')
+
+    pts = [to_px(x, y) for x, y in zip(xs, ys)]
+    path_d = "M " + " L ".join(f"{px:.1f} {py:.1f}" for px, py in pts)
+    parts.append(f'<path d="{path_d}" stroke="#1B5E8C" stroke-width="2.5" fill="none"/>')
+
+    zeroes = []
+    for i in range(len(xs) - 1):
+        if abs(ys[i]) < 1e-9:
+            zeroes.append(xs[i])
+        elif ys[i] * ys[i + 1] < 0:
+            zx = xs[i] - ys[i] * (xs[i + 1] - xs[i]) / (ys[i + 1] - ys[i])
+            zeroes.append(zx)
+    for zx in zeroes:
+        px, py = to_px(zx, 0)
+        parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="#A6362B"/>')
+        zx_lbl = round(zx, 1)
+        zx_lbl = int(zx_lbl) if zx_lbl == int(zx_lbl) else zx_lbl
+        parts.append(f'<text x="{px:.1f}" y="{py+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">{zx_lbl}</text>')
+
+    terms = [_poly_term_str(c, len(coeffs) - 1 - i, "x") for i, c in enumerate(coeffs) if c != 0]
+    eqn = "y = " + " + ".join(terms).replace("+ -", "- ")
+    parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{eqn}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -2900,6 +3018,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "two_line_graph": two_line_graph_svg,
     "powers_of_ten_scale": powers_of_ten_scale_svg,
     "exponential_growth": exponential_growth_svg,
+    "area_model": area_model_svg,
+    "polynomial_graph": polynomial_graph_svg,
 }
 
 
