@@ -105,6 +105,8 @@ def _L17C_s(sheet):
             "Arc: part of the edge. Sector: a 'pizza slice'. Segment: region between a chord and its arc.",
         ], "Radius 5cm -> diameter 10cm. The diameter is always the longest possible chord."),
     ]
+    items.append(q("In the diagram, O is the centre, OB is a radius, and AB is a diameter. Name the radius and the diameter.", "diagram", "____", "", "circle_basics", {}))
+    items.append(q("Using the diagram, if radius OB = 6 cm, what is the length of diameter AB?", "diagram", "____", "", "circle_basics", {}))
     for _ in range(6):
         r = random.randint(lo, hi)
         items.append(q(f"Radius = {r} cm. Find the diameter.", "fill", "Answer = ____"))
@@ -147,6 +149,10 @@ def _L17CUM1_s(sheet):
             "The radius, half-chord, and distance-to-centre form a right triangle -- use Pythagoras.",
         ], "Chord 8, radius 5: half-chord=4, distance to centre = sqrt(25-16)=3."),
     ]
+    _chord_variants = [(200, 340), (215, 325), (195, 345), (220, 320)]
+    ca1, ca2 = _chord_variants[(sheet - 1) % 4]
+    items.append(q("In the diagram, OM is drawn perpendicular from the centre to chord AB. What does this tell you about AM and MB?", "diagram", "____", "", "circle_chord", {"chord_ang1": ca1, "chord_ang2": ca2}))
+    items.append(q("Using the diagram, if AM = 4 cm, what is the length of the full chord AB?", "diagram", "____", "", "circle_chord", {"chord_ang1": ca1, "chord_ang2": ca2}))
     triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
     for _ in range(5):
         a, b, c = random.choice(triples)
@@ -184,6 +190,10 @@ def _L17D_s(sheet):
             "Tangent length = sqrt(distance to centre^2 - radius^2).",
         ], "Two tangents from the same external point are always equal -- a very useful shortcut."),
     ]
+    _touch_variants = [30, 45, 55, 65]
+    ta = _touch_variants[(sheet - 1) % 4]
+    items.append(q("In the diagram, the tangent touches the circle at P, and OP is a radius. What is the angle marked between the tangent and OP?", "diagram", "90°", "", "circle_tangent", {"touch_ang": ta}))
+    items.append(q("Using the diagram, if OP = 5 cm and the tangent length PQ = 12 cm, find OQ (the distance from the centre to the external point).", "diagram", "____", "", "circle_tangent", {"touch_ang": ta}))
     for _ in range(6):
         a, b, c = random.choice(triples)
         items.append(q(f"External point is {c} from the centre. Radius is {b}. Find the tangent length.", "fill", "Answer = ____"))
@@ -214,6 +224,10 @@ def _L17E_s(sheet):
             "Angles in the SAME SEGMENT (subtending the same arc) are EQUAL.",
         ], "Arc gives 40 degrees at the circumference -> 80 degrees at the centre."),
     ]
+    _s_variants = [40, 50, 60, 70]
+    s_ = _s_variants[(sheet - 1) % 4]
+    items.append(q(f"In the diagram, angle BAC (at the circumference) and angle BOC (at the centre) stand on the same arc BC. If angle BAC = {s_}°, find angle BOC.", "diagram", f"{2*s_}°", "", "circle_central_inscribed_angle", {"b_ang": 270 - s_, "c_ang": 270 + s_, "a_ang": 90}))
+    items.append(q("Using the diagram, explain in your own words why the centre angle is always double the circumference angle on the same arc.", "diagram", "____", "", "circle_central_inscribed_angle", {"b_ang": 270 - s_, "c_ang": 270 + s_, "a_ang": 90}))
     for _ in range(5):
         circ = random.randint(lo, min(hi, 89))
         items.append(q(f"Angle at the circumference = {circ}°. Find the angle at the centre (same arc).", "fill", "Answer = ____"))
@@ -247,6 +261,10 @@ def _L17F_s(sheet):
             "This connects circles back to quadrilaterals -- a cyclic quadrilateral is still a real quadrilateral (angle sum 360), but with this extra circle property.",
         ], "If one angle is 70°, its opposite angle is 110° (70+110=180)."),
     ]
+    _angs_variants = [(100, 200, 260, 340), (95, 190, 255, 330), (110, 205, 265, 350), (90, 195, 250, 335)]
+    av = _angs_variants[(sheet - 1) % 4]
+    items.append(q("In the diagram, ABCD is a cyclic quadrilateral with all four angles marked. Which pairs of angles are supplementary?", "diagram", "____", "", "cyclic_quadrilateral_theorem", {"angs": av}))
+    items.append(q("Using the diagram, angle A and angle C are opposite angles of the cyclic quadrilateral. Confirm they add to 180°.", "diagram", "180°", "", "cyclic_quadrilateral_theorem", {"angs": av}))
     for _ in range(6):
         a = random.randint(lo, hi)
         items.append(q(f"Cyclic quadrilateral: one angle is {a}°. Find its OPPOSITE angle.", "fill", "Answer = ____"))
@@ -281,6 +299,9 @@ def _L17CUM2_s(sheet):
             "Look for the arc each angle stands on -- that tells you which theorem applies.",
         ], "Angle in a semicircle is always 90 -- no calculation needed once you spot the diameter."),
     ]
+    _s_variants2 = [35, 45, 55, 65]
+    s2 = _s_variants2[(sheet - 1) % 4]
+    items.append(q(f"In the diagram, angle BAC = {s2}° at the circumference. Find angle BOC at the centre (same arc).", "diagram", f"{2*s2}°", "", "circle_central_inscribed_angle", {"b_ang": 270 - s2, "c_ang": 270 + s2, "a_ang": 90}))
     for _ in range(6):
         circ = random.randint(lo, hi)
         items.append(q(f"Angle at the circumference = {circ}°. Find the angle at the centre.", "fill", "Answer = ____"))

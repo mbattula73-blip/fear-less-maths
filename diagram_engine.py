@@ -3675,6 +3675,202 @@ def polygon_angle_sum_svg(n=5, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def _angle_wedge(vx, vy, ang1, ang2, radius, color="#A6362B", width=2):
+    """Small polyline arc at vertex (vx,vy) sweeping the shorter way
+    from ang1 to ang2 (degrees, screen convention: 0=east, 90=south) --
+    used to mark an angle at a vertex."""
+    import math as _m
+    d = (ang2 - ang1) % 360
+    if d > 180:
+        d -= 360
+    steps = 10
+    pts = []
+    for i in range(steps + 1):
+        a = _m.radians(ang1 + d * i / steps)
+        pts.append((vx + radius * _m.cos(a), vy + radius * _m.sin(a)))
+    path = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    return f'<polyline points="{path}" fill="none" stroke="{color}" stroke-width="{width}"/>'
+
+
+def _right_angle_mark(vx, vy, u1x, u1y, u2x, u2y, size=10, color="#7F8C8D"):
+    """Small square-corner mark at (vx,vy) between two unit directions
+    u1 and u2 -- used to flag a 90-degree angle."""
+    p1 = (vx + u1x * size, vy + u1y * size)
+    p2 = (vx + u1x * size + u2x * size, vy + u1y * size + u2y * size)
+    p3 = (vx + u2x * size, vy + u2y * size)
+    poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in [p1, p2, p3])
+    return f'<polyline points="{poly}" fill="none" stroke="{color}" stroke-width="1.3"/>'
+
+
+def _angle_between_vectors(v1, v2):
+    import math as _m
+    d1, d2 = _m.hypot(*v1), _m.hypot(*v2)
+    cosv = (v1[0] * v2[0] + v1[1] * v2[1]) / (d1 * d2 or 1)
+    cosv = max(-1.0, min(1.0, cosv))
+    return _m.degrees(_m.acos(cosv))
+
+
+def circle_basics_svg(r=100, **kw):
+    """Labeled circle showing the centre O, a radius OB and a diameter
+    AB -- the foundation diagram for Level 17C (circle basics)."""
+    w, h = 320, 280
+    cx, cy = 160, 150
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<text x="{cx-14}" y="{cy-8}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">O</text>')
+    rx, ry = cx + r, cy
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{rx}" y2="{ry}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{rx}" cy="{ry}" r="3.5" fill="#A6362B"/>')
+    parts.append(f'<text x="{(cx+rx)/2}" y="{cy-10}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">r</text>')
+    parts.append(f'<text x="{rx+8}" y="{ry+4}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">B</text>')
+    dx1 = cx - r
+    parts.append(f'<line x1="{dx1}" y1="{cy}" x2="{rx}" y2="{cy}" stroke="#1E7A44" stroke-width="1.6" stroke-dasharray="6,3"/>')
+    parts.append(f'<circle cx="{dx1}" cy="{cy}" r="3.5" fill="#1E7A44"/>')
+    parts.append(f'<text x="{dx1-14}" y="{cy+4}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">A</text>')
+    parts.append(f'<text x="{cx}" y="{cy+r+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">diameter AB = 2r</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Circle: radius &amp; diameter</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def circle_chord_svg(chord_ang1=210, chord_ang2=330, r=100, **kw):
+    """Circle with a chord AB and the perpendicular OM from the centre
+    to the chord -- shows OM ⊥ AB and AM = MB (Level 17 chords)."""
+    import math as _m
+    w, h = 320, 280
+    cx, cy = 160, 150
+    a1, a2 = _m.radians(chord_ang1), _m.radians(chord_ang2)
+    ax, ay = cx + r * _m.cos(a1), cy + r * _m.sin(a1)
+    bx, by = cx + r * _m.cos(a2), cy + r * _m.sin(a2)
+    mx, my = (ax + bx) / 2, (ay + by) / 2
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{mx:.1f}" y2="{my:.1f}" stroke="#1E7A44" stroke-width="2" stroke-dasharray="5,3"/>')
+    ab_len = _m.hypot(bx - ax, by - ay) or 1
+    u1x, u1y = (ax - mx) / ab_len * 2, (ay - my) / ab_len * 2
+    om_len = _m.hypot(cx - mx, cy - my) or 1
+    u2x, u2y = (cx - mx) / om_len, (cy - my) / om_len
+    parts.append(_right_angle_mark(mx, my, u1x, u1y, u2x, u2y, size=9))
+    parts.append(_side_ticks((ax, ay), (mx, my), 1))
+    parts.append(_side_ticks((mx, my), (bx, by), 1))
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<text x="{cx-14}" y="{cy-8}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">O</text>')
+    for (x, y), lbl, col in [((ax, ay), "A", "#2C3E50"), ((bx, by), "B", "#2C3E50"), ((mx, my), "M", "#7D3C98")]:
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="{col}"/>')
+        parts.append(f'<text x="{x+8:.1f}" y="{y-6:.1f}" font-family="Helvetica-Bold" font-size="12" fill="{col}">{lbl}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">Perpendicular from centre bisects the chord</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def circle_tangent_svg(touch_ang=40, r=100, **kw):
+    """Circle with a tangent line at point P and radius OP, showing
+    tangent ⊥ radius at the point of contact (Level 17 tangents)."""
+    import math as _m
+    w, h = 320, 320
+    cx, cy = 150, 140
+    a = _m.radians(touch_ang)
+    ux, uy = _m.cos(a), _m.sin(a)
+    px, py = cx + r * ux, cy + r * uy
+    tx, ty = -uy, ux
+    tl = 70
+    t1 = (px - tx * tl, py - ty * tl)
+    t2 = (px + tx * tl, py + ty * tl)
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<text x="{cx-14}" y="{cy-8}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">O</text>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{px:.1f}" y2="{py:.1f}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{t1[0]:.1f}" y1="{t1[1]:.1f}" x2="{t2[0]:.1f}" y2="{t2[1]:.1f}" stroke="#1E7A44" stroke-width="2.5"/>')
+    parts.append(_right_angle_mark(px, py, -ux, -uy, tx, ty, size=11))
+    parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="3.5" fill="#7D3C98"/>')
+    parts.append(f'<text x="{px+8*ux:.1f}" y="{py+8*uy-6:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">P</text>')
+    label_pt = t1 if t1[1] < t2[1] else t2
+    lx = min(max(label_pt[0], 40), w - 40)
+    ly = min(max(label_pt[1] - 10, 26), h - 14)
+    parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#1E7A44">tangent</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">Tangent is perpendicular to the radius</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def circle_central_inscribed_angle_svg(b_ang=210, c_ang=330, a_ang=90, r=100, **kw):
+    """Circle showing the central angle BOC and an inscribed angle BAC
+    on the same major arc -- angle at centre = 2 x angle at
+    circumference (Level 17 circle theorems)."""
+    import math as _m
+    w, h = 340, 320
+    cx, cy = 170, 165
+    def pt(deg):
+        a = _m.radians(deg)
+        return cx + r * _m.cos(a), cy + r * _m.sin(a)
+    bx, by = pt(b_ang)
+    ccx, ccy = pt(c_ang)
+    ax, ay = pt(a_ang)
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{bx:.1f}" y2="{by:.1f}" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{ccx:.1f}" y2="{ccy:.1f}" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{bx:.1f}" y2="{by:.1f}" stroke="#1E7A44" stroke-width="2"/>')
+    parts.append(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{ccx:.1f}" y2="{ccy:.1f}" stroke="#1E7A44" stroke-width="2"/>')
+    ang_ob = _m.degrees(_m.atan2(by - cy, bx - cx))
+    ang_oc = _m.degrees(_m.atan2(ccy - cy, ccx - cx))
+    ang_ab = _m.degrees(_m.atan2(by - ay, bx - ax))
+    ang_ac = _m.degrees(_m.atan2(ccy - ay, ccx - ax))
+    parts.append(_angle_wedge(cx, cy, ang_ob, ang_oc, 26, color="#A6362B", width=2.5))
+    parts.append(_angle_wedge(ax, ay, ang_ab, ang_ac, 20, color="#1E7A44", width=2.5))
+    central = _angle_between_vectors((bx - cx, by - cy), (ccx - cx, ccy - cy))
+    inscribed = _angle_between_vectors((bx - ax, by - ay), (ccx - ax, ccy - ay))
+    parts.append(f'<text x="{cx:.1f}" y="{cy-34:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{central:.0f}°</text>')
+    parts.append(f'<text x="{ax:.1f}" y="{ay-24:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{inscribed:.0f}°</text>')
+    for (x, y), lbl in [((bx, by), "B"), ((ccx, ccy), "C"), ((ax, ay), "A")]:
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="#2C3E50"/>')
+        parts.append(f'<text x="{x+8:.1f}" y="{y-6:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{lbl}</text>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3" fill="#2C3E50"/>')
+    parts.append(f'<text x="{cx-14}" y="{cy-8}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">O</text>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">Angle at centre = 2 x angle at circumference</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, **kw):
+    """Quadrilateral ABCD inscribed in a circle with all four angles
+    marked -- shows opposite angles are supplementary (Level 17F)."""
+    import math as _m
+    w, h = 360, 340
+    cx, cy = 180, 175
+    def pt(deg):
+        a = _m.radians(deg)
+        return cx + r * _m.cos(a), cy + r * _m.sin(a)
+    pts = [pt(d) for d in angs]
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+    poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    parts.append(f'<polygon points="{poly}" fill="none" stroke="#A6362B" stroke-width="2.5"/>')
+    labels = ["A", "B", "C", "D"]
+    n = 4
+    vals = []
+    for i, (x, y) in enumerate(pts):
+        prev = pts[(i - 1) % n]
+        nxt = pts[(i + 1) % n]
+        v1 = (prev[0] - x, prev[1] - y)
+        v2 = (nxt[0] - x, nxt[1] - y)
+        ang1 = _m.degrees(_m.atan2(v1[1], v1[0]))
+        ang2 = _m.degrees(_m.atan2(v2[1], v2[0]))
+        col = "#1E7A44" if i in (0, 2) else "#7D3C98"
+        parts.append(_angle_wedge(x, y, ang1, ang2, 16, color=col, width=2.2))
+        val = _angle_between_vectors(v1, v2)
+        vals.append(val)
+        dxn, dyn = x - cx, y - cy
+        dl = _m.hypot(dxn, dyn) or 1
+        # value sits just inside the vertex (toward centre); letter sits outside the circle
+        vx, vy = x - dxn / dl * 24, y - dyn / dl * 24
+        lblx, lbly = x + dxn / dl * 28, y + dyn / dl * 28
+        parts.append(f'<text x="{vx:.1f}" y="{vy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="{col}">{val:.0f}°</text>')
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="#2C3E50"/>')
+        parts.append(f'<text x="{lblx:.1f}" y="{lbly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{labels[i]}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="22" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">Cyclic quadrilateral: opposite angles are supplementary</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -3701,6 +3897,11 @@ SVG_DIAGRAM_FUNCTIONS = {
     "quadrilateral_types": quadrilateral_types_svg,
     "quadrilateral_diagonals": quadrilateral_diagonals_svg,
     "polygon_angle_sum": polygon_angle_sum_svg,
+    "circle_basics": circle_basics_svg,
+    "circle_chord": circle_chord_svg,
+    "circle_tangent": circle_tangent_svg,
+    "circle_central_inscribed_angle": circle_central_inscribed_angle_svg,
+    "cyclic_quadrilateral_theorem": cyclic_quadrilateral_theorem_svg,
 }
 
 
