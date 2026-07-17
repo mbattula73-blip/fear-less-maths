@@ -217,7 +217,8 @@ def _est(item, cw=None):
     big_diag = item.get("diagram_type") in ("base10_blocks", "compare_blocks",
                                              "vertical_numberline_blank", "vertical_numberline_example",
                                              "math_maze_blank", "function_machine_blank",
-                                             "number_pyramid_blank")
+                                             "number_pyramid_blank", "mixed_number_area_blank",
+                                             "mixed_number_area_example")
     matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
     diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
@@ -333,7 +334,8 @@ class Col:
                     big_diag = dtype in ("base10_blocks", "compare_blocks",
                                           "vertical_numberline_blank", "vertical_numberline_example",
                                           "math_maze_blank", "function_machine_blank",
-                                          "number_pyramid_blank", "algebra_tiles", "balance_scale")
+                                          "number_pyramid_blank", "algebra_tiles", "balance_scale",
+                                          "mixed_number_area_blank", "mixed_number_area_example")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                "linear_equation_graph", "two_line_graph",
                                                "powers_of_ten_scale", "exponential_growth",
@@ -358,7 +360,8 @@ class Col:
                         big_diag = dtype in ("base10_blocks", "compare_blocks",
                                               "vertical_numberline_blank", "vertical_numberline_example",
                                               "math_maze_blank", "function_machine_blank",
-                                              "number_pyramid_blank")
+                                              "number_pyramid_blank", "mixed_number_area_blank",
+                                              "mixed_number_area_example")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)

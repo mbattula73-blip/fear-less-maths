@@ -1443,6 +1443,130 @@ def fraction_numberline_example(num=1, den=2, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
+def mixed_number_area_blank(w1=1, n1=1, d1=2, w2=2, n2=1, d2=3, **kw) -> BytesIO:
+    """Blank 2x2 area grid for multiplying two MIXED numbers:
+    (w1 n1/d1) x (w2 n2/d2). Row/column headers show the whole and
+    fractional parts; the four cells are left empty for the student to
+    compute each partial product themselves (whole x whole, whole x
+    fraction, fraction x whole, fraction x fraction), then add them up."""
+    cell_w, cell_h = 100, 80
+    x0, y0 = 90, 50
+    w, h = x0 + 2*cell_w + 20, y0 + 2*cell_h + 20
+    img, d = _blank(w, h)
+    fnt = _font(14)
+    fnt_s = _font_reg(11)
+    col_labels = [str(w1), f"{n1}/{d1}"]
+    row_labels = [str(w2), f"{n2}/{d2}"]
+    for i in range(3):
+        x = x0 + i*cell_w
+        d.line([x, y0, x, y0+2*cell_h], fill=C_BORDER, width=2)
+    for j in range(3):
+        y = y0 + j*cell_h
+        d.line([x0, y, x0+2*cell_w, y], fill=C_BORDER, width=2)
+    for i, lbl in enumerate(col_labels):
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0 + i*cell_w + cell_w/2 - tw/2, y0 - 26), lbl, fill=C_BLUE_D, font=fnt)
+    for j, lbl in enumerate(row_labels):
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0 - 20 - tw, y0 + j*cell_h + cell_h/2 - 8), lbl, fill=C_TEAL_D, font=fnt)
+    d.text((6, 6), "x", fill=C_BORDER, font=fnt_s)
+    return _to_bytes(img)
+
+
+def mixed_number_area_example(w1=1, n1=1, d1=2, w2=2, n2=1, d2=3, **kw) -> BytesIO:
+    """Worked example: the same 2x2 grid, with each of the 4 partial
+    products filled in, plus the final sum written below."""
+    cell_w, cell_h = 100, 80
+    x0, y0 = 90, 50
+    w, h = x0 + 2*cell_w + 20, y0 + 2*cell_h + 46
+    img, d = _blank(w, h)
+    fnt = _font(14)
+    fnt_c = _font(13)
+    col_labels = [str(w1), f"{n1}/{d1}"]
+    row_labels = [str(w2), f"{n2}/{d2}"]
+    cells = [
+        [f"{w1*w2}", f"{w1*n2}/{d2}"],
+        [f"{n1*w2}/{d1}", f"{n1*n2}/{d1*d2}"],
+    ]
+    for i in range(3):
+        x = x0 + i*cell_w
+        d.line([x, y0, x, y0+2*cell_h], fill=C_BORDER, width=2)
+    for j in range(3):
+        y = y0 + j*cell_h
+        d.line([x0, y, x0+2*cell_w, y], fill=C_BORDER, width=2)
+    for i, lbl in enumerate(col_labels):
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0 + i*cell_w + cell_w/2 - tw/2, y0 - 26), lbl, fill=C_BLUE_D, font=fnt)
+    for j, lbl in enumerate(row_labels):
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x0 - 20 - tw, y0 + j*cell_h + cell_h/2 - 8), lbl, fill=C_TEAL_D, font=fnt)
+    for j in range(2):
+        for i in range(2):
+            lbl = cells[j][i]
+            tw = d.textlength(lbl, font=fnt_c)
+            d.text((x0 + i*cell_w + cell_w/2 - tw/2, y0 + j*cell_h + cell_h/2 - 8), lbl, fill=C_TEXT, font=fnt_c)
+    d.text((10, y0 + 2*cell_h + 14), "Add all 4 pieces together for the total", fill=C_GRAY_D, font=_font_reg(11))
+    return _to_bytes(img)
+
+
+def reciprocal_flip(num=3, den=4, **kw) -> BytesIO:
+    """Shows a fraction and an EMPTY matching box beside it -- the
+    student draws/writes the reciprocal themselves by swapping
+    numerator and denominator. A curved flip-arrow links the two."""
+    w, h = 300, 140
+    img, d = _blank(w, h)
+    fnt = _font(20)
+    box_w, box_h = 70, 90
+    x1, y1 = 30, 25
+    x2, y2 = 200, 25
+    d.rectangle([x1, y1, x1+box_w, y1+box_h], outline=C_BORDER, width=2)
+    d.line([x1, y1+box_h/2, x1+box_w, y1+box_h/2], fill=C_BORDER, width=2)
+    tw = d.textlength(str(num), font=fnt)
+    d.text((x1+box_w/2-tw/2, y1+box_h/2-26), str(num), fill=C_BLUE_D, font=fnt)
+    tw = d.textlength(str(den), font=fnt)
+    d.text((x1+box_w/2-tw/2, y1+box_h/2+6), str(den), fill=C_TEAL_D, font=fnt)
+    d.rectangle([x2, y2, x2+box_w, y2+box_h], outline=C_BORDER, width=2)
+    d.line([x2, y2+box_h/2, x2+box_w, y2+box_h/2], fill=C_BORDER, width=2)
+    ax0, ay0 = x1+box_w+10, y1+box_h/2
+    ax1, ay1 = x2-10, y2+box_h/2
+    amx, amy = (ax0+ax1)/2, ay0-30
+    d.arc([ax0, amy, ax1, ay0+10], start=200, end=340, fill=C_AMBER_D, width=2)
+    d.polygon([(ax1-6, amy+22), (ax1+2, amy+30), (ax1-10, amy+34)], fill=C_AMBER_D)
+    d.text((amx-18, amy-14), "flip", fill=C_AMBER_D, font=_font_reg(11))
+    return _to_bytes(img)
+
+
+def cross_multiply_bowtie(num1=2, den1=3, num2=3, den2=5, **kw) -> BytesIO:
+    """Two fractions side by side with diagonal 'bowtie' arrows
+    connecting each numerator to the OTHER fraction's denominator --
+    the cross-multiplication comparison technique. Product boxes are
+    left empty for the student to fill in and compare."""
+    w, h = 320, 180
+    img, d = _blank(w, h)
+    fnt = _font(18)
+    fnt_s = _font_reg(12)
+    x1, x2 = 90, 230
+    y_num, y_den = 40, 80
+    for (x, lbl) in [(x1, str(num1)), (x2, str(num2))]:
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x-tw/2, y_num), lbl, fill=C_BLUE_D, font=fnt)
+    d.line([x1-18, y_den, x1+18, y_den], fill=C_BORDER, width=2)
+    d.line([x2-18, y_den, x2+18, y_den], fill=C_BORDER, width=2)
+    for (x, lbl) in [(x1, str(den1)), (x2, str(den2))]:
+        tw = d.textlength(lbl, font=fnt)
+        d.text((x-tw/2, y_den+8), lbl, fill=C_TEAL_D, font=fnt)
+    d.line([x1+14, y_num+14, x2-14, y_den+16], fill=C_AMBER_D, width=2)
+    d.line([x2-14, y_num+14, x1+14, y_den+16], fill=C_AMBER_D, width=2)
+    tw = d.textlength("vs", font=fnt_s)
+    d.text(((x1+x2)/2-tw/2, (y_num+y_den)/2-2), "vs", fill=C_GRAY_D, font=fnt_s)
+    d.rectangle([x1-30, 130, x1+30, 160], outline=C_BORDER, width=2)
+    d.rectangle([x2-30, 130, x2+30, 160], outline=C_BORDER, width=2)
+    d.text((x1-tw, 138), f"{num1}x{den2}", fill=C_TEXT, font=_font_reg(10))
+    d.text((x2-tw, 138), f"{num2}x{den1}", fill=C_TEXT, font=_font_reg(10))
+    return _to_bytes(img)
+
+
+
 def hundredths_grid_blank(**kw) -> BytesIO:
     """EMPTY 10x10 grid (100 squares), outline only -- for the child to
     shade hundredths themselves. No answer leaked."""
@@ -2372,6 +2496,10 @@ DIAGRAM_FUNCTIONS = {
     "two_bars_example": two_bars_example,
     "fraction_numberline_blank": fraction_numberline_blank,
     "fraction_numberline_example": fraction_numberline_example,
+    "mixed_number_area_blank": mixed_number_area_blank,
+    "mixed_number_area_example": mixed_number_area_example,
+    "reciprocal_flip": reciprocal_flip,
+    "cross_multiply_bowtie": cross_multiply_bowtie,
     "fraction_bar": fraction_bar,
     "hundredths_grid_blank": hundredths_grid_blank,
     "hundredths_grid_example": hundredths_grid_example,
