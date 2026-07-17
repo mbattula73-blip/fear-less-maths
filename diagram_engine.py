@@ -3871,6 +3871,266 @@ def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def rectangle_dims_svg(length=8, width=5, **kw):
+    """A rectangle with length and width labeled via dimension arrows --
+    for perimeter / area of rectangle (Level 18A/18B)."""
+    w_svg, h_svg = 340, 280
+    max_lw, max_lh = 210, 130
+    scale = min(max_lw / max(length, 1), max_lh / max(width, 1), 26)
+    Lp, Wp = length * scale, width * scale
+    ox, oy = (w_svg - Lp) / 2 + 20, 90
+    parts = []
+    parts.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{Lp:.1f}" height="{Wp:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    ay = oy + Wp + 22
+    parts.append(f'<line x1="{ox:.1f}" y1="{ay:.1f}" x2="{ox+Lp:.1f}" y2="{ay:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    for xx in (ox, ox + Lp):
+        parts.append(f'<line x1="{xx:.1f}" y1="{ay-5:.1f}" x2="{xx:.1f}" y2="{ay+5:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ox+Lp/2:.1f}" y="{ay+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">length = {length}</text>')
+    ax = ox - 18
+    parts.append(f'<line x1="{ax:.1f}" y1="{oy:.1f}" x2="{ax:.1f}" y2="{oy+Wp:.1f}" stroke="#1E7A44" stroke-width="1.4"/>')
+    for yy in (oy, oy + Wp):
+        parts.append(f'<line x1="{ax-5:.1f}" y1="{yy:.1f}" x2="{ax+5:.1f}" y2="{yy:.1f}" stroke="#1E7A44" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ax-10:.1f}" y="{oy+Wp/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">w = {width}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Rectangle</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def square_dims_svg(side=6, **kw):
+    """A square with its side labeled -- for perimeter / area of a
+    square (Level 18A/18B)."""
+    w_svg, h_svg = 300, 280
+    scale = min(160 / max(side, 1), 24)
+    S = side * scale
+    ox, oy = (w_svg - S) / 2, 80
+    parts = []
+    parts.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{S:.1f}" height="{S:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    ay = oy + S + 22
+    parts.append(f'<line x1="{ox:.1f}" y1="{ay:.1f}" x2="{ox+S:.1f}" y2="{ay:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    for xx in (ox, ox + S):
+        parts.append(f'<line x1="{xx:.1f}" y1="{ay-5:.1f}" x2="{xx:.1f}" y2="{ay+5:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ox+S/2:.1f}" y="{ay+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">side = {side}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Square</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def triangle_area_svg(base=6, height=4, **kw):
+    """A triangle with its base and the perpendicular height (dashed
+    altitude, right-angle marked) labeled -- Level 18C."""
+    w_svg, h_svg = 320, 280
+    scale = min(200 / max(base, 1), 140 / max(height, 1), 26)
+    Bp, Hp = base * scale, height * scale
+    ox, oy = (w_svg - Bp) / 2, 210
+    apex_x = ox + Bp * 0.4
+    A = (ox, oy)
+    B = (ox + Bp, oy)
+    C = (apex_x, oy - Hp)
+    foot = (apex_x, oy)
+    parts = []
+    tri = " ".join(f"{x:.1f},{y:.1f}" for x, y in [A, B, C])
+    parts.append(f'<polygon points="{tri}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{C[0]:.1f}" y1="{C[1]:.1f}" x2="{foot[0]:.1f}" y2="{foot[1]:.1f}" stroke="#1E7A44" stroke-width="1.6" stroke-dasharray="5,3"/>')
+    parts.append(_right_angle_mark(foot[0], foot[1], 0, -1, -1 if apex_x > ox else 1, 0, size=9))
+    ay = oy + 22
+    parts.append(f'<line x1="{A[0]:.1f}" y1="{ay:.1f}" x2="{B[0]:.1f}" y2="{ay:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    parts.append(f'<text x="{(A[0]+B[0])/2:.1f}" y="{ay+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">base = {base}</text>')
+    parts.append(f'<text x="{foot[0]+10:.1f}" y="{(C[1]+foot[1])/2:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">height = {height}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Triangle: base &amp; height</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def circle_area_svg(r=5, **kw):
+    """A shaded circle with radius labeled -- for area of a circle
+    (Level 18D)."""
+    w_svg, h_svg = 300, 280
+    scale = min(100 / max(r, 1), 22)
+    R = r * scale
+    cx, cy = w_svg / 2, 155
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx+R:.1f}" y2="{cy}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="{cx+R/2:.1f}" y="{cy-10:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">r = {r}</text>')
+    parts.append(f'<text x="{cx}" y="{cy+R+28:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#2C3E50">Area = πr²</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Circle</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def cuboid_3d_svg(l=6, w=4, h=3, title="Cuboid", **kw):
+    """Pseudo-3D cuboid (oblique projection, three shaded faces) with
+    length, width and height labeled -- Level 18E/18H."""
+    import math as _m
+    w_svg, h_svg = 360, 320
+    scale = min(150 / max(l, 1), 130 / max(h, 1), 90 / max(w, 1), 26)
+    Lp, Wp, Hp = l * scale, w * scale, h * scale
+    depth_ang = _m.radians(35)
+    ddx, ddy = _m.cos(depth_ang) * Wp * 0.65, -_m.sin(depth_ang) * Wp * 0.65
+    ox, oy = 70, 250
+    A = (ox, oy)
+    B = (ox + Lp, oy)
+    C = (ox + Lp, oy - Hp)
+    D = (ox, oy - Hp)
+    A2, B2, C2, D2 = ((p[0] + ddx, p[1] + ddy) for p in (A, B, C, D))
+    parts = []
+    top = " ".join(f"{x:.1f},{y:.1f}" for x, y in [D, C, C2, D2])
+    parts.append(f'<polygon points="{top}" fill="#CFE4F3" stroke="#1B5E8C" stroke-width="2"/>')
+    side = " ".join(f"{x:.1f},{y:.1f}" for x, y in [B, C, C2, B2])
+    parts.append(f'<polygon points="{side}" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="2"/>')
+    front = " ".join(f"{x:.1f},{y:.1f}" for x, y in [A, B, C, D])
+    parts.append(f'<polygon points="{front}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{(A[0]+B[0])/2:.1f}" y="{A[1]+20:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">l = {l}</text>')
+    parts.append(f'<text x="{A[0]-14:.1f}" y="{(A[1]+D[1])/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">h = {h}</text>')
+    mx, my = (B[0] + B2[0]) / 2, (B[1] + B2[1]) / 2
+    parts.append(f'<text x="{mx+8:.1f}" y="{my-4:.1f}" text-anchor="start" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">w = {w}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{title}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def cube_3d_svg(side=5, **kw):
+    """Pseudo-3D cube (special case of the cuboid) with the side
+    labeled -- Level 18E/18H."""
+    return cuboid_3d_svg(l=side, w=side, h=side, title="Cube", **kw)
+
+
+def cuboid_net_svg(l=6, w=4, h=3, **kw):
+    """The unfolded net of a cuboid (6 rectangles: 4 around the belt,
+    plus top and bottom) -- the standard surface-area teaching visual
+    (Level 18E)."""
+    w_svg, h_svg = 400, 320
+    scale = min(300 / (2 * (l + w)), 220 / (h + 2 * w), 22)
+    Lp, Wp, Hp = l * scale, w * scale, h * scale
+    total_w = 2 * (Lp + Wp)
+    x0 = (w_svg - total_w) / 2
+    y0 = (h_svg - (Hp + 2 * Wp)) / 2 + Wp
+    faces = [
+        ("L", x0, y0, Wp, Hp),
+        ("Front (l x h)", x0 + Wp, y0, Lp, Hp),
+        ("R", x0 + Wp + Lp, y0, Wp, Hp),
+        ("Back", x0 + Wp + Lp + Wp, y0, Lp, Hp),
+    ]
+    parts = []
+    for lbl, fx, fy, fw, fh in faces:
+        parts.append(f'<rect x="{fx:.1f}" y="{fy:.1f}" width="{fw:.1f}" height="{fh:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        if fw > 30:
+            parts.append(f'<text x="{fx+fw/2:.1f}" y="{fy+fh/2:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#2C3E50">{lbl}</text>')
+    top_x, top_y = x0 + Wp, y0 - Wp
+    parts.append(f'<rect x="{top_x:.1f}" y="{top_y:.1f}" width="{Lp:.1f}" height="{Wp:.1f}" fill="#CFE4F3" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<text x="{top_x+Lp/2:.1f}" y="{top_y+Wp/2+4:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#2C3E50">Top (l x w)</text>')
+    bot_x, bot_y = x0 + Wp, y0 + Hp
+    parts.append(f'<rect x="{bot_x:.1f}" y="{bot_y:.1f}" width="{Lp:.1f}" height="{Wp:.1f}" fill="#CFE4F3" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<text x="{bot_x+Lp/2:.1f}" y="{bot_y+Wp/2+4:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#2C3E50">Bottom</text>')
+    parts.append(f'<text x="{x0+Wp+Lp/2:.1f}" y="{y0+Hp+Wp+22:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">l={l}, w={w}, h={h}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Net of a cuboid — 6 faces</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def cylinder_3d_svg(r=3, h=6, **kw):
+    """Pseudo-3D cylinder (ellipse top/bottom) with radius and height
+    labeled -- Level 18F/18H."""
+    w_svg, h_svg = 300, 320
+    scale = min(70 / max(r, 1), 200 / max(h, 1), 24)
+    R, H = r * scale, h * scale
+    cx = w_svg / 2
+    top_y = 70
+    bot_y = top_y + H
+    ry = max(R * 0.32, 10)
+    parts = []
+    parts.append(f'<line x1="{cx-R:.1f}" y1="{top_y:.1f}" x2="{cx-R:.1f}" y2="{bot_y:.1f}" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<line x1="{cx+R:.1f}" y1="{top_y:.1f}" x2="{cx+R:.1f}" y2="{bot_y:.1f}" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<path d="M {cx-R:.1f} {bot_y:.1f} A {R:.1f} {ry:.1f} 0 1 0 {cx+R:.1f} {bot_y:.1f}" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<rect x="{cx-R:.1f}" y="{top_y:.1f}" width="{2*R:.1f}" height="{bot_y-top_y:.1f}" fill="#EAF4FC" opacity="0.001"/>')
+    parts.append(f'<ellipse cx="{cx:.1f}" cy="{top_y:.1f}" rx="{R:.1f}" ry="{ry:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<line x1="{cx:.1f}" y1="{top_y:.1f}" x2="{cx+R:.1f}" y2="{top_y:.1f}" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<text x="{cx+R/2:.1f}" y="{top_y-8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">r = {r}</text>')
+    parts.append(f'<line x1="{cx-R-16:.1f}" y1="{top_y:.1f}" x2="{cx-R-16:.1f}" y2="{bot_y:.1f}" stroke="#1E7A44" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    parts.append(f'<text x="{cx-R-24:.1f}" y="{(top_y+bot_y)/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">h = {h}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Cylinder</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def cone_3d_svg(r=3, h=6, **kw):
+    """Pseudo-3D cone (apex + base ellipse) with radius, height (dashed)
+    and slant height labeled -- Level 18F/18H."""
+    import math as _m
+    w_svg, h_svg = 300, 320
+    scale = min(70 / max(r, 1), 190 / max(h, 1), 24)
+    R, H = r * scale, h * scale
+    cx = w_svg / 2
+    apex = (cx, 60)
+    base_y = apex[1] + H
+    ry = max(R * 0.32, 10)
+    slant = _m.hypot(r, h)
+    parts = []
+    parts.append(f'<path d="M {cx-R:.1f} {base_y:.1f} A {R:.1f} {ry:.1f} 0 1 0 {cx+R:.1f} {base_y:.1f}" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<line x1="{apex[0]:.1f}" y1="{apex[1]:.1f}" x2="{cx-R:.1f}" y2="{base_y:.1f}" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<line x1="{apex[0]:.1f}" y1="{apex[1]:.1f}" x2="{cx+R:.1f}" y2="{base_y:.1f}" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<ellipse cx="{cx:.1f}" cy="{base_y:.1f}" rx="{R:.1f}" ry="{ry:.1f}" fill="none" stroke="#1B5E8C" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    parts.append(f'<line x1="{cx:.1f}" y1="{apex[1]:.1f}" x2="{cx:.1f}" y2="{base_y:.1f}" stroke="#1E7A44" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    parts.append(f'<text x="{cx-10:.1f}" y="{(apex[1]+base_y)/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">h = {h}</text>')
+    slant_mx, slant_my = apex[0] + 0.6 * (cx + R - apex[0]), apex[1] + 0.6 * (base_y - apex[1])
+    parts.append(f'<text x="{slant_mx+12:.1f}" y="{slant_my:.1f}" text-anchor="start" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">l = {slant:.1f}</text>')
+    parts.append(f'<line x1="{cx:.1f}" y1="{base_y:.1f}" x2="{cx+R:.1f}" y2="{base_y:.1f}" stroke="#7D3C98" stroke-width="2"/>')
+    parts.append(f'<text x="{cx+R/2:.1f}" y="{base_y+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">r = {r}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Cone</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def sphere_3d_svg(r=4, **kw):
+    """A shaded sphere with an equator ellipse (to suggest roundness)
+    and radius labeled -- Level 18G."""
+    w_svg, h_svg = 300, 280
+    scale = min(90 / max(r, 1), 22)
+    R = r * scale
+    cx, cy = w_svg / 2, 150
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<ellipse cx="{cx}" cy="{cy}" rx="{R:.1f}" ry="{R*0.3:.1f}" fill="none" stroke="#1B5E8C" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx+R*0.7:.1f}" y2="{cy-R*0.7:.1f}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="{cx+R*0.35:.1f}" y="{cy-R*0.42:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">r = {r}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Sphere</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def hemisphere_3d_svg(r=4, **kw):
+    """A hemisphere -- dome (half-circle arc) on a flat circular (drawn
+    as an ellipse) base -- with radius labeled -- Level 18G."""
+    w_svg, h_svg = 300, 260
+    scale = min(90 / max(r, 1), 22)
+    R = r * scale
+    cx, base_y = w_svg / 2, 160
+    ry = max(R * 0.3, 8)
+    parts = []
+    parts.append(f'<path d="M {cx-R:.1f} {base_y:.1f} A {R:.1f} {R:.1f} 0 0 1 {cx+R:.1f} {base_y:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<ellipse cx="{cx}" cy="{base_y}" rx="{R:.1f}" ry="{ry:.1f}" fill="#CFE4F3" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<circle cx="{cx}" cy="{base_y}" r="3.5" fill="#2C3E50"/>')
+    parts.append(f'<line x1="{cx}" y1="{base_y}" x2="{cx+R:.1f}" y2="{base_y}" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="{cx+R/2:.1f}" y="{base_y-8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">r = {r}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Hemisphere</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def composite_mensuration_svg(l=10, w=4, **kw):
+    """A rectangle with a semicircular cap on the right end (a
+    'stadium' shape) -- for composite / mixed mensuration problems
+    (Level 18I)."""
+    w_svg, h_svg = 340, 260
+    scale = min(200 / max(l, 1), 100 / max(w, 1), 22)
+    Lp, Wp = l * scale, w * scale
+    ox, oy = 66, 100
+    rad = Wp / 2
+    parts = []
+    parts.append(f'<path d="M {ox:.1f} {oy:.1f} L {ox+Lp:.1f} {oy:.1f} A {rad:.1f} {rad:.1f} 0 0 1 {ox+Lp:.1f} {oy+Wp:.1f} L {ox:.1f} {oy+Wp:.1f} Z" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    ay = oy + Wp + 22
+    parts.append(f'<line x1="{ox:.1f}" y1="{ay:.1f}" x2="{ox+Lp:.1f}" y2="{ay:.1f}" stroke="#A6362B" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ox+Lp/2:.1f}" y="{ay+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">l = {l}</text>')
+    ax = ox - 18
+    parts.append(f'<line x1="{ax:.1f}" y1="{oy:.1f}" x2="{ax:.1f}" y2="{oy+Wp:.1f}" stroke="#1E7A44" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ax-10:.1f}" y="{oy+Wp/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">w = {w}</text>')
+    parts.append(f'<text x="{ox+Lp+8:.1f}" y="{oy+Wp/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#7D3C98">r = {w/2:g}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Composite shape: rectangle + semicircle</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -3902,6 +4162,18 @@ SVG_DIAGRAM_FUNCTIONS = {
     "circle_tangent": circle_tangent_svg,
     "circle_central_inscribed_angle": circle_central_inscribed_angle_svg,
     "cyclic_quadrilateral_theorem": cyclic_quadrilateral_theorem_svg,
+    "rectangle_dims": rectangle_dims_svg,
+    "square_dims": square_dims_svg,
+    "triangle_area_diagram": triangle_area_svg,
+    "circle_area_diagram": circle_area_svg,
+    "cuboid_3d": cuboid_3d_svg,
+    "cube_3d": cube_3d_svg,
+    "cuboid_net": cuboid_net_svg,
+    "cylinder_3d": cylinder_3d_svg,
+    "cone_3d": cone_3d_svg,
+    "sphere_3d": sphere_3d_svg,
+    "hemisphere_3d": hemisphere_3d_svg,
+    "composite_mensuration": composite_mensuration_svg,
 }
 
 
