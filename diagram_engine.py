@@ -2580,9 +2580,11 @@ def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", bl
 
 # ─── RATIO BAR & PROPORTION GRAPH (Level 10 additions) ─────────────────────────
 
-def ratio_bar(parts=None, labels=None, **kw) -> BytesIO:
+def ratio_bar(parts=None, labels=None, blank=False, **kw) -> BytesIO:
     """Horizontal bar split into segments proportional to a ratio (e.g.
-    parts=[2,3] for a 2:3 ratio), each segment coloured and labelled."""
+    parts=[2,3] for a 2:3 ratio), each segment coloured and labelled.
+    blank=True draws an undivided bar with just the ratio caption, for
+    the student to partition it themselves."""
     parts = parts or [2, 3]
     labels = labels or [str(p) for p in parts]
     total = sum(parts) if sum(parts) else 1
@@ -2591,6 +2593,12 @@ def ratio_bar(parts=None, labels=None, **kw) -> BytesIO:
     bar_w, bar_h = 480, 70
     x0 = (w - bar_w) // 2
     y0 = 30
+    if blank:
+        dr.rectangle([x0, y0, x0 + bar_w, y0 + bar_h], outline=C_BORDER, width=2)
+        caption = ":".join(str(p) for p in parts) + " -- divide the bar in this ratio"
+        cw = dr.textlength(caption, font=_font_reg(13))
+        dr.text((w/2 - cw/2, y0 + bar_h + 15), caption, fill=C_TEAL_D, font=_font_reg(13))
+        return _to_bytes(img)
     colors = [C_BLUE, C_TEAL, C_AMBER, C_RED, C_ACCENT]
     fnt = _font(14)
     x = x0
@@ -4429,6 +4437,202 @@ def euclidean_algorithm_svg(a=48, b=18, blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def ratio_objects_svg(a=3, b=5, label_a="Red", label_b="Blue", blank=False, **kw):
+    """A grid of coloured squares showing a:b as actual counted objects
+    -- the concrete concept behind a ratio (Level 10A). blank=True shows
+    (a+b) empty outlined squares only, for the student to colour in."""
+    a, b = int(a), int(b)
+    total = a + b
+    cols = min(total, 8)
+    rows = -(-total // cols)
+    cell = 46
+    w_svg = max(360, cols * cell + 80)
+    h_svg = 90 + rows * cell + 70
+    ox, oy = (w_svg - cols * cell) / 2, 80
+    parts = []
+    for i in range(total):
+        r, c = i // cols, i % cols
+        x, y = ox + c * cell, oy + r * cell
+        if blank:
+            fill = "#FAFBFC"
+        else:
+            fill = "#C0392B" if i < a else "#1B5E8C"
+        parts.append(f'<rect x="{x+4:.1f}" y="{y+4:.1f}" width="{cell-8}" height="{cell-8}" rx="6" fill="{fill}" stroke="#2C3E50" stroke-width="2"/>')
+    cap_y = oy + rows * cell + 34
+    if blank:
+        parts.append(f'<text x="{w_svg/2}" y="{cap_y:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">Colour {a} squares for "{label_a}" and {b} for "{label_b}"</text>')
+    else:
+        parts.append(f'<rect x="{w_svg/2-70:.1f}" y="{cap_y-16:.1f}" width="16" height="16" fill="#C0392B"/>')
+        parts.append(f'<text x="{w_svg/2-50:.1f}" y="{cap_y-3:.1f}" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{label_a} = {a}</text>')
+        parts.append(f'<rect x="{w_svg/2+30:.1f}" y="{cap_y-16:.1f}" width="16" height="16" fill="#1B5E8C"/>')
+        parts.append(f'<text x="{w_svg/2+50:.1f}" y="{cap_y-3:.1f}" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{label_b} = {b}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Ratio as objects: {label_a} to {label_b}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def ratio_table_svg(a=2, b=3, cols=4, blank=False, **kw):
+    """An equivalent-ratios table: a row of multiples of a above a row
+    of multiples of b, column-aligned -- shows a:b, 2a:2b, 3a:3b, ...
+    (Level 10C). blank=True fills only the first (given) column."""
+    a, b, cols = int(a), int(b), int(cols)
+    w_svg = 90 + cols * 90
+    h_svg = 260
+    ox, oy = 90, 90
+    cw = 90
+    parts = []
+    parts.append(f'<text x="30" y="{oy+8:.1f}" font-family="Helvetica-Bold" font-size="16" fill="#A6362B">A</text>')
+    parts.append(f'<text x="30" y="{oy+cw-2:.1f}" font-family="Helvetica-Bold" font-size="16" fill="#1E7A44">B</text>')
+    for i in range(cols):
+        x = ox + i * cw
+        parts.append(f'<rect x="{x:.1f}" y="{oy-30:.1f}" width="{cw}" height="{cw}" fill="none" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<rect x="{x:.1f}" y="{oy+cw-30:.1f}" width="{cw}" height="{cw}" fill="none" stroke="#1B5E8C" stroke-width="2"/>')
+        show = (i == 0) or not blank
+        va = a * (i + 1)
+        vb = b * (i + 1)
+        ta = str(va) if show else "?"
+        tb = str(vb) if show else "?"
+        parts.append(f'<text x="{x+cw/2:.1f}" y="{oy+8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#A6362B">{ta}</text>')
+        parts.append(f'<text x="{x+cw/2:.1f}" y="{oy+cw-2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#1E7A44">{tb}</text>')
+        parts.append(f'<text x="{x+cw/2:.1f}" y="{oy+2*cw-38:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#7D3C98">x{i+1}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Equivalent ratios: {a}:{b}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def double_number_line_svg(a=3, b=5, steps=5, blank=False, **kw):
+    """Two parallel number lines, one scaled in steps of a and the other
+    in steps of b, aligned so equivalent ratios line up vertically --
+    the classic double-number-line proportion visual (Level 10C/10D).
+    blank=True marks only the first (given) pair."""
+    a, b, steps = int(a), int(b), int(steps)
+    w_svg = max(420, 80 * steps + 100)
+    h_svg = 220
+    ox = 70
+    step_w = (w_svg - 2 * ox) / steps
+    y_top, y_bot = 90, 160
+    parts = []
+    parts.append(f'<line x1="{ox}" y1="{y_top}" x2="{w_svg-ox}" y2="{y_top}" stroke="#A6362B" stroke-width="3"/>')
+    parts.append(f'<line x1="{ox}" y1="{y_bot}" x2="{w_svg-ox}" y2="{y_bot}" stroke="#1B5E8C" stroke-width="3"/>')
+    for i in range(steps + 1):
+        x = ox + i * step_w
+        show = (i <= 1) or not blank
+        parts.append(f'<line x1="{x:.1f}" y1="{y_top-9}" x2="{x:.1f}" y2="{y_top+9}" stroke="#A6362B" stroke-width="2.5"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{y_bot-9}" x2="{x:.1f}" y2="{y_bot+9}" stroke="#1B5E8C" stroke-width="2.5"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{y_top+9}" x2="{x:.1f}" y2="{y_bot-9}" stroke="#CCCCCC" stroke-width="1" stroke-dasharray="3,3"/>')
+        ta = str(a * i) if show else "?"
+        tb = str(b * i) if show else "?"
+        parts.append(f'<text x="{x:.1f}" y="{y_top-16}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{ta}</text>')
+        parts.append(f'<text x="{x:.1f}" y="{y_bot+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#1B5E8C">{tb}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Double number line: {a} : {b}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def continued_ratio_bar_svg(parts_list=None, labels=None, total=None, blank=False, **kw):
+    """A bar split into segments proportional to a ratio with 2 or more
+    terms (e.g. 2:3:4, or a partnership split) -- Level 10CUM1/CUM3.
+    blank=True shows an undivided bar with only the ratio and total (if
+    given) labeled, for the student to partition themselves."""
+    parts_list = parts_list or [2, 3, 4]
+    parts_list = [int(p) for p in parts_list]
+    n = len(parts_list)
+    labels = labels or [chr(65 + i) for i in range(n)]
+    tot_parts = sum(parts_list) or 1
+    w_svg, h_svg = 460, 230
+    bar_w, bar_h = 380, 80
+    ox, oy = (w_svg - bar_w) / 2, 80
+    colors = ["#A6362B", "#1E7A44", "#7D3C98", "#B8860B", "#1B5E8C"]
+    parts = []
+    if blank:
+        parts.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{bar_w}" height="{bar_h}" fill="#FAFBFC" stroke="#1B5E8C" stroke-width="2.5" stroke-dasharray="8,5"/>')
+        ratio_str = ":".join(str(p) for p in parts_list)
+        cap = f"Ratio {ratio_str}" + (f"  |  Total = {total}" if total else "")
+        parts.append(f'<text x="{w_svg/2}" y="{oy+bar_h+34:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">{cap} -- split the bar</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Bar model: {ratio_str}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+    x = ox
+    for i, p in enumerate(parts_list):
+        seg_w = bar_w * p / tot_parts
+        col = colors[i % len(colors)]
+        parts.append(f'<rect x="{x:.1f}" y="{oy:.1f}" width="{seg_w:.1f}" height="{bar_h}" fill="{col}" stroke="#2C3E50" stroke-width="2"/>')
+        if seg_w > 30:
+            parts.append(f'<text x="{x+seg_w/2:.1f}" y="{oy+bar_h/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="white">{labels[i]}: {p}</text>')
+        x += seg_w
+    ratio_str = ":".join(str(p) for p in parts_list)
+    cap = f"{ratio_str}  (total = {tot_parts} parts)" + (f", grand total = {total}" if total else "")
+    parts.append(f'<text x="{w_svg/2}" y="{oy+bar_h+30:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{cap}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Bar model: {ratio_str}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def unit_rate_svg(qty=6, cost=90, qty_unit="items", cost_unit="Rs", blank=False, **kw):
+    """Shows 'qty items -> cost' scaled down to '1 item -> unit rate' --
+    the standard unitary-method visual (Level 10CUM2 rates). blank=True
+    hides the computed unit rate."""
+    qty, cost = int(qty), int(cost)
+    unit_val = cost / qty if qty else 0
+    unit_str = f"{unit_val:g}" if not blank else "____"
+    w_svg, h_svg = 400, 220
+    parts = []
+    parts.append(f'<rect x="40" y="60" width="150" height="60" rx="8" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="115" y="96" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{qty} {qty_unit} = {cost_unit} {cost}</text>')
+    parts.append(f'<line x1="115" y1="120" x2="115" y2="150" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<polygon points="110,146 120,146 115,155" fill="#A6362B"/>')
+    parts.append(f'<text x="128" y="140" font-family="Helvetica" font-size="11" fill="#A6362B">÷ {qty}</text>')
+    parts.append(f'<rect x="40" y="150" width="220" height="55" rx="8" fill="#FDEDEC" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="150" y="184" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#A6362B">1 {qty_unit[:-1] if qty_unit.endswith("s") else qty_unit} = {cost_unit} {unit_str}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Unit rate (unitary method)</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def similar_figures_svg(w1=4, h1=3, scale=2, blank=False, **kw):
+    """Two similar rectangles drawn to proportion, the smaller fully
+    labeled and the larger labeled only with the scale factor -- for
+    similar-figures / scale-factor questions (Level 10J). blank=True
+    also hides the larger rectangle's relationship label."""
+    w1, h1, scale = float(w1), float(h1), float(scale)
+    w2, h2 = w1 * scale, h1 * scale
+    unit = min(220 / max(w2, w1), 120 / max(h2, h1), 30)
+    w_svg, h_svg = 420, 260
+    ox1, oy1 = 50, 190
+    ox2, oy2 = 220, 190
+    parts = []
+    parts.append(f'<rect x="{ox1:.1f}" y="{oy1-h1*unit:.1f}" width="{w1*unit:.1f}" height="{h1*unit:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{ox1+w1*unit/2:.1f}" y="{oy1+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{w1:g}</text>')
+    parts.append(f'<text x="{ox1-14:.1f}" y="{oy1-h1*unit/2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{h1:g}</text>')
+    parts.append(f'<rect x="{ox2:.1f}" y="{oy2-h2*unit:.1f}" width="{w2*unit:.1f}" height="{h2*unit:.1f}" fill="#FDEDEC" stroke="#A6362B" stroke-width="2.5"/>')
+    if blank:
+        w2s, h2s = "?", "?"
+    else:
+        w2s, h2s = f"{w2:g}", f"{h2:g}"
+    parts.append(f'<text x="{ox2+w2*unit/2:.1f}" y="{oy2+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{w2s}</text>')
+    parts.append(f'<text x="{ox2-14:.1f}" y="{oy2-h2*unit/2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{h2s}</text>')
+    parts.append(f'<text x="{w_svg/2}" y="{h_svg-24:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#7D3C98">Scale factor = {scale:g}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Similar figures</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def scale_comparison_svg(real_len=5, real_unit="km", model_len=1, model_unit="cm", blank=False, find="real", **kw):
+    """A short 'model' bar next to a long 'real world' bar with the
+    scale ratio labeled -- for map/scale-drawing questions (Level 10J).
+    blank=True hides whichever length is being asked for (find="real"
+    or find="model"), so the other value is always safe to show."""
+    w_svg, h_svg = 420, 220
+    blank_real = blank and find != "model"
+    blank_model = blank and find == "model"
+    parts = []
+    model_str = "?" if blank_model else f"{model_len:g}"
+    parts.append(f'<rect x="40" y="70" width="60" height="30" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="70" y="63" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#1B5E8C">{model_str} {model_unit}</text>')
+    parts.append('<text x="70" y="120" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#2C3E50">on the map/drawing</text>')
+    real_str = "?" if blank_real else f"{real_len:g}"
+    parts.append(f'<rect x="40" y="160" width="340" height="30" fill="#FDEDEC" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="210" y="153" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{real_str} {real_unit}</text>')
+    parts.append('<text x="210" y="210" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#2C3E50">in real life</text>')
+    title_val = "?" if blank_real else f"{real_len:g}"
+    title_model = "?" if blank_model else f"{model_len:g}"
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Scale: {title_model} {model_unit} = {title_val} {real_unit}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -4480,6 +4684,13 @@ SVG_DIAGRAM_FUNCTIONS = {
     "hundred_grid_highlight": hundred_grid_highlight_svg,
     "ladder_division": ladder_division_svg,
     "euclidean_algorithm": euclidean_algorithm_svg,
+    "ratio_objects": ratio_objects_svg,
+    "ratio_table": ratio_table_svg,
+    "double_number_line": double_number_line_svg,
+    "continued_ratio_bar": continued_ratio_bar_svg,
+    "unit_rate": unit_rate_svg,
+    "similar_figures": similar_figures_svg,
+    "scale_comparison": scale_comparison_svg,
 }
 
 

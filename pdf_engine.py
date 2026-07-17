@@ -346,7 +346,10 @@ class Col:
                                                "bpt_triangle", "quadrilateral_types",
                                                "quadrilateral_diagonals", "polygon_angle_sum",
                                                "factor_array", "factor_rainbow", "multiples_number_line",
-                                               "hundred_grid_highlight", "ladder_division", "euclidean_algorithm")
+                                               "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
+                                               "ratio_objects", "ratio_table", "double_number_line",
+                                               "continued_ratio_bar", "unit_rate", "similar_figures",
+                                               "scale_comparison")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)
@@ -366,7 +369,8 @@ class Col:
                                               "mixed_number_area_example", "decimal_mult_area_blank",
                                               "decimal_mult_area_example", "decimal_zoom_numberline_blank")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
-                                                   "factor_tree", "venn_two")
+                                                   "factor_tree", "venn_two",
+                                                   "ratio_bar", "proportion_graph", "cross_multiply_bowtie")
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                         c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')

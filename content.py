@@ -17134,6 +17134,208 @@ for _l9_key in list(_DISPATCH.keys()):
     if _l9_key == "9" or _l9_key.startswith("9") and not _l9_key[1:2].isdigit():
         _DISPATCH[_l9_key] = {sheet: _l9_wrap(fn, _l9_key) for sheet, fn in _DISPATCH[_l9_key].items()}
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 10 auto-visualizer: gives every Level 10 (Ratio & Proportion)
+# question a matching diagram, inferred from its own text/numbers.
+# Mirrors the Level 9/18 approach: first 2 diagrams per sheet are fully
+# worked (a demo), the rest are blank scaffolds for the student.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l10_re
+
+
+def _l10_infer_diagram(text, sublevel_code=""):
+    t = text
+    m = _l10_re.search(r'Scale 1:(\d+)\. A distance of (\d+) cm on the map', t)
+    if m:
+        scale, map_cm = int(m.group(1)), int(m.group(2))
+        return "scale_comparison", {"model_len": map_cm, "real_len": map_cm * scale, "model_unit": "cm", "real_unit": "cm"}
+    m = _l10_re.search(r'Scale 1:(\d+)\. Real distance of (\d+) cm', t)
+    if m:
+        scale, real_cm = int(m.group(1)), int(m.group(2))
+        return "scale_comparison", {"model_len": real_cm / scale, "real_len": real_cm, "model_unit": "cm", "real_unit": "cm", "find": "model"}
+    m = _l10_re.search(r'plot on a map \(scale 1:(\d+)\) measures (\d+)cm', t)
+    if m:
+        scale, p = int(m.group(1)), int(m.group(2))
+        return "scale_comparison", {"model_len": p, "real_len": p * scale, "model_unit": "cm", "real_unit": "cm"}
+    m = _l10_re.search(r'similar triangles have sides in ratio 1:(\d+)', t)
+    if m:
+        r = int(m.group(1))
+        return "similar_figures", {"w1": 3, "h1": 2, "scale": r}
+    m = _l10_re.search(r'side ratio 1:(\d+) have area ratio', t)
+    if m:
+        r = int(m.group(1))
+        return "similar_figures", {"w1": 3, "h1": 2, "scale": r}
+    m = _l10_re.search(r'invests Rs (\d+) for (\d+) months, B invests Rs (\d+) for (\d+) months', t)
+    if m:
+        inv_a, t_a, inv_b, t_b = (int(x) for x in m.groups())
+        return "continued_ratio_bar", {"parts_list": [inv_a * t_a, inv_b * t_b], "labels": ["A", "B"]}
+    m = _l10_re.search(r'[Aa]re (\d+), (\d+), (\d+) in continued proportion', t)
+    if m:
+        a, b, c = (int(x) for x in m.groups())
+        return "continued_ratio_bar", {"parts_list": [a, b, c], "labels": ["a", "b", "c"]}
+    m = _l10_re.search(r'mean proportional between (\d+) and (\d+)', t)
+    if m:
+        a, c = int(m.group(1)), int(m.group(2))
+        return "double_number_line", {"a": a, "b": c, "steps": 4}
+    m = _l10_re.search(r'car travels (\d+) km in (\d+) hours', t)
+    if m:
+        d, hrs = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": hrs, "cost": d, "qty_unit": "hours", "cost_unit": "km"}
+    m = _l10_re.search(r'(\d+) identical items cost Rs (\d+) in total', t)
+    if m:
+        qty, cost = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": qty, "cost": cost}
+    m = _l10_re.search(r'[Ss]har(?:e|ing) (?:Rs )?(\d+) (?:\w+ )?in (?:the )?(?:ratio )?(\d+):(\d+):(\d+)', t)
+    if m:
+        n, a, b, c = (int(x) for x in m.groups())
+        return "continued_ratio_bar", {"parts_list": [a, b, c], "total": n}
+    m = _l10_re.search(r'[Ss]har(?:e|ing) (?:Rs )?(\d+) (?:\w+ )?in (?:the )?(?:ratio )?(\d+):(\d+)', t)
+    if m:
+        n, a, b = (int(x) for x in m.groups())
+        return "continued_ratio_bar", {"parts_list": [a, b], "total": n}
+    m = _l10_re.search(r'[Ii]n the ratio (\d+):(\d+), the first part is', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "continued_ratio_bar", {"parts_list": [a, b]}
+    m = _l10_re.search(r'Is (\d+):(\d+) = (\d+):(\d+)', t)
+    if m:
+        a, b, c, d = (int(x) for x in m.groups())
+        return "cross_multiply_bowtie", {"num1": a, "den1": b, "num2": c, "den2": d}
+    m = _l10_re.search(r'Cross multiply:\s*(\d+):(\d+) = (\d+):(\d+)', t)
+    if m:
+        a, b, c, d = (int(x) for x in m.groups())
+        return "cross_multiply_bowtie", {"num1": a, "den1": b, "num2": c, "den2": d}
+    m = _l10_re.search(r'(\d+):(\d+) and (\d+):(\d+)', t)
+    if m:
+        a, b, c, d = (int(x) for x in m.groups())
+        return "cross_multiply_bowtie", {"num1": a, "den1": b, "num2": c, "den2": d}
+    m = _l10_re.search(r'y\s*=\s*(\d+)x', t)
+    if m:
+        return "proportion_graph", {"kind": "direct", "k": int(m.group(1)), "xmax": 10}
+    m = _l10_re.search(r'y\s*=\s*(\d+)\s*/\s*x', t)
+    if m:
+        return "proportion_graph", {"kind": "inverse", "k": int(m.group(1)), "xmax": 10}
+    m = _l10_re.search(r'x\s*=\s*(\d+)\s*,\s*y\s*=\s*(\d+)', t)
+    if m:
+        xv, yv = int(m.group(1)), int(m.group(2))
+        if sublevel_code.startswith("10H"):
+            return "proportion_graph", {"kind": "inverse", "k": xv * yv, "xmax": 10}
+        k = round(yv / xv, 2) if xv else 1
+        return "proportion_graph", {"kind": "direct", "k": k, "xmax": 10}
+    m = _l10_re.search(r'(\d+) (\w+) cost(?:s)? Rs (\d+)\. Cost of', t)
+    if m:
+        qty, cost = int(m.group(1)), int(m.group(3))
+        return "unit_rate", {"qty": qty, "cost": cost}
+    m = _l10_re.search(r'(\d+) workers earn Rs (\d+)', t)
+    if m:
+        qty, cost = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": qty, "cost": cost, "qty_unit": "workers", "cost_unit": "Rs total"}
+    m = _l10_re.search(r'Tap: (\d+) L in (\d+) min', t)
+    if m:
+        litres, mins = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": mins, "cost": litres, "qty_unit": "min", "cost_unit": "L"}
+    m = _l10_re.search(r'Car: (\d+) L for (\d+) km', t)
+    if m:
+        litres, km = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": litres, "cost": km, "qty_unit": "L", "cost_unit": "km"}
+    m = _l10_re.search(r'(\d+) (?:kg|litres|metres) costs? Rs (\d+)', t)
+    if m:
+        qty, cost = int(m.group(1)), int(m.group(2))
+        return "unit_rate", {"qty": qty, "cost": cost}
+    m = _l10_re.search(r'^(?:Simplify|Is) (\d+):(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "hcf"}
+    m = _l10_re.search(r'^(\d+):(\d+) [x×] (\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ratio_table", {"a": a, "b": b}
+    m = _l10_re.search(r'^Fill: (\d+):(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ratio_table", {"a": a, "b": b}
+    m = _l10_re.search(r'Are (\d+):(\d+) and (\d+):(\d+) equivalent', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ratio_table", {"a": a, "b": b}
+    m = _l10_re.search(r'Find n:\s*(\d+):(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ratio_table", {"a": a, "b": b}
+    m = _l10_re.search(r'Solve:\s*n:(\d+) = (\d+):(\d+)', t)
+    if m:
+        b, c, d = (int(x) for x in m.groups())
+        return "ratio_table", {"a": c, "b": d}
+    m = _l10_re.search(r'^(\d+):(\d+) = ', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ratio_table", {"a": a, "b": b}
+    m = _l10_re.search(r'(\d+) (\w+) and (\d+) (\w+)\. Ratio', t)
+    if m:
+        a, la, b, lb = int(m.group(1)), m.group(2), int(m.group(3)), m.group(4)
+        return "ratio_objects", {"a": a, "b": b, "label_a": la.capitalize(), "label_b": lb.capitalize()}
+    return None
+
+
+_L10_FAMILY_FALLBACK = {
+    "10A": ("ratio_objects", {"a": 3, "b": 5, "label_a": "Red", "label_b": "Blue"}),
+    "10B": ("ladder_division", {"a": 12, "b": 8, "mode": "hcf"}),
+    "10C": ("ratio_table", {"a": 2, "b": 3}),
+    "10CUM1": ("ratio_bar", {"parts": [2, 3], "labels": ["2", "3"]}),
+    "10D": ("cross_multiply_bowtie", {"num1": 2, "den1": 3, "num2": 4, "den2": 6}),
+    "10E": ("unit_rate", {"qty": 4, "cost": 12}),
+    "10F": ("continued_ratio_bar", {"parts_list": [3, 5], "total": 40}),
+    "10CUM2": ("double_number_line", {"a": 4, "b": 6, "steps": 4}),
+    "10G": ("proportion_graph", {"kind": "direct", "k": 2, "xmax": 10}),
+    "10H": ("proportion_graph", {"kind": "inverse", "k": 24, "xmax": 10}),
+    "10I": ("proportion_graph", {"kind": "direct", "k": 2, "xmax": 10}),
+    "10CUM3": ("continued_ratio_bar", {"parts_list": [3, 5], "total": 80}),
+    "10J": ("scale_comparison", {"real_len": 5, "model_len": 1}),
+    "10REV": ("ratio_objects", {"a": 3, "b": 5, "label_a": "Red", "label_b": "Blue"}),
+}
+
+
+def _l10_fallback(sublevel_code):
+    for key in sorted(_L10_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L10_FAMILY_FALLBACK[key]
+    return ("ratio_objects", {"a": 3, "b": 5, "label_a": "Red", "label_b": "Blue"})
+
+
+def _l10_visualize(items, sublevel_code):
+    fb_type, fb_params = _l10_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l10_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l10_wrap(fn, sublevel_code):
+    return lambda: _l10_visualize(fn(), sublevel_code)
+
+
+for _l10_key in list(_DISPATCH.keys()):
+    if _l10_key.startswith("10") and not _l10_key[2:3].isdigit():
+        _DISPATCH[_l10_key] = {sheet: _l10_wrap(fn, _l10_key) for sheet, fn in _DISPATCH[_l10_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [
