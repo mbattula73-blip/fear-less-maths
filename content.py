@@ -17103,19 +17103,26 @@ def _l9_fallback(sublevel_code):
 def _l9_visualize(items, sublevel_code):
     fb_type, fb_params = _l9_fallback(sublevel_code)
     out = []
+    diagram_count = 0
     for item in items:
+        new_item = dict(item)
         if item.get("type") in ("fill", "word"):
             inferred = _l9_infer_diagram(item["text"])
-            new_item = dict(item)
+            new_item["type"] = "diagram"
             if inferred:
-                new_item["type"] = "diagram"
-                new_item["diagram_type"], new_item["diagram_params"] = inferred
+                new_item["diagram_type"], params = inferred
             else:
-                new_item["type"] = "diagram"
-                new_item["diagram_type"], new_item["diagram_params"] = fb_type, fb_params
-            out.append(new_item)
-        else:
-            out.append(item)
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
     return out
 
 

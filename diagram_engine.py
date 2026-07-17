@@ -2466,10 +2466,31 @@ def _smallest_factor(n):
             return p, n // p
     return None, None
 
-def factor_tree(n=60, **kw) -> BytesIO:
+def factor_tree(n=60, blank=False, **kw) -> BytesIO:
     """Draws a factor tree for n down to prime leaves, splitting off the
     smallest prime factor at each step (the standard way students draw it
-    by hand)."""
+    by hand). blank=True draws only the root node (n) with empty branch
+    lines going nowhere, for the student to complete by hand."""
+    if blank:
+        w, h = 480, 360
+        img, dr = _blank(w, h)
+        fnt = _font(16)
+        radius = 26
+        cx, cy = w // 2, 50
+        dr.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=C_BLUE, outline=C_BORDER, width=2)
+        txt = str(n)
+        tw = dr.textlength(txt, font=fnt)
+        dr.text((cx - tw/2, cy - 10), txt, fill=C_TEXT, font=fnt)
+        lx, rx, ny = cx - 110, cx + 110, cy + 110
+        dr.line([cx, cy + radius, lx, ny - 30], fill=C_BORDER, width=2)
+        dr.line([cx, cy + radius, rx, ny - 30], fill=C_BORDER, width=2)
+        dr.ellipse([lx - radius, ny - radius, lx + radius, ny + radius], outline=C_BORDER, width=2)
+        dr.ellipse([rx - radius, ny - radius, rx + radius, ny + radius], outline=C_BORDER, width=2)
+        cap = "Split into two factors, then keep splitting until every branch ends in a prime."
+        cw = dr.textlength(cap, font=_font_reg(13))
+        dr.text((w/2 - cw/2, h - 40), cap, fill=C_TEAL_D, font=_font_reg(13))
+        return _to_bytes(img)
+
     def build(n):
         if _is_prime_ft(n) or n < 2:
             return (n, None, None)
@@ -2519,10 +2540,12 @@ def factor_tree(n=60, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
-def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", **kw) -> BytesIO:
+def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", blank=False, **kw) -> BytesIO:
     """Two-circle Venn diagram for shared vs. unique prime factors --
     standard visual for building HCF/LCM intuition. a_only/common/b_only
-    are lists of numbers (or strings) to place in each region."""
+    are lists of numbers (or strings) to place in each region.
+    blank=True draws the empty circles/labels only, no numbers, so the
+    student works out and fills in each region themselves."""
     a_only = a_only or []; common = common or []; b_only = b_only or []
     w, h = 560, 340
     img, dr = _blank(w, h)
@@ -2538,6 +2561,9 @@ def venn_two(a_only=None, common=None, b_only=None, label_a="A", label_b="B", **
     dr.text((cx_a - r - 10, cy - r - 24), la, fill=C_BLUE_D, font=fnt_lab)
     dr.text((cx_b + r - dr.textlength(lb, font=fnt_lab) + 10, cy - r - 24), lb, fill=C_TEAL_D, font=fnt_lab)
     dr.text((w/2 - dr.textlength("common", font=fnt_lab)/2, cy + r + 6), "common", fill=C_BORDER, font=fnt_lab)
+
+    if blank:
+        return _to_bytes(img)
 
     def place_list(items, cx, cy_offset):
         text = ", ".join(str(x) for x in items) if items else "--"
@@ -4174,11 +4200,21 @@ def circle_ring_svg(outer_r=14, inner_r=7, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def factor_array_svg(n=12, rows=3, cols=4, **kw):
+def factor_array_svg(n=12, rows=3, cols=4, blank=False, **kw):
     """A rectangular array (rows x cols grid) showing that rows and cols
-    are a factor pair of n -- the array model for factors (Level 9A)."""
-    w_svg, h_svg = 320, 260
-    cell = min(180 / max(cols, 1), 120 / max(rows, 1), 28)
+    are a factor pair of n -- the array model for factors (Level 9A).
+    blank=True hides the grid/caption, leaving just an empty box for the
+    student to sketch and work out themselves."""
+    w_svg, h_svg = 380, 300
+    if blank:
+        parts = []
+        bw, bh = 220, 150
+        ox, oy = (w_svg - bw) / 2, (h_svg - bh) / 2 + 10
+        parts.append(f'<rect x="{ox:.1f}" y="{oy:.1f}" width="{bw}" height="{bh}" fill="#FAFBFC" stroke="#1B5E8C" stroke-width="2.5" stroke-dasharray="8,5"/>')
+        parts.append(f'<text x="{w_svg/2}" y="{oy+bh+30:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">n = {n}: sketch an array (rows x cols)</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Array model of {n}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+    cell = min(220 / max(cols, 1), 150 / max(rows, 1), 34)
     gw, gh = cols * cell, rows * cell
     ox, oy = (w_svg - gw) / 2, (h_svg - gh) / 2 + 6
     parts = []
@@ -4186,94 +4222,114 @@ def factor_array_svg(n=12, rows=3, cols=4, **kw):
         for c in range(int(cols)):
             x = ox + c * cell
             y = oy + r * cell
-            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell:.1f}" height="{cell:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="1.4"/>')
-    parts.append(f'<text x="{w_svg/2}" y="{oy+gh+26:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{rows} rows x {cols} cols = {n}</text>')
-    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Array model of {n}</text>')
+            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell:.1f}" height="{cell:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<text x="{w_svg/2}" y="{oy+gh+32:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#A6362B">{rows} rows x {cols} cols = {n}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Array model of {n}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def factor_rainbow_svg(n=12, **kw):
+def factor_rainbow_svg(n=12, blank=False, **kw):
     """A number line 1..n with arcs ('rainbows') connecting each factor
-    pair -- the classic factor-rainbow visual (Level 9A)."""
+    pair -- the classic factor-rainbow visual (Level 9A). blank=True
+    shows only the number line, no arcs, so the student draws them."""
     n = int(n)
     factors = [d for d in range(1, n + 1) if n % d == 0]
-    w_svg = min(max(340, 20 * n + 80), 620)
-    h_svg = 240
-    ox = 40
+    w_svg = min(max(420, 26 * n + 100), 720)
+    h_svg = 280
+    ox = 50
     step = (w_svg - 2 * ox) / max(n - 1, 1)
-    y_line = 170
+    y_line = 190
     parts = []
-    parts.append(f'<line x1="{ox}" y1="{y_line}" x2="{w_svg-ox}" y2="{y_line}" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<line x1="{ox}" y1="{y_line}" x2="{w_svg-ox}" y2="{y_line}" stroke="#1B5E8C" stroke-width="3"/>')
     for i in range(1, n + 1):
         x = ox + (i - 1) * step
-        parts.append(f'<line x1="{x:.1f}" y1="{y_line-5}" x2="{x:.1f}" y2="{y_line+5}" stroke="#1B5E8C" stroke-width="1.4"/>')
-        parts.append(f'<text x="{x:.1f}" y="{y_line+20}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#2C3E50">{i}</text>')
+        parts.append(f'<line x1="{x:.1f}" y1="{y_line-7}" x2="{x:.1f}" y2="{y_line+7}" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{x:.1f}" y="{y_line+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{i}</text>')
+    if blank:
+        parts.append(f'<text x="{w_svg/2}" y="{y_line-100:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">Draw an arc for each factor pair of {n}</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Factor rainbow for {n}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
     colors = ["#A6362B", "#1E7A44", "#7D3C98", "#B8860B", "#1B5E8C"]
     pairs = [(f, n // f) for f in factors if f <= n // f]
     for idx, (a, b) in enumerate(pairs):
         xa = ox + (a - 1) * step
         xb = ox + (b - 1) * step
         rx = max((xb - xa) / 2, 1)
-        ry = min(24 + idx * 13, 130)
+        ry = min(30 + idx * 16, 160)
         col = colors[idx % len(colors)]
-        parts.append(f'<path d="M {xa:.1f} {y_line:.1f} A {rx:.1f} {ry:.1f} 0 0 1 {xb:.1f} {y_line:.1f}" fill="none" stroke="{col}" stroke-width="2"/>')
-    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Factor rainbow for {n}</text>')
+        parts.append(f'<path d="M {xa:.1f} {y_line:.1f} A {rx:.1f} {ry:.1f} 0 0 1 {xb:.1f} {y_line:.1f}" fill="none" stroke="{col}" stroke-width="3"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Factor rainbow for {n}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def multiples_number_line_svg(n=6, count=8, **kw):
+def multiples_number_line_svg(n=6, count=8, blank=False, **kw):
     """A number line marking the first several multiples of n --
-    a skip-counting visual (Level 9B)."""
+    a skip-counting visual (Level 9B). blank=True shows only the bare
+    number line (start/end labeled), no multiples marked."""
     n, count = int(n), int(count)
     top = n * count
-    w_svg, h_svg = 380, 160
-    ox, oy = 30, 90
+    w_svg, h_svg = 460, 200
+    ox, oy = 40, 110
     step = (w_svg - 2 * ox) / max(top, 1)
     parts = []
-    parts.append(f'<line x1="{ox}" y1="{oy}" x2="{w_svg-ox}" y2="{oy}" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<line x1="{ox}" y1="{oy}" x2="{w_svg-ox}" y2="{oy}" stroke="#1B5E8C" stroke-width="3"/>')
+    if blank:
+        for i in (0, top):
+            x = ox + i * step
+            parts.append(f'<line x1="{x:.1f}" y1="{oy-10}" x2="{x:.1f}" y2="{oy+10}" stroke="#1B5E8C" stroke-width="2.5"/>')
+            parts.append(f'<text x="{x:.1f}" y="{oy+32}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{i}</text>')
+        parts.append(f'<text x="{w_svg/2}" y="{oy-40:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">Mark the multiples of {n} on the line</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Multiples of {n}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
     show_minor = top <= 30
     for i in range(0, top + 1):
         is_mult = (i % n == 0)
         if not is_mult and not show_minor:
             continue
         x = ox + i * step
-        h = 10 if is_mult else 5
+        h = 12 if is_mult else 6
         col = "#A6362B" if is_mult else "#9AA5B1"
-        parts.append(f'<line x1="{x:.1f}" y1="{oy-h}" x2="{x:.1f}" y2="{oy+h}" stroke="{col}" stroke-width="{2 if is_mult else 1}"/>')
+        parts.append(f'<line x1="{x:.1f}" y1="{oy-h}" x2="{x:.1f}" y2="{oy+h}" stroke="{col}" stroke-width="{2.5 if is_mult else 1.4}"/>')
         if is_mult:
-            parts.append(f'<circle cx="{x:.1f}" cy="{oy}" r="4" fill="#A6362B"/>')
-            parts.append(f'<text x="{x:.1f}" y="{oy+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">{i}</text>')
-    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Multiples of {n}</text>')
+            parts.append(f'<circle cx="{x:.1f}" cy="{oy}" r="5" fill="#A6362B"/>')
+            parts.append(f'<text x="{x:.1f}" y="{oy+32}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{i}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Multiples of {n}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def hundred_grid_highlight_svg(n=None, highlight=None, **kw):
+def hundred_grid_highlight_svg(n=None, highlight=None, blank=False, **kw):
     """A 1-100 grid with certain numbers highlighted -- multiples of n
     if n is given, otherwise the explicit highlight list (also usable
-    for a prime-sieve view) (Level 9B/9C)."""
+    for a prime-sieve view) (Level 9B/9C). blank=True shows the plain
+    numbered grid with nothing highlighted."""
     if highlight is None and n:
         highlight = list(range(int(n), 101, int(n)))
     highlight = set(highlight or [])
-    w_svg, h_svg = 340, 390
-    cell = 30
-    ox, oy = (w_svg - 10 * cell) / 2, 55
+    w_svg, h_svg = 420, 470
+    cell = 37
+    ox, oy = (w_svg - 10 * cell) / 2, 65
     parts = []
     for i in range(1, 101):
         r, c = (i - 1) // 10, (i - 1) % 10
         x, y = ox + c * cell, oy + r * cell
-        fill = "#A6362B" if i in highlight else "#EAF4FC"
-        txt_col = "white" if i in highlight else "#2C3E50"
-        parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell}" height="{cell}" fill="{fill}" stroke="#1B5E8C" stroke-width="0.8"/>')
-        parts.append(f'<text x="{x+cell/2:.1f}" y="{y+cell/2+4:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="{txt_col}">{i}</text>')
-    title = f"Multiples of {n} up to 100" if n else "Highlighted numbers"
-    parts.insert(0, f'<text x="{w_svg/2}" y="26" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{title}</text>')
+        is_hi = (not blank) and i in highlight
+        fill = "#A6362B" if is_hi else "#EAF4FC"
+        txt_col = "white" if is_hi else "#2C3E50"
+        parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell}" height="{cell}" fill="{fill}" stroke="#1B5E8C" stroke-width="1"/>')
+        parts.append(f'<text x="{x+cell/2:.1f}" y="{y+cell/2+5:.1f}" text-anchor="middle" font-family="Helvetica" font-size="13" fill="{txt_col}">{i}</text>')
+    if blank:
+        title = f"Shade the multiples of {n} up to 100" if n else "Shade the requested numbers"
+    else:
+        title = f"Multiples of {n} up to 100" if n else "Highlighted numbers"
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{title}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def ladder_division_svg(a=24, b=36, mode="hcf", **kw):
+def ladder_division_svg(a=24, b=36, mode="hcf", blank=False, **kw):
     """The 'ladder' (cake) method: repeatedly divide two numbers by a
     common prime, shown as steps down a ladder -- used to find HCF or
-    LCM (Level 9D/9E/9G). Shows the method, not the final answer."""
+    LCM (Level 9D/9E/9G). blank=True shows only the starting row and
+    empty ladder rows for the student to complete themselves."""
     a, b = int(a), int(b)
 
     def _common_prime(x, y):
@@ -4284,6 +4340,28 @@ def ladder_division_svg(a=24, b=36, mode="hcf", **kw):
             d += 1
         return None
 
+    if blank:
+        n_blank_rows = 4
+        w_svg = 320
+        row_h = 46
+        h_svg = 90 + row_h * n_blank_rows + 65
+        ox, oy = 120, 90
+        parts = []
+        parts.append(f'<line x1="{ox-20:.1f}" y1="{oy-18:.1f}" x2="{ox-20:.1f}" y2="{oy+row_h*n_blank_rows-18:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+        parts.append(f'<line x1="{ox-20:.1f}" y1="{oy-18:.1f}" x2="{ox+110:.1f}" y2="{oy-18:.1f}" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{ox+28:.1f}" y="{oy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">{a}</text>')
+        parts.append(f'<text x="{ox+86:.1f}" y="{oy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">{b}</text>')
+        for i in range(1, n_blank_rows):
+            ry = oy + i * row_h
+            parts.append(f'<line x1="{ox-20:.1f}" y1="{ry-18:.1f}" x2="{ox+110:.1f}" y2="{ry-18:.1f}" stroke="#1B5E8C" stroke-width="1.6" stroke-dasharray="5,4"/>')
+        caption = ("Divide both numbers by a common prime, row by row.\nMultiply the divisors (left) to find the HCF." if mode == "hcf"
+                   else "Divide both numbers by a common prime, row by row.\nMultiply divisors x the final row to find the LCM.")
+        ty = oy + row_h * n_blank_rows + 14
+        for j, line in enumerate(caption.split("\n")):
+            parts.append(f'<text x="{w_svg/2}" y="{ty+j*16:.1f}" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#1E7A44">{line}</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Ladder method: {a} and {b}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
     rows = []
     x, y = a, b
     while True:
@@ -4293,48 +4371,61 @@ def ladder_division_svg(a=24, b=36, mode="hcf", **kw):
         rows.append((d, x, y))
         x, y = x // d, y // d
     rows.append((None, x, y))
-    w_svg = 280
-    row_h = 32
-    h_svg = 70 + row_h * len(rows) + 40
-    ox, oy = 100, 70
+    w_svg = 320
+    row_h = 40
+    h_svg = 90 + row_h * len(rows) + 65
+    ox, oy = 120, 90
     parts = []
-    parts.append(f'<line x1="{ox-16:.1f}" y1="{oy-14:.1f}" x2="{ox-16:.1f}" y2="{oy+row_h*len(rows)-14:.1f}" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<line x1="{ox-20:.1f}" y1="{oy-18:.1f}" x2="{ox-20:.1f}" y2="{oy+row_h*len(rows)-18:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
     for i, (d, xx, yy) in enumerate(rows):
         ry = oy + i * row_h
-        parts.append(f'<line x1="{ox-16:.1f}" y1="{ry-14:.1f}" x2="{ox+95:.1f}" y2="{ry-14:.1f}" stroke="#1B5E8C" stroke-width="1.6"/>')
+        parts.append(f'<line x1="{ox-20:.1f}" y1="{ry-18:.1f}" x2="{ox+110:.1f}" y2="{ry-18:.1f}" stroke="#1B5E8C" stroke-width="2"/>')
         if d:
-            parts.append(f'<text x="{ox-32:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{d}</text>')
-        parts.append(f'<text x="{ox+22:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#2C3E50">{xx}</text>')
-        parts.append(f'<text x="{ox+74:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#2C3E50">{yy}</text>')
+            parts.append(f'<text x="{ox-38:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#A6362B">{d}</text>')
+        parts.append(f'<text x="{ox+28:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{xx}</text>')
+        parts.append(f'<text x="{ox+86:.1f}" y="{ry:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{yy}</text>')
     caption = ("Multiply the divisors in the left column to find the HCF." if mode == "hcf"
                else "Multiply the divisors AND the bottom row together to find the LCM.")
-    ty = oy + row_h * len(rows) + 20
-    parts.append(f'<text x="{w_svg/2}" y="{ty:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10.5" fill="#1E7A44">{caption}</text>')
-    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Ladder method: {a} and {b}</text>')
+    ty = oy + row_h * len(rows) + 22
+    parts.append(f'<text x="{w_svg/2}" y="{ty:.1f}" text-anchor="middle" font-family="Helvetica" font-size="12.5" fill="#1E7A44">{caption}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Ladder method: {a} and {b}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def euclidean_algorithm_svg(a=48, b=18, **kw):
+def euclidean_algorithm_svg(a=48, b=18, blank=False, **kw):
     """The Euclidean algorithm's repeated-division steps (a = b*q + r)
     shown as a ladder of equations down to remainder 0 (Level 9H).
-    Shows the method, not the final HCF value."""
+    blank=True shows only the first equation as a fill-in-the-blank
+    template, with empty lines below for the student to continue."""
     a, b = int(a), int(b)
+    w_svg, row_h = 420, 34
+    if blank:
+        h_svg = 90 + row_h * 4 + 55
+        ox, oy = 34, 90
+        parts = []
+        parts.append(f'<text x="{ox:.1f}" y="{oy:.1f}" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{a} = {b} x ____ + ____</text>')
+        for i in range(1, 4):
+            ry = oy + i * row_h
+            parts.append(f'<line x1="{ox:.1f}" y1="{ry:.1f}" x2="{w_svg-ox:.1f}" y2="{ry:.1f}" stroke="#9AA5B1" stroke-width="1.4" stroke-dasharray="5,4"/>')
+        parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*4+16:.1f}" font-family="Helvetica" font-size="12.5" fill="#1E7A44">Keep dividing (bigger = smaller x q + r) until r = 0 --</text>')
+        parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*4+32:.1f}" font-family="Helvetica" font-size="12.5" fill="#1E7A44">the last non-zero remainder is the HCF.</text>')
+        parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Euclidean Algorithm: HCF({a},{b})</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
     steps = []
     x, y = a, b
     while y != 0:
         qq, r = x // y, x % y
         steps.append((x, y, qq, r))
         x, y = y, r
-    w_svg, row_h = 340, 28
-    h_svg = 60 + row_h * len(steps) + 40
-    ox, oy = 30, 55
+    h_svg = 80 + row_h * len(steps) + 75
+    ox, oy = 34, 80
     parts = []
     for i, (xx, yy, qq, r) in enumerate(steps):
         ry = oy + i * row_h
-        parts.append(f'<text x="{ox:.1f}" y="{ry:.1f}" font-family="Helvetica" font-size="13" fill="#2C3E50">{xx} = {yy} x {qq} + {r}</text>')
-    parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*len(steps)+22:.1f}" font-family="Helvetica" font-size="10.5" fill="#1E7A44">Keep going until the remainder is 0 --</text>')
-    parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*len(steps)+38:.1f}" font-family="Helvetica" font-size="10.5" fill="#1E7A44">the last non-zero remainder is the HCF.</text>')
-    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Euclidean Algorithm: HCF({a},{b})</text>')
+        parts.append(f'<text x="{ox:.1f}" y="{ry:.1f}" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{xx} = {yy} x {qq} + {r}</text>')
+    parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*len(steps)+22:.1f}" font-family="Helvetica" font-size="12.5" fill="#1E7A44">Keep going until the remainder is 0 --</text>')
+    parts.append(f'<text x="{ox:.1f}" y="{oy+row_h*len(steps)+40:.1f}" font-family="Helvetica" font-size="12.5" fill="#1E7A44">the last non-zero remainder is the HCF.</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Euclidean Algorithm: HCF({a},{b})</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
