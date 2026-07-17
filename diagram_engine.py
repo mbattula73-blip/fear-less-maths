@@ -2892,11 +2892,33 @@ def term_label_svg(coefficient=5, variable="x", exponent=None, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
 
 
-def like_terms_sort_svg(groups=None, **kw):
+def like_terms_sort_svg(groups=None, blank=False, **kw):
     """Sorts a set of terms into labelled, colour-coded groups (e.g.
     x-terms, y-terms, constants) inside dashed boundary boxes -- the
-    visual for 'collecting like terms'."""
+    visual for 'collecting like terms'. blank=True instead shows all
+    the terms jumbled together in a single unsorted box, so the student
+    does the sorting themselves."""
     groups = groups or {"x-terms": ["3x", "2x"], "constants": ["5", "1"]}
+    if blank:
+        all_terms = [t for terms in groups.values() for t in terms]
+        card_w, card_h, gap, pad = 54, 34, 10, 18
+        cols = min(len(all_terms), 6)
+        rows = -(-len(all_terms) // cols)
+        box_w = cols * (card_w + gap) - gap + 2 * pad
+        box_h = rows * (card_h + gap) - gap + 2 * pad
+        parts = [f'<rect x="16" y="42" width="{box_w}" height="{box_h}" rx="14" fill="#FAFBFC" stroke="#9AA5B1" stroke-width="2" stroke-dasharray="6,3"/>',
+                 '<text x="16" y="32" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">Sort these into their groups:</text>']
+        tx, ty = 16 + pad, 42 + pad
+        for i, term in enumerate(all_terms):
+            if i and i % cols == 0:
+                tx = 16 + pad
+                ty += card_h + gap
+            parts.append(f'<rect x="{tx}" y="{ty}" width="{card_w}" height="{card_h}" rx="8" fill="white" stroke="#5D6D7E" stroke-width="1.8"/>')
+            parts.append(f'<text x="{tx+card_w/2}" y="{ty+card_h/2+5}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{term}</text>')
+            tx += card_w + gap
+        width = 16 + box_w + 16
+        height = 42 + box_h + 16
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
     palette = [("#1B5E8C", "#EAF4FC"), ("#1E7A44", "#E7F8ED"), ("#A6362B", "#FDEDEB"), ("#7D3C98", "#F3E9F8")]
     card_w, card_h, gap, pad, group_gap = 54, 34, 10, 18, 30
     x = 16
@@ -2940,19 +2962,28 @@ def function_machine_svg(input_val=3, expression="x + 5", output_val=8, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def substitution_steps_svg(steps=None, **kw):
+def substitution_steps_svg(steps=None, blank=False, **kw):
     """A vertical chain of boxes showing a substitution worked step by
     step, e.g. '2x+1' -> '2(3)+1' -> '6+1' -> '7', the last box
-    highlighted as the final answer."""
+    highlighted as the final answer. blank=True keeps the first step
+    (the given expression + substitution) and blanks every step after,
+    so the student works the arithmetic out themselves."""
     steps = steps or ["2x + 1", "2(3) + 1", "6 + 1", "7"]
+    if blank:
+        steps = [steps[0]] + ["____"] * (len(steps) - 1)
     w, box_h, gap = 260, 40, 24
     h = len(steps) * (box_h + gap) - gap + 26
     parts = []
     y = 14
     for i, s in enumerate(steps):
         is_last = (i == len(steps) - 1)
-        fill, stroke, tcol = ("#E7F8ED", "#1E7A44", "#0B4F30") if is_last else ("#EAF4FC", "#1B5E8C", "#0C3A5C")
-        parts.append(f'<rect x="20" y="{y}" width="{w-40}" height="{box_h}" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"/>')
+        is_blank_step = blank and i > 0
+        if is_blank_step:
+            fill, stroke, tcol = ("#FAFBFC", "#9AA5B1", "#5D6D7E")
+        else:
+            fill, stroke, tcol = ("#E7F8ED", "#1E7A44", "#0B4F30") if is_last else ("#EAF4FC", "#1B5E8C", "#0C3A5C")
+        dash = ' stroke-dasharray="6,4"' if is_blank_step else ""
+        parts.append(f'<rect x="20" y="{y}" width="{w-40}" height="{box_h}" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"{dash}/>')
         parts.append(f'<text x="{w/2}" y="{y+box_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="{tcol}">{s}</text>')
         if not is_last:
             ay = y + box_h
@@ -2962,9 +2993,10 @@ def substitution_steps_svg(steps=None, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def repeated_addition_svg(coefficient=3, variable="x", **kw):
+def repeated_addition_svg(coefficient=3, variable="x", blank=False, **kw):
     """Shows a term like '3x' as repeated addition: x + x + x -- builds
-    the intuition for what a coefficient means."""
+    the intuition for what a coefficient means. blank=True hides the
+    caption so the student writes the sum themselves."""
     box_w, box_h, gap = 50, 42, 16
     x, y = 16, 36
     parts = []
@@ -2977,7 +3009,10 @@ def repeated_addition_svg(coefficient=3, variable="x", **kw):
             x += gap
     width = x + 16
     height = y + box_h + 46
-    cap = f"{coefficient}{variable}  =  " + " + ".join([variable] * coefficient)
+    if blank:
+        cap = f"{coefficient}{variable}  =  ____ (write it as a sum)"
+    else:
+        cap = f"{coefficient}{variable}  =  " + " + ".join([variable] * coefficient)
     parts.append(f'<text x="{width/2}" y="{height-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">{cap}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
 
@@ -4633,6 +4668,53 @@ def scale_comparison_svg(real_len=5, real_unit="km", model_len=1, model_unit="cm
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def word_to_expression_svg(phrase="5 more than x", expression="x + 5", blank=False, **kw):
+    """Shows a word phrase above its matching algebraic expression, with
+    a connecting bracket -- the translation-to-algebra visual (Level
+    11B/11G). blank=True hides the expression."""
+    w_svg = max(360, len(phrase) * 11 + 80, len(expression) * 14 + 80)
+    h_svg = 180
+    parts = []
+    parts.append(f'<rect x="30" y="60" width="{w_svg-60}" height="46" rx="10" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{w_svg/2}" y="89" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#0C3A5C">"{phrase}"</text>')
+    parts.append(f'<line x1="{w_svg/2}" y1="106" x2="{w_svg/2}" y2="128" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<polygon points="{w_svg/2},133 {w_svg/2-7},121 {w_svg/2+7},121" fill="#2C3E50"/>')
+    expr_str = "?" if blank else expression
+    parts.append(f'<rect x="30" y="136" width="{w_svg-60}" height="40" rx="10" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2.5"/>')
+    parts.append(f'<text x="{w_svg/2}" y="162" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#0B4F30">{expr_str}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Words to algebra</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def single_bracket_area_svg(a=3, b=4, var="x", op="+", blank=False, **kw):
+    """a(x+b) as a single-row area-model rectangle: one column for the
+    'x' part, one for the 'b' part -- the distributive-property visual
+    (Level 11CUM3). blank=True leaves the two product cells empty."""
+    b_disp = b if op == "+" else -b
+    col_labels = [var, (f"+{b}" if op == "+" else f"-{b}")]
+    cell_w, cell_h = 110, 70
+    x0, y0 = 70, 70
+    w_svg = x0 + 2 * cell_w + 30
+    h_svg = y0 + cell_h + 60
+    parts = []
+    expr = f"{a}({var} {op} {b})"
+    parts.append(f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{expr}</text>')
+    for j, lbl in enumerate(col_labels):
+        cx = x0 + j * cell_w + cell_w / 2
+        parts.append(f'<text x="{cx:.1f}" y="{y0-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#1B5E8C">{lbl}</text>')
+    parts.append(f'<text x="{x0-16:.1f}" y="{y0+cell_h/2+6:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="17" fill="#1E7A44">{a}</text>')
+    cell1 = "?" if blank else f"{a}{var}"
+    cell2 = "?" if blank else (f"{a*b}" if op == "+" else f"-{a*b}")
+    bgs = ["#EAF4FC", "#FFF8E1"]
+    cells = [cell1, cell2]
+    for j in range(2):
+        cx = x0 + j * cell_w
+        parts.append(f'<rect x="{cx}" y="{y0}" width="{cell_w}" height="{cell_h}" fill="{bgs[j]}" stroke="#2C3E50" stroke-width="1.5"/>')
+        parts.append(f'<text x="{cx+cell_w/2:.1f}" y="{y0+cell_h/2+7:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="19" fill="#2C3E50">{cells[j]}</text>')
+    parts.append(f'<text x="{w_svg/2}" y="{y0+cell_h+30}" text-anchor="middle" font-family="Helvetica-Oblique" font-size="12" fill="#5D6D7E">Add the two cells together</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -4691,6 +4773,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "unit_rate": unit_rate_svg,
     "similar_figures": similar_figures_svg,
     "scale_comparison": scale_comparison_svg,
+    "word_to_expression": word_to_expression_svg,
+    "single_bracket_area": single_bracket_area_svg,
 }
 
 

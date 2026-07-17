@@ -349,7 +349,10 @@ class Col:
                                                "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
                                                "ratio_objects", "ratio_table", "double_number_line",
                                                "continued_ratio_bar", "unit_rate", "similar_figures",
-                                               "scale_comparison")
+                                               "scale_comparison", "word_to_expression", "single_bracket_area",
+                                               "term_label", "like_terms_sort", "function_machine_svg",
+                                               "substitution_steps", "repeated_addition",
+                                               "algebra_tiles", "balance_scale")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)

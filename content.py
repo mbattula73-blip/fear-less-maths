@@ -17336,6 +17336,241 @@ for _l10_key in list(_DISPATCH.keys()):
     if _l10_key.startswith("10") and not _l10_key[2:3].isdigit():
         _DISPATCH[_l10_key] = {sheet: _l10_wrap(fn, _l10_key) for sheet, fn in _DISPATCH[_l10_key].items()}
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 11 auto-visualizer: gives every Level 11 (Algebra -- Expressions)
+# question a matching diagram, inferred from its own text/numbers.
+# Mirrors the Level 9/10/18 approach: first 2 diagrams per sheet are
+# fully worked (a demo), the rest are blank scaffolds for the student.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l11_re
+
+
+def _l11_eval_expr(expr, val):
+    """Safely evaluates a simple linear expression in x (e.g. '3x + 2',
+    'x/2', 'x + x', '10 - x') for a given numeric value of x."""
+    import warnings as _w
+    e = expr.replace("^", "**")
+    e = _l11_re.sub(r'(\d+)x', lambda m: f"{m.group(1)}*({val})", e)
+    e = _l11_re.sub(r'\bx\b', f"({val})", e)
+    try:
+        with _w.catch_warnings():
+            _w.simplefilter("ignore")
+            return eval(e, {"__builtins__": {}})
+    except Exception:
+        return None
+
+
+def _l11_infer_diagram(text, sublevel_code=""):
+    t = text
+    m = _l11_re.search(r'Evaluate (.+?) when x = (-?\d+)\.', t)
+    if m:
+        expr, xv = m.group(1).strip(), int(m.group(2))
+        out = _l11_eval_expr(expr, xv)
+        return "function_machine_svg", {"input_val": xv, "expression": expr, "output_val": out}
+    m = _l11_re.search(r'If x = (-?\d+), then (.+?) = ____', t)
+    if m:
+        xv, expr = int(m.group(1)), m.group(2).strip()
+        out = _l11_eval_expr(expr, xv)
+        return "function_machine_svg", {"input_val": xv, "expression": expr, "output_val": out}
+    m = _l11_re.search(r'[Ww]rite the expression', t)
+    if m:
+        m2 = _l11_re.search(r'has ([a-z]) \w+\. (?:He|She) gets (\d+) more', t)
+        if m2:
+            return "word_to_expression", {"phrase": t.split(".")[0] + ", gets " + m2.group(2) + " more", "expression": f"{m2.group(1)} + {m2.group(2)}"}
+        m2 = _l11_re.search(r'has ([a-z]) \w+\. (?:He|She) gives away (\d+)', t)
+        if m2:
+            return "word_to_expression", {"phrase": t.split(".")[0] + ", gives away " + m2.group(2), "expression": f"{m2.group(1)} - {m2.group(2)}"}
+    m = _l11_re.search(r'costs ([a-z]) rupees\. (\d+) \w+ cost', t)
+    if m:
+        var, mult = m.group(1), m.group(2)
+        return "word_to_expression", {"phrase": f"{mult} at {var} rupees each", "expression": f"{mult}{var}"}
+    m = _l11_re.search(r'is ([a-z]) years old\. In (\d+) years', t)
+    if m:
+        var, yrs = m.group(1), m.group(2)
+        return "word_to_expression", {"phrase": f"{var} years old, in {yrs} years", "expression": f"{var} + {yrs}"}
+    m = _l11_re.search(r'has ([a-z]) \w+\. (\d+) \w+ have', t)
+    if m:
+        var, mult = m.group(1), m.group(2)
+        return "word_to_expression", {"phrase": f"{mult} groups of {var}", "expression": f"{mult}{var}"}
+    m = _l11_re.search(r'had ([a-z]) rupees\. He spent Rs (\d+)', t)
+    if m:
+        var, amt = m.group(1), m.group(2)
+        return "word_to_expression", {"phrase": f"{var} rupees, spent Rs {amt}", "expression": f"{var} - {amt}"}
+    m = _l11_re.search(r"[Ww]rite '(.+?)':", t)
+    if m:
+        phrase = m.group(1)
+        expr = _l11_phrase_to_expr(phrase)
+        return "word_to_expression", {"phrase": phrase, "expression": expr or "?"}
+    m = _l11_re.search(r'Expand(?: using the distributive property)?:?\s*(\d+)\(x ([+-]) (\d+)\)', t)
+    if m:
+        a, op, b = int(m.group(1)), m.group(2), int(m.group(3))
+        return "single_bracket_area", {"a": a, "b": b, "op": op}
+    m = _l11_re.search(r'Simplify:\s*(\d+)x\^?2 \+ (\d+)x\^?2', t)
+    if m:
+        c1 = int(m.group(1))
+        return "term_label", {"coefficient": c1, "variable": "x", "exponent": 2}
+    m = _l11_re.search(r'^In (\d+)([a-z])(?:\s*\+\s*\d+)?,', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "term_label", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'erms (?:are )?in (\d+)([a-z])', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "term_label", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'^In ([a-z]) \(just [a-z]\),', t)
+    if m:
+        return "term_label", {"coefficient": 1, "variable": m.group(1)}
+    m = _l11_re.search(r'coefficient of ([a-z]) in just', t)
+    if m:
+        return "term_label", {"coefficient": 1, "variable": m.group(1)}
+    m = _l11_re.search(r'Label the parts of the term (\d+)([a-z])', t)
+    if m:
+        return "term_label", {"coefficient": int(m.group(1)), "variable": m.group(2)}
+    m = _l11_re.search(r'Are (\d+)([a-z]) and (\d+)([a-z]) like or unlike', t)
+    if m:
+        c1, v1, c2, v2 = int(m.group(1)), m.group(2), int(m.group(3)), m.group(4)
+        if v1 == v2:
+            return "like_terms_sort", {"groups": {f"{v1}-terms": [f"{c1}{v1}", f"{c2}{v2}"]}}
+        return "like_terms_sort", {"groups": {f"{v1}-terms": [f"{c1}{v1}"], f"{v2}-terms": [f"{c2}{v2}"]}}
+    m = _l11_re.search(r'Which is the like term to (\d+)([a-z])', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "term_label", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'^(\d+)([a-z]) [+-] (\d+)\2 = ____', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "term_label", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'^(\d+)([a-z]) \+ (\d+)\2\b', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "repeated_addition", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'^([a-z]) \+ (\d+)([a-z]) = ____', t)
+    if m:
+        return "repeated_addition", {"coefficient": int(m.group(2)), "variable": m.group(3)}
+    m = _l11_re.search(r'^(\d+)([a-z]) - (\d+)\2', t)
+    if m:
+        coef, var = int(m.group(1)), m.group(2)
+        return "term_label", {"coefficient": coef, "variable": var}
+    m = _l11_re.search(r'^x \+ (\d+) = (\d+)', t)
+    if m:
+        b, total = int(m.group(1)), int(m.group(2))
+        return "balance_scale", {"left_text": f"x + {b}", "right_text": str(total)}
+    m = _l11_re.search(r'^x - (\d+) = (\d+)', t)
+    if m:
+        b, total = int(m.group(1)), int(m.group(2))
+        return "balance_scale", {"left_text": f"x - {b}", "right_text": str(total)}
+    m = _l11_re.search(r'^(\d+)x \+ (\d+) = (\d+)', t)
+    if m:
+        a, b, total = (int(x) for x in m.groups())
+        return "balance_scale", {"left_text": f"{a}x + {b}", "right_text": str(total)}
+    m = _l11_re.search(r'^(\d+)x - (\d+) = (\d+)', t)
+    if m:
+        a, b, total = (int(x) for x in m.groups())
+        return "balance_scale", {"left_text": f"{a}x - {b}", "right_text": str(total)}
+    m = _l11_re.search(r'^(\d+)x = (\d+)', t)
+    if m:
+        a, total = int(m.group(1)), int(m.group(2))
+        return "balance_scale", {"left_text": f"{a}x", "right_text": str(total)}
+    m = _l11_re.search(r'the term (\d+)([a-z])', t)
+    if m:
+        return "term_label", {"coefficient": int(m.group(1)), "variable": m.group(2)}
+    return None
+
+
+def _l11_phrase_to_expr(phrase):
+    p = phrase
+    m = _l11_re.search(r'sum of (\w+) and (\w+)', p)
+    if m:
+        return f"{m.group(1)} + {m.group(2)}"
+    m = _l11_re.search(r'product of (\w+) and (\w+)', p)
+    if m:
+        return f"{m.group(1)}{m.group(2)}"
+    m = _l11_re.search(r'(\w+) decreased by (\w+)', p)
+    if m:
+        return f"{m.group(1)} - {m.group(2)}"
+    m = _l11_re.search(r'(\w+) increased by (\w+)', p)
+    if m:
+        return f"{m.group(1)} + {m.group(2)}"
+    m = _l11_re.search(r'twice (\w+) plus (\w+)', p)
+    if m:
+        return f"2{m.group(1)} + {m.group(2)}"
+    m = _l11_re.search(r'(\w+) times (\w+) minus (\w+)', p)
+    if m:
+        return f"{m.group(1)}{m.group(2)} - {m.group(3)}"
+    m = _l11_re.search(r'(\w+) divided by (\w+)', p)
+    if m:
+        return f"{m.group(1)}/{m.group(2)}"
+    m = _l11_re.search(r'(\d+) times (\w+)', p)
+    if m:
+        return f"{m.group(1)}{m.group(2)}"
+    return None
+
+
+_L11_FAMILY_FALLBACK = {
+    "11A": ("function_machine_svg", {"input_val": 5, "expression": "x + 2", "output_val": 7}),
+    "11B": ("term_label", {"coefficient": 4, "variable": "x"}),
+    "11C": ("term_label", {"coefficient": 5, "variable": "x"}),
+    "11CUM1": ("term_label", {"coefficient": 5, "variable": "x"}),
+    "11D": ("like_terms_sort", {"groups": {"x-terms": ["3x"], "y-terms": ["5y"]}}),
+    "11E": ("function_machine_svg", {"input_val": 5, "expression": "x + 2", "output_val": 7}),
+    "11F": ("function_machine_svg", {"input_val": 4, "expression": "3x + 2", "output_val": 14}),
+    "11CUM2": ("function_machine_svg", {"input_val": 5, "expression": "2x + 1", "output_val": 11}),
+    "11G": ("word_to_expression", {"phrase": "5 more than x", "expression": "x + 5"}),
+    "11H": ("like_terms_sort", {"groups": {"x-terms": ["3x", "2x"], "constants": ["5", "1"]}}),
+    "11I": ("balance_scale", {"left_text": "x + 3", "right_text": "7"}),
+    "11CUM3": ("single_bracket_area", {"a": 3, "b": 4, "op": "+"}),
+    "11J": ("balance_scale", {"left_text": "x + 5", "right_text": "12"}),
+    "11REV": ("term_label", {"coefficient": 5, "variable": "x"}),
+}
+
+
+def _l11_fallback(sublevel_code):
+    for key in sorted(_L11_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L11_FAMILY_FALLBACK[key]
+    return ("term_label", {"coefficient": 5, "variable": "x"})
+
+
+def _l11_visualize(items, sublevel_code):
+    fb_type, fb_params = _l11_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l11_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            is_blank = diagram_count >= 2
+            params["blank"] = is_blank
+            if new_item["diagram_type"] == "function_machine_svg" and is_blank:
+                params["output_val"] = None
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            is_blank = diagram_count >= 2
+            params["blank"] = is_blank
+            if new_item["diagram_type"] == "function_machine_svg" and is_blank:
+                params["output_val"] = None
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l11_wrap(fn, sublevel_code):
+    return lambda: _l11_visualize(fn(), sublevel_code)
+
+
+for _l11_key in list(_DISPATCH.keys()):
+    if _l11_key.startswith("11") and not _l11_key[2:3].isdigit():
+        _DISPATCH[_l11_key] = {sheet: _l11_wrap(fn, _l11_key) for sheet, fn in _DISPATCH[_l11_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [
