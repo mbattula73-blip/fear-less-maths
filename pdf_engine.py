@@ -361,7 +361,8 @@ class Col:
                                               "vertical_numberline_blank", "vertical_numberline_example",
                                               "math_maze_blank", "function_machine_blank",
                                               "number_pyramid_blank", "mixed_number_area_blank",
-                                              "mixed_number_area_example")
+                                              "mixed_number_area_example", "decimal_mult_area_blank",
+                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example")
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)

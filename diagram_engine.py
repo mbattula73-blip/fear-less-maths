@@ -1691,6 +1691,170 @@ def decimal_numberline_example(value=0.5, lo=0.0, hi=1.0, divisions=10, **kw) ->
     return _to_bytes(img)
 
 
+def decimal_mult_area_blank(d1=3, d2=4, **kw) -> BytesIO:
+    """A 10x10 grid (100 squares) with the target column (d1) and row
+    (d2) boundaries marked -- for shading d1 tenths as columns, d2
+    tenths as rows, and finding the overlap = the decimal product.
+    e.g. 0.3 x 0.4: mark column 3 and row 4; the overlap is 12 of 100
+    squares = 0.12. Same 'decimal squares' technique as fraction
+    multiplication, applied to decimals."""
+    cell = 18
+    x0, y0 = 34, 34
+    w, h = x0 + 10 * cell + 10, y0 + 10 * cell + 10
+    img, d = _blank(w, h)
+    for i in range(11):
+        col = C_BLUE_D if i == d1 else C_BORDER
+        width = 3 if i in (0, d1, 10) else 1
+        d.line([x0 + i * cell, y0, x0 + i * cell, y0 + 10 * cell], fill=col, width=width)
+    for j in range(11):
+        row = C_TEAL_D if j == d2 else C_BORDER
+        width = 3 if j in (0, d2, 10) else 1
+        d.line([x0, y0 + j * cell, x0 + 10 * cell, y0 + j * cell], fill=row, width=width)
+    fnt = _font_reg(11)
+    lbl1 = f"0.{d1}"; tw1 = d.textlength(lbl1, font=fnt)
+    d.text((x0 + d1 * cell / 2 - tw1 / 2, y0 - 20), lbl1, fill=C_BLUE_D, font=fnt)
+    lbl2 = f"0.{d2}"; tw2 = d.textlength(lbl2, font=fnt)
+    d.text((x0 - tw2 - 8, y0 + d2 * cell / 2 - 6), lbl2, fill=C_TEAL_D, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_mult_area_example(d1=3, d2=4, **kw) -> BytesIO:
+    """Worked example: the same 10x10 grid with the d1xd2 overlap
+    region cross-hatched, and the product labelled underneath."""
+    cell = 18
+    x0, y0 = 34, 34
+    w, h = x0 + 10 * cell + 10, y0 + 10 * cell + 34
+    img, d = _blank(w, h)
+    for i in range(d1):
+        for j in range(d2):
+            cx0, cy0 = x0 + i * cell, y0 + j * cell
+            _hatch_cell(d, cx0, cy0, cx0 + cell, cy0 + cell, "x", step=5)
+    for i in range(11):
+        col = C_BLUE_D if i == d1 else C_BORDER
+        width = 3 if i in (0, d1, 10) else 1
+        d.line([x0 + i * cell, y0, x0 + i * cell, y0 + 10 * cell], fill=col, width=width)
+    for j in range(11):
+        row = C_TEAL_D if j == d2 else C_BORDER
+        width = 3 if j in (0, d2, 10) else 1
+        d.line([x0, y0 + j * cell, x0 + 10 * cell, y0 + j * cell], fill=row, width=width)
+    fnt = _font_reg(11)
+    lbl1 = f"0.{d1}"; tw1 = d.textlength(lbl1, font=fnt)
+    d.text((x0 + d1 * cell / 2 - tw1 / 2, y0 - 20), lbl1, fill=C_BLUE_D, font=fnt)
+    lbl2 = f"0.{d2}"; tw2 = d.textlength(lbl2, font=fnt)
+    d.text((x0 - tw2 - 8, y0 + d2 * cell / 2 - 6), lbl2, fill=C_TEAL_D, font=fnt)
+    result = f"0.{d1} x 0.{d2} = {d1*d2}/100 = 0.{d1*d2:02d}"
+    d.text((x0 - 20, y0 + 10 * cell + 10), result, fill=C_TEXT, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_point_shift_blank(number="3.45", op="x10", **kw) -> BytesIO:
+    """Shows a decimal number and an arrow labelled with the operation
+    (x10, /10, x100, /100), pointing to a BLANK box for the student to
+    write the shifted result -- emphasizes the decimal POINT physically
+    moving, rather than a memorized rule."""
+    w, h = 300, 110
+    img, d = _blank(w, h)
+    fnt = _font(20)
+    fnt_r = _font_reg(12)
+    tw = d.textlength(number, font=fnt)
+    d.text((20, 40), number, fill=C_BLUE_D, font=fnt)
+    ax0 = 20 + tw + 15
+    ax1 = ax0 + 65
+    d.line([ax0, 55, ax1, 55], fill=C_AMBER_D, width=3)
+    d.polygon([(ax1, 55), (ax1 - 10, 49), (ax1 - 10, 61)], fill=C_AMBER_D)
+    optw = d.textlength(op, font=fnt_r)
+    d.text((ax0 + (ax1 - ax0) / 2 - optw / 2, 30), op, fill=C_AMBER_D, font=fnt_r)
+    d.rectangle([ax1 + 15, 25, ax1 + 105, 65], outline=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+def decimal_point_shift_example(number="3.45", op="x10", result="34.5", **kw) -> BytesIO:
+    """Worked example: same as decimal_point_shift_blank, with the
+    result filled in and the moved decimal point highlighted."""
+    w, h = 300, 110
+    img, d = _blank(w, h)
+    fnt = _font(20)
+    fnt_r = _font_reg(12)
+    tw = d.textlength(number, font=fnt)
+    d.text((20, 40), number, fill=C_BLUE_D, font=fnt)
+    ax0 = 20 + tw + 15
+    ax1 = ax0 + 65
+    d.line([ax0, 55, ax1, 55], fill=C_AMBER_D, width=3)
+    d.polygon([(ax1, 55), (ax1 - 10, 49), (ax1 - 10, 61)], fill=C_AMBER_D)
+    optw = d.textlength(op, font=fnt_r)
+    d.text((ax0 + (ax1 - ax0) / 2 - optw / 2, 30), op, fill=C_AMBER_D, font=fnt_r)
+    d.rectangle([ax1 + 15, 25, ax1 + 105, 65], outline=C_BORDER, width=2)
+    rtw = d.textlength(result, font=fnt)
+    d.text((ax1 + 60 - rtw / 2, 35), result, fill=C_TEAL_D, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_zoom_numberline_blank(lo=0.0, hi=1.0, zoom_lo=0.3, zoom_hi=0.4, **kw) -> BytesIO:
+    """Two number lines stacked: the outer line (lo to hi, coarse
+    tenths ticks) with a highlighted sub-interval, and the inner line
+    showing that SAME sub-interval magnified into finer ticks --
+    makes nested place value visible (why 0.09 sits INSIDE 0 to 0.1,
+    not beyond it)."""
+    w, h = 280, 150
+    img, d = _blank(w, h)
+    pad = 25
+    y1 = 30
+    d.line([pad, y1, w - pad, y1], fill=C_BORDER, width=2)
+    for i in range(11):
+        x = pad + i * (w - 2 * pad) / 10
+        d.line([x, y1 - 6, x, y1 + 6], fill=C_BORDER, width=1)
+    zx0 = pad + (zoom_lo - lo) / (hi - lo) * (w - 2 * pad)
+    zx1 = pad + (zoom_hi - lo) / (hi - lo) * (w - 2 * pad)
+    d.rectangle([zx0, y1 - 10, zx1, y1 + 10], outline=C_MARK, width=2)
+    fnt = _font_reg(10)
+    d.text((pad - 6, y1 + 10), str(lo), fill=C_BORDER, font=fnt)
+    d.text((w - pad - 12, y1 + 10), str(hi), fill=C_BORDER, font=fnt)
+    y2 = 115
+    d.line([zx0, y1 + 10, pad, y2 - 10], fill=C_MARK, width=1)
+    d.line([zx1, y1 + 10, w - pad, y2 - 10], fill=C_MARK, width=1)
+    d.line([pad, y2, w - pad, y2], fill=C_MARK, width=2)
+    for i in range(11):
+        x = pad + i * (w - 2 * pad) / 10
+        d.line([x, y2 - 6, x, y2 + 6], fill=C_MARK, width=1)
+    d.text((pad - 12, y2 + 10), str(zoom_lo), fill=C_MARK, font=fnt)
+    d.text((w - pad - 16, y2 + 10), str(zoom_hi), fill=C_MARK, font=fnt)
+    return _to_bytes(img)
+
+
+def decimal_align_blank(num1="3.4", num2="12.75", op="+", **kw) -> BytesIO:
+    """Two decimals shown right-aligned by place value with a
+    highlighted vertical guide through the decimal POINT column --
+    for addition/subtraction, directly targeting the 'misaligned
+    decimal point' error."""
+    w, h = 220, 130
+    img, d = _blank(w, h)
+    fnt = _font(20)
+    char_w = 17
+    max_len = max(len(num1), len(num2)) + 2
+    right_x = 30 + max_len * char_w
+
+    def draw_num(s, y):
+        x = right_x
+        for ch in reversed(s):
+            x -= char_w
+            d.text((x, y), ch, fill=C_BLUE_D, font=fnt)
+
+    draw_num(num1, 20)
+    draw_num(num2, 55)
+    d.text((10, 55), op, fill=C_MARK, font=fnt)
+
+    def point_x_from_right(s):
+        idx = s.index(".")
+        chars_after_point = len(s) - idx - 1
+        return right_x - chars_after_point * char_w - char_w / 2
+
+    px1 = point_x_from_right(num1)
+    d.line([px1, 10, px1, 100], fill=C_MARK, width=2)
+    d.line([30, 100, right_x, 100], fill=C_BORDER, width=2)
+    return _to_bytes(img)
+
+
+
 def regroup_ones_blank(ones1=7, ones2=5, **kw) -> BytesIO:
     """CARRYING (concrete): two loose clusters of ones units (one per
     addend) shown separately with a + between them, plus an empty
@@ -2507,6 +2671,12 @@ DIAGRAM_FUNCTIONS = {
     "decimal_place_example": decimal_place_example,
     "decimal_numberline_blank": decimal_numberline_blank,
     "decimal_numberline_example": decimal_numberline_example,
+    "decimal_mult_area_blank": decimal_mult_area_blank,
+    "decimal_mult_area_example": decimal_mult_area_example,
+    "decimal_point_shift_blank": decimal_point_shift_blank,
+    "decimal_point_shift_example": decimal_point_shift_example,
+    "decimal_zoom_numberline_blank": decimal_zoom_numberline_blank,
+    "decimal_align_blank": decimal_align_blank,
     "regroup_ones_blank": regroup_ones_blank,
     "regroup_break_blank": regroup_break_blank,
     "number_bond_blank": number_bond_blank,
