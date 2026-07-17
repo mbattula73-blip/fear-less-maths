@@ -4131,6 +4131,49 @@ def composite_mensuration_svg(l=10, w=4, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def circle_sector_svg(r=7, angle=90, **kw):
+    """A circle with one sector (pie-slice) shaded and the radius and
+    angle labeled -- for sector-area questions (Level 18D)."""
+    import math as _m
+    w_svg, h_svg = 300, 280
+    scale = min(100 / max(r, 1), 22)
+    R = r * scale
+    cx, cy = w_svg / 2, 155
+    a1 = -90.0
+    a2 = a1 + angle
+    p1 = (cx + R * _m.cos(_m.radians(a1)), cy + R * _m.sin(_m.radians(a1)))
+    p2 = (cx + R * _m.cos(_m.radians(a2)), cy + R * _m.sin(_m.radians(a2)))
+    large = 1 if angle > 180 else 0
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R:.1f}" fill="none" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<path d="M {cx:.1f} {cy:.1f} L {p1[0]:.1f} {p1[1]:.1f} A {R:.1f} {R:.1f} 0 {large} 1 {p2[0]:.1f} {p2[1]:.1f} Z" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="3" fill="#2C3E50"/>')
+    mid_a = _m.radians((a1 + a2) / 2)
+    lx, ly = cx + R * 0.55 * _m.cos(mid_a), cy + R * 0.55 * _m.sin(mid_a)
+    parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{angle:g}°</text>')
+    parts.append(f'<text x="{(cx+p1[0])/2-10:.1f}" y="{(cy+p1[1])/2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">r={r:g}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Sector</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def circle_ring_svg(outer_r=14, inner_r=7, **kw):
+    """Two concentric circles (an annulus/ring) with outer and inner
+    radii labeled -- for ring-area questions (Level 18D)."""
+    w_svg, h_svg = 300, 280
+    scale = min(90 / max(outer_r, 1), 20)
+    R, rr = outer_r * scale, inner_r * scale
+    cx, cy = w_svg / 2, 155
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{R:.1f}" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<circle cx="{cx}" cy="{cy}" r="{rr:.1f}" fill="white" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx+R:.1f}" y2="{cy}" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<text x="{cx+R/2:.1f}" y="{cy-8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">R = {outer_r:g}</text>')
+    parts.append(f'<line x1="{cx}" y1="{cy}" x2="{cx+rr:.1f}" y2="{cy+16:.1f}" stroke="#1E7A44" stroke-width="2"/>')
+    parts.append(f'<text x="{cx+rr/2:.1f}" y="{cy+30:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">r = {inner_r:g}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Ring (Annulus)</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -4174,6 +4217,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "sphere_3d": sphere_3d_svg,
     "hemisphere_3d": hemisphere_3d_svg,
     "composite_mensuration": composite_mensuration_svg,
+    "circle_sector": circle_sector_svg,
+    "circle_ring": circle_ring_svg,
 }
 
 

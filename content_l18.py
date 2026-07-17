@@ -24,8 +24,6 @@ def _L18A_1():
             "Add up the lengths of all the sides.",
             "Rectangle perimeter = 2 × (length + breadth). Square = 4 × side.",
         ], "Rectangle 5 by 3: P = 2 × (5+3) = 16."),
-        q("Using the diagram, find the perimeter of this rectangle.", "diagram", "____", "", "rectangle_dims", {"length": 8, "width": 5}),
-        q("Using the diagram, find the perimeter of this square.", "diagram", "____", "", "square_dims", {"side": 6}),
         q("Square side 5: perimeter = ____", "fill", "Answer = ____"),
         q("Square side 9: perimeter = ____", "fill", "Answer = ____"),
         q("Rectangle 6 by 4: perimeter = ____", "fill", "Answer = ____"),
@@ -142,8 +140,6 @@ def _L18B_1():
             "Rectangle area = length × breadth.",
             "Square area = side × side = side².",
         ], "Rectangle 6 by 4: area = 24 square units."),
-        q("Using the diagram, find the area of this rectangle.", "diagram", "____", "", "rectangle_dims", {"length": 7, "width": 4}),
-        q("Using the diagram, find the area of this square.", "diagram", "____", "", "square_dims", {"side": 8}),
         q("Rectangle 6 by 4: area = ____", "fill", "Answer = ____"),
         q("Rectangle 8 by 5: area = ____", "fill", "Answer = ____"),
         q("Square side 5: area = ____", "fill", "Answer = ____"),
@@ -260,7 +256,6 @@ def _L18C_1():
             "The height is perpendicular to the chosen base.",
             "Any side can be the base, with its matching perpendicular height.",
         ], "Base 6, height 4: area = ½ × 6 × 4 = 12."),
-        q("Using the diagram, find the area of this triangle.", "diagram", "____", "", "triangle_area_diagram", {"base": 8, "height": 5}),
         q("Base 6, height 4: area = ____", "fill", "Answer = ____"),
         q("Base 10, height 8: area = ____", "fill", "Answer = ____"),
         q("Base 5, height 4: area = ____", "fill", "Answer = ____"),
@@ -377,7 +372,6 @@ def _L18D_1():
             "Always use the radius (half the diameter).",
             "Circumference (around) = 2 × pi × radius — don't confuse with area.",
         ], "Radius 7: area = 22/7 × 49 = 154."),
-        q("Using the diagram, find the area of this circle (use pi = 22/7).", "diagram", "____", "", "circle_area_diagram", {"r": 7}),
         q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
         q("Radius 14: area = ____ cm^2", "fill", "Answer = ____"),
         q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
@@ -494,9 +488,6 @@ def _L18E_1():
             "A cuboid: surface area = 2(lb + bh + hl).",
             "Surface area is measured in square units (cm², m²).",
         ], "Cube side 3: SA = 6 × 9 = 54 cm²."),
-        q("Using the diagram, find the surface area of this cube.", "diagram", "____", "", "cube_3d", {"side": 4}),
-        q("Using the diagram, find the surface area of this cuboid.", "diagram", "____", "", "cuboid_3d", {"l": 6, "w": 4, "h": 3}),
-        q("This is the net of a cuboid -- use it to find the total surface area (sum of all 6 faces).", "diagram", "____", "", "cuboid_net", {"l": 6, "w": 4, "h": 3}),
         q("Cube side 3: surface area = ____ cm^2", "fill", "Answer = ____"),
         q("Cube side 5: surface area = ____ cm^2", "fill", "Answer = ____"),
         q("Cube side 7: surface area = ____ cm^2", "fill", "Answer = ____"),
@@ -526,8 +517,6 @@ def _L18E_2():
             "Cuboid volume = length × breadth × height.",
             "Volume is measured in cubic units (cm³, m³).",
         ], "Cube side 4: volume = 64 cm³."),
-        q("Using the diagram, find the volume of this cube.", "diagram", "____", "", "cube_3d", {"side": 5}),
-        q("Using the diagram, find the volume of this cuboid.", "diagram", "____", "", "cuboid_3d", {"l": 5, "w": 4, "h": 3, "title": "Cuboid"}),
         q("Cube side 3: volume = ____ cm^3", "fill", "Answer = ____"),
         q("Cube side 4: volume = ____ cm^3", "fill", "Answer = ____"),
         q("Cube side 5: volume = ____ cm^3", "fill", "Answer = ____"),
@@ -615,8 +604,6 @@ def _L18F_1():
             "Curved surface area (CSA) = 2 × pi × r × height.",
             "Total surface area = 2·pi·r·h + 2·pi·r² = 2·pi·r(h + r).",
         ], "r=7, h=10: volume = 22/7 × 49 × 10 = 1540."),
-        q("Using the diagram, find the volume of this cylinder (use pi = 22/7).", "diagram", "____", "", "cylinder_3d", {"r": 7, "h": 10}),
-        q("Using the diagram, find the curved surface area of this cylinder.", "diagram", "____", "", "cylinder_3d", {"r": 7, "h": 5}),
         q("Cylinder r=7, h=10: volume = ____ cm^3", "fill", "Answer = ____"),
         q("Cylinder r=7, h=20: volume = ____ cm^3", "fill", "Answer = ____"),
         q("Cylinder r=14, h=10: volume = ____ cm^3", "fill", "Answer = ____"),
@@ -646,7 +633,6 @@ def _L18F_2():
             "Slant height l satisfies l² = r² + h² (Pythagoras).",
             "Curved surface area of cone = pi × r × l.",
         ], "r=7, h=24: l=25, CSA = 22/7×7×25 = 550."),
-        q("Using the diagram, find the volume of this cone (use pi = 22/7).", "diagram", "____", "", "cone_3d", {"r": 7, "h": 24}),
         q("Cone r=7, h=3: volume = (1/3)×22/7×49×3 = ____ cm^3", "fill", "Answer = ____"),
         q("Cone r=7, h=6: volume = ____ cm^3", "fill", "Answer = ____"),
         q("Cone r=7, h=24: slant l = √(49+576) = ____", "fill", "Answer = ____"),
@@ -734,7 +720,6 @@ def _L18G_s(sheet):
             "Surface area of sphere = 4 × pi × r².",
             "Hemisphere: curved SA = 2·pi·r²; total SA = 3·pi·r²; volume = (2/3)·pi·r³.",
         ], "Sphere r=7: SA = 4 × 22/7 × 49 = 616."),
-        q("Using the diagram, find the surface area of this sphere (use pi = 22/7).", "diagram", "____", "", "sphere_3d", {"r": 7}),
         q("Sphere r=7: surface area = 4×22/7×49 = ____ cm^2", "fill", "Answer = ____"),
         q("Sphere r=14: surface area = ____ cm^2", "fill", "Answer = ____"),
         q("Sphere r=21: surface area = ____ cm^2", "fill", "Answer = ____"),
@@ -762,7 +747,6 @@ def _L18G_s(sheet):
             "Surface area scales with r²; volume with r³.",
             "Total SA of a solid hemisphere = 3·pi·r² (curved + flat circle).",
         ], "Hemisphere total SA r=7 = 3 × 22/7 × 49 = 462."),
-        q("Using the diagram, find the total surface area of this hemisphere.", "diagram", "____", "", "hemisphere_3d", {"r": 7}),
         q("Hemisphere r=7: total SA = ____ cm^2", "fill", "Answer = ____"),
         q("Hemisphere r=14: total SA = ____ cm^2", "fill", "Answer = ____"),
         q("Sphere r=7: surface area = ____ cm^2", "fill", "Answer = ____"),
@@ -952,7 +936,6 @@ def _L18I_s(sheet):
             "Read the question and choose the right formula.",
             "Watch units: square units for area, cubic for volume.",
         ], "One sheet across every Level 18 skill."),
-        q("Using the diagram, find the area of this composite shape (rectangle + semicircle).", "diagram", "____", "", "composite_mensuration", {"l": 10, "w": 4}),
         q("Square side 6: area = ____", "fill", "Answer = ____"),
         q("Rectangle 8 by 5: perimeter = ____", "fill", "Answer = ____"),
         q("Triangle base 10, height 6: area = ____", "fill", "Answer = ____"),
@@ -1590,9 +1573,239 @@ def _L18REV_s(sheet):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Auto-visualizer: gives EVERY question in Level 18 a matching diagram.
+# Scans each question's text for the shape/numbers it's already using and
+# attaches the correct diagram type + params -- text and answers are
+# untouched, so nothing about the question itself changes, it just gains
+# a picture. Falls back to a representative diagram for the sublevel's
+# shape family on the handful of items with no cleanly-extractable shape
+# (pure vocab / True-False-on-a-fact / "spot the mistake" wording).
+# ═══════════════════════════════════════════════════════════════════════════════
+import re
+import math as _l18_math
+
+
+def _l18_num(s):
+    return float(s) if "." in s else int(s)
+
+
+def _l18_infer_diagram(text):
+    t = text
+    m = re.search(r'[Cc]uboid\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w, h = (_l18_num(x) for x in m.groups())
+        return "cuboid_3d", {"l": l, "w": w, "h": h}
+    m = re.search(r'(?:[Tt]ank|[Bb]ox|[Ww]ater tank)\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w, h = (_l18_num(x) for x in m.groups())
+        return "cuboid_3d", {"l": l, "w": w, "h": h}
+    m = re.search(r'[Cc]ube\s+(?:side|edge|of side)\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "cube_3d", {"side": _l18_num(m.group(1))}
+    m = re.search(r'[Cc]ylinder\s+r\s*=\s*(\d+(?:\.\d+)?)\s*,?\s*h\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        r, h = (_l18_num(x) for x in m.groups())
+        return "cylinder_3d", {"r": r, "h": h}
+    m = re.search(r'[Cc]one\s+r\s*=\s*(\d+(?:\.\d+)?)\s*,?\s*h\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        r, h = (_l18_num(x) for x in m.groups())
+        return "cone_3d", {"r": r, "h": h}
+    m = re.search(r'[Cc]one\s+r\s*=\s*(\d+(?:\.\d+)?)\s*,?\s*l\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        r, l = (_l18_num(x) for x in m.groups())
+        h = round(((l * l - r * r) ** 0.5), 1) if l > r else 6
+        return "cone_3d", {"r": r, "h": h}
+    m = re.search(r'[Hh]emispher\w*(?:\s*bowl)?\s*r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        return "hemisphere_3d", {"r": _l18_num(m.group(1))}
+    m = re.search(r'[Dd]ome[^0-9]*r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        return "hemisphere_3d", {"r": _l18_num(m.group(1))}
+    m = re.search(r'[Ss]phere\s+r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        return "sphere_3d", {"r": _l18_num(m.group(1))}
+    m = re.search(r'[Bb]all(?:s)?\s+radius\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "sphere_3d", {"r": _l18_num(m.group(1))}
+    m = re.search(r'[Rr]ing\s+outer\s+r\s*=\s*(\d+(?:\.\d+)?)\s+inner\s+r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        R, r = (_l18_num(x) for x in m.groups())
+        return "circle_ring", {"outer_r": R, "inner_r": r}
+    m = re.search(r'[Rr]ing\s+road\s+outer\s+r\s*=\s*(\d+(?:\.\d+)?)\s+inner\s+r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        R, r = (_l18_num(x) for x in m.groups())
+        return "circle_ring", {"outer_r": R, "inner_r": r}
+    m = re.search(r'[Ss]ector\s+(\d+(?:\.\d+)?)\D{0,3}\s*radius\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        ang, r = (_l18_num(x) for x in m.groups())
+        return "circle_sector", {"r": r, "angle": ang}
+    m = re.search(r'(?:outer\s+)?[Rr]ectangle\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Rr]oom\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Ww]all\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Ff]loor\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Ff]ield[^0-9]*?(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Pp]ath:?\s*outer rectangle\s+(\d+(?:\.\d+)?)\s*by\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        l, w = (_l18_num(x) for x in m.groups())
+        return "rectangle_dims", {"length": l, "width": w}
+    m = re.search(r'[Bb]ase\s+(\d+(?:\.\d+)?)\s*m?,\s*height\s+(\d+(?:\.\d+)?)\s*m?', t)
+    if m:
+        b, h = (_l18_num(x) for x in m.groups())
+        return "triangle_area_diagram", {"base": b, "height": h}
+    m = re.search(r'Area\s+\d+(?:\.\d+)?,\s*base\s+(\d+(?:\.\d+)?)\s*:\s*height', t)
+    if m:
+        return "triangle_area_diagram", {"base": _l18_num(m.group(1)), "height": 5}
+    m = re.search(r'Area\s+\d+(?:\.\d+)?,\s*height\s+(\d+(?:\.\d+)?)\s*:\s*base', t)
+    if m:
+        return "triangle_area_diagram", {"base": 6, "height": _l18_num(m.group(1))}
+    m = re.search(r'[Hh]exagon\b.*?side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 6}
+    m = re.search(r'[Pp]entagon\b.*?side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 5}
+    m = re.search(r'[Oo]ctagon\b.*?side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 8}
+    m = re.search(r'[Dd]ecagon\b.*?side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 10}
+    m = re.search(r'sides\s+(\d+(?:\.\d+)?),\s*(\d+(?:\.\d+)?),\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        vals = sorted(_l18_num(x) for x in m.groups())
+        a, b, c = vals
+        s = (a + b + c) / 2
+        area_sq = s * (s - a) * (s - b) * (s - c)
+        if area_sq > 0:
+            area = area_sq ** 0.5
+            return "triangle_area_diagram", {"base": c, "height": round(2 * area / c, 1)}
+    m = re.search(r'[Ee]quilateral triangle side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        s = _l18_num(m.group(1))
+        h = round(s * 0.866, 1)
+        return "triangle_area_diagram", {"base": s, "height": h}
+    m = re.search(r'[Tt]riangle sides\s+(\d+(?:\.\d+)?),\s*(\d+(?:\.\d+)?)(?:,\s*(\d+(?:\.\d+)?))?', t)
+    if m:
+        vals = [_l18_num(x) for x in m.groups() if x]
+        if len(vals) == 3:
+            a, b, c = sorted(vals)
+            s = (a + b + c) / 2
+            area_sq = s * (s - a) * (s - b) * (s - c)
+            if area_sq > 0:
+                area = area_sq ** 0.5
+                return "triangle_area_diagram", {"base": c, "height": round(2 * area / c, 1)}
+    m = re.search(r'[Rr]ight triangle legs\s+(\d+(?:\.\d+)?)(?:\s*,|\s+and)\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        a, b = (_l18_num(x) for x in m.groups())
+        return "triangle_area_diagram", {"base": a, "height": b}
+    m = re.search(r'[Bb]ase\s+(\d+(?:\.\d+)?),\s*height\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        b, h = (_l18_num(x) for x in m.groups())
+        return "triangle_area_diagram", {"base": b, "height": h}
+    m = re.search(r'[Hh]exagon side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 6}
+    m = re.search(r'[Pp]entagon side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 5}
+    m = re.search(r'[Oo]ctagon side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 8}
+    m = re.search(r'[Dd]ecagon side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "polygon_angle_sum", {"n": 10}
+    m = re.search(r'[Ss]quare(?:\s+(?:plot|garden))?\s+side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "square_dims", {"side": _l18_num(m.group(1))}
+    m = re.search(r'[Tt]wo squares side\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "square_dims", {"side": _l18_num(m.group(1))}
+    m = re.search(r'[Dd]iameter\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "circle_area_diagram", {"r": round(_l18_num(m.group(1)) / 2, 1)}
+    m = re.search(r'[Rr]adius\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "circle_area_diagram", {"r": _l18_num(m.group(1))}
+    m = re.search(r'[Cc]ircular \w+ radius\s+(\d+(?:\.\d+)?)', t)
+    if m:
+        return "circle_area_diagram", {"r": _l18_num(m.group(1))}
+    m = re.search(r'circle r\s*=\s*(\d+(?:\.\d+)?)', t)
+    if m:
+        return "circle_area_diagram", {"r": _l18_num(m.group(1))}
+    return None
+
+
+_L18_FAMILY_FALLBACK = {
+    "18A": ("rectangle_dims", {"length": 8, "width": 5}),
+    "18B": ("rectangle_dims", {"length": 8, "width": 5}),
+    "18C": ("triangle_area_diagram", {"base": 8, "height": 5}),
+    "18D": ("circle_area_diagram", {"r": 7}),
+    "18E": ("cuboid_3d", {"l": 6, "w": 4, "h": 3}),
+    "18F": ("cylinder_3d", {"r": 7, "h": 10}),
+    "18G": ("sphere_3d", {"r": 7}),
+    "18H": ("cuboid_3d", {"l": 6, "w": 4, "h": 3}),
+    "18I": ("composite_mensuration", {"l": 10, "w": 4}),
+    "18J": ("rectangle_dims", {"length": 8, "width": 5}),
+    "18REV": ("rectangle_dims", {"length": 8, "width": 5}),
+    "18CUM1": ("square_dims", {"side": 6}),
+    "18CUM2": ("cuboid_3d", {"l": 6, "w": 4, "h": 3}),
+    "18CUM3": ("sphere_3d", {"r": 7}),
+}
+
+
+def _l18_fallback(sublevel_code):
+    for key in sorted(_L18_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L18_FAMILY_FALLBACK[key]
+    return ("rectangle_dims", {"length": 8, "width": 5})
+
+
+def _l18_visualize(items, sublevel_code):
+    """Converts every 'fill' question in items into a 'diagram' question,
+    inferring the matching shape+numbers from its own text wherever
+    possible, and using a representative fallback diagram otherwise.
+    Text and answers are never changed."""
+    fb_type, fb_params = _l18_fallback(sublevel_code)
+    out = []
+    for item in items:
+        if item.get("type") == "fill":
+            inferred = _l18_infer_diagram(item["text"])
+            new_item = dict(item)
+            if inferred:
+                new_item["type"] = "diagram"
+                new_item["diagram_type"], new_item["diagram_params"] = inferred
+            else:
+                new_item["type"] = "diagram"
+                new_item["diagram_type"], new_item["diagram_params"] = fb_type, fb_params
+            out.append(new_item)
+        else:
+            out.append(item)
+    return out
+
+
+def _l18_wrap(fn, sublevel_code):
+    return lambda: _l18_visualize(fn(), sublevel_code)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # DISPATCH for Level 18
 # ═══════════════════════════════════════════════════════════════════════════════
-DISPATCH_L18 = {
+_RAW_DISPATCH_L18 = {
     "18A":    {1: _L18A_1, 2: _L18A_2, 3: _L18A_3, 4: _L18A_4},
     "18B":    {1: _L18B_1, 2: _L18B_2, 3: _L18B_3, 4: _L18B_4},
     "18C":    {1: _L18C_1, 2: _L18C_2, 3: _L18C_3, 4: _L18C_4},
@@ -1607,4 +1820,12 @@ DISPATCH_L18 = {
     "18CUM2": {1: lambda: _L18CUM2_s(1), 2: lambda: _L18CUM2_s(2), 3: lambda: _L18CUM2_s(3), 4: lambda: _L18CUM2_s(4)},
     "18CUM3": {1: lambda: _L18CUM3_s(1), 2: lambda: _L18CUM3_s(2), 3: lambda: _L18CUM3_s(3), 4: lambda: _L18CUM3_s(4)},
     "18REV":  {1: lambda: _L18REV_s(1), 2: lambda: _L18REV_s(2), 3: lambda: _L18REV_s(3), 4: lambda: _L18REV_s(4)},
+}
+
+# Every sublevel/sheet function above is wrapped so its output passes through
+# the auto-visualizer -- every single question in Level 18 gets a matching
+# diagram, not just a hand-picked sample per sublevel.
+DISPATCH_L18 = {
+    sub: {sheet: _l18_wrap(fn, sub) for sheet, fn in sheets.items()}
+    for sub, sheets in _RAW_DISPATCH_L18.items()
 }
