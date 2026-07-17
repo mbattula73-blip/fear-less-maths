@@ -16972,6 +16972,161 @@ _DISPATCH = {
     "14REV": {1:lambda:_L14REV_s(1), 2:lambda:_L14REV_s(2), 3:lambda:_L14REV_s(3), 4:lambda:_L14REV_s(4)},
 }
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 9 auto-visualizer: gives every Level 9 (Factors/Multiples/HCF/LCM)
+# question a matching diagram, inferred from its own text/numbers.
+# Mirrors the approach used for Level 18. Text and answers are untouched.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l9_re
+
+
+def _l9_factors_of(n):
+    return sorted(d for d in range(1, n + 1) if n % d == 0)
+
+
+def _l9_infer_diagram(text):
+    t = text
+    m = _l9_re.search(r'Euclidean Algorithm[^0-9]*?HCF\((\d+),\s*(\d+)\)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "euclidean_algorithm", {"a": max(a, b), "b": min(a, b)}
+    m = _l9_re.search(r'HCF\((\d+),\s*(\d+)\)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "hcf"}
+    m = _l9_re.search(r'HCF of (\d+) and (\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "hcf"}
+    m = _l9_re.search(r'LCM\((\d+),\s*(\d+)(?:,\s*\d+)?\)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "lcm"}
+    m = _l9_re.search(r'LCM of (\d+)[,\s]+(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "lcm"}
+    m = _l9_re.search(r'Simplify\s+(\d+)/(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "hcf"}
+    m = _l9_re.search(r'[Rr]atio\s+(\d+):(\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        return "ladder_division", {"a": max(a, b), "b": min(a, b), "mode": "hcf"}
+    m = _l9_re.search(r'[Ii]s \d+ a common factor of (\d+) and (\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        fa, fb = set(_l9_factors_of(a)), set(_l9_factors_of(b))
+        return "venn_two", {"a_only": sorted(fa - fb), "common": sorted(fa & fb), "b_only": sorted(fb - fa), "label_a": str(a), "label_b": str(b)}
+    m = _l9_re.search(r'[Cc]ommon factors of (\d+) and (\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        fa, fb = set(_l9_factors_of(a)), set(_l9_factors_of(b))
+        return "venn_two", {"a_only": sorted(fa - fb), "common": sorted(fa & fb), "b_only": sorted(fb - fa), "label_a": str(a), "label_b": str(b)}
+    m = _l9_re.search(r'[Pp]rime factorisation of (\d+)', t)
+    if m:
+        return "factor_tree", {"n": int(m.group(1))}
+    m = _l9_re.search(r'Sieve of Eratosthenes idea, is (\d+) prime', t)
+    if m:
+        n = int(m.group(1))
+        return ("hundred_grid_highlight", {"highlight": [n]}) if n <= 100 else ("factor_rainbow", {"n": min(n, 60)})
+    m = _l9_re.search(r'[Ll]ist all prime numbers between (\d+) and (\d+)', t)
+    if m:
+        lo, hi = int(m.group(1)), int(m.group(2))
+        if hi <= 100:
+            return "hundred_grid_highlight", {"highlight": [k for k in range(lo, hi + 1) if _l9_is_prime(k)]}
+        return "factor_rainbow", {"n": 24}
+    m = _l9_re.search(r'[Ii]s (\d+) part of a twin prime pair', t)
+    if m:
+        n = int(m.group(1))
+        cands = [x for x in (n - 2, n, n + 2) if 1 <= x <= 100]
+        return ("hundred_grid_highlight", {"highlight": cands}) if cands else ("factor_rainbow", {"n": 24})
+    m = _l9_re.search(r'[Vv]erify that (\d+) is a perfect number', t)
+    if m:
+        n = int(m.group(1))
+        return ("factor_rainbow", {"n": n}) if n <= 60 else ("hundred_grid_highlight", {"highlight": _l9_factors_of(n)})
+    m = _l9_re.search(r'^(?:True or False|Complete|Spot)[:\s]*[a-zA-Z]*\s*(\d+)\s*=', t)
+    if m:
+        return "factor_tree", {"n": int(m.group(1))}
+    m = _l9_re.search(r'[Mm]ultiples of (\d+)', t)
+    if m:
+        return "multiples_number_line", {"n": int(m.group(1)), "count": 8}
+    m = _l9_re.search(r'multiple of (\d+)', t)
+    if m:
+        return "multiples_number_line", {"n": int(m.group(1)), "count": 8}
+    m = _l9_re.search(r'[Ii]s (\d+) a factor of (\d+)', t)
+    if m:
+        a, b = int(m.group(1)), int(m.group(2))
+        if b % a == 0:
+            return "factor_array", {"n": b, "rows": a, "cols": b // a}
+        return ("factor_rainbow", {"n": b}) if b <= 60 else ("hundred_grid_highlight", {"highlight": _l9_factors_of(b)})
+    m = _l9_re.search(r'factor pairs of (\d+)', t)
+    if m:
+        n = int(m.group(1))
+        return ("factor_rainbow", {"n": n}) if n <= 60 else ("hundred_grid_highlight", {"highlight": _l9_factors_of(n)})
+    m = _l9_re.search(r'factors does (\d+) have', t)
+    if m:
+        n = int(m.group(1))
+        return ("factor_rainbow", {"n": n}) if n <= 60 else ("hundred_grid_highlight", {"highlight": _l9_factors_of(n)})
+    m = _l9_re.search(r'factors? of (\d+)', t)
+    if m:
+        n = int(m.group(1))
+        return ("factor_rainbow", {"n": n}) if n <= 60 else ("hundred_grid_highlight", {"highlight": _l9_factors_of(n)})
+    return None
+
+
+_L9_FAMILY_FALLBACK = {
+    "9A": ("factor_rainbow", {"n": 12}),
+    "9B": ("multiples_number_line", {"n": 6, "count": 8}),
+    "9C": ("factor_tree", {"n": 60}),
+    "9CUM1": ("factor_tree", {"n": 60}),
+    "9D": ("ladder_division", {"a": 24, "b": 36, "mode": "hcf"}),
+    "9E": ("ladder_division", {"a": 8, "b": 12, "mode": "lcm"}),
+    "9F": ("ladder_division", {"a": 24, "b": 36, "mode": "hcf"}),
+    "9CUM2": ("venn_two", {"a_only": [2], "common": [2, 3], "b_only": [3], "label_a": "24", "label_b": "36"}),
+    "9G": ("ladder_division", {"a": 12, "b": 18, "mode": "hcf"}),
+    "9H": ("euclidean_algorithm", {"a": 252, "b": 105}),
+    "9I": ("factor_rainbow", {"n": 24}),
+    "9J": ("ladder_division", {"a": 24, "b": 36, "mode": "hcf"}),
+    "9REV": ("factor_rainbow", {"n": 24}),
+}
+
+
+def _l9_fallback(sublevel_code):
+    for key in sorted(_L9_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L9_FAMILY_FALLBACK[key]
+    return ("factor_rainbow", {"n": 12})
+
+
+def _l9_visualize(items, sublevel_code):
+    fb_type, fb_params = _l9_fallback(sublevel_code)
+    out = []
+    for item in items:
+        if item.get("type") in ("fill", "word"):
+            inferred = _l9_infer_diagram(item["text"])
+            new_item = dict(item)
+            if inferred:
+                new_item["type"] = "diagram"
+                new_item["diagram_type"], new_item["diagram_params"] = inferred
+            else:
+                new_item["type"] = "diagram"
+                new_item["diagram_type"], new_item["diagram_params"] = fb_type, fb_params
+            out.append(new_item)
+        else:
+            out.append(item)
+    return out
+
+
+def _l9_wrap(fn, sublevel_code):
+    return lambda: _l9_visualize(fn(), sublevel_code)
+
+
+for _l9_key in list(_DISPATCH.keys()):
+    if _l9_key == "9" or _l9_key.startswith("9") and not _l9_key[1:2].isdigit():
+        _DISPATCH[_l9_key] = {sheet: _l9_wrap(fn, _l9_key) for sheet, fn in _DISPATCH[_l9_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [
