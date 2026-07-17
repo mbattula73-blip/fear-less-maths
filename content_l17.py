@@ -1,1618 +1,535 @@
 """
-Fear Less Maths — Question Content: Level 17 (Circles)
-Every question hand-written. No placeholders.
-Sheet 1=Intuition, Sheet 2=Concept, Sheet 3=Practice (tips box), Sheet 4=Mastery
-Convention: pi = 22/7 unless stated; circumference = 2*pi*r; area = pi*r^2.
-
-Sublevels:
-  17A Circle basics       17B Radius / diameter    17C Chords
-  17CUM1 Mixed A+B+C       17D Tangents             17E Circle theorems
-  17F Angle in circle      17CUM2 Mixed D+E+F       17G Applications
-  17H Mixed               17I Puzzle problems       17CUM3 Mixed G+H+I
-  17J Mixed challenge      17REV Level 17 Revision
+Fear Less Maths — Question Content: Level 17 (Quadrilaterals, Circles & Polygons)
+Continues the plane-geometry flow from Level 16: Quadrilaterals -> Circles -> Polygons.
 """
 from content import cb, tb, q
+import random
+
+_QUAD_PROPS = {
+    "parallelogram": "opposite sides parallel and equal, opposite angles equal, diagonals bisect each other",
+    "rectangle": "a parallelogram with all four angles = 90 degrees; diagonals are equal AND bisect each other",
+    "rhombus": "a parallelogram with all four sides equal; diagonals bisect each other at right angles",
+    "square": "a rectangle AND a rhombus -- all sides equal, all angles 90 degrees, diagonals equal, perpendicular, and bisecting",
+    "trapezium": "exactly one pair of parallel sides -- the other two sides are not parallel or equal",
+    "kite": "two pairs of adjacent (not opposite) sides equal; diagonals meet at right angles",
+}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 17A — Circle basics
+# 17A — Quadrilaterals: Types & Properties
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L17A_1():
-    return [
+def _L17A_s(sheet):
+    random.seed(1740 + sheet)
+    items = [
+        cb("Types of Quadrilaterals", [
+            "Parallelogram: opposite sides parallel & equal, opposite angles equal.",
+            "Rectangle: a parallelogram with all angles 90 degrees.",
+            "Rhombus: a parallelogram with all sides equal. Square: both rectangle AND rhombus.",
+            "Trapezium: exactly ONE pair of parallel sides.",
+            "Kite: two pairs of ADJACENT (not opposite) equal sides.",
+        ], "A square is always a rhombus and a rectangle -- but a rhombus isn't always a square."),
+    ]
+    kinds = list(_QUAD_PROPS.keys())
+    for _ in range(5):
+        kind = random.choice(kinds)
+        items.append(q(f"Identify this quadrilateral from its marked sides and angles.", "diagram", "____", "", "quadrilateral_types", {"kind": kind}))
+    for _ in range(4):
+        kind = random.choice(kinds)
+        items.append(q(f"Name the quadrilateral that has: {_QUAD_PROPS[kind]}.", "fill", "Answer = ____"))
+    for _ in range(4):
+        items.append(q("Is every square a rhombus? Is every rhombus a square? Explain.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("What is the key difference between a parallelogram and a trapezium?", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("A kite has equal ADJACENT sides. Does a parallelogram also have this property, or does it have equal OPPOSITE sides?", "fill", "Answer = ____"))
+    for _ in range(2):
+        kind = random.choice(kinds)
+        shown = kind if random.random() > 0.4 else random.choice(kinds)
+        items.append(q(f"True or False: A shape with {_QUAD_PROPS[kind]} is called a {shown}.", "fill", "Answer = ____"))
+    return items
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17B — Quadrilaterals: Angle Sum, Diagonals & Converse Conditions
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L17B_s(sheet):
+    random.seed(1750 + sheet)
+    ranges = {1: (40, 100), 2: (30, 120), 3: (20, 140), 4: (10, 150)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Angle Sum of a Quadrilateral", [
+            "The four angles of ANY quadrilateral always add up to 360 degrees.",
+            "Given three angles, the fourth = 360 minus the sum of the other three.",
+        ], "Angles 90,90,90: fourth = 360-270 = 90 (it's a rectangle)."),
+        cb("Diagonals & Converse Conditions", [
+            "Parallelogram family: diagonals BISECT each other (cut each other in half).",
+            "Rectangle/square: diagonals are also EQUAL in length. Rhombus/square: diagonals are PERPENDICULAR.",
+            "CONVERSE: if a quadrilateral's diagonals bisect each other, IT MUST BE a parallelogram.",
+        ], "If diagonals bisect each other AND are equal, the shape is a rectangle."),
+    ]
+    for _ in range(5):
+        kind = random.choice(list(_QUAD_PROPS.keys()))
+        items.append(q("The diagonals are shown. Based on where they cross, what can you say about this shape?", "diagram", "____", "", "quadrilateral_diagonals", {"kind": kind}))
+    for _ in range(5):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        c = random.randint(lo, hi)
+        while a + b + c >= 355: c = random.randint(lo, hi)
+        items.append(q(f"A quadrilateral has angles {a}°, {b}°, {c}°. Find the fourth angle.", "fill", "Answer = ____"))
+    for _ in range(4):
+        items.append(q("If a quadrilateral's diagonals bisect each other, what type of quadrilateral MUST it be (the converse condition)?", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("A parallelogram's diagonals are found to be EQUAL in length. What extra property does this tell you the shape has (beyond being a parallelogram)?", "fill", "Answer = ____"))
+    for _ in range(3):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        c = random.randint(lo, hi)
+        while a + b + c >= 355: c = random.randint(lo, hi)
+        correct = 360 - a - b - c
+        shown = correct if random.random() > 0.4 else correct + 10
+        items.append(q(f"True or False: Angles {a}°, {b}°, {c}°, and {shown}° sum to 360°.", "fill", "Answer = ____"))
+    return items
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17C — Circle Basics & Radius/Diameter
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L17C_s(sheet):
+    random.seed(1760 + sheet)
+    ranges = {1: (3, 20), 2: (3, 30), 3: (4, 45), 4: (5, 60)}
+    lo, hi = ranges[sheet]
+    items = [
         cb("Parts of a Circle", [
             "Centre: the fixed middle point. Radius: centre to any point on the circle.",
-            "Diameter: a chord through the centre = 2 × radius.",
-            "Circumference: the distance all the way around the circle.",
-        ], "If radius = 5 cm, diameter = 10 cm."),
-        cb("More Parts", [
-            "Chord: a line joining two points on the circle.",
-            "Arc: a part of the circle's edge. Sector: a 'pizza slice' region.",
-            "Segment: region between a chord and its arc.",
-        ], "The diameter is the longest chord of a circle."),
-        q("The fixed middle point of a circle is the ____", "fill", "Answer = ____"),
-        q("A line from the centre to the edge is the ____", "fill", "Answer = ____"),
-        q("A chord passing through the centre is the ____", "fill", "Answer = ____"),
-        q("Diameter = 2 × ____", "fill", "Answer = ____"),
-        q("The distance around a circle is its ____", "fill", "Answer = ____"),
-        q("A line joining two points on the circle is a ____", "fill", "Answer = ____"),
-        q("The longest chord of a circle is the ____", "fill", "Answer = ____"),
-        q("A 'pizza slice' region of a circle is a ____", "fill", "Answer = ____"),
-        q("A part of the circle's edge is an ____", "fill", "Answer = ____"),
-        q("Radius 6 cm → diameter = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 14 cm → radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 9 cm → diameter = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 20 cm → radius = ____ cm", "fill", "Answer = ____"),
-        q("The region between a chord and its arc is a ____", "fill", "Answer = ____"),
-        q("How many radii fit along one diameter? ____", "fill", "Answer = ____"),
-        q("True or False: Diameter = 2 × radius.", "fill", "Answer = ____"),
-        q("True or False: The diameter is the longest chord.", "fill", "Answer = ____"),
-        q("True or False: A radius joins two points on the circle.", "fill", "Answer = ____"),
-        q("Spot: Radius 6 gives diameter 6. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: A sector is shaped like a pizza slice.", "fill", "Answer = ____"),
+            "Diameter: a chord through the centre = 2 x radius (the LONGEST chord).",
+            "Circumference: the distance all the way around. Chord: joins two points on the circle.",
+            "Arc: part of the edge. Sector: a 'pizza slice'. Segment: region between a chord and its arc.",
+        ], "Radius 5cm -> diameter 10cm. The diameter is always the longest possible chord."),
     ]
-
-def _L17A_2():
-    return [
-        cb("Circumference", [
-            "Circumference C = 2 × pi × radius = pi × diameter.",
-            "Use pi = 22/7 for clean answers with multiples of 7.",
-            "Circumference grows in direct proportion to the radius.",
-        ], "Radius 7: C = 2 × 22/7 × 7 = 44 cm."),
-        q("Radius 7 cm, C = 2×22/7×7 = ____ cm", "fill", "Answer = ____"),
-        q("Radius 14 cm, C = 2×22/7×14 = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 7 cm, C = 22/7×7 = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 14 cm, C = 22/7×14 = ____ cm", "fill", "Answer = ____"),
-        q("Radius 21 cm, C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 3.5 cm, C = 2×22/7×3.5 = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 28 cm, C = ____ cm", "fill", "Answer = ____"),
-        q("C = pi × ____ (which length?)", "fill", "Answer = ____"),
-        q("Radius 35 cm, C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 44 cm, diameter = 44 ÷ (22/7) = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 88 cm, diameter = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7 m, C = ____ m", "fill", "Answer = ____"),
-        q("Diameter 21 cm, C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 10.5 cm, C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 66 cm, radius = ____ cm", "fill", "Answer = ____"),
-        q("True or False: C = pi × diameter.", "fill", "Answer = ____"),
-        q("True or False: Radius 7 gives C = 44 cm.", "fill", "Answer = ____"),
-        q("True or False: Diameter 14 gives C = 44 cm.", "fill", "Answer = ____"),
-        q("Spot: Radius 14 gives C = 44. Correct? Fix (88). ____", "fill", "Answer = ____"),
-        q("True or False: Circumference 44 means diameter 14.", "fill", "Answer = ____"),
-    ]
-
-def _L17A_3():
-    return [
-        tb("Circle Basics — Tips", [
-            "Diameter = 2 × radius; radius = diameter ÷ 2.",
-            "Circumference C = 2·pi·r = pi·d.",
-            "Use pi = 22/7 when radius/diameter is a multiple of 7.",
-            "Diameter is the longest chord; it passes through the centre.",
-        ]),
-        q("Radius 7 cm: diameter = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 18 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 14 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 7 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 21 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 44 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 28 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 3.5 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Longest chord of a circle is the ____", "fill", "Answer = ____"),
-        q("Radius 35 cm: diameter = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 88 cm: diameter = ____ cm", "fill", "Answer = ____"),
-        q("Radius 10.5 cm: diameter = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 21 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("A sector is bounded by two radii and an ____", "fill", "Answer = ____"),
-        q("True or False: Radius 21 gives C = 132 cm.", "fill", "Answer = ____"),
-        q("True or False: Diameter 18 gives radius 9.", "fill", "Answer = ____"),
-        q("True or False: Circumference 44 gives radius 7.", "fill", "Answer = ____"),
-        q("Spot: Diameter 7 gives C = 14. Correct? Fix (22). ____", "fill", "Answer = ____"),
-        q("True or False: Diameter is the longest chord.", "fill", "Answer = ____"),
-    ]
-
-def _L17A_4():
-    return [
-        q("Radius 42 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 49 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 132 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 154 cm: diameter = 154 ÷ (22/7) = ____ cm", "fill", "Answer = ____"),
-        q("A wheel radius 35 cm: distance in 1 turn = C = ____ cm", "fill", "Answer = ____"),
-        q("Radius 70 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 56 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 220 cm: diameter = ____ cm", "fill", "Answer = ____"),
-        q("Radius doubles from 7 to 14: C goes from 44 to ____ cm", "fill", "Answer = ____"),
-        q("A circular track radius 21 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Diameter 35 cm: C = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 110 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 1.4 m: C = ____ m", "fill", "Answer = ____"),
-        q("A wheel diameter 70 cm rolls 1 turn: distance = ____ cm", "fill", "Answer = ____"),
-        q("Two circles radius 7 and 14: ratio of circumferences = ____", "fill", "Answer = ____"),
-        q("True or False: Radius 42 gives C = 264 cm.", "fill", "Answer = ____"),
-        q("True or False: Circumference 154 gives diameter 49.", "fill", "Answer = ____"),
-        q("True or False: A 21 m radius track is 132 m per lap.", "fill", "Answer = ____"),
-        q("Spot: Diameter 56 gives C = 88. Correct? Fix (176). ____", "fill", "Answer = ____"),
-        q("True or False: Doubling radius doubles the circumference.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        r = random.randint(lo, hi)
+        items.append(q(f"Radius = {r} cm. Find the diameter.", "fill", "Answer = ____"))
+    for _ in range(5):
+        d = random.randint(lo, hi) * 2
+        items.append(q(f"Diameter = {d} cm. Find the radius.", "fill", "Answer = ____"))
+    for _ in range(4):
+        term = random.choice(["centre", "radius", "diameter", "circumference", "chord", "arc", "sector", "segment"])
+        prompts = {
+            "centre": "What is the fixed middle point of a circle called?",
+            "radius": "What do you call the distance from the centre to any point on the circle?",
+            "diameter": "What do you call a chord that passes through the centre?",
+            "circumference": "What is the distance all the way around a circle called?",
+            "chord": "What do you call a line segment joining two points on the circle?",
+            "arc": "What is a part of the circle's edge called?",
+            "sector": "What do you call the 'pizza slice' region bounded by two radii and an arc?",
+            "segment": "What do you call the region between a chord and its arc?",
+        }
+        items.append(q(prompts[term], "fill", "Answer = ____"))
+    for _ in range(3):
+        r = random.randint(lo, hi)
+        shown = r * 2 if random.random() > 0.4 else r * 2 + 2
+        items.append(q(f"True or False: Radius {r} cm gives diameter {shown} cm.", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("True or False: The diameter is the longest possible chord of a circle.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 17B — Radius / diameter (and area)
+# 17CUM1 — Chords
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L17B_1():
-    return [
-        cb("Area of a Circle", [
-            "Area A = pi × radius² (pi × r × r).",
-            "Always use the RADIUS, not the diameter, in the area formula.",
-            "Use pi = 22/7 for clean results with radii that are multiples of 7.",
-        ], "Radius 7: A = 22/7 × 7 × 7 = 154 cm²."),
-        q("Radius 7 cm: A = 22/7×7×7 = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 14 cm: A = 22/7×14×14 = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 21 cm: A = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 3.5 cm: A = 22/7×3.5×3.5 = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 14 cm → radius 7 → A = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 28 cm → radius 14 → A = ____ cm^2", "fill", "Answer = ____"),
-        q("Area uses radius or diameter? ____", "fill", "Answer = ____"),
-        q("A = pi × ____", "fill", "Answer = ____"),
-        q("Radius 10.5 cm: A = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 7 m: A = ____ m^2", "fill", "Answer = ____"),
-        q("Radius 35 cm: A = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 7 cm → radius 3.5 → A = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 1 cm: A = 22/7 ≈ ____ (leave as 22/7)", "fill", "Answer = ____"),
-        q("Radius 2 cm: A = 22/7×4 = ____ cm^2 (as fraction 88/7)", "fill", "Answer = ____"),
-        q("Radius 28 cm: A = ____ cm^2", "fill", "Answer = ____"),
-        q("True or False: Area uses the radius, not the diameter.", "fill", "Answer = ____"),
-        q("True or False: Radius 7 gives area 154 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Radius 14 gives area 616 cm^2.", "fill", "Answer = ____"),
-        q("Spot: Radius 21 gives area 462. Correct? Fix (1386). ____", "fill", "Answer = ____"),
-        q("True or False: A = pi r^2.", "fill", "Answer = ____"),
+def _L17CUM1_s(sheet):
+    random.seed(1770 + sheet)
+    ranges = {1: (3, 8), 2: (4, 10), 3: (5, 13), 4: (6, 16)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Chords of a Circle", [
+            "A PERPENDICULAR from the centre to a chord BISECTS the chord (cuts it exactly in half).",
+            "EQUAL chords are the SAME distance from the centre (and vice versa -- the converse holds too).",
+            "The radius, half-chord, and distance-to-centre form a right triangle -- use Pythagoras.",
+        ], "Chord 8, radius 5: half-chord=4, distance to centre = sqrt(25-16)=3."),
     ]
-
-def _L17B_2():
-    return [
-        cb("Working Backwards", [
-            "Given area, find r: r² = A ÷ pi, then take the square root.",
-            "Given circumference, find r: r = C ÷ (2·pi).",
-            "Doubling the radius makes the area 4 times bigger.",
-        ], "Area 154: r² = 154 ÷ (22/7) = 49, so r = 7."),
-        q("Area 154 cm^2: r^2 = 154÷(22/7) = ____", "fill", "Answer = ____"),
-        q("Area 154 cm^2: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 616 cm^2: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 1386 cm^2: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 44 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 88 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius doubles 7→14: area 154 becomes ____ cm^2", "fill", "Answer = ____"),
-        q("Area 38.5 cm^2 (r=3.5): radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 346.5 cm^2 (r=10.5): radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 132 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 3850 cm^2 (r=35): radius = ____ cm", "fill", "Answer = ____"),
-        q("Given radius 7: which is bigger, area (154) or circumference (44)? ____", "fill", "Answer = ____"),
-        q("Area 2464 cm^2 (r=28): radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 220 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("If radius triples, area multiplies by ____", "fill", "Answer = ____"),
-        q("True or False: Area 154 gives radius 7.", "fill", "Answer = ____"),
-        q("True or False: Circumference 88 gives radius 14.", "fill", "Answer = ____"),
-        q("True or False: Doubling radius makes area 4×.", "fill", "Answer = ____"),
-        q("Spot: Area 616 gives radius 7. Correct? Fix (14). ____", "fill", "Answer = ____"),
-        q("True or False: Tripling radius makes area 9×.", "fill", "Answer = ____"),
-    ]
-
-def _L17B_3():
-    return [
-        tb("Area & Radius — Tips", [
-            "Area A = pi·r²; always use the radius.",
-            "From area: r = √(A ÷ pi). From circumference: r = C ÷ (2·pi).",
-            "Area scales with r²: double r → 4× area; triple r → 9× area.",
-            "pi = 22/7 keeps numbers clean for multiples of 7.",
-        ]),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 154: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 616: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 44: radius = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 28 → area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 3.5: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Double radius 7→14: area 154 → ____ cm^2", "fill", "Answer = ____"),
-        q("Circumference 132: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 10.5: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 1386: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Triple radius: area becomes ____ times", "fill", "Answer = ____"),
-        q("True or False: Radius 21 gives area 1386 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Area 616 gives radius 14.", "fill", "Answer = ____"),
-        q("True or False: Diameter 28 gives area 616 cm^2.", "fill", "Answer = ____"),
-        q("Spot: Radius 35 gives area 3850. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Doubling the radius makes area 4 times bigger.", "fill", "Answer = ____"),
-    ]
-
-def _L17B_4():
-    return [
-        q("Radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 56 → radius 28 → area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 5544 cm^2 (r=42): radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 264 cm: radius = ____ cm", "fill", "Answer = ____"),
-        q("Radius 70: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area of a circle radius 7 minus radius 3.5: 154 - 38.5 = ____ cm^2", "fill", "Answer = ____"),
-        q("Ring: outer r=14, inner r=7, area = 616 - 154 = ____ cm^2", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = half of 616 = ____ cm^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 14: area = 616÷4 = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Two circles r=7 and r=14: ratio of areas = ____", "fill", "Answer = ____"),
-        q("Area 9856 cm^2 (r=56): radius = ____ cm", "fill", "Answer = ____"),
-        q("Semicircle radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Ring outer r=21, inner r=14: area = 1386 - 616 = ____ cm^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("True or False: Radius 42 gives area 5544 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Semicircle radius 14 has area 308 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Ring outer 14 inner 7 has area 462 cm^2.", "fill", "Answer = ____"),
-        q("Spot: Quarter circle radius 14 area = 308. Correct? Fix (154). ____", "fill", "Answer = ____"),
-        q("True or False: Circles r=7 and r=14 have area ratio 1:4.", "fill", "Answer = ____"),
-    ]
-
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
+    for _ in range(5):
+        a, b, c = random.choice(triples)
+        k = random.randint(1, 2)
+        items.append(q(f"A chord of length {2*a*k} is at distance {b*k} from the centre. Find the radius.", "fill", "Answer = ____"))
+    for _ in range(5):
+        a, b, c = random.choice(triples)
+        k = random.randint(1, 2)
+        items.append(q(f"Radius {c*k}, chord distance from centre {b*k}. Find the chord's length (twice the half-chord).", "fill", "Answer = ____"))
+    for _ in range(4):
+        d = random.randint(lo, hi)
+        items.append(q(f"Two chords are both {d} cm from the centre. What can you conclude about their lengths?", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("A perpendicular is drawn from the centre to a chord. What happens to the chord (in terms of the two pieces it's split into)?", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b, c = random.choice(triples)
+        shown = 2 * a if random.random() > 0.4 else 2 * a + 2
+        items.append(q(f"True or False: Radius {c}, distance to centre {b}. Chord length = {shown}.", "fill", "Answer = ____"))
+    return items
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 17C — Chords
+# 17D — Tangents to a Circle
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L17C_1():
-    return [
-        cb("Chord Properties", [
-            "A chord joins two points on a circle; the diameter is the longest chord.",
-            "The perpendicular from the centre to a chord BISECTS the chord.",
-            "Equal chords are the same distance from the centre.",
-        ], "If the perpendicular hits a 16 cm chord, each half is 8 cm."),
-        cb("Radius, Chord and Distance", [
-            "Half-chord, distance from centre, and radius form a right triangle.",
-            "So (half-chord)² + (distance)² = radius².",
-            "This lets you find any one from the other two (Pythagoras).",
-        ], "Chord 16, radius 10: half = 8, distance = √(100-64) = 6."),
-        q("The longest chord of a circle is the ____", "fill", "Answer = ____"),
-        q("The perpendicular from the centre to a chord ____ it.", "fill", "Answer = ____"),
-        q("Chord 16 cm: each half = ____ cm", "fill", "Answer = ____"),
-        q("Chord 24 cm: each half = ____ cm", "fill", "Answer = ____"),
-        q("Half-chord 8, distance 6: radius = √(64+36) = ____", "fill", "Answer = ____"),
-        q("Half-chord 6, distance 8: radius = ____", "fill", "Answer = ____"),
-        q("Radius 10, distance 6: half-chord = √(100-36) = ____", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: half-chord = ____", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: full chord = ____", "fill", "Answer = ____"),
-        q("Equal chords are ____ distance from the centre.", "fill", "Answer = ____"),
-        q("Chord 30 cm: each half = ____ cm", "fill", "Answer = ____"),
-        q("Radius 5, half-chord 3: distance = √(25-9) = ____", "fill", "Answer = ____"),
-        q("Radius 5, half-chord 4: distance = ____", "fill", "Answer = ____"),
-        q("Half-chord 5, distance 12: radius = ____", "fill", "Answer = ____"),
-        q("A diameter divides the circle into two ____", "fill", "Answer = ____"),
-        q("True or False: The diameter is the longest chord.", "fill", "Answer = ____"),
-        q("True or False: Chord 16 has half 8.", "fill", "Answer = ____"),
-        q("True or False: Radius 13, distance 5 gives half-chord 12.", "fill", "Answer = ____"),
-        q("Spot: Radius 10, distance 6 gives half-chord 7. Correct? Fix (8). ____", "fill", "Answer = ____"),
-        q("True or False: Equal chords are equidistant from the centre.", "fill", "Answer = ____"),
-    ]
-
-def _L17C_2():
-    return [
-        cb("Solving Chord Problems", [
-            "Draw the radius to a chord's endpoint and the perpendicular to its midpoint.",
-            "Use (half-chord)² + (distance)² = radius².",
-            "Full chord = 2 × half-chord.",
-        ], "Radius 17, distance 8: half = √(289-64)=15, chord = 30."),
-        q("Radius 17, distance 8: half-chord = ____", "fill", "Answer = ____"),
-        q("Radius 17, distance 8: full chord = ____", "fill", "Answer = ____"),
-        q("Radius 25, distance 7: half-chord = ____", "fill", "Answer = ____"),
-        q("Radius 25, distance 7: full chord = ____", "fill", "Answer = ____"),
-        q("Radius 10, chord 12: distance from centre = ____", "fill", "Answer = ____"),
-        q("Radius 13, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Radius 15, chord 18: distance = ____", "fill", "Answer = ____"),
-        q("Radius 5, chord 8: distance = ____", "fill", "Answer = ____"),
-        q("Half-chord 9, distance 12: radius = ____", "fill", "Answer = ____"),
-        q("Half-chord 7, distance 24: radius = ____", "fill", "Answer = ____"),
-        q("Chord 16, distance 15: radius = ____", "fill", "Answer = ____"),
-        q("Chord 40, distance 9: radius = ____", "fill", "Answer = ____"),
-        q("Radius 26, chord 48: distance = ____", "fill", "Answer = ____"),
-        q("Radius 41, distance 9: full chord = ____", "fill", "Answer = ____"),
-        q("Radius 20, chord 32: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Radius 17, distance 8 gives chord 30.", "fill", "Answer = ____"),
-        q("True or False: Radius 13, chord 24 gives distance 5.", "fill", "Answer = ____"),
-        q("True or False: Half-chord 9, distance 12 gives radius 15.", "fill", "Answer = ____"),
-        q("Spot: Radius 25, distance 7 gives half-chord 23. Correct? Fix (24). ____", "fill", "Answer = ____"),
-        q("True or False: Radius 26, chord 48 gives distance 10.", "fill", "Answer = ____"),
-    ]
-
-def _L17C_3():
-    return [
-        tb("Chords — Tips", [
-            "Perpendicular from centre bisects the chord.",
-            "(half-chord)² + (distance)² = radius².",
-            "Full chord = 2 × half-chord.",
-            "Equal chords ⇒ equal distance from centre (and vice versa).",
-        ]),
-        q("Chord 16: half = ____", "fill", "Answer = ____"),
-        q("Radius 10, distance 6: chord = ____", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Radius 25, chord 14: distance = ____", "fill", "Answer = ____"),
-        q("Half-chord 8, distance 15: radius = ____", "fill", "Answer = ____"),
-        q("Radius 5, distance 4: chord = ____", "fill", "Answer = ____"),
-        q("Radius 15, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Radius 29, distance 20: chord = ____", "fill", "Answer = ____"),
-        q("Chord 24, distance 10: radius = ____", "fill", "Answer = ____"),
-        q("Radius 37, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Half-chord 20, distance 21: radius = ____", "fill", "Answer = ____"),
-        q("Radius 10, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Radius 41, distance 40: chord = ____", "fill", "Answer = ____"),
-        q("Two equal chords: are their distances from the centre equal? ____", "fill", "Answer = ____"),
-        q("True or False: Radius 10, distance 6 gives chord 16.", "fill", "Answer = ____"),
-        q("True or False: Radius 25, chord 14 gives distance 24.", "fill", "Answer = ____"),
-        q("True or False: Half-chord 8, distance 15 gives radius 17.", "fill", "Answer = ____"),
-        q("Spot: Radius 13, distance 5 gives chord 12. Correct? Fix (24). ____", "fill", "Answer = ____"),
-        q("True or False: Radius 29, distance 20 gives chord 42.", "fill", "Answer = ____"),
-    ]
-
-def _L17C_4():
-    return [
-        q("Radius 25, distance 24: chord = ____", "fill", "Answer = ____"),
-        q("Radius 61, chord 22: distance = ____", "fill", "Answer = ____"),
-        q("Radius 53, distance 28: chord = ____", "fill", "Answer = ____"),
-        q("Chord 80, distance 18: radius = ____", "fill", "Answer = ____"),
-        q("Two parallel chords of radius-13 circle, 24 and 10, on same side: distance between them = (5)-(12)... |12-5| = ____", "fill", "Answer = ____"),
-        q("Radius 13, chord 10: distance = ____", "fill", "Answer = ____"),
-        q("Radius 13, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Two parallel chords 24 and 10 (radius 13), opposite sides: distance apart = 5+12 = ____", "fill", "Answer = ____"),
-        q("Radius 15, distance 9: chord = ____", "fill", "Answer = ____"),
-        q("Radius 17, chord 30: distance = ____", "fill", "Answer = ____"),
-        q("Chord 48, distance 14: radius = ____", "fill", "Answer = ____"),
-        q("Radius 25, two chords 48 and 14: distances 7 and 24, apart (opp) = ____", "fill", "Answer = ____"),
-        q("Radius 10, chord 12: distance = ____", "fill", "Answer = ____"),
-        q("Radius 50, distance 14: chord = ____", "fill", "Answer = ____"),
-        q("Radius 85, chord 126: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Radius 25, distance 24 gives chord 14.", "fill", "Answer = ____"),
-        q("True or False: Two chords 24,10 in radius-13 circle (opposite sides) are 17 apart.", "fill", "Answer = ____"),
-        q("True or False: Radius 53, distance 28 gives chord 90.", "fill", "Answer = ____"),
-        q("Spot: Chord 80, distance 18 gives radius 40. Correct? Fix (41). ____", "fill", "Answer = ____"),
-        q("True or False: Radius 17, chord 30 gives distance 8.", "fill", "Answer = ____"),
-    ]
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# 17D — Tangents
-# ═══════════════════════════════════════════════════════════════════════════════
-def _L17D_1():
-    return [
+def _L17D_s(sheet):
+    random.seed(1780 + sheet)
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (9, 12, 15)]
+    items = [
         cb("Tangent to a Circle", [
             "A tangent touches the circle at exactly ONE point.",
-            "The tangent is perpendicular (90°) to the radius at that point.",
-            "So the radius, tangent and a line to the centre form a right angle.",
-        ], "Radius ⟂ tangent → use Pythagoras on the triangle."),
-        cb("Tangent Length from a Point", [
-            "From an external point, two tangents to a circle are EQUAL in length.",
-            "Tangent length = √(distance to centre² − radius²).",
-            "The tangent, radius and centre-line make a right triangle.",
-        ], "Distance 13, radius 5: tangent = √(169-25)=12."),
-        q("A tangent touches a circle at how many points? ____", "fill", "Answer = ____"),
-        q("The angle between a tangent and the radius at the point is ____°", "fill", "Answer = ____"),
-        q("From an external point, the two tangents are ____ in length.", "fill", "Answer = ____"),
-        q("Distance 13, radius 5: tangent = √(169-25) = ____", "fill", "Answer = ____"),
-        q("Distance 10, radius 6: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 17, radius 8: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 7: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 12, radius 5: distance to centre = ____", "fill", "Answer = ____"),
-        q("Tangent 24, radius 7: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 8, distance 17: radius = ____", "fill", "Answer = ____"),
-        q("Distance 15, radius 9: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 41, radius 9: tangent = ____", "fill", "Answer = ____"),
-        q("Radius ⟂ tangent forms a ____ angle.", "fill", "Answer = ____"),
-        q("Tangent 15, radius 8: distance = ____", "fill", "Answer = ____"),
-        q("Distance 20, radius 12: tangent = ____", "fill", "Answer = ____"),
-        q("True or False: A tangent touches at exactly one point.", "fill", "Answer = ____"),
-        q("True or False: Tangent ⟂ radius at the point of contact.", "fill", "Answer = ____"),
-        q("True or False: Distance 13, radius 5 gives tangent 12.", "fill", "Answer = ____"),
-        q("Spot: Distance 10, radius 6 gives tangent 7. Correct? Fix (8). ____", "fill", "Answer = ____"),
-        q("True or False: Two tangents from one external point are equal.", "fill", "Answer = ____"),
+            "The tangent is PERPENDICULAR (90 degrees) to the radius at that point.",
+            "So radius, tangent, and the line to the centre form a right triangle -- use Pythagoras.",
+        ], "Distance to centre 13, radius 5: tangent length = sqrt(169-25) = 12."),
+        cb("Tangent Length from an External Point", [
+            "From any external point, the TWO tangents drawn to a circle are EQUAL in length.",
+            "Tangent length = sqrt(distance to centre^2 - radius^2).",
+        ], "Two tangents from the same external point are always equal -- a very useful shortcut."),
     ]
-
-def _L17D_2():
-    return [
-        cb("Tangent Calculations", [
-            "tangent² + radius² = distance² (right triangle).",
-            "Two tangents from the same point are equal — use this for unknowns.",
-            "A tangent never crosses inside the circle.",
-        ], "Distance 25, radius 24: tangent = √(625-576)=7."),
-        q("Distance 25, radius 24: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 29, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 37, radius 12: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 40, radius 9: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 35, radius 12: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 20, distance 29: radius = ____", "fill", "Answer = ____"),
-        q("Distance 53, radius 28: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 50, radius 14: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 9, radius 40: distance = ____", "fill", "Answer = ____"),
-        q("Two tangents from a point: one is 12, the other is ____", "fill", "Answer = ____"),
-        q("Tangent 11, distance 61: radius = ____", "fill", "Answer = ____"),
-        q("Distance 65, radius 16: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 15, radius 12: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 24, radius 10: distance = ____", "fill", "Answer = ____"),
-        q("Distance 85, radius 13: tangent = ____", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 24 gives tangent 7.", "fill", "Answer = ____"),
-        q("True or False: Two tangents from a point are equal.", "fill", "Answer = ____"),
-        q("True or False: Tangent 40, radius 9 gives distance 41.", "fill", "Answer = ____"),
-        q("Spot: Distance 37, radius 12 gives tangent 25. Correct? Fix (35). ____", "fill", "Answer = ____"),
-        q("True or False: Distance 15, radius 12 gives tangent 9.", "fill", "Answer = ____"),
-    ]
-
-def _L17D_3():
-    return [
-        tb("Tangents — Tips", [
-            "Tangent ⟂ radius at the contact point (90°).",
-            "tangent² + radius² = distance²  (Pythagoras).",
-            "Two tangents from one external point are equal.",
-            "Recall triples: 5-12-13, 7-24-25, 8-15-17, 9-40-41, 20-21-29.",
-        ]),
-        q("Distance 13, radius 5: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 7: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 17, radius 8: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 12, radius 9: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 24, radius 18: distance = ____", "fill", "Answer = ____"),
-        q("Distance 41, radius 40: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 29, radius 20: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 8, radius 6: distance = ____", "fill", "Answer = ____"),
-        q("Distance 15, radius 9: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 15, distance 17: radius = ____", "fill", "Answer = ____"),
-        q("Distance 35, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 20, radius 15: distance = ____", "fill", "Answer = ____"),
-        q("Distance 26, radius 10: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 16, distance 20: radius = ____", "fill", "Answer = ____"),
-        q("Angle between tangent and radius = ____°", "fill", "Answer = ____"),
-        q("True or False: Distance 17, radius 8 gives tangent 15.", "fill", "Answer = ____"),
-        q("True or False: Distance 41, radius 40 gives tangent 9.", "fill", "Answer = ____"),
-        q("True or False: Tangent ⟂ radius is 90°.", "fill", "Answer = ____"),
-        q("Spot: Distance 25, radius 7 gives tangent 23. Correct? Fix (24). ____", "fill", "Answer = ____"),
-        q("True or False: Distance 26, radius 10 gives tangent 24.", "fill", "Answer = ____"),
-    ]
-
-def _L17D_4():
-    return [
-        q("Distance 53, radius 45: tangent = ____", "fill", "Answer = ____"),
-        q("Distance 61, radius 60: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 56, radius 33: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 63, radius 16: distance = ____", "fill", "Answer = ____"),
-        q("Distance 75, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Two tangents from P are 3x and 18: x = ____", "fill", "Answer = ____"),
-        q("Tangent 11, distance 61: radius = ____", "fill", "Answer = ____"),
-        q("Distance 85, radius 84: tangent = ____", "fill", "Answer = ____"),
-        q("Two tangents: 2x+5 and 17 equal: x = ____", "fill", "Answer = ____"),
-        q("Distance 100, radius 28: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 48, radius 14: distance = ____", "fill", "Answer = ____"),
-        q("Distance 65, radius 25: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent 33, radius 56: distance = ____", "fill", "Answer = ____"),
-        q("Two tangents from external point form a kite with the radii: tangent angle... if angle between tangents 60, each tangent-centre angle = ____°", "fill", "Answer = ____"),
-        q("Distance 17, radius 15: tangent = ____", "fill", "Answer = ____"),
-        q("True or False: Distance 53, radius 45 gives tangent 28.", "fill", "Answer = ____"),
-        q("True or False: Tangents 3x and 18 equal give x = 6.", "fill", "Answer = ____"),
-        q("True or False: Distance 85, radius 84 gives tangent 13.", "fill", "Answer = ____"),
-        q("Spot: Distance 61, radius 60 gives tangent 12. Correct? Fix (11). ____", "fill", "Answer = ____"),
-        q("True or False: Tangents 2x+5 and 17 equal give x = 6.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        a, b, c = random.choice(triples)
+        items.append(q(f"External point is {c} from the centre. Radius is {b}. Find the tangent length.", "fill", "Answer = ____"))
+    for _ in range(5):
+        a, b, c = random.choice(triples)
+        items.append(q(f"A tangent of length {a} touches a circle of radius {b}. Find the distance from the external point to the centre.", "fill", "Answer = ____"))
+    for _ in range(4):
+        items.append(q("A tangent touches a circle at point P. What is the angle between the tangent and the radius drawn to P?", "fill", "Answer = ____"))
+    for _ in range(3):
+        val = random.randint(5, 20)
+        items.append(q(f"From an external point, one tangent to a circle is {val} cm. Find the length of the OTHER tangent from the same point.", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("True or False: A tangent can touch a circle at two different points.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 17E — Circle theorems
+# 17E — Circle Theorems
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L17E_1():
-    return [
+def _L17E_s(sheet):
+    random.seed(1790 + sheet)
+    ranges = {1: (10, 60), 2: (10, 80), 3: (10, 90), 4: (5, 85)}
+    lo, hi = ranges[sheet]
+    items = [
         cb("Key Circle Theorems", [
-            "Angle at the centre = 2 × angle at the circumference (same arc).",
-            "Angle in a semicircle = 90° (angle in a semicircle is a right angle).",
-            "Angles in the same segment are equal.",
-        ], "Arc gives 40° at circumference → 80° at centre."),
-        cb("Cyclic Quadrilateral", [
-            "A cyclic quadrilateral has all four corners on the circle.",
-            "Its opposite angles add up to 180°.",
-            "An exterior angle equals the opposite interior angle.",
-        ], "If one angle is 70°, its opposite is 110°."),
-        q("Angle at centre = ____ × angle at circumference.", "fill", "Answer = ____"),
-        q("Angle at circumference 40°: angle at centre = ____°", "fill", "Answer = ____"),
-        q("Angle at centre 100°: angle at circumference = ____°", "fill", "Answer = ____"),
-        q("Angle in a semicircle = ____°", "fill", "Answer = ____"),
-        q("Angles in the same segment are ____", "fill", "Answer = ____"),
-        q("Cyclic quad: opposite angles add to ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angle 70°: opposite = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angle 95°: opposite = ____°", "fill", "Answer = ____"),
-        q("Angle at circumference 55°: centre angle = ____°", "fill", "Answer = ____"),
-        q("Angle at centre 140°: circumference angle = ____°", "fill", "Answer = ____"),
-        q("A triangle in a semicircle has a ____° angle.", "fill", "Answer = ____"),
-        q("Cyclic quad angle 120°: opposite = ____°", "fill", "Answer = ____"),
-        q("Angle at circumference 30°: centre = ____°", "fill", "Answer = ____"),
-        q("Two angles in same segment, one is 48°: the other = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angle 88°: opposite = ____°", "fill", "Answer = ____"),
-        q("True or False: Angle at centre = 2 × angle at circumference.", "fill", "Answer = ____"),
-        q("True or False: Angle in a semicircle is 90°.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad opposite angles sum to 180.", "fill", "Answer = ____"),
-        q("Spot: Circumference 40 gives centre 60. Correct? Fix (80). ____", "fill", "Answer = ____"),
-        q("True or False: Angles in the same segment are equal.", "fill", "Answer = ____"),
+            "The angle at the CENTRE = 2 x the angle at the CIRCUMFERENCE (same arc).",
+            "The angle in a SEMICIRCLE is always 90 degrees.",
+            "Angles in the SAME SEGMENT (subtending the same arc) are EQUAL.",
+        ], "Arc gives 40 degrees at the circumference -> 80 degrees at the centre."),
     ]
+    for _ in range(5):
+        circ = random.randint(lo, min(hi, 89))
+        items.append(q(f"Angle at the circumference = {circ}°. Find the angle at the centre (same arc).", "fill", "Answer = ____"))
+    for _ in range(5):
+        centre = random.randint(lo, min(hi, 178)) * 2 // 2
+        while centre % 2 != 0: centre = random.randint(lo, min(hi, 178))
+        items.append(q(f"Angle at the centre = {centre}°. Find the angle at the circumference (same arc).", "fill", "Answer = ____"))
+    for _ in range(4):
+        items.append(q("A triangle is inscribed in a semicircle, with the hypotenuse as the diameter. Find the angle opposite the diameter.", "fill", "Answer = ____"))
+    for _ in range(3):
+        val = random.randint(lo, hi)
+        items.append(q(f"Angle ABC = {val}° and angle ADC subtends the same arc as ABC (same segment). Find angle ADC.", "fill", "Answer = ____"))
+    for _ in range(3):
+        circ = random.randint(lo, min(hi, 89))
+        shown = circ * 2 if random.random() > 0.4 else circ * 2 + 10
+        items.append(q(f"True or False: Circumference angle {circ}° gives a centre angle of {shown}°.", "fill", "Answer = ____"))
+    return items
 
-def _L17E_2():
-    return [
-        cb("Applying the Theorems", [
-            "Identify the arc, then use centre = 2 × circumference.",
-            "Spot semicircles (diameter) → right angle.",
-            "In cyclic quads, pair up opposite angles to 180°.",
-        ], "Semicircle triangle: other two angles add to 90°."),
-        q("Centre angle 2x, circumference angle 50: 2x = ____°", "fill", "Answer = ____"),
-        q("Circumference angle x, centre 110: x = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, one acute 35: other acute = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: x and 100 opposite, x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: x and 2x opposite (sum 180), x = ____°", "fill", "Answer = ____"),
-        q("Same segment: 3x and 60 equal, x = ____", "fill", "Answer = ____"),
-        q("Centre 160: circumference = ____°", "fill", "Answer = ____"),
-        q("Circumference 25: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angles 80, x, 100, y (opp pairs): x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angles 80, x, 100, y: y = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, one acute 52: other = ____°", "fill", "Answer = ____"),
-        q("Centre angle 90: circumference = ____°", "fill", "Answer = ____"),
-        q("Same segment: angle 42, another = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 110 and y opposite, y = ____°", "fill", "Answer = ____"),
-        q("Centre 2x = 130: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Circumference 50 gives centre 100.", "fill", "Answer = ____"),
-        q("True or False: Semicircle triangle acute 35 has other acute 55.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad x and 100 opposite gives x = 80.", "fill", "Answer = ____"),
-        q("Spot: Cyclic quad x,2x opposite gives x = 90. Correct? Fix (60). ____", "fill", "Answer = ____"),
-        q("True or False: Centre 160 gives circumference 80.", "fill", "Answer = ____"),
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17F — Cyclic Quadrilaterals
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L17F_s(sheet):
+    random.seed(1800 + sheet)
+    ranges = {1: (50, 110), 2: (40, 130), 3: (30, 140), 4: (20, 150)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Cyclic Quadrilaterals", [
+            "A cyclic quadrilateral has ALL FOUR corners on the circle.",
+            "Its OPPOSITE angles are SUPPLEMENTARY -- they add up to 180 degrees.",
+            "An EXTERIOR angle of a cyclic quadrilateral equals the OPPOSITE interior angle.",
+            "This connects circles back to quadrilaterals -- a cyclic quadrilateral is still a real quadrilateral (angle sum 360), but with this extra circle property.",
+        ], "If one angle is 70°, its opposite angle is 110° (70+110=180)."),
     ]
-
-def _L17E_3():
-    return [
-        tb("Circle Theorems — Tips", [
-            "Centre angle = 2 × circumference angle (same arc).",
-            "Angle in a semicircle = 90°.",
-            "Angles in the same segment are equal.",
-            "Cyclic quad: opposite angles sum to 180°.",
-        ]),
-        q("Circumference 35: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 120: circumference = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 40: other acute = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 75 and opposite = ____°", "fill", "Answer = ____"),
-        q("Same segment: 38 and another = ____°", "fill", "Answer = ____"),
-        q("Circumference 60: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 150: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 130 and opposite = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 28: other = ____°", "fill", "Answer = ____"),
-        q("Same segment 3x and 45: x = ____", "fill", "Answer = ____"),
-        q("Centre 2x, circumference 65: 2x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad x and 3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Circumference 90: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 105 and opposite = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 60: other = ____°", "fill", "Answer = ____"),
-        q("True or False: Circumference 35 gives centre 70.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 75 opposite is 105.", "fill", "Answer = ____"),
-        q("True or False: Angle in a semicircle is 90.", "fill", "Answer = ____"),
-        q("Spot: Centre 120 gives circumference 80. Correct? Fix (60). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad x,3x opposite gives x = 45.", "fill", "Answer = ____"),
-    ]
-
-def _L17E_4():
-    return [
-        q("Circumference 47: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 134: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 2x and 3x opposite, x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: x+20 and x opposite, x = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 2x and 3x: x = ____°", "fill", "Answer = ____"),
-        q("Same segment 4x and 72: x = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 146: circumference x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad angles 3x, 2x (opposite): 3x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad exterior angle = opposite interior. If interior 85, exterior = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, one acute 37: other = ____°", "fill", "Answer = ____"),
-        q("Circumference 72: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 4x and 5x opposite, smaller = ____°", "fill", "Answer = ____"),
-        q("Two same-segment angles 5x and 80: x = ____", "fill", "Answer = ____"),
-        q("Centre 100: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad opposite pair 95 and y: y = ____°", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 2x,3x opposite gives x = 36.", "fill", "Answer = ____"),
-        q("True or False: Centre 134 gives circumference 67.", "fill", "Answer = ____"),
-        q("True or False: Semicircle triangle acute 2x,3x gives x = 18.", "fill", "Answer = ____"),
-        q("Spot: Cyclic quad x+20,x opposite gives x = 80. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad interior 85 has exterior 85.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        a = random.randint(lo, hi)
+        items.append(q(f"Cyclic quadrilateral: one angle is {a}°. Find its OPPOSITE angle.", "fill", "Answer = ____"))
+    for _ in range(5):
+        a = random.randint(lo, hi)
+        items.append(q(f"Cyclic quadrilateral: an exterior angle is {a}°. Find the OPPOSITE interior angle.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a + b >= 355: b = random.randint(lo, hi)
+        items.append(q(f"Cyclic quadrilateral ABCD: angle A={a}°, angle B={b}°. Find angle C (opposite A) and angle D (opposite B).", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("Explain why a cyclic quadrilateral's opposite angles must sum to 360-360+180=180 (using both the quadrilateral angle sum AND the circle property).", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(lo, hi)
+        correct = 180 - a
+        shown = correct if random.random() > 0.4 else correct + 10
+        items.append(q(f"True or False: Cyclic quadrilateral angle {a}° has opposite angle {shown}°.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 17F — Angle in circle
+# 17CUM2 — Angle in a Circle
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L17F_1():
-    return [
-        cb("Angles and Arcs", [
-            "An arc subtends an angle at the centre and at the circumference.",
-            "Centre angle = 2 × circumference angle for the same arc.",
-            "A semicircle (half circle) subtends 180° at centre, 90° at circumference.",
-        ], "Quarter arc: 90° at centre, 45° at circumference."),
-        cb("Alternate Segment (intro)", [
-            "The angle between a tangent and a chord = angle in the alternate segment.",
-            "This links tangent lines to inscribed angles.",
-            "Useful in advanced angle-chasing problems.",
-        ], "Tangent-chord angle 50° = inscribed angle 50° in the far segment."),
-        q("Semicircle: angle at centre = ____°", "fill", "Answer = ____"),
-        q("Semicircle: angle at circumference = ____°", "fill", "Answer = ____"),
-        q("Quarter arc: centre angle = ____°", "fill", "Answer = ____"),
-        q("Quarter arc: circumference angle = ____°", "fill", "Answer = ____"),
-        q("Arc gives 70° at circumference: centre = ____°", "fill", "Answer = ____"),
-        q("Arc gives 120° at centre: circumference = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord angle 50°: alternate segment angle = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord angle 35°: alternate angle = ____°", "fill", "Answer = ____"),
-        q("Full circle at centre = ____°", "fill", "Answer = ____"),
-        q("Arc 80° at centre: circumference = ____°", "fill", "Answer = ____"),
-        q("Arc 25° at circumference: centre = ____°", "fill", "Answer = ____"),
-        q("Half the circle subtends ____° at the centre.", "fill", "Answer = ____"),
-        q("Arc 90° at centre: circumference = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 62°: alternate = ____°", "fill", "Answer = ____"),
-        q("Arc 45° at circumference: centre = ____°", "fill", "Answer = ____"),
-        q("True or False: Semicircle gives 90° at circumference.", "fill", "Answer = ____"),
-        q("True or False: Centre angle is double the circumference angle.", "fill", "Answer = ____"),
-        q("True or False: Full circle is 360° at centre.", "fill", "Answer = ____"),
-        q("Spot: Arc 70 at circumference gives centre 70. Correct? Fix (140). ____", "fill", "Answer = ____"),
-        q("True or False: Tangent-chord angle equals the alternate segment angle.", "fill", "Answer = ____"),
+def _L17CUM2_s(sheet):
+    random.seed(1810 + sheet)
+    ranges = {1: (10, 70), 2: (10, 85), 3: (5, 88), 4: (5, 89)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Angle in a Circle — Further Practice", [
+            "Combine the centre/circumference theorem, semicircle theorem, and same-segment theorem.",
+            "Look for the arc each angle stands on -- that tells you which theorem applies.",
+        ], "Angle in a semicircle is always 90 -- no calculation needed once you spot the diameter."),
     ]
-
-def _L17F_2():
-    return [
-        cb("Angle Chasing", [
-            "Combine the theorems: centre/circumference, semicircle, same segment.",
-            "Use the triangle angle sum (180°) when radii form triangles.",
-            "Isosceles triangles appear because two radii are equal.",
-        ], "Two radii + chord → isosceles triangle."),
-        q("Circumference 33: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 88: circumference = ____°", "fill", "Answer = ____"),
-        q("Triangle with two radii, apex (centre) 80: each base angle = ____°", "fill", "Answer = ____"),
-        q("Two radii, apex 100: base angle = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 48: other = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 47°: alternate = ____°", "fill", "Answer = ____"),
-        q("Arc 2x at centre, x at circumference, x = 40: centre = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 60: triangle is ____ (type)", "fill", "Answer = ____"),
-        q("Centre 140: circumference = ____°", "fill", "Answer = ____"),
-        q("Same segment 55 and y: y = ____°", "fill", "Answer = ____"),
-        q("Isosceles radii triangle, base angle 70: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference 90: this arc is a ____", "fill", "Answer = ____"),
-        q("Tangent-chord 75°: alternate = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 90: base angle = ____°", "fill", "Answer = ____"),
-        q("Centre 2x = 150: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Two radii apex 80 gives base 50 each.", "fill", "Answer = ____"),
-        q("True or False: Two equal radii make an isosceles triangle.", "fill", "Answer = ____"),
-        q("True or False: Circumference 33 gives centre 66.", "fill", "Answer = ____"),
-        q("Spot: Two radii apex 100 gives base 50. Correct? Fix (40). ____", "fill", "Answer = ____"),
-        q("True or False: Apex 60 radii triangle is equilateral.", "fill", "Answer = ____"),
-    ]
-
-def _L17F_3():
-    return [
-        tb("Angles in a Circle — Tips", [
-            "Centre = 2 × circumference (same arc).",
-            "Semicircle → 90° at circumference.",
-            "Two radii to a chord → isosceles triangle.",
-            "Tangent-chord angle = alternate segment angle.",
-        ]),
-        q("Circumference 44: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 96: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 120: base angle = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 33: other = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 58°: alternate = ____°", "fill", "Answer = ____"),
-        q("Same segment 67 and y: y = ____°", "fill", "Answer = ____"),
-        q("Centre 170: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii base angle 75: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference 15: centre = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 40: base angle = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 19: other = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 81°: alternate = ____°", "fill", "Answer = ____"),
-        q("Centre 2x = 110: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 50: base = ____°", "fill", "Answer = ____"),
-        q("Same segment 5x and 75: x = ____", "fill", "Answer = ____"),
-        q("True or False: Two radii apex 120 gives base 30.", "fill", "Answer = ____"),
-        q("True or False: Centre 96 gives circumference 48.", "fill", "Answer = ____"),
-        q("True or False: Semicircle triangle acute 33 has other 57.", "fill", "Answer = ____"),
-        q("Spot: Two radii base 75 gives apex 30. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Tangent-chord angle equals alternate segment angle.", "fill", "Answer = ____"),
-    ]
-
-def _L17F_4():
-    return [
-        q("Circumference 73: centre = ____°", "fill", "Answer = ____"),
-        q("Centre 138: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 2x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 100: base angle = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 3x and 2x: x = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 3x = 66: x = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 154: x = ____°", "fill", "Answer = ____"),
-        q("Two radii, base angle 2x, apex x: x = ____°", "fill", "Answer = ____"),
-        q("Same segment angles 6x and 90: x = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle, acute 41: other = ____°", "fill", "Answer = ____"),
-        q("Circumference 81: centre = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 36: base = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 49°: alternate = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad with one angle 70: opposite = ____°", "fill", "Answer = ____"),
-        q("Centre 200... reflex; minor arc circumference = (360-200)/2 = ____°", "fill", "Answer = ____"),
-        q("True or False: Two radii apex 2x base x gives x = 45.", "fill", "Answer = ____"),
-        q("True or False: Centre 138 gives circumference 69.", "fill", "Answer = ____"),
-        q("True or False: Tangent-chord 3x = 66 gives x = 22.", "fill", "Answer = ____"),
-        q("Spot: Semicircle triangle 3x,2x gives x = 20. Correct? Fix (18). ____", "fill", "Answer = ____"),
-        q("True or False: Two radii base 2x apex x means x = 36.", "fill", "Answer = ____"),
-    ]
-
+    for _ in range(6):
+        circ = random.randint(lo, hi)
+        items.append(q(f"Angle at the circumference = {circ}°. Find the angle at the centre.", "fill", "Answer = ____"))
+    for _ in range(5):
+        items.append(q("A chord is also the diameter. A triangle is formed with a point on the circumference. Find the angle at that point.", "fill", "Answer = ____"))
+    for _ in range(5):
+        val = random.randint(lo, hi)
+        items.append(q(f"Two angles stand on the same arc, in the same segment. One is {val}°. Find the other.", "fill", "Answer = ____"))
+    for _ in range(4):
+        circ = random.randint(lo, hi)
+        shown = circ * 2 if random.random() > 0.4 else circ + 90
+        items.append(q(f"True or False: Circumference angle {circ}° means the centre angle is {shown}°.", "fill", "Answer = ____"))
+    return items
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Multi-sheet families
+# 17G — Applications of Circles
 # ═══════════════════════════════════════════════════════════════════════════════
 def _L17G_s(sheet):
-    s1 = [
+    random.seed(1820 + sheet)
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (9, 12, 15)]
+    items = [
         cb("Applications of Circles", [
-            "Wheels, tracks, clocks, pizzas and gardens all use circle formulas.",
-            "Distance a wheel travels in one turn = its circumference.",
-            "Use circumference for 'around' and area for 'inside/covering'.",
-        ], "Wheel radius 35 cm: one turn = 2·22/7·35 = 220 cm."),
-        q("Wheel radius 35 cm: distance per turn = ____ cm", "fill", "Answer = ____"),
-        q("Wheel radius 7 cm: distance per turn = ____ cm", "fill", "Answer = ____"),
-        q("Circular track radius 21 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Pizza radius 14 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Circular garden radius 7 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Wheel circumference 220 cm: how many turns in 440 cm? ____", "fill", "Answer = ____"),
-        q("Clock minute hand 7 cm: tip travels ____ cm in one hour", "fill", "Answer = ____"),
-        q("Round table radius 21 cm: edge length (circumference) = ____ cm", "fill", "Answer = ____"),
-        q("Circular pond radius 14 m: fencing needed = ____ m", "fill", "Answer = ____"),
-        q("Coin radius 1.4 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel radius 70 cm: one turn = ____ cm", "fill", "Answer = ____"),
-        q("Plate radius 10.5 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Track radius 35 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Circular lawn radius 21 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Wheel diameter 56 cm: one turn = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Wheel radius 35 travels 220 cm per turn.", "fill", "Answer = ____"),
-        q("True or False: Pizza radius 14 has area 616 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Track radius 21 m is 132 m per lap.", "fill", "Answer = ____"),
-        q("Spot: Garden radius 7 m has area 308. Correct? Fix (154). ____", "fill", "Answer = ____"),
-        q("True or False: Use circumference for the distance around.", "fill", "Answer = ____"),
+            "Circles model wheels, satellite orbits, running tracks, pipes, and pulley belts.",
+            "Tangent problems often model a ladder or line of sight just touching a curved edge.",
+        ], "A satellite's line of sight to the horizon is tangent to the Earth's circle."),
     ]
-    s2 = [
-        cb("More Circle Applications", [
-            "Number of turns = total distance ÷ circumference.",
-            "Cost problems: fencing uses circumference; turfing uses area.",
-            "Semicircles and quarters: take the matching fraction.",
-        ], "1 km ÷ wheel circumference = number of rotations."),
-        q("Wheel circumference 44 cm: turns to cover 440 cm = ____", "fill", "Answer = ____"),
-        q("Wheel circumference 88 cm: turns to cover 880 cm = ____", "fill", "Answer = ____"),
-        q("Wheel radius 21 cm: distance in 10 turns = ____ cm", "fill", "Answer = ____"),
-        q("Fencing a circular field radius 14 m at ₹5/m: cost = ____", "fill", "Answer = ____"),
-        q("Turfing a circular lawn radius 7 m at ₹2/m^2: cost = ____", "fill", "Answer = ____"),
-        q("Semicircular park radius 14 m: curved edge = ____ m", "fill", "Answer = ____"),
-        q("Quarter circle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel diameter 70 cm: turns in 4400 cm = ____", "fill", "Answer = ____"),
-        q("Circular flower bed radius 21 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Round mat radius 35 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Semicircle radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel circumference 132 cm: turns in 1320 cm = ____", "fill", "Answer = ____"),
-        q("Circular track radius 7 m, 3 laps: distance = ____ m", "fill", "Answer = ____"),
-        q("Quarter-circle lawn radius 28 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Fencing radius 21 m at ₹10/m: cost = ____", "fill", "Answer = ____"),
-        q("True or False: Wheel circumference 44, 440 cm = 10 turns.", "fill", "Answer = ____"),
-        q("True or False: Semicircular park radius 14 has curved edge 44 m.", "fill", "Answer = ____"),
-        q("True or False: Quarter circle radius 14 area = 154.", "fill", "Answer = ____"),
-        q("Spot: Wheel diameter 70, 4400 cm = 10 turns. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: 3 laps of a 7 m radius track is 132 m.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Circle Applications — Tips", [
-            "Around = circumference (2·pi·r); inside = area (pi·r²).",
-            "Turns = distance ÷ circumference.",
-            "Semicircle = ½; quarter = ¼ of the whole.",
-            "pi = 22/7 with multiples of 7 keeps it clean.",
-        ]),
-        q("Wheel radius 14 cm: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Track radius 28 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Pizza radius 21 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel circumference 220 cm: turns in 2200 cm = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 21: curved edge = ____ cm", "fill", "Answer = ____"),
-        q("Garden radius 35 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Fencing radius 7 m at ₹4/m: cost = ____", "fill", "Answer = ____"),
-        q("Wheel diameter 28 cm: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Round table radius 14 cm: edge = ____ cm", "fill", "Answer = ____"),
-        q("Lawn radius 14 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Track radius 21 m, 5 laps: distance = ____ m", "fill", "Answer = ____"),
-        q("Wheel circumference 154 cm: turns in 1540 cm = ____", "fill", "Answer = ____"),
-        q("Clock minute hand 14 cm: tip travel in 1 hour = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Track radius 28 m is 176 m per lap.", "fill", "Answer = ____"),
-        q("True or False: Pizza radius 21 has area 1386 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Semicircle radius 21 curved edge = 66 cm.", "fill", "Answer = ____"),
-        q("Spot: Quarter circle radius 7 area = 77. Correct? Fix (38.5). ____", "fill", "Answer = ____"),
-        q("True or False: 5 laps of 21 m radius track = 660 m.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Wheel radius 42 cm: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Track radius 49 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Pizza radius 28 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel diameter 98 cm: turns in 6160 cm = ____", "fill", "Answer = ____"),
-        q("Ring road: outer radius 70 m, inner 63 m, area between = 15400 - 12474 = ____ m^2", "fill", "Answer = ____"),
-        q("Semicircular window radius 35 cm: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Fencing circular field radius 35 m at ₹8/m: cost = ____", "fill", "Answer = ____"),
-        q("Wheel covers 1 lap of 132 m track in 60 turns: wheel circumference = ____ m", "fill", "Answer = ____"),
-        q("Quarter-circle garden radius 42 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Round pond radius 21 m: fencing = ____ m", "fill", "Answer = ____"),
-        q("Lawn radius 70 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Clock minute hand 21 cm: tip travels in 1 hour = ____ cm", "fill", "Answer = ____"),
-        q("Two coins radius 7 and 14: area ratio = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Track radius 35 m, 4 laps: distance = ____ m", "fill", "Answer = ____"),
-        q("True or False: Track radius 49 m is 308 m per lap.", "fill", "Answer = ____"),
-        q("True or False: Pizza radius 28 has area 2464 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Semicircle radius 35 area = 1925 cm^2.", "fill", "Answer = ____"),
-        q("Spot: Lawn radius 70 m area = 7700. Correct? Fix (15400). ____", "fill", "Answer = ____"),
-        q("True or False: Coins r=7 and r=14 have area ratio 1:4.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(6):
+        a, b, c = random.choice(triples)
+        items.append(q(f"A ladder (tangent line) reaches an external point {c}m from a circular tower's centre (radius {b}m). Find the tangent length.", "fill", "Answer = ____"))
+    for _ in range(5):
+        r = random.randint(5, 20)
+        items.append(q(f"A circular running track has radius {r}m. Find its diameter.", "fill", "Answer = ____"))
+    for _ in range(5):
+        a = random.randint(60, 150)
+        items.append(q(f"A cyclic quadrilateral window frame has one angle {a}°. Find the opposite angle.", "fill", "Answer = ____"))
+    for _ in range(4):
+        circ = random.randint(20, 80)
+        items.append(q(f"A circular arch: the angle at the circumference is {circ}°. Find the angle at the centre.", "fill", "Answer = ____"))
+    return items
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17H — Polygons: Interior Angle Sum
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L17H_s(sheet):
-    s1 = [
-        cb("Mixed Circles", [
-            "Combine all skills: basics, area, chords, tangents, theorems, angles.",
-            "Read each question and choose the right formula or theorem.",
-            "Show working step by step.",
-        ], "One sheet across every Level 17 skill."),
-        q("Radius 7: diameter = ____", "fill", "Answer = ____"),
-        q("Radius 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Distance 13, radius 5: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 40: centre = ____°", "fill", "Answer = ____"),
-        q("Angle in semicircle = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad: 80 opposite = ____°", "fill", "Answer = ____"),
-        q("Diameter 28: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 10, chord 12: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 24, radius 7: distance = ____", "fill", "Answer = ____"),
-        q("Centre 100: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 80: base angle = ____°", "fill", "Answer = ____"),
-        q("Circumference 44: radius = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Radius 7 has area 154 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Distance 13, radius 5 gives tangent 12.", "fill", "Answer = ____"),
-        q("True or False: Angle in semicircle is 90.", "fill", "Answer = ____"),
-        q("Spot: Radius 7 circumference = 22. Correct? Fix (44). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 80 opposite is 100.", "fill", "Answer = ____"),
+    random.seed(1830 + sheet)
+    n_ranges = {1: (5, 7), 2: (5, 8), 3: (6, 9), 4: (6, 10)}
+    lo_n, hi_n = n_ranges[sheet]
+    items = [
+        cb("Interior Angle Sum of a Polygon", [
+            "Any n-sided polygon can be split into (n-2) triangles from one vertex.",
+            "Since each triangle's angles sum to 180, the polygon's INTERIOR angle sum = (n-2) x 180.",
+            "For a REGULAR polygon (all angles equal), each interior angle = (n-2) x 180 / n.",
+        ], "A pentagon (n=5): (5-2)x180 = 540. Regular pentagon: each angle = 540/5 = 108."),
     ]
-    s2 = [
-        cb("Mixed Practice — All Tools", [
-            "Match wording to the right circle concept.",
-            "Area for covering, circumference for around, Pythagoras for chords/tangents.",
-            "Theorems for angle problems.",
-        ], "Pick the simplest correct method."),
-        q("Radius 14: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 7: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 55: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 95 opposite = ____°", "fill", "Answer = ____"),
-        q("Diameter 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 7: chord = ____", "fill", "Answer = ____"),
-        q("Tangent 40, radius 9: distance = ____", "fill", "Answer = ____"),
-        q("Centre 140: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 100: base = ____°", "fill", "Answer = ____"),
-        q("Circumference 88: radius = ____ cm", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Same segment 48 and y: y = ____°", "fill", "Answer = ____"),
-        q("Wheel radius 35: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Radius 21 has area 1386 cm^2.", "fill", "Answer = ____"),
-        q("True or False: Radius 25, distance 7 gives chord 48.", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 7 gives tangent 24.", "fill", "Answer = ____"),
-        q("Spot: Diameter 14 area = 154. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Centre 140 gives circumference 70.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Circles — Tips", [
-            "C = 2·pi·r = pi·d; A = pi·r²; use pi = 22/7.",
-            "Chord/tangent → right triangle + Pythagoras.",
-            "Centre = 2× circumference; semicircle = 90°; cyclic quad opp = 180°.",
-            "Around → circumference; covering → area.",
-        ]),
-        q("Radius 21: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 15, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Distance 17, radius 8: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 35: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 130 opposite = ____°", "fill", "Answer = ____"),
-        q("Diameter 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 29, distance 20: chord = ____", "fill", "Answer = ____"),
-        q("Tangent 15, radius 8: distance = ____", "fill", "Answer = ____"),
-        q("Centre 120: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii base 75: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference 132: radius = ____ cm", "fill", "Answer = ____"),
-        q("Quarter circle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Same segment 67 and y: y = ____°", "fill", "Answer = ____"),
-        q("Track radius 28 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("True or False: Radius 21 circumference = 132 cm.", "fill", "Answer = ____"),
-        q("True or False: Distance 17, radius 8 gives tangent 15.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 130 opposite is 50.", "fill", "Answer = ____"),
-        q("Spot: Radius 29, distance 20 gives chord 21. Correct? Fix (42). ____", "fill", "Answer = ____"),
-        q("True or False: Quarter circle radius 14 area = 154 cm^2.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Radius 42: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 24: chord = ____", "fill", "Answer = ____"),
-        q("Distance 53, radius 45: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 2x,3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 2x,3x: x = ____°", "fill", "Answer = ____"),
-        q("Diameter 56: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 61, chord 22: distance = ____", "fill", "Answer = ____"),
-        q("Tangent 56, radius 33: distance = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 146: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 2x base x: x = ____°", "fill", "Answer = ____"),
-        q("Circumference 264: radius = ____ cm", "fill", "Answer = ____"),
-        q("Ring outer r=14 inner r=7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel diameter 70: turns in 4400 cm = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("True or False: Radius 42 circumference = 264 cm.", "fill", "Answer = ____"),
-        q("True or False: Distance 53, radius 45 gives tangent 28.", "fill", "Answer = ____"),
-        q("True or False: Radius 25, distance 24 gives chord 14.", "fill", "Answer = ____"),
-        q("Spot: Ring outer 14 inner 7 area = 308. Correct? Fix (462). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 2x,3x opposite gives x = 36.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(6):
+        n = random.randint(lo_n, hi_n)
+        items.append(q(f"Use the diagram to find the interior angle sum of this {n}-sided polygon.", "diagram", "____", "", "polygon_angle_sum", {"n": n}))
+    for _ in range(5):
+        n = random.randint(lo_n, hi_n + 2)
+        items.append(q(f"Find the interior angle sum of a {n}-sided polygon using (n-2) x 180.", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.randint(lo_n, hi_n + 2)
+        total = (n - 2) * 180
+        items.append(q(f"A regular {n}-sided polygon has interior angle sum {total}°. Find EACH interior angle.", "fill", "Answer = ____"))
+    for _ in range(3):
+        n = random.randint(lo_n, hi_n)
+        items.append(q(f"How many triangles do you get when you triangulate an {n}-sided polygon from one vertex?", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.randint(lo_n, hi_n + 2)
+        correct = (n - 2) * 180
+        shown = correct if random.random() > 0.4 else correct + 180
+        items.append(q(f"True or False: A {n}-sided polygon has interior angle sum {shown}°.", "fill", "Answer = ____"))
+    return items
 
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17I — Puzzle Problems
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L17I_s(sheet):
-    s1 = [
-        cb("Puzzle Problems", [
-            "Combine several circle facts to find an unknown.",
-            "Look for right angles (tangent⟂radius, semicircle) to use Pythagoras.",
-            "Translate clues into equations and solve.",
-        ], "Tangent + radius + distance always form a right triangle."),
-        q("Tangent length = √(d² - r²). d=10, r=8: tangent = ____", "fill", "Answer = ____"),
-        q("Chord 2√(r²-dist²). r=10, dist=6: chord = ____", "fill", "Answer = ____"),
-        q("Centre angle 2x equals 100: x = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad x and x+40 opposite: x = ____°", "fill", "Answer = ____"),
-        q("Two tangents 3x and 21 equal: x = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute angles equal: each = ____°", "fill", "Answer = ____"),
-        q("Radius 25, chord 14: distance = ____", "fill", "Answer = ____"),
-        q("Distance 41, radius 40: tangent = ____", "fill", "Answer = ____"),
-        q("Area 154: radius = ____", "fill", "Answer = ____"),
-        q("Circumference 88: radius = ____", "fill", "Answer = ____"),
-        q("Two radii apex x, base 2x each: x = ____°", "fill", "Answer = ____"),
-        q("Chord 48, distance 7: radius = ____", "fill", "Answer = ____"),
-        q("Same segment 4x and 60: x = ____", "fill", "Answer = ____"),
-        q("Tangent 24, radius 10: distance = ____", "fill", "Answer = ____"),
-        q("Centre angle equals circumference angle + 50; centre = 2×circ, so circ = ____°", "fill", "Answer = ____"),
-        q("True or False: d=10, r=8 gives tangent 6.", "fill", "Answer = ____"),
-        q("True or False: r=10, dist=6 gives chord 16.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad x, x+40 opposite gives x = 70.", "fill", "Answer = ____"),
-        q("Spot: Two tangents 3x and 21 give x = 6. Correct? Fix (7). ____", "fill", "Answer = ____"),
-        q("True or False: Two radii apex x base 2x gives x = 36.", "fill", "Answer = ____"),
+    random.seed(1840 + sheet)
+    ranges = {1: (20, 60), 2: (15, 80), 3: (10, 90), 4: (5, 100)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Circle & Quadrilateral Puzzles", [
+            "Combine several theorems together: cyclic quadrilateral + circle theorems + tangents.",
+            "Set up an equation from what's given, then solve step by step.",
+        ], "Cyclic quad angle 3x, opposite x: 3x+x=180 -> x=45."),
     ]
-    s2 = [
-        cb("Circle Puzzles", [
-            "Set up equations from the conditions and solve.",
-            "Use equal tangents, isosceles radii, and the angle theorems.",
-            "Verify by substituting back.",
-        ], "Equal tangents from a point give a kite shape."),
-        q("Two tangents 2x+3 and 15 equal: x = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 3x and 2x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Radius 17, chord 30: distance = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 24: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 140: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 3x base x: x = ____°", "fill", "Answer = ____"),
-        q("Area 616: radius = ____", "fill", "Answer = ____"),
-        q("Circumference 132: radius = ____", "fill", "Answer = ____"),
-        q("Same segment 5x and 80: x = ____", "fill", "Answer = ____"),
-        q("Chord 80, distance 18: radius = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 2x and 88-... acute 2x, other 90-2x; if 2x=40: x = ____", "fill", "Answer = ____"),
-        q("Tangent 9, distance 41: radius = ____", "fill", "Answer = ____"),
-        q("Cyclic quad x+30 and x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Two radii base angle 80: apex = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 44, distance 220 cm: turns = ____", "fill", "Answer = ____"),
-        q("True or False: Two tangents 2x+3 and 15 give x = 6.", "fill", "Answer = ____"),
-        q("True or False: Radius 17, chord 30 gives distance 8.", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 24 gives tangent 7.", "fill", "Answer = ____"),
-        q("Spot: Cyclic quad 3x,2x opposite gives x = 30. Correct? Fix (36). ____", "fill", "Answer = ____"),
-        q("True or False: Area 616 gives radius 14.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Circle Puzzles — Tips", [
-            "Turn each clue into an equation; solve, then check.",
-            "Right angles: tangent⟂radius and angle in semicircle.",
-            "Equal tangents and equal radii create symmetry.",
-            "Centre = 2× circumference; cyclic quad opp = 180.",
-        ]),
-        q("Two tangents 4x and 24 equal: x = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 5x and 4x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Radius 13, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Distance 29, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 160: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 4x base x: x = ____°", "fill", "Answer = ____"),
-        q("Area 1386: radius = ____", "fill", "Answer = ____"),
-        q("Circumference 220: radius = ____", "fill", "Answer = ____"),
-        q("Same segment 6x and 90: x = ____", "fill", "Answer = ____"),
-        q("Chord 40, distance 9: radius = ____", "fill", "Answer = ____"),
-        q("Tangent 35, radius 12: distance = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 2x+10 and x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Two radii base 70: apex = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 88, distance 880: turns = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 3x and 2x: x = ____", "fill", "Answer = ____"),
-        q("True or False: Two tangents 4x and 24 give x = 6.", "fill", "Answer = ____"),
-        q("True or False: Distance 29, radius 21 gives tangent 20.", "fill", "Answer = ____"),
-        q("True or False: Chord 40, distance 9 gives radius 41.", "fill", "Answer = ____"),
-        q("Spot: Cyclic quad 5x,4x opposite gives x = 18. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Area 1386 gives radius 21.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Two tangents 5x and 35 equal: x = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 7x and 5x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Radius 53, chord 56: distance = ____", "fill", "Answer = ____"),
-        q("Distance 75, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 150: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 5x base x: x = ____°", "fill", "Answer = ____"),
-        q("Area 5544: radius = ____", "fill", "Answer = ____"),
-        q("Circumference 264: radius = ____", "fill", "Answer = ____"),
-        q("Same segment 9x and 81: x = ____", "fill", "Answer = ____"),
-        q("Chord 126, distance 16: radius = ____", "fill", "Answer = ____"),
-        q("Tangent 56, radius 33: distance = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 3x+20 and x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Two radii base 80: apex = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 132, distance 1320: turns = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 4x and 5x: x = ____", "fill", "Answer = ____"),
-        q("True or False: Two tangents 5x and 35 give x = 7.", "fill", "Answer = ____"),
-        q("True or False: Distance 75, radius 21 gives tangent 72.", "fill", "Answer = ____"),
-        q("True or False: Radius 53, chord 56 gives distance 45.", "fill", "Answer = ____"),
-        q("Spot: Cyclic quad 7x,5x opposite gives x = 18. Correct? Fix (15). ____", "fill", "Answer = ____"),
-        q("True or False: Area 5544 gives radius 42.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        x_val = random.randint(20, 60)
+        items.append(q(f"Cyclic quadrilateral: one angle is 3x, its opposite is x. If x={x_val}, verify 3x+x=180 works. Find both angles.", "fill", "Answer = ____"))
+    for _ in range(5):
+        items.append(q("Cyclic quadrilateral: opposite angles are 2x+10 and x+50. Find x.", "fill", "Answer = ____"))
+    for _ in range(4):
+        val = random.randint(lo, hi)
+        items.append(q(f"Two tangents from an external point form an angle of {val}° between them. If the radius makes a right angle with each tangent, find the angle at the circle's centre between the two radii (hint: quadrilateral angle sum).", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("A triangle is inscribed in a semicircle. One other angle is 35°. Find the third angle (remember the semicircle angle is 90°).", "fill", "Answer = ____"))
+    for _ in range(3):
+        val = random.randint(lo, hi)
+        items.append(q(f"Angle at circumference = 2x, angle at centre = {val}°. Find x.", "fill", "Answer = ____"))
+    return items
 
 
-def _L17J_s(sheet):
-    s1 = [
-        cb("Mixed Challenge — Circles", [
-            "Hardest mix: combined area, sectors, chords, tangents and theorems.",
-            "Sector area = (angle/360) × pi·r²; arc length = (angle/360) × 2·pi·r.",
-            "Plan multi-step solutions before computing.",
-        ], "Quarter sector radius 14: area = 90/360 × 616 = 154."),
-        q("Sector 90° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 180° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 90° radius 14: arc length = ____ cm", "fill", "Answer = ____"),
-        q("Sector 60° radius 21: area = 60/360 × 1386 = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 24: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 40: centre = ____°", "fill", "Answer = ____"),
-        q("Ring outer r=21 inner r=14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 120° radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Cyclic quad 70 opposite = ____°", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 270° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Arc length of semicircle radius 21 = ____ cm", "fill", "Answer = ____"),
-        q("Tangent 12, radius 5: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Sector 90° radius 14 area = 154.", "fill", "Answer = ____"),
-        q("True or False: Sector 180° radius 14 area = 308.", "fill", "Answer = ____"),
-        q("True or False: Ring outer 21 inner 14 area = 770.", "fill", "Answer = ____"),
-        q("Spot: Sector 60° radius 21 area = 462. Correct? Fix (231). ____", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 24 gives tangent 7.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Advanced Circle Problems", [
-            "Mix sector, segment and combined-shape areas.",
-            "Segment area = sector area − triangle area.",
-            "Combine with theorems for full angle/area solutions.",
-        ], "Sector minus triangle gives the segment."),
-        q("Sector 90° radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 60° radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 90° radius 7: arc = ____ cm", "fill", "Answer = ____"),
-        q("Sector 180° radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Distance 29, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 160: circumference = ____°", "fill", "Answer = ____"),
-        q("Ring outer r=14 inner r=7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 120° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Cyclic quad 110 opposite = ____°", "fill", "Answer = ____"),
-        q("Semicircle radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 270° radius 28: area = 3/4 × 2464 = ____ cm^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Tangent 24, radius 7: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Sector 90° radius 7 area = 38.5.", "fill", "Answer = ____"),
-        q("True or False: Ring outer 14 inner 7 area = 462.", "fill", "Answer = ____"),
-        q("True or False: Distance 29, radius 21 gives tangent 20.", "fill", "Answer = ____"),
-        q("Spot: Sector 120° radius 14 area = 308. Correct? Fix (205.33). ____", "fill", "Answer = ____"),
-        q("True or False: Quarter circle radius 28 area = 616.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Circle Challenge — Tips", [
-            "Sector area = (θ/360)·pi·r²; arc = (θ/360)·2·pi·r.",
-            "Ring (annulus) = pi(R² − r²).",
-            "Segment = sector − triangle.",
-            "Combine with theorems and Pythagoras as needed.",
-        ]),
-        q("Sector 90° radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 60° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 180° radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Arc length sector 90° radius 28 = ____ cm", "fill", "Answer = ____"),
-        q("Ring outer r=21 inner r=7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, chord 14: distance = ____", "fill", "Answer = ____"),
-        q("Distance 41, radius 40: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 120: circumference = ____°", "fill", "Answer = ____"),
-        q("Sector 270° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Cyclic quad 85 opposite = ____°", "fill", "Answer = ____"),
-        q("Semicircle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 120° radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Tangent 35, radius 12: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Sector 90° radius 21 area = 346.5.", "fill", "Answer = ____"),
-        q("True or False: Ring outer 21 inner 7 area = 1232.", "fill", "Answer = ____"),
-        q("True or False: Distance 41, radius 40 gives tangent 9.", "fill", "Answer = ____"),
-        q("Spot: Sector 180° radius 7 area = 154. Correct? Fix (77). ____", "fill", "Answer = ____"),
-        q("True or False: Quarter circle radius 14 area = 154.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Sector 90° radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 60° radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 120° radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Arc length semicircle radius 35 = ____ cm", "fill", "Answer = ____"),
-        q("Ring outer r=35 inner r=28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 61, chord 22: distance = ____", "fill", "Answer = ____"),
-        q("Distance 53, radius 45: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 2x,3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Sector 270° radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Centre 2x = 154: x = ____°", "fill", "Answer = ____"),
-        q("Semicircle radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Sector 180° radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Quarter circle radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Tangent 63, radius 16: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Sector 90° radius 28 area = 616.", "fill", "Answer = ____"),
-        q("True or False: Ring outer 35 inner 28 area = 1386.", "fill", "Answer = ____"),
-        q("True or False: Distance 53, radius 45 gives tangent 28.", "fill", "Answer = ____"),
-        q("Spot: Sector 60° radius 42 area = 924. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Semicircle radius 42 area = 2772.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
-def _L17CUM1_s(sheet):
-    # Mixed A+B+C: basics, area/radius, chords
-    s1 = [
-        cb("Cumulative A+B+C", [
-            "Covers: circle basics, area & radius, chords.",
-            "Use C = 2·pi·r, A = pi·r², and the chord right-triangle.",
-        ], "Basics, area, and chord lengths together."),
-        q("Radius 7: diameter = ____", "fill", "Answer = ____"),
-        q("Radius 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 28: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Radius 10, chord 12: distance = ____", "fill", "Answer = ____"),
-        q("Circumference 44: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 154: radius = ____ cm", "fill", "Answer = ____"),
-        q("Longest chord of a circle = ____", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Radius 21: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 7: chord = ____", "fill", "Answer = ____"),
-        q("Circumference 88: radius = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Radius 7 has area 154.", "fill", "Answer = ____"),
-        q("True or False: Radius 13, distance 5 gives chord 24.", "fill", "Answer = ____"),
-        q("True or False: Diameter 28 circumference = 88.", "fill", "Answer = ____"),
-        q("Spot: Radius 7 circumference = 22. Correct? Fix (44). ____", "fill", "Answer = ____"),
-        q("True or False: Area 154 gives radius 7.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Cumulative A+B+C — Practice", [
-            "Blend circumference, area and chord problems.",
-            "Recall triples for chord/distance work.",
-        ], "Mix the three foundation skills."),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 14: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 15, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Radius 25, chord 14: distance = ____", "fill", "Answer = ____"),
-        q("Area 616: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 132: radius = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 29, distance 20: chord = ____", "fill", "Answer = ____"),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Half-chord 8, distance 15: radius = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 21: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 3.5: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Chord 48, distance 14: radius = ____", "fill", "Answer = ____"),
-        q("Radius 10.5: circumference = ____ cm", "fill", "Answer = ____"),
-        q("True or False: Radius 21 has area 1386.", "fill", "Answer = ____"),
-        q("True or False: Radius 15, chord 24 gives distance 9.", "fill", "Answer = ____"),
-        q("True or False: Circumference 132 gives radius 21.", "fill", "Answer = ____"),
-        q("Spot: Half-chord 8, distance 15 gives radius 16. Correct? Fix (17). ____", "fill", "Answer = ____"),
-        q("True or False: Semicircle radius 14 area = 308.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative A+B+C — Tips", [
-            "C = 2·pi·r = pi·d; A = pi·r².",
-            "(half-chord)² + (distance)² = radius².",
-            "Longest chord = diameter.",
-            "pi = 22/7 for multiples of 7.",
-        ]),
-        q("Radius 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 13, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Radius 17, distance 8: chord = ____", "fill", "Answer = ____"),
-        q("Area 1386: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 220: radius = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 56: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 26, chord 48: distance = ____", "fill", "Answer = ____"),
-        q("Radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Half-chord 20, distance 21: radius = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 35: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Quarter circle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Chord 80, distance 18: radius = ____", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("True or False: Diameter 56 circumference = 176.", "fill", "Answer = ____"),
-        q("True or False: Radius 13, chord 24 gives distance 5.", "fill", "Answer = ____"),
-        q("True or False: Area 1386 gives radius 21.", "fill", "Answer = ____"),
-        q("Spot: Radius 26, chord 48 gives distance 12. Correct? Fix (10). ____", "fill", "Answer = ____"),
-        q("True or False: Quarter circle radius 14 area = 154.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Radius 42: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 70: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 24: chord = ____", "fill", "Answer = ____"),
-        q("Radius 53, distance 28: chord = ____", "fill", "Answer = ____"),
-        q("Area 5544: radius = ____ cm", "fill", "Answer = ____"),
-        q("Circumference 264: radius = ____ cm", "fill", "Answer = ____"),
-        q("Diameter 49: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 85, chord 126: distance = ____", "fill", "Answer = ____"),
-        q("Radius 56: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Chord 126, distance 16: radius = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Diameter 98: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Ring outer r=21 inner r=14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 50, distance 14: chord = ____", "fill", "Answer = ____"),
-        q("Quarter circle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("True or False: Radius 42 circumference = 264.", "fill", "Answer = ____"),
-        q("True or False: Radius 25, distance 24 gives chord 14.", "fill", "Answer = ____"),
-        q("True or False: Area 5544 gives radius 42.", "fill", "Answer = ____"),
-        q("Spot: Diameter 49 circumference = 154. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Ring outer 21 inner 14 area = 770.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
-def _L17CUM2_s(sheet):
-    # Mixed D+E+F: tangents, theorems, angle in circle
-    s1 = [
-        cb("Cumulative D+E+F", [
-            "Covers: tangents, circle theorems, angles in a circle.",
-            "Use tangent⟂radius, centre=2×circumference, cyclic quad rules.",
-        ], "Tangents, theorems, and angle chasing."),
-        q("Distance 13, radius 5: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 40: centre = ____°", "fill", "Answer = ____"),
-        q("Angle in semicircle = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 80 opposite = ____°", "fill", "Answer = ____"),
-        q("Distance 25, radius 7: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 100: circumference = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 80: base = ____°", "fill", "Answer = ____"),
-        q("Tangent 24, radius 7: distance = ____", "fill", "Answer = ____"),
-        q("Same segment 48 and y: y = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 95 opposite = ____°", "fill", "Answer = ____"),
-        q("Distance 17, radius 8: tangent = ____", "fill", "Answer = ____"),
-        q("Tangent-chord 50°: alternate = ____°", "fill", "Answer = ____"),
-        q("Circumference angle 55: centre = ____°", "fill", "Answer = ____"),
-        q("Two tangents 3x and 18 equal: x = ____", "fill", "Answer = ____"),
-        q("Centre 140: circumference = ____°", "fill", "Answer = ____"),
-        q("True or False: Distance 13, radius 5 gives tangent 12.", "fill", "Answer = ____"),
-        q("True or False: Circumference 40 gives centre 80.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 80 opposite is 100.", "fill", "Answer = ____"),
-        q("Spot: Distance 25, radius 7 gives tangent 23. Correct? Fix (24). ____", "fill", "Answer = ____"),
-        q("True or False: Angle in semicircle is 90.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Cumulative D+E+F — Practice", [
-            "Apply tangent length, theorems and angle work together.",
-            "Spot right angles and isosceles radii triangles.",
-        ], "Mix tangents and angle theorems."),
-        q("Distance 29, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 88: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 130 opposite = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 100: base = ____°", "fill", "Answer = ____"),
-        q("Tangent 40, radius 9: distance = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 35: other = ____°", "fill", "Answer = ____"),
-        q("Same segment 67 and y: y = ____°", "fill", "Answer = ____"),
-        q("Distance 41, radius 40: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 130: x = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 47°: alternate = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad x and 2x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Distance 53, radius 28: tangent = ____", "fill", "Answer = ____"),
-        q("Two radii base 70: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference angle 25: centre = ____°", "fill", "Answer = ____"),
-        q("Two tangents 2x+5 and 17 equal: x = ____", "fill", "Answer = ____"),
-        q("True or False: Distance 29, radius 21 gives tangent 20.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad x,2x opposite gives x = 60.", "fill", "Answer = ____"),
-        q("True or False: Distance 41, radius 40 gives tangent 9.", "fill", "Answer = ____"),
-        q("Spot: Two radii apex 100 gives base 50. Correct? Fix (40). ____", "fill", "Answer = ____"),
-        q("True or False: Tangent-chord 47 gives alternate 47.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative D+E+F — Tips", [
-            "Tangent⟂radius; tangent²+radius²=distance².",
-            "Centre = 2×circumference; semicircle = 90°.",
-            "Cyclic quad opposite = 180; same segment equal.",
-            "Tangent-chord = alternate segment angle.",
-        ]),
-        q("Distance 37, radius 12: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 96: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 75 opposite = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 120: base = ____°", "fill", "Answer = ____"),
-        q("Tangent 35, radius 12: distance = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 40: other = ____°", "fill", "Answer = ____"),
-        q("Same segment 38 and y: y = ____°", "fill", "Answer = ____"),
-        q("Distance 65, radius 16: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 110: x = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 58°: alternate = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad x and 3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Distance 75, radius 21: tangent = ____", "fill", "Answer = ____"),
-        q("Two radii base 75: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference angle 60: centre = ____°", "fill", "Answer = ____"),
-        q("Two tangents 4x and 24 equal: x = ____", "fill", "Answer = ____"),
-        q("True or False: Distance 37, radius 12 gives tangent 35.", "fill", "Answer = ____"),
-        q("True or False: Centre 96 gives circumference 48.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad x,3x opposite gives x = 45.", "fill", "Answer = ____"),
-        q("Spot: Distance 65, radius 16 gives tangent 60. Correct? Fix (63). ____", "fill", "Answer = ____"),
-        q("True or False: Two radii apex 120 gives base 30.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Distance 61, radius 60: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 134: circumference = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 2x,3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Two radii apex 2x base x: x = ____°", "fill", "Answer = ____"),
-        q("Tangent 56, radius 33: distance = ____", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 3x,2x: x = ____°", "fill", "Answer = ____"),
-        q("Same segment 5x and 80: x = ____", "fill", "Answer = ____"),
-        q("Distance 85, radius 84: tangent = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 146: x = ____°", "fill", "Answer = ____"),
-        q("Tangent-chord 3x = 66: x = ____", "fill", "Answer = ____"),
-        q("Cyclic quad x+20 and x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Distance 100, radius 28: tangent = ____", "fill", "Answer = ____"),
-        q("Two radii base 80: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference angle 72: centre = ____°", "fill", "Answer = ____"),
-        q("Two tangents 5x and 35 equal: x = ____", "fill", "Answer = ____"),
-        q("True or False: Distance 61, radius 60 gives tangent 11.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 2x,3x opposite gives x = 36.", "fill", "Answer = ____"),
-        q("True or False: Distance 85, radius 84 gives tangent 13.", "fill", "Answer = ____"),
-        q("Spot: Tangent 56, radius 33 gives distance 64. Correct? Fix (65). ____", "fill", "Answer = ____"),
-        q("True or False: Semicircle triangle 3x,2x gives x = 18.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17CUM3 — Polygons: Exterior Angles & Regular Polygons
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L17CUM3_s(sheet):
-    # Mixed G+H+I: applications, mixed, puzzles
-    s1 = [
-        cb("Cumulative G+H+I", [
-            "Covers: applications, mixed circle skills, puzzles.",
-            "Apply formulas to real problems and solve for unknowns.",
-        ], "Wheels, areas, and angle/length puzzles."),
-        q("Wheel radius 35: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Distance 13, radius 5: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 40: centre = ____°", "fill", "Answer = ____"),
-        q("Track radius 21 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Cyclic quad 80 opposite = ____°", "fill", "Answer = ____"),
-        q("Two tangents 3x and 21 equal: x = ____", "fill", "Answer = ____"),
-        q("Pizza radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, chord 14: distance = ____", "fill", "Answer = ____"),
-        q("Centre 100: circumference = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 44, distance 440: turns = ____", "fill", "Answer = ____"),
-        q("Two radii apex x base 2x: x = ____°", "fill", "Answer = ____"),
-        q("Semicircle radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 154: radius = ____", "fill", "Answer = ____"),
-        q("True or False: Wheel radius 35 travels 220 cm/turn.", "fill", "Answer = ____"),
-        q("True or False: Distance 13, radius 5 gives tangent 12.", "fill", "Answer = ____"),
-        q("True or False: Track radius 21 m is 132 m/lap.", "fill", "Answer = ____"),
-        q("Spot: Pizza radius 14 area = 308. Correct? Fix (616). ____", "fill", "Answer = ____"),
-        q("True or False: Two tangents 3x and 21 give x = 7.", "fill", "Answer = ____"),
+    random.seed(1850 + sheet)
+    n_ranges = {1: (5, 8), 2: (5, 9), 3: (6, 10), 4: (6, 12)}
+    lo_n, hi_n = n_ranges[sheet]
+    items = [
+        cb("Exterior Angles & Regular Polygons", [
+            "The exterior angles of ANY polygon always add up to 360 degrees -- no matter how many sides!",
+            "For a REGULAR polygon: each exterior angle = 360 / n.",
+            "Interior + exterior at each vertex = 180 (they're a linear pair).",
+        ], "Regular hexagon (n=6): each exterior angle = 360/6 = 60. Each interior = 180-60 = 120."),
     ]
-    s2 = [
-        cb("Cumulative G+H+I — Practice", [
-            "Blend real-world circles with puzzle solving.",
-            "Translate clues into equations; verify.",
-        ], "Applications plus angle/length puzzles."),
-        q("Wheel radius 14: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 24: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 3x,2x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Track radius 28 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Centre 88: circumference = ____°", "fill", "Answer = ____"),
-        q("Two tangents 2x+3 and 15 equal: x = ____", "fill", "Answer = ____"),
-        q("Garden radius 35 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Radius 29, distance 20: chord = ____", "fill", "Answer = ____"),
-        q("Two radii apex 3x base x: x = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 88, distance 880: turns = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 616: radius = ____", "fill", "Answer = ____"),
-        q("Tangent 35, radius 12: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Track radius 28 m is 176 m/lap.", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 24 gives tangent 7.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 3x,2x opposite gives x = 36.", "fill", "Answer = ____"),
-        q("Spot: Garden radius 35 m area = 1925. Correct? Fix (3850). ____", "fill", "Answer = ____"),
-        q("True or False: Area 616 gives radius 14.", "fill", "Answer = ____"),
+    for _ in range(5):
+        n = random.randint(lo_n, hi_n)
+        while 360 % n != 0: n = random.randint(lo_n, hi_n)
+        items.append(q(f"A regular {n}-sided polygon. Find each exterior angle (360/n).", "fill", "Answer = ____"))
+    for _ in range(5):
+        n = random.randint(lo_n, hi_n)
+        while 360 % n != 0: n = random.randint(lo_n, hi_n)
+        ext = 360 // n
+        items.append(q(f"A regular polygon has exterior angle {ext}°. Find the number of sides (360/exterior angle).", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.randint(lo_n, hi_n)
+        while 360 % n != 0: n = random.randint(lo_n, hi_n)
+        ext = 360 // n
+        interior = 180 - ext
+        items.append(q(f"A regular {n}-gon has exterior angle {ext}°. Find each interior angle (180 - exterior).", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("True or False: The exterior angles of a polygon always sum to 360°, no matter how many sides it has.", "fill", "Answer = ____"))
+    for _ in range(3):
+        n = random.randint(lo_n, hi_n)
+        while 360 % n != 0: n = random.randint(lo_n, hi_n)
+        correct = 360 // n
+        shown = correct if random.random() > 0.4 else correct + 5
+        items.append(q(f"True or False: A regular {n}-gon has exterior angle {shown}°.", "fill", "Answer = ____"))
+    return items
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17J — Quadrilaterals, Circles & Polygons Mastery Challenge
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L17J_s(sheet):
+    random.seed(1860 + sheet)
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
+    items = [
+        cb("Quadrilaterals, Circles & Polygons Mastery Challenge", [
+            "Every skill: quadrilateral properties, circle theorems, tangents, polygon angle sums.",
+            "Bigger numbers here -- this challenge covers the whole level.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    s3 = [
-        tb("Cumulative G+H+I — Tips", [
-            "Around → circumference; covering → area.",
-            "Chords/tangents → right triangle + Pythagoras.",
-            "Theorems for angles; set equations for puzzles.",
-            "Verify against every clue.",
-        ]),
-        q("Wheel radius 21: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 15, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Distance 41, radius 40: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 5x,4x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Track radius 35 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Centre 120: circumference = ____°", "fill", "Answer = ____"),
-        q("Two tangents 4x and 24 equal: x = ____", "fill", "Answer = ____"),
-        q("Pizza radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 53, chord 56: distance = ____", "fill", "Answer = ____"),
-        q("Two radii apex 4x base x: x = ____°", "fill", "Answer = ____"),
-        q("Wheel circumference 132, distance 1320: turns = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 1386: radius = ____", "fill", "Answer = ____"),
-        q("Tangent 48, radius 14: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Track radius 35 m is 220 m/lap.", "fill", "Answer = ____"),
-        q("True or False: Distance 41, radius 40 gives tangent 9.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 5x,4x opposite gives x = 20.", "fill", "Answer = ____"),
-        q("Spot: Pizza radius 21 area = 693. Correct? Fix (1386). ____", "fill", "Answer = ____"),
-        q("True or False: Area 1386 gives radius 21.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Wheel radius 42: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 24: chord = ____", "fill", "Answer = ____"),
-        q("Distance 53, radius 45: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 7x,5x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Track radius 49 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Centre 2x = 154: x = ____°", "fill", "Answer = ____"),
-        q("Two tangents 5x and 35 equal: x = ____", "fill", "Answer = ____"),
-        q("Garden radius 70 m: area = ____ m^2", "fill", "Answer = ____"),
-        q("Radius 61, chord 22: distance = ____", "fill", "Answer = ____"),
-        q("Two radii apex 5x base x: x = ____°", "fill", "Answer = ____"),
-        q("Wheel diameter 70: turns in 4400 cm = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 42: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Area 5544: radius = ____", "fill", "Answer = ____"),
-        q("Tangent 63, radius 16: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Track radius 49 m is 308 m/lap.", "fill", "Answer = ____"),
-        q("True or False: Distance 53, radius 45 gives tangent 28.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 7x,5x opposite gives x = 15.", "fill", "Answer = ____"),
-        q("Spot: Garden radius 70 m area = 7700. Correct? Fix (15400). ____", "fill", "Answer = ____"),
-        q("True or False: Area 5544 gives radius 42.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(4):
+        a = random.randint(50, 150)
+        b = random.randint(30, 100)
+        c = random.randint(30, 100)
+        while a + b + c >= 355: c = random.randint(30, 100)
+        items.append(q(f"Quadrilateral angles {a}°, {b}°, {c}°. Find the fourth.  [1 point]", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = random.randint(40, 140)
+        items.append(q(f"Cyclic quadrilateral angle {a}°. Find its opposite angle.  [1 point]", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = random.choice(triples)
+        k = random.randint(1, 3)
+        items.append(q(f"Distance to centre {c*k}, radius {b*k}. Find the tangent length.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        n = random.choice([5, 6, 8, 9, 10])
+        items.append(q(f"Find the interior angle sum of a {n}-sided polygon.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.choice([5, 6, 8, 9, 10])
+        while 360 % n != 0: n = random.choice([5, 6, 8, 9, 10])
+        items.append(q(f"A regular {n}-gon: find each exterior angle.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("True or False: The exterior angles of any polygon sum to 360°.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 17REV — Level 17 Revision
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L17REV_s(sheet):
-    s1 = [
-        cb("Level 17 Revision", [
-            "All Circles: basics, area, chords, tangents, theorems, angles, applications.",
-            "Identify the tool, compute, verify.",
-        ], "One sheet across every Level 17 skill."),
-        q("Radius 7: diameter = ____", "fill", "Answer = ____"),
-        q("Radius 7: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 13, distance 5: chord = ____", "fill", "Answer = ____"),
-        q("Distance 13, radius 5: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 40: centre = ____°", "fill", "Answer = ____"),
-        q("Angle in semicircle = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 80 opposite = ____°", "fill", "Answer = ____"),
-        q("Wheel radius 35: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Two radii apex 80: base = ____°", "fill", "Answer = ____"),
-        q("Circumference 44: radius = ____ cm", "fill", "Answer = ____"),
-        q("Sector 90° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Tangent 24, radius 7: distance = ____", "fill", "Answer = ____"),
-        q("Radius 10, chord 12: distance = ____", "fill", "Answer = ____"),
-        q("True or False: Radius 7 has area 154.", "fill", "Answer = ____"),
-        q("True or False: Distance 13, radius 5 gives tangent 12.", "fill", "Answer = ____"),
-        q("True or False: Angle in semicircle is 90.", "fill", "Answer = ____"),
-        q("Spot: Radius 7 circumference = 22. Correct? Fix (44). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 80 opposite is 100.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Level 17 Revision — Practice", [
-            "Faster pass with bigger numbers across all skills.",
-            "Use triples and theorems to speed up.",
-        ], "Mixed revision, sheet 2."),
-        q("Radius 21: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 7: chord = ____", "fill", "Answer = ____"),
-        q("Distance 25, radius 7: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 55: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 95 opposite = ____°", "fill", "Answer = ____"),
-        q("Track radius 28 m: one lap = ____ m", "fill", "Answer = ____"),
-        q("Sector 180° radius 14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Two radii apex 100: base = ____°", "fill", "Answer = ____"),
-        q("Circumference 132: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 616: radius = ____ cm", "fill", "Answer = ____"),
-        q("Tangent 40, radius 9: distance = ____", "fill", "Answer = ____"),
-        q("Radius 15, chord 24: distance = ____", "fill", "Answer = ____"),
-        q("Ring outer r=14 inner r=7: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Centre 140: circumference = ____°", "fill", "Answer = ____"),
-        q("True or False: Radius 21 area = 1386.", "fill", "Answer = ____"),
-        q("True or False: Distance 25, radius 7 gives tangent 24.", "fill", "Answer = ____"),
-        q("True or False: Sector 180° radius 14 area = 308.", "fill", "Answer = ____"),
-        q("Spot: Ring outer 14 inner 7 area = 308. Correct? Fix (462). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 95 opposite is 85.", "fill", "Answer = ____"),
-    ]
-    s3 = [
+    random.seed(1870 + sheet)
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
+    items = [
         tb("Level 17 Revision — Tips", [
-            "C = 2·pi·r = pi·d; A = pi·r²; sector = (θ/360)·pi·r².",
-            "Chord/tangent → right triangle + Pythagoras.",
-            "Centre = 2×circumference; semicircle = 90; cyclic quad opp = 180.",
-            "pi = 22/7; recall triples.",
+            "Quadrilaterals: know each type's defining property. Angle sum always 360.",
+            "Diagonals bisect each other in the parallelogram family (converse holds too).",
+            "Circles: angle at centre = 2x circumference angle. Semicircle angle = 90.",
+            "Cyclic quadrilateral: opposite angles sum to 180. Tangent perpendicular to radius.",
+            "Polygons: interior sum = (n-2)x180. Exterior angles ALWAYS sum to 360.",
         ]),
-        q("Radius 35: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 14: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 17, chord 16: distance = ____", "fill", "Answer = ____"),
-        q("Distance 17, radius 8: tangent = ____", "fill", "Answer = ____"),
-        q("Circumference angle 35: centre = ____°", "fill", "Answer = ____"),
-        q("Cyclic quad 130 opposite = ____°", "fill", "Answer = ____"),
-        q("Sector 90° radius 28: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Two radii base 75: apex = ____°", "fill", "Answer = ____"),
-        q("Circumference 220: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 1386: radius = ____ cm", "fill", "Answer = ____"),
-        q("Tangent 15, radius 8: distance = ____", "fill", "Answer = ____"),
-        q("Radius 29, distance 20: chord = ____", "fill", "Answer = ____"),
-        q("Semicircle radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel radius 42: turn distance = ____ cm", "fill", "Answer = ____"),
-        q("Centre 96: circumference = ____°", "fill", "Answer = ____"),
-        q("True or False: Distance 17, radius 8 gives tangent 15.", "fill", "Answer = ____"),
-        q("True or False: Radius 17, chord 16 gives distance 15.", "fill", "Answer = ____"),
-        q("True or False: Sector 90° radius 28 area = 616.", "fill", "Answer = ____"),
-        q("Spot: Radius 29, distance 20 gives chord 21. Correct? Fix (42). ____", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 130 opposite is 50.", "fill", "Answer = ____"),
     ]
-    s4 = [
-        q("Radius 42: circumference = ____ cm", "fill", "Answer = ____"),
-        q("Radius 49: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Radius 25, distance 24: chord = ____", "fill", "Answer = ____"),
-        q("Distance 53, radius 45: tangent = ____", "fill", "Answer = ____"),
-        q("Cyclic quad 2x,3x opposite: x = ____°", "fill", "Answer = ____"),
-        q("Semicircle triangle acute 2x,3x: x = ____°", "fill", "Answer = ____"),
-        q("Sector 120° radius 21: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Two radii apex 2x base x: x = ____°", "fill", "Answer = ____"),
-        q("Circumference 264: radius = ____ cm", "fill", "Answer = ____"),
-        q("Area 5544: radius = ____ cm", "fill", "Answer = ____"),
-        q("Tangent 56, radius 33: distance = ____", "fill", "Answer = ____"),
-        q("Radius 61, chord 22: distance = ____", "fill", "Answer = ____"),
-        q("Ring outer r=21 inner r=14: area = ____ cm^2", "fill", "Answer = ____"),
-        q("Wheel diameter 70: turns in 4400 cm = ____", "fill", "Answer = ____"),
-        q("Centre 2x = 146: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Radius 42 circumference = 264.", "fill", "Answer = ____"),
-        q("True or False: Distance 53, radius 45 gives tangent 28.", "fill", "Answer = ____"),
-        q("True or False: Cyclic quad 2x,3x opposite gives x = 36.", "fill", "Answer = ____"),
-        q("Spot: Ring outer 21 inner 14 area = 385. Correct? Fix (770). ____", "fill", "Answer = ____"),
-        q("True or False: Area 5544 gives radius 42.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(2):
+        kind = random.choice(list(_QUAD_PROPS.keys()))
+        items.append(q(f"Name the quadrilateral with: {_QUAD_PROPS[kind]}.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(60, 150)
+        b = random.randint(40, 100)
+        c = random.randint(40, 100)
+        while a + b + c >= 355: c = random.randint(40, 100)
+        items.append(q(f"Quadrilateral angles {a}°, {b}°, {c}°. Find the fourth.", "fill", "Answer = ____"))
+    for _ in range(2):
+        r = random.randint(5, 30)
+        items.append(q(f"Radius {r} cm. Find the diameter.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Chord distance from centre {b}, radius {c}. Find the chord length.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Distance to centre {c}, radius {b}. Find the tangent length.", "fill", "Answer = ____"))
+    for _ in range(2):
+        circ = random.randint(20, 80)
+        items.append(q(f"Angle at circumference {circ}°. Find the angle at the centre.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(50, 140)
+        items.append(q(f"Cyclic quadrilateral angle {a}°. Find the opposite angle.", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.choice([5, 6, 7, 8])
+        items.append(q(f"Interior angle sum of a {n}-sided polygon?", "fill", "Answer = ____"))
+    for _ in range(2):
+        n = random.choice([5, 6, 8, 9])
+        while 360 % n != 0: n = random.choice([5, 6, 8, 9])
+        items.append(q(f"Regular {n}-gon: find each exterior angle.", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("True or False: Diagonals of a rectangle are equal in length.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DISPATCH for Level 17
 # ═══════════════════════════════════════════════════════════════════════════════
 DISPATCH_L17 = {
-    "17A":    {1: _L17A_1, 2: _L17A_2, 3: _L17A_3, 4: _L17A_4},
-    "17B":    {1: _L17B_1, 2: _L17B_2, 3: _L17B_3, 4: _L17B_4},
-    "17C":    {1: _L17C_1, 2: _L17C_2, 3: _L17C_3, 4: _L17C_4},
-    "17D":    {1: _L17D_1, 2: _L17D_2, 3: _L17D_3, 4: _L17D_4},
-    "17E":    {1: _L17E_1, 2: _L17E_2, 3: _L17E_3, 4: _L17E_4},
-    "17F":    {1: _L17F_1, 2: _L17F_2, 3: _L17F_3, 4: _L17F_4},
+    "17A":    {1: lambda: _L17A_s(1), 2: lambda: _L17A_s(2), 3: lambda: _L17A_s(3), 4: lambda: _L17A_s(4)},
+    "17B":    {1: lambda: _L17B_s(1), 2: lambda: _L17B_s(2), 3: lambda: _L17B_s(3), 4: lambda: _L17B_s(4)},
+    "17C":    {1: lambda: _L17C_s(1), 2: lambda: _L17C_s(2), 3: lambda: _L17C_s(3), 4: lambda: _L17C_s(4)},
+    "17CUM1": {1: lambda: _L17CUM1_s(1), 2: lambda: _L17CUM1_s(2), 3: lambda: _L17CUM1_s(3), 4: lambda: _L17CUM1_s(4)},
+    "17D":    {1: lambda: _L17D_s(1), 2: lambda: _L17D_s(2), 3: lambda: _L17D_s(3), 4: lambda: _L17D_s(4)},
+    "17E":    {1: lambda: _L17E_s(1), 2: lambda: _L17E_s(2), 3: lambda: _L17E_s(3), 4: lambda: _L17E_s(4)},
+    "17F":    {1: lambda: _L17F_s(1), 2: lambda: _L17F_s(2), 3: lambda: _L17F_s(3), 4: lambda: _L17F_s(4)},
+    "17CUM2": {1: lambda: _L17CUM2_s(1), 2: lambda: _L17CUM2_s(2), 3: lambda: _L17CUM2_s(3), 4: lambda: _L17CUM2_s(4)},
     "17G":    {1: lambda: _L17G_s(1), 2: lambda: _L17G_s(2), 3: lambda: _L17G_s(3), 4: lambda: _L17G_s(4)},
     "17H":    {1: lambda: _L17H_s(1), 2: lambda: _L17H_s(2), 3: lambda: _L17H_s(3), 4: lambda: _L17H_s(4)},
     "17I":    {1: lambda: _L17I_s(1), 2: lambda: _L17I_s(2), 3: lambda: _L17I_s(3), 4: lambda: _L17I_s(4)},
-    "17J":    {1: lambda: _L17J_s(1), 2: lambda: _L17J_s(2), 3: lambda: _L17J_s(3), 4: lambda: _L17J_s(4)},
-    "17CUM1": {1: lambda: _L17CUM1_s(1), 2: lambda: _L17CUM1_s(2), 3: lambda: _L17CUM1_s(3), 4: lambda: _L17CUM1_s(4)},
-    "17CUM2": {1: lambda: _L17CUM2_s(1), 2: lambda: _L17CUM2_s(2), 3: lambda: _L17CUM2_s(3), 4: lambda: _L17CUM2_s(4)},
     "17CUM3": {1: lambda: _L17CUM3_s(1), 2: lambda: _L17CUM3_s(2), 3: lambda: _L17CUM3_s(3), 4: lambda: _L17CUM3_s(4)},
+    "17J":    {1: lambda: _L17J_s(1), 2: lambda: _L17J_s(2), 3: lambda: _L17J_s(3), 4: lambda: _L17J_s(4)},
     "17REV":  {1: lambda: _L17REV_s(1), 2: lambda: _L17REV_s(2), 3: lambda: _L17REV_s(3), 4: lambda: _L17REV_s(4)},
 }

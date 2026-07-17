@@ -1,1611 +1,652 @@
 """
-Fear Less Maths — Question Content: Level 16 (Triangles)
-Every question hand-written. No placeholders.
-Sheet 1=Intuition, Sheet 2=Concept, Sheet 3=Practice (tips box), Sheet 4=Mastery
-
-Sublevels:
-  16A Types of triangles    16B Angle sum property    16C Exterior angle theorem
-  16CUM1 Mixed A+B+C         16D Congruence            16E Similar triangles
-  16F Pythagoras theorem     16CUM2 Mixed D+E+F        16G Applications
-  16H Mixed                 16I Puzzle geometry        16CUM3 Mixed G+H+I
-  16J Mixed challenge        16REV Level 16 Revision
+Fear Less Maths — Question Content: Level 16 (Lines, Angles & Triangles)
+Complete plane-geometry flow: Point -> Line/Ray -> Angle -> Angle Properties
+-> Parallel Lines & Transversal -> Triangles (types, congruence, inequality,
+similarity, BPT, Pythagoras) -> Areas on the same base.
 """
 from content import cb, tb, q
+import random
+
+
+# ═══ Helpers ═══
+def _can_form_triangle(a, b, c):
+    return a + b > c and b + c > a and a + c > b
+
+
+def _classify_by_sides(a, b, c):
+    x, y, z = sorted([a, b, c])
+    lhs, rhs = x * x + y * y, z * z
+    if lhs == rhs: return "right"
+    if lhs > rhs: return "acute"
+    return "obtuse"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16A — Types of triangles
+# 16A — Point, Line, Ray, Line Segment & Types of Angles
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16A_1():
-    return [
-        cb("Classifying by Sides", [
-            "Equilateral: all 3 sides equal (and all angles 60°).",
-            "Isosceles: exactly 2 sides equal (2 equal base angles).",
-            "Scalene: all 3 sides different (all angles different).",
-        ], "Sides 5, 5, 8 → isosceles. Sides 3, 4, 5 → scalene."),
-        cb("Classifying by Angles", [
-            "Acute: all 3 angles less than 90°.",
-            "Right: one angle exactly 90°.",
-            "Obtuse: one angle greater than 90°.",
-        ], "Angles 90°, 60°, 30° → right triangle."),
-        q("A triangle with all sides equal is called ____", "fill", "Answer = ____"),
-        q("A triangle with exactly 2 equal sides is called ____", "fill", "Answer = ____"),
-        q("A triangle with all different sides is called ____", "fill", "Answer = ____"),
-        q("Each angle of an equilateral triangle = ____°", "fill", "Answer = ____"),
-        q("Sides 6, 6, 6: what type (by sides)? ____", "fill", "Answer = ____"),
-        q("Sides 7, 7, 10: what type (by sides)? ____", "fill", "Answer = ____"),
-        q("Sides 4, 5, 6: what type (by sides)? ____", "fill", "Answer = ____"),
-        q("A triangle with a 90° angle is called ____", "fill", "Answer = ____"),
-        q("A triangle with all angles below 90° is ____", "fill", "Answer = ____"),
-        q("A triangle with one angle above 90° is ____", "fill", "Answer = ____"),
-        q("Angles 90°, 45°, 45°: type by angle? ____", "fill", "Answer = ____"),
-        q("Angles 100°, 40°, 40°: type by angle? ____", "fill", "Answer = ____"),
-        q("Angles 70°, 60°, 50°: type by angle? ____", "fill", "Answer = ____"),
-        q("In an isosceles triangle, the two angles opposite equal sides are ____", "fill", "Answer = ____"),
-        q("True or False: An equilateral triangle has all angles 60°.", "fill", "Answer = ____"),
-        q("True or False: A scalene triangle has two equal sides.", "fill", "Answer = ____"),
-        q("True or False: A right triangle has one 90° angle.", "fill", "Answer = ____"),
-        q("Spot: Sides 7,7,10 is scalene. Correct? Fix (isosceles). ____", "fill", "Answer = ____"),
-        q("True or False: An obtuse triangle has one angle greater than 90°.", "fill", "Answer = ____"),
+def _L16A_s(sheet):
+    random.seed(1600 + sheet)
+    ranges = {1: (10, 60), 2: (10, 90), 3: (10, 150), 4: (10, 175)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Point, Line, Ray & Line Segment", [
+            "A POINT has a position but no size -- just a location, marked with a dot.",
+            "A LINE extends forever in BOTH directions -- no endpoints.",
+            "A RAY starts at one point and extends forever in ONE direction.",
+            "A LINE SEGMENT has two fixed endpoints -- a definite length.",
+        ], "Line AB extends both ways. Ray AB starts at A, goes through B, forever. Segment AB stops at both A and B."),
+        cb("Types of Angles", [
+            "Acute: less than 90°. Right: exactly 90°. Obtuse: between 90° and 180°.",
+            "Straight: exactly 180° (a straight line). Reflex: more than 180°.",
+            "An angle is measured in degrees using a protractor.",
+        ], "A 40° angle is acute. A 120° angle is obtuse. A 250° angle is reflex."),
     ]
-
-def _L16A_2():
-    return [
-        cb("Combining Side and Angle Names", [
-            "A triangle can have two names: one by sides, one by angles.",
-            "Example: right isosceles (90° + two equal sides).",
-            "A triangle cannot have two right angles or two obtuse angles.",
-        ], "Angles 90°,45°,45° with two equal sides → right isosceles."),
-        q("Angles 90°,45°,45°: name by both side & angle: ____", "fill", "Answer = ____"),
-        q("Equilateral triangles are always acute. True or False? ____", "fill", "Answer = ____"),
-        q("Can a triangle have two right angles? ____", "fill", "Answer = ____"),
-        q("Can a triangle have two obtuse angles? ____", "fill", "Answer = ____"),
-        q("A right triangle with two equal legs is ____ isosceles.", "fill", "Answer = ____"),
-        q("Sides 5,5,5: by sides ____", "fill", "Answer = ____"),
-        q("Sides 8,8,3: by sides ____", "fill", "Answer = ____"),
-        q("Sides 9,12,15: by sides ____", "fill", "Answer = ____"),
-        q("Angles 120°,30°,30°: by angle ____", "fill", "Answer = ____"),
-        q("Angles 50°,60°,70°: by angle ____", "fill", "Answer = ____"),
-        q("Angles 90°,60°,30°: by angle ____", "fill", "Answer = ____"),
-        q("An isosceles triangle has base angles 50° each. Vertex angle = 180-50-50 = ____°", "fill", "Answer = ____"),
-        q("An isosceles triangle has vertex 80°, base angles equal. Each base = ____°", "fill", "Answer = ____"),
-        q("Equilateral: how many lines of symmetry? ____", "fill", "Answer = ____"),
-        q("Isosceles: how many lines of symmetry? ____", "fill", "Answer = ____"),
-        q("True or False: A right isosceles triangle has angles 90,45,45.", "fill", "Answer = ____"),
-        q("True or False: A triangle can have two right angles.", "fill", "Answer = ____"),
-        q("True or False: Sides 9,12,15 is scalene.", "fill", "Answer = ____"),
-        q("Spot: Isosceles base angles 50 each gives vertex 100. Correct? Fix (80). ____", "fill", "Answer = ____"),
-        q("True or False: An equilateral triangle has 3 lines of symmetry.", "fill", "Answer = ____"),
-    ]
-
-def _L16A_3():
-    return [
-        tb("Types of Triangles — Tips", [
-            "By sides: equilateral (3 equal), isosceles (2 equal), scalene (none).",
-            "By angles: acute (<90 all), right (one 90), obtuse (one >90).",
-            "Equilateral = all 60°; right isosceles = 90,45,45.",
-            "No triangle has two right or two obtuse angles.",
-        ]),
-        q("Sides 10,10,10: by sides ____", "fill", "Answer = ____"),
-        q("Sides 6,6,11: by sides ____", "fill", "Answer = ____"),
-        q("Sides 5,7,9: by sides ____", "fill", "Answer = ____"),
-        q("Angles 80,60,40: by angle ____", "fill", "Answer = ____"),
-        q("Angles 110,40,30: by angle ____", "fill", "Answer = ____"),
-        q("Angles 90,50,40: by angle ____", "fill", "Answer = ____"),
-        q("Isosceles base angles 65 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 40, base angles equal: each = ____°", "fill", "Answer = ____"),
-        q("Equilateral each angle = ____°", "fill", "Answer = ____"),
-        q("Right isosceles angles: ____", "fill", "Answer = ____"),
-        q("Sides 13,13,13: type ____", "fill", "Answer = ____"),
-        q("A triangle with angles 60,60,60: by sides it must be ____", "fill", "Answer = ____"),
-        q("Lines of symmetry of a scalene triangle: ____", "fill", "Answer = ____"),
-        q("Can an obtuse triangle be isosceles? ____", "fill", "Answer = ____"),
-        q("Angles 95,45,40: by angle ____", "fill", "Answer = ____"),
-        q("True or False: Sides 6,6,11 is isosceles.", "fill", "Answer = ____"),
-        q("True or False: Angles 90,50,40 is a right triangle.", "fill", "Answer = ____"),
-        q("True or False: Isosceles base angles 65 each gives vertex 50.", "fill", "Answer = ____"),
-        q("Spot: Equilateral angle = 90. Correct? Fix (60). ____", "fill", "Answer = ____"),
-        q("True or False: A scalene triangle has 0 lines of symmetry.", "fill", "Answer = ____"),
-    ]
-
-def _L16A_4():
-    return [
-        q("Sides 14,14,14: by sides ____", "fill", "Answer = ____"),
-        q("Sides 8,8,15: by sides ____", "fill", "Answer = ____"),
-        q("Sides 11,13,17: by sides ____", "fill", "Answer = ____"),
-        q("Angles 75,65,40: by angle ____", "fill", "Answer = ____"),
-        q("Angles 130,25,25: by angle and side ____", "fill", "Answer = ____"),
-        q("Angles 90,55,35: by angle ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 100, base angles equal: each = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 30 each: vertex = ____°", "fill", "Answer = ____"),
-        q("A triangle has angles 60,60,x. x = ____° and type = ____", "fill", "Answer = ____"),
-        q("If two angles are 50 and 50, the triangle is ____ (by sides)", "fill", "Answer = ____"),
-        q("If all three angles differ, the triangle is ____ (by sides)", "fill", "Answer = ____"),
-        q("A right triangle's two acute angles sum to ____°", "fill", "Answer = ____"),
-        q("In right isosceles, each acute angle = ____°", "fill", "Answer = ____"),
-        q("Angles 100,50,30: possible? (sum) ____", "fill", "Answer = ____"),
-        q("Largest angle in a triangle with sides 5,5,8 is opposite the side of length ____", "fill", "Answer = ____"),
-        q("True or False: Angles 130,25,25 is obtuse isosceles.", "fill", "Answer = ____"),
-        q("True or False: A right triangle's acute angles sum to 90.", "fill", "Answer = ____"),
-        q("True or False: Two angles of 50 each force an isosceles triangle.", "fill", "Answer = ____"),
-        q("Spot: Isosceles vertex 100 gives base angles 40 each. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Sides 8,8,15 is isosceles.", "fill", "Answer = ____"),
-    ]
+    for _ in range(4):
+        kind = random.choice(["point", "line", "ray", "segment"])
+        prompts = {
+            "point": "Which geometric object has a position but NO size or length?",
+            "line": "Which geometric object extends forever in BOTH directions?",
+            "ray": "Which geometric object starts at one point and extends forever in ONE direction?",
+            "segment": "Which geometric object has two fixed endpoints and a definite length?",
+        }
+        items.append(q(prompts[kind], "diagram", "____", "", "points_lines_rays", {}))
+    for _ in range(4):
+        angle = random.randint(lo, hi)
+        while angle == 90 or angle == 180:
+            angle = random.randint(lo, hi)
+        items.append(q(f"Classify this angle: {angle}°. Is it acute, right, obtuse, straight, or reflex?", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("Ray AB and Ray BA -- are they the same ray? Explain.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("How many endpoints does a line segment have? A ray? A line?", "fill", "Answer = ____"))
+    for _ in range(3):
+        angle = random.randint(lo, hi)
+        while angle in (90, 180): angle = random.randint(lo, hi)
+        correct = "acute" if angle < 90 else ("obtuse" if angle < 180 else "reflex")
+        shown = correct if random.random() > 0.4 else random.choice(["acute", "obtuse", "reflex", "right"])
+        items.append(q(f"True or False: A {angle}° angle is {shown}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("True or False: A line has two endpoints.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16B — Angle sum property
+# 16B — Angle Pair Properties
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16B_1():
-    return [
-        cb("Angle Sum Property", [
-            "The three interior angles of any triangle add up to 180°.",
-            "Known two angles? Subtract their sum from 180° for the third.",
-            "This works for every triangle, of any shape or size.",
-        ], "Angles 70° and 60°: third = 180 - 130 = 50°."),
-        q("Two angles are 70° and 60°. Third angle = ____°", "fill", "Answer = ____"),
-        q("Two angles are 90° and 30°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 45° and 45°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 100° and 50°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 80° and 40°. Third = ____°", "fill", "Answer = ____"),
-        q("All three angles equal. Each = ____°", "fill", "Answer = ____"),
-        q("Two angles are 55° and 65°. Third = ____°", "fill", "Answer = ____"),
-        q("A right triangle has one angle 90° and another 35°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 120° and 30°. Third = ____°", "fill", "Answer = ____"),
-        q("The sum of all three interior angles of a triangle is ____°", "fill", "Answer = ____"),
-        q("Two angles are 25° and 25°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 90° and 45°. Third = ____°", "fill", "Answer = ____"),
-        q("A triangle has angles x, x, x. x = ____°", "fill", "Answer = ____"),
-        q("Two angles are 110° and 35°. Third = ____°", "fill", "Answer = ____"),
-        q("Two angles are 60° and 90°. Third = ____°", "fill", "Answer = ____"),
-        q("True or False: A triangle's angles sum to 180°.", "fill", "Answer = ____"),
-        q("True or False: If two angles are 70 and 60, the third is 50.", "fill", "Answer = ____"),
-        q("True or False: Each angle of an equilateral triangle is 60°.", "fill", "Answer = ____"),
-        q("Spot: Angles 90 and 30 give third = 70. Correct? Fix (60). ____", "fill", "Answer = ____"),
-        q("True or False: Angles 100 and 50 give third = 30.", "fill", "Answer = ____"),
+def _L16B_s(sheet):
+    random.seed(1610 + sheet)
+    ranges = {1: (20, 60), 2: (15, 75), 3: (10, 80), 4: (5, 85)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Angle Pair Properties", [
+            "Complementary angles: add up to 90°.",
+            "Supplementary angles: add up to 180°.",
+            "Linear pair: two ADJACENT angles on a straight line -- they are supplementary.",
+            "Vertically opposite angles: formed by two crossing lines -- always EQUAL.",
+            "Angles around a single point add up to 360°.",
+        ], "40° and 50° are complementary. 110° and 70° are supplementary."),
     ]
+    for _ in range(4):
+        a1 = random.randint(lo, min(hi, 85))
+        items.append(q(f"These two angles are complementary. One is {a1}°. Find the other.", "diagram", "____", "", "angle_pair", {"kind": "complementary", "a1": a1}))
+    for _ in range(4):
+        a1 = random.randint(lo, min(hi, 175))
+        items.append(q(f"These two angles are supplementary. One is {a1}°. Find the other.", "diagram", "____", "", "angle_pair", {"kind": "supplementary", "a1": a1}))
+    for _ in range(3):
+        a1 = random.randint(lo, min(hi, 80))
+        items.append(q("These two lines cross. Find the vertically opposite angle marked x.", "diagram", "____", "", "angle_pair", {"kind": "vertical", "a1": a1}))
+    for _ in range(3):
+        a1 = random.randint(10, 80)
+        items.append(q(f"Two complementary angles: one is {a1}°. Find the other.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a1 = random.randint(20, 160)
+        items.append(q(f"Two supplementary angles: one is {a1}°. Find the other.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a1 = random.randint(10, 80)
+        correct = 90 - a1
+        shown = correct if random.random() > 0.4 else correct + 5
+        items.append(q(f"True or False: Complementary to {a1}° is {shown}°.", "fill", "Answer = ____"))
+    return items
 
-def _L16B_2():
-    return [
-        cb("Using Algebra with Angle Sum", [
-            "Set the sum of expressions equal to 180° and solve.",
-            "Ratio of angles a:b:c → split 180° into a+b+c parts.",
-            "Isosceles: two angles equal, so 2x + vertex = 180°.",
-        ], "Angles x, 2x, 3x: 6x = 180 → x = 30°."),
-        q("Angles x, 2x, 3x: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, x, x: x = ____°", "fill", "Answer = ____"),
-        q("Angles 2x, 3x, 4x: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, x, 80: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, x, 40: x = ____°", "fill", "Answer = ____"),
-        q("Angles in ratio 1:2:3, smallest = ____°", "fill", "Answer = ____"),
-        q("Angles in ratio 1:2:3, largest = ____°", "fill", "Answer = ____"),
-        q("Angles in ratio 2:3:4, smallest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 50, base angle x: x = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 70 each, vertex = ____°", "fill", "Answer = ____"),
-        q("Angles x+10, x+20, x+30: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, 2x, 90: x = ____°", "fill", "Answer = ____"),
-        q("Angles 3x, 3x, 3x: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, x+20, x+40: x = ____°", "fill", "Answer = ____"),
-        q("Angles in ratio 1:1:1: each = ____°", "fill", "Answer = ____"),
-        q("True or False: Angles x,2x,3x give x = 30.", "fill", "Answer = ____"),
-        q("True or False: Ratio 1:2:3 gives largest angle 90.", "fill", "Answer = ____"),
-        q("True or False: Isosceles base angles 70 each gives vertex 40.", "fill", "Answer = ____"),
-        q("Spot: Angles 2x,3x,4x give x = 30. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Angles x,x,80 give x = 50.", "fill", "Answer = ____"),
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16C — Parallel Lines & a Transversal
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L16C_s(sheet):
+    random.seed(1620 + sheet)
+    ranges = {1: (40, 80), 2: (30, 100), 3: (20, 120), 4: (10, 140)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Parallel Lines Cut by a Transversal", [
+            "CORRESPONDING angles (same position at each crossing) are EQUAL.",
+            "ALTERNATE INTERIOR angles (opposite sides, between the lines) are EQUAL.",
+            "CO-INTERIOR angles (same side, between the lines) are SUPPLEMENTARY (sum 180°).",
+            "CONVERSE: if corresponding angles are equal (or alternate angles equal, or co-interior supplementary), the lines ARE parallel.",
+        ], "Angle 1 = 70°. Angle 5 (corresponding) = 70°. Angle 4 (alternate interior) = 70°."),
     ]
-
-def _L16B_3():
-    return [
-        tb("Angle Sum — Tips", [
-            "Interior angles add to 180°.",
-            "Third angle = 180 - (sum of other two).",
-            "Ratio a:b:c → divide 180 by (a+b+c), then multiply.",
-            "Isosceles: 2 × base angle + vertex = 180.",
-        ]),
-        q("Two angles 85, 55: third = ____°", "fill", "Answer = ____"),
-        q("Two angles 90, 25: third = ____°", "fill", "Answer = ____"),
-        q("Angles x, 4x, 5x: x = ____°", "fill", "Answer = ____"),
-        q("Ratio 1:3:5, largest = ____°", "fill", "Answer = ____"),
-        q("Ratio 2:2:5, smallest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 100, base angle = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 45 each, vertex = ____°", "fill", "Answer = ____"),
-        q("Two angles 120, 40: third = ____°", "fill", "Answer = ____"),
-        q("Angles x, x, 100: x = ____°", "fill", "Answer = ____"),
-        q("Angles 2x, 2x, 2x: x = ____°", "fill", "Answer = ____"),
-        q("Two angles 33, 47: third = ____°", "fill", "Answer = ____"),
-        q("Ratio 1:1:4, largest = ____°", "fill", "Answer = ____"),
-        q("Angles x+5, x+5, x+5: x = ____°", "fill", "Answer = ____"),
-        q("Two angles 72, 72: third = ____°", "fill", "Answer = ____"),
-        q("Right triangle, one acute angle 28: other acute = ____°", "fill", "Answer = ____"),
-        q("True or False: Two angles 85,55 give third 40.", "fill", "Answer = ____"),
-        q("True or False: Ratio 1:3:5 gives largest 100.", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 100 gives base 40 each.", "fill", "Answer = ____"),
-        q("Spot: Angles x,4x,5x give x = 20. Correct? Fix (18). ____", "fill", "Answer = ____"),
-        q("True or False: Right triangle with one acute 28 has other acute 62.", "fill", "Answer = ____"),
-    ]
-
-def _L16B_4():
-    return [
-        q("Two angles 95, 47: third = ____°", "fill", "Answer = ____"),
-        q("Angles x, 2x, 6x: x = ____°", "fill", "Answer = ____"),
-        q("Ratio 3:4:5, largest = ____°", "fill", "Answer = ____"),
-        q("Ratio 2:3:7, smallest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 36, base angle = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 75 each, vertex = ____°", "fill", "Answer = ____"),
-        q("Angles x-10, x, x+10: x = ____°", "fill", "Answer = ____"),
-        q("Angles 3x, 4x, 5x: largest = ____°", "fill", "Answer = ____"),
-        q("Two angles equal, third 90: each equal angle = ____°", "fill", "Answer = ____"),
-        q("Exterior reasoning: if angles are 50, 60, third = ____°", "fill", "Answer = ____"),
-        q("Ratio 1:2:2, largest = ____°", "fill", "Answer = ____"),
-        q("Angles 2x+10, 3x, 4x+20: x = ____°", "fill", "Answer = ____"),
-        q("A triangle cannot have two angles summing to 180. True/False? ____", "fill", "Answer = ____"),
-        q("Angles 88, 46: third = ____°", "fill", "Answer = ____"),
-        q("Ratio 4:5:9, largest = ____°", "fill", "Answer = ____"),
-        q("True or False: Ratio 3:4:5 gives largest 75.", "fill", "Answer = ____"),
-        q("True or False: Angles x,2x,6x give x = 20.", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 36 gives base 72 each.", "fill", "Answer = ____"),
-        q("Spot: Ratio 2:3:7 smallest = 30. Correct? Fix (30 is right). ____", "fill", "Answer = ____"),
-        q("True or False: A triangle with two right angles is impossible.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        val = random.randint(lo, hi)
+        kind = random.choice(["corresponding", "alternate interior", "vertically opposite"])
+        items.append(q(f"In this diagram, angle 1 = {val}°. Find the angle that is {kind} to it (they are EQUAL).", "diagram", "____", "", "transversal_angles", {}))
+    for _ in range(4):
+        val = random.randint(lo, hi)
+        items.append(q(f"Two parallel lines cut by a transversal. One angle is {val}°. Find its co-interior angle (they are supplementary).", "fill", "Answer = ____"))
+    for _ in range(4):
+        val = random.randint(lo, hi)
+        items.append(q(f"Angle 1 = {val}°. Angle 1 and angle 2 are a linear pair. Find angle 2.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("If two lines are cut by a transversal and the corresponding angles are equal, what can you conclude about the two lines?", "fill", "Answer = ____"))
+    for _ in range(3):
+        val = random.randint(lo, hi)
+        shown = val if random.random() > 0.4 else val + 10
+        items.append(q(f"True or False: If angle 1 = {val}° then its alternate interior angle is also {shown}°.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16C — Exterior angle theorem
+# 16CUM1 — Types of Triangles, Angle Sum & Exterior Angle
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16C_1():
-    return [
-        cb("Exterior Angle Theorem", [
-            "An exterior angle of a triangle = sum of the two opposite interior angles.",
-            "Each exterior angle and its adjacent interior angle add to 180° (a straight line).",
-            "The sum of all exterior angles of any triangle is 360°.",
-        ], "Interior opposite angles 50° and 60° → exterior = 110°."),
-        q("Opposite interior angles 50° and 60°. Exterior = ____°", "fill", "Answer = ____"),
-        q("Opposite interior angles 70° and 40°. Exterior = ____°", "fill", "Answer = ____"),
-        q("Opposite interior angles 90° and 30°. Exterior = ____°", "fill", "Answer = ____"),
-        q("Interior angle 80°. Its exterior angle = ____°", "fill", "Answer = ____"),
-        q("Interior angle 110°. Its exterior angle = ____°", "fill", "Answer = ____"),
-        q("Exterior angle 120°, one opposite interior 50°. Other opposite = ____°", "fill", "Answer = ____"),
-        q("Exterior angle 100°, one opposite interior 45°. Other = ____°", "fill", "Answer = ____"),
-        q("Opposite interior angles 55° and 65°. Exterior = ____°", "fill", "Answer = ____"),
-        q("An exterior angle equals the sum of the two ____ interior angles.", "fill", "Answer = ____"),
-        q("Exterior + adjacent interior = ____°", "fill", "Answer = ____"),
-        q("Sum of all exterior angles of a triangle = ____°", "fill", "Answer = ____"),
-        q("Opposite interior angles 35° and 85°. Exterior = ____°", "fill", "Answer = ____"),
-        q("Interior angle 60°. Exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 130°, one opposite interior 70°. Other = ____°", "fill", "Answer = ____"),
-        q("Opposite interior angles 25° and 100°. Exterior = ____°", "fill", "Answer = ____"),
-        q("True or False: Exterior angle = sum of two opposite interior angles.", "fill", "Answer = ____"),
-        q("True or False: Exterior + adjacent interior = 180°.", "fill", "Answer = ____"),
-        q("True or False: Interior 80 gives exterior 100.", "fill", "Answer = ____"),
-        q("Spot: Opposite 50 and 60 give exterior 100. Correct? Fix (110). ____", "fill", "Answer = ____"),
-        q("True or False: Sum of all exterior angles is 360°.", "fill", "Answer = ____"),
+def _L16CUM1_s(sheet):
+    random.seed(1630 + sheet)
+    ranges = {1: (30, 70), 2: (20, 90), 3: (20, 110), 4: (10, 130)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Triangles: Types, Angle Sum & Exterior Angle", [
+            "By sides: equilateral (all equal), isosceles (2 equal), scalene (all different).",
+            "By angles: acute (all <90), right (one =90), obtuse (one >90).",
+            "ANGLE SUM: the three angles of any triangle always add up to 180°.",
+            "EXTERIOR ANGLE THEOREM: an exterior angle equals the sum of the two remote (non-adjacent) interior angles.",
+        ], "Angles 50, 60, 70 -> sum 180 (valid triangle). Exterior angle = 50+60=110 if opposite interior is 70... exterior at that vertex = remote pair sum."),
     ]
-
-def _L16C_2():
-    return [
-        cb("Solving with Exterior Angles", [
-            "Use exterior = sum of opposite interiors to find unknowns.",
-            "Mix with angle sum (180°) when needed.",
-            "Set up an equation if angles are given as expressions.",
-        ], "Exterior 5x, opposite interiors 2x and 60: 5x = 2x+60 → x = 20."),
-        q("Exterior 5x, opposite 2x and 60: x = ____", "fill", "Answer = ____"),
-        q("Exterior 120, opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 100, opposite x and 30: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 3x, opposite x and 50: x = ____", "fill", "Answer = ____"),
-        q("Exterior 140, opposite 80 and y: y = ____°", "fill", "Answer = ____"),
-        q("Exterior 4x, opposite 2x and 40: x = ____", "fill", "Answer = ____"),
-        q("Interior angle x, exterior 110: x = ____°", "fill", "Answer = ____"),
-        q("Exterior angles 100,130,y. y = 360-230 = ____°", "fill", "Answer = ____"),
-        q("Exterior 90, opposite 40 and z: z = ____°", "fill", "Answer = ____"),
-        q("Exterior 2x, opposite x and 36: x = ____", "fill", "Answer = ____"),
-        q("Exterior 150, opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("Interior 75, exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 125, opposite 65 and w: w = ____°", "fill", "Answer = ____"),
-        q("Exterior 6x, opposite 2x and 80: x = ____", "fill", "Answer = ____"),
-        q("Two exterior angles 110 and 140, third exterior = ____°", "fill", "Answer = ____"),
-        q("True or False: Exterior 120 with equal opposites gives each 60.", "fill", "Answer = ____"),
-        q("True or False: Exterior 100 opposite x and 30 gives x = 70.", "fill", "Answer = ____"),
-        q("True or False: Exterior angles 100,130,130 sum to 360.", "fill", "Answer = ____"),
-        q("Spot: Exterior 5x = 2x+60 gives x = 30. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Interior 75 gives exterior 105.", "fill", "Answer = ____"),
-    ]
-
-def _L16C_3():
-    return [
-        tb("Exterior Angle — Tips", [
-            "Exterior angle = sum of the two NON-adjacent (opposite) interior angles.",
-            "Exterior + adjacent interior = 180°.",
-            "All three exterior angles sum to 360°.",
-            "An exterior angle is always bigger than either opposite interior angle.",
-        ]),
-        q("Opposite 45 and 55: exterior = ____°", "fill", "Answer = ____"),
-        q("Opposite 90 and 20: exterior = ____°", "fill", "Answer = ____"),
-        q("Interior 95: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 130, opposite 70 and y: y = ____°", "fill", "Answer = ____"),
-        q("Exterior 4x, opposite x and 45: x = ____", "fill", "Answer = ____"),
-        q("Exterior angles 95, 145, z: z = ____°", "fill", "Answer = ____"),
-        q("Opposite 33 and 77: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 110, opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("Interior 50: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 160, opposite 90 and y: y = ____°", "fill", "Answer = ____"),
-        q("Exterior 3x, opposite 2x and 30: x = ____", "fill", "Answer = ____"),
-        q("Opposite 60 and 60: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 125, opposite 60 and w: w = ____°", "fill", "Answer = ____"),
-        q("Two exterior 100, 120: third = ____°", "fill", "Answer = ____"),
-        q("Interior 105: exterior = ____°", "fill", "Answer = ____"),
-        q("True or False: Opposite 45,55 give exterior 100.", "fill", "Answer = ____"),
-        q("True or False: Exterior angles 95,145,120 sum to 360.", "fill", "Answer = ____"),
-        q("True or False: Interior 95 gives exterior 85.", "fill", "Answer = ____"),
-        q("Spot: Exterior 4x = x+45 gives x = 20. Correct? Fix (15). ____", "fill", "Answer = ____"),
-        q("True or False: An exterior angle exceeds each opposite interior angle.", "fill", "Answer = ____"),
-    ]
-
-def _L16C_4():
-    return [
-        q("Opposite 48 and 62: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 135, opposite 75 and y: y = ____°", "fill", "Answer = ____"),
-        q("Exterior 5x, opposite 2x and 54: x = ____", "fill", "Answer = ____"),
-        q("Exterior angles 105, 125, z: z = ____°", "fill", "Answer = ____"),
-        q("Interior 112: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 7x, opposite 3x and 60: x = ____", "fill", "Answer = ____"),
-        q("Opposite x and 2x, exterior 120: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 150, opposite equal: each = ____°", "fill", "Answer = ____"),
-        q("A triangle's exterior angles are 4x, 5x, 6x. x = ____°", "fill", "Answer = ____"),
-        q("Exterior 128, opposite 53 and w: w = ____°", "fill", "Answer = ____"),
-        q("Interior 88: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior 3x+10, opposite x and 70: x = ____", "fill", "Answer = ____"),
-        q("Opposite 40 and 95: exterior = ____°", "fill", "Answer = ____"),
-        q("Exterior angles in ratio 2:3:5: largest = ____°", "fill", "Answer = ____"),
-        q("Interior angle adjacent to a 140 exterior = ____°", "fill", "Answer = ____"),
-        q("True or False: Opposite 48,62 give exterior 110.", "fill", "Answer = ____"),
-        q("True or False: Exterior angles 4x,5x,6x give x = 24.", "fill", "Answer = ____"),
-        q("True or False: Exterior 150 with equal opposites gives each 75.", "fill", "Answer = ____"),
-        q("Spot: Exterior 5x = 2x+54 gives x = 16. Correct? Fix (18). ____", "fill", "Answer = ____"),
-        q("True or False: Interior adjacent to 140 exterior is 40.", "fill", "Answer = ____"),
-    ]
-
+    for _ in range(4):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a + b >= 175: b = random.randint(lo, hi)
+        items.append(q(f"A triangle has angles {a}° and {b}°. Find the third angle.", "fill", "Answer = ____"))
+    for _ in range(3):
+        s1, s2, s3 = sorted([random.randint(3, hi // 5 + 3) for _ in range(3)])
+        kind = "equilateral" if s1 == s2 == s3 else ("isosceles" if s1 == s2 or s2 == s3 else "scalene")
+        items.append(q(f"Sides {s1}, {s2}, {s3}: classify this triangle by its sides.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a + b >= 175: b = random.randint(lo, hi)
+        ext = a + b
+        items.append(q(f"A triangle's two remote interior angles are {a}° and {b}°. Find the exterior angle at the third vertex.", "fill", "Answer = ____"))
+    for _ in range(3):
+        ext = random.randint(lo + 40, min(hi + 60, 170))
+        a = random.randint(20, ext - 20)
+        b = ext - a
+        items.append(q(f"An exterior angle is {ext}°. One remote interior angle is {a}°. Find the other remote interior angle.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a + b >= 175: b = random.randint(lo, hi)
+        correct = 180 - a - b
+        shown = correct if random.random() > 0.4 else correct + 10
+        items.append(q(f"True or False: A triangle with angles {a}° and {b}° has a third angle of {shown}°.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("True or False: The exterior angle of a triangle equals the sum of the two remote interior angles.", "fill", "Answer = ____"))
+    return items
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16D — Congruence
+# 16D — Congruence of Triangles
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16D_1():
-    return [
+def _L16D_s(sheet):
+    random.seed(1640 + sheet)
+    items = [
         cb("Congruent Triangles", [
             "Congruent = same shape AND same size (one fits exactly on the other).",
-            "Corresponding sides equal and corresponding angles equal.",
-            "Congruence rules: SSS, SAS, ASA, AAS, RHS.",
-        ], "SSS: all three pairs of sides equal → triangles congruent."),
-        cb("The Five Rules", [
-            "SSS: three sides equal. SAS: two sides + included angle.",
-            "ASA: two angles + included side. AAS: two angles + a non-included side.",
-            "RHS: right angle, hypotenuse, one side (right triangles only).",
-        ], "SAS needs the angle BETWEEN the two equal sides."),
-        q("Congruent triangles have the same shape and ____", "fill", "Answer = ____"),
-        q("Rule with three equal sides: ____", "fill", "Answer = ____"),
-        q("Rule with two sides and the included angle: ____", "fill", "Answer = ____"),
-        q("Rule with two angles and the included side: ____", "fill", "Answer = ____"),
-        q("Rule with two angles and a non-included side: ____", "fill", "Answer = ____"),
-        q("Rule for right triangles using hypotenuse: ____", "fill", "Answer = ____"),
-        q("In SAS, the angle must be ____ the two sides.", "fill", "Answer = ____"),
-        q("Is 'AAA' a valid congruence rule? ____", "fill", "Answer = ____"),
-        q("If △ABC ≅ △DEF, side AB corresponds to ____", "fill", "Answer = ____"),
-        q("If △ABC ≅ △DEF, angle A corresponds to ____", "fill", "Answer = ____"),
-        q("Congruent triangles: corresponding angles are ____", "fill", "Answer = ____"),
-        q("The symbol for congruence is ____", "fill", "Answer = ____"),
-        q("RHS applies only to ____ triangles.", "fill", "Answer = ____"),
-        q("Two triangles with sides 5,6,7 and 5,6,7 are congruent by ____", "fill", "Answer = ____"),
-        q("Two triangles with all angles equal but different sizes are ____ (not congruent).", "fill", "Answer = ____"),
-        q("True or False: Congruent triangles are the same size.", "fill", "Answer = ____"),
-        q("True or False: SSS means three equal sides.", "fill", "Answer = ____"),
-        q("True or False: AAA proves congruence.", "fill", "Answer = ____"),
-        q("Spot: SAS uses any angle, not the included one. Correct? Fix (included). ____", "fill", "Answer = ____"),
-        q("True or False: RHS is for right triangles.", "fill", "Answer = ____"),
+            "Congruence rules: SSS (3 sides), SAS (2 sides + included angle), ASA (2 angles + included side),",
+            "AAS (2 angles + non-included side), RHS (right angle, hypotenuse, side -- right triangles only).",
+            "AAA is NOT a congruence rule -- equal angles alone only give SIMILAR triangles.",
+        ], "SAS needs the angle BETWEEN the two given sides."),
+        cb("Applying the Rules", [
+            "Match the given information to the pattern: 3 sides -> SSS; 2 sides+angle between -> SAS.",
+            "2 angles + the side between them -> ASA; 2 angles + a side NOT between -> AAS.",
+            "If triangles are congruent, ALL corresponding parts are equal (CPCT).",
+        ], "Triangle ABC ≅ DEF means AB=DE, BC=EF, AC=DF, and all matching angles equal too."),
     ]
-
-def _L16D_2():
-    return [
-        cb("Identifying the Right Rule", [
-            "Match the given information to SSS, SAS, ASA, AAS or RHS.",
-            "Mark equal sides and angles, then read off the pattern.",
-            "If only angles are equal (AAA), triangles are similar, not congruent.",
-        ], "Given 2 angles + side between → ASA."),
-        q("Given: 3 sides equal. Rule? ____", "fill", "Answer = ____"),
-        q("Given: 2 sides + included angle. Rule? ____", "fill", "Answer = ____"),
-        q("Given: 2 angles + included side. Rule? ____", "fill", "Answer = ____"),
-        q("Given: 2 angles + a side not between them. Rule? ____", "fill", "Answer = ____"),
-        q("Given: right angle, hypotenuse, one leg. Rule? ____", "fill", "Answer = ____"),
-        q("Given only 3 equal angles: congruent or similar? ____", "fill", "Answer = ____"),
-        q("△ABC ≅ △PQR. If AB=PQ, BC=QR, AC=PR, rule = ____", "fill", "Answer = ____"),
-        q("△ABC ≅ △PQR by SAS. Equal angle is between which sides? ____", "fill", "Answer = ____"),
-        q("If △ABC ≅ △DEF and AB=5, then DE = ____", "fill", "Answer = ____"),
-        q("If △ABC ≅ △DEF and ∠A=40°, then ∠D = ____°", "fill", "Answer = ____"),
-        q("Two right triangles, equal hypotenuse and one leg: rule? ____", "fill", "Answer = ____"),
-        q("Given: ∠A=∠D, ∠B=∠E, AB=DE: rule? ____", "fill", "Answer = ____"),
-        q("Given: ∠A=∠D, ∠B=∠E, BC=EF (non-included): rule? ____", "fill", "Answer = ____"),
-        q("Equal: PQ=XY, QR=YZ, ∠Q=∠Y: rule? ____", "fill", "Answer = ____"),
-        q("Is SSA a guaranteed congruence rule? ____", "fill", "Answer = ____"),
-        q("True or False: 2 angles + included side is ASA.", "fill", "Answer = ____"),
-        q("True or False: AAA gives similar, not congruent.", "fill", "Answer = ____"),
-        q("True or False: If △ABC≅△DEF and AB=5, then DE=5.", "fill", "Answer = ____"),
-        q("Spot: Right angle + hyp + leg is SAS. Correct? Fix (RHS). ____", "fill", "Answer = ____"),
-        q("True or False: PQ=XY, QR=YZ, ∠Q=∠Y is SAS.", "fill", "Answer = ____"),
+    given_cases = [
+        ("three sides equal", "SSS"),
+        ("two sides and the INCLUDED angle equal", "SAS"),
+        ("two angles and the INCLUDED side equal", "ASA"),
+        ("two angles and a NON-included side equal", "AAS"),
+        ("a right angle, hypotenuse, and one side equal (right triangles)", "RHS"),
     ]
-
-def _L16D_3():
-    return [
-        tb("Congruence — Tips", [
-            "Five rules: SSS, SAS, ASA, AAS, RHS.",
-            "SAS/ASA need the angle/side to be 'included' (between).",
-            "AAA and SSA do NOT prove congruence.",
-            "Congruent ⇒ all corresponding parts equal (CPCTC).",
-        ]),
-        q("3 sides equal: rule = ____", "fill", "Answer = ____"),
-        q("2 sides + included angle: rule = ____", "fill", "Answer = ____"),
-        q("2 angles + included side: rule = ____", "fill", "Answer = ____"),
-        q("2 angles + non-included side: rule = ____", "fill", "Answer = ____"),
-        q("Right angle + hypotenuse + side: rule = ____", "fill", "Answer = ____"),
-        q("Does AAA prove congruence? ____", "fill", "Answer = ____"),
-        q("Does SSA always prove congruence? ____", "fill", "Answer = ____"),
-        q("If △ABC≅△DEF, AC corresponds to ____", "fill", "Answer = ____"),
-        q("If △ABC≅△DEF, ∠C corresponds to ____", "fill", "Answer = ____"),
-        q("CPCTC stands for corresponding parts of congruent triangles are ____", "fill", "Answer = ____"),
-        q("RHS works only for ____ triangles.", "fill", "Answer = ____"),
-        q("Triangles 6,8,10 and 6,8,10: rule = ____", "fill", "Answer = ____"),
-        q("∠P=∠X, PQ=XY, ∠Q=∠Y: rule = ____", "fill", "Answer = ____"),
-        q("Two sides 7 and 9 with included 50°, matched: rule = ____", "fill", "Answer = ____"),
-        q("If △ABC≅△DEF and BC=12, then EF = ____", "fill", "Answer = ____"),
-        q("True or False: SSA always proves congruence.", "fill", "Answer = ____"),
-        q("True or False: ASA needs the included side.", "fill", "Answer = ____"),
-        q("True or False: CPCTC follows once triangles are congruent.", "fill", "Answer = ____"),
-        q("Spot: Triangles 6,8,10 ≅ 6,8,10 by SAS. Correct? Fix (SSS). ____", "fill", "Answer = ____"),
-        q("True or False: RHS is only for right triangles.", "fill", "Answer = ____"),
-    ]
-
-def _L16D_4():
-    return [
-        q("△ABC≅△DEF, AB=7, BC=9, AC=11. Then DF = ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF, ∠A=55, ∠B=65. Then ∠F = ____°", "fill", "Answer = ____"),
-        q("Given 2 sides + included angle equal: rule = ____", "fill", "Answer = ____"),
-        q("Given right angle, equal hypotenuse and leg: rule = ____", "fill", "Answer = ____"),
-        q("△PQR≅△STU, PQ=8. Then ST = ____", "fill", "Answer = ____"),
-        q("Is AAA enough for congruence? ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF, ∠A=50, ∠B=60, so ∠C=____° and ∠F=____°", "fill", "Answer = ____"),
-        q("Two triangles share a common side and have 2 equal angles each side of it: rule = ____", "fill", "Answer = ____"),
-        q("RHS: equal hypotenuse 13 and one leg 5, other leg = ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF: if perimeter of ABC is 24, perimeter of DEF = ____", "fill", "Answer = ____"),
-        q("Congruent triangles have equal areas. True/False? ____", "fill", "Answer = ____"),
-        q("∠X=∠A, XY=AB, ∠Y=∠B: rule = ____", "fill", "Answer = ____"),
-        q("Two equilateral triangles of side 6 are congruent by ____", "fill", "Answer = ____"),
-        q("If △ABC≅△DEF and ∠D=70, ∠E=80, then ∠C = ____°", "fill", "Answer = ____"),
-        q("RHS with hypotenuse 25, leg 7: other leg = ____", "fill", "Answer = ____"),
-        q("True or False: △ABC≅△DEF with AB=7 means DE=7.", "fill", "Answer = ____"),
-        q("True or False: Congruent triangles have equal areas.", "fill", "Answer = ____"),
-        q("True or False: RHS leg with hyp 13, leg 5 gives other leg 12.", "fill", "Answer = ____"),
-        q("Spot: AAA proves congruence. Correct? Fix (no, similarity). ____", "fill", "Answer = ____"),
-        q("True or False: Two equilateral triangles of side 6 are congruent.", "fill", "Answer = ____"),
-    ]
+    for _ in range(6):
+        desc, rule = random.choice(given_cases)
+        items.append(q(f"Two triangles have {desc}. Which congruence rule applies?", "fill", "Answer = ____"))
+    for _ in range(4):
+        val = random.randint(3, 15)
+        items.append(q(f"Triangle ABC ≅ Triangle DEF. AB = {val}. Find DE (using CPCT).", "fill", "Answer = ____"))
+    for _ in range(4):
+        val = random.randint(20, 130)
+        items.append(q(f"Triangle ABC ≅ Triangle DEF. Angle A = {val}°. Find angle D (using CPCT).", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("Is AAA (three equal angles) enough to prove two triangles congruent? Explain.", "fill", "Answer = ____"))
+    for _ in range(3):
+        desc, rule = random.choice(given_cases)
+        shown = rule if random.random() > 0.4 else random.choice(["SSS", "SAS", "ASA", "AAS", "RHS"])
+        items.append(q(f"True or False: Given {desc}, the rule is {shown}.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16E — Similar triangles
+# 16E — Triangle Inequality & the Isosceles Triangle Theorem
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16E_1():
-    return [
+def _L16E_s(sheet):
+    random.seed(1650 + sheet)
+    ranges = {1: (3, 10), 2: (3, 14), 3: (4, 18), 4: (4, 22)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Triangle Inequality", [
+            "The sum of any TWO sides of a triangle must be GREATER than the third side.",
+            "Check ALL THREE pairs -- if even one fails, the triangle can't be formed.",
+            "Quick check: add the two SMALLER sides -- if their sum beats the largest side, it's valid.",
+        ], "3,4,5: 3+4=7>5 ✓. 1,2,5: 1+2=3, not >5 -- INVALID, no triangle."),
+        cb("The Isosceles Triangle Theorem", [
+            "THEOREM: angles opposite EQUAL sides are EQUAL (base angles of an isosceles triangle match).",
+            "CONVERSE: if two angles are equal, the sides opposite them are also equal.",
+            "Both directions are true -- equal sides <-> equal angles.",
+        ], "Sides 5,5,8: the two 5-sides are equal, so their opposite (base) angles are equal too."),
+    ]
+
+    def gen_valid(hi):
+        while True:
+            a, b, c = sorted([random.randint(lo, hi) for _ in range(3)])
+            if _can_form_triangle(a, b, c):
+                return a, b, c
+
+    def gen_invalid(hi):
+        while True:
+            a, b, c = sorted([random.randint(lo, hi) for _ in range(3)])
+            if not _can_form_triangle(a, b, c):
+                return a, b, c
+
+    for _ in range(4):
+        a, b, c = gen_valid(hi) if random.random() > 0.4 else gen_invalid(hi)
+        items.append(q(f"Can a triangle be formed with sides {a}, {b}, {c}? Check the triangle inequality.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = gen_invalid(hi)
+        items.append(q(f"Sides {a}, {b}, {c}: which pair of sides fails the triangle inequality?", "fill", "Answer = ____"))
+    for _ in range(4):
+        base = random.randint(lo, hi)
+        angle = random.randint(30, 80)
+        items.append(q(f"Isosceles triangle: two equal sides, and the base angle opposite one of them is {angle}°. Find the OTHER base angle.", "fill", "Answer = ____"))
+    for _ in range(3):
+        vertex = random.randint(20, 100)
+        base_angle = (180 - vertex) / 2
+        items.append(q(f"Isosceles triangle: vertex angle {vertex}°, base angles equal. Find each base angle.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("A triangle has two equal ANGLES. What can you conclude about the sides opposite them (the converse)?", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = gen_valid(hi)
+        shown = "Yes" if random.random() > 0.4 else "No"
+        items.append(q(f"True or False: Sides {a}, {b}, {c} can form a triangle -- Answer: {shown}.", "fill", "Answer = ____"))
+    return items
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16F — Similar Triangles
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L16F_s(sheet):
+    random.seed(1660 + sheet)
+    ranges = {1: (2, 5), 2: (2, 6), 3: (3, 7), 4: (3, 9)}
+    lo, hi = ranges[sheet]
+    items = [
         cb("Similar Triangles", [
-            "Similar = same shape, possibly different size.",
-            "Corresponding angles equal; corresponding sides in the same ratio.",
-            "Similarity rules: AA, SSS (ratios), SAS (ratio + angle).",
-        ], "Triangles with sides 3,4,5 and 6,8,10 are similar (ratio 1:2)."),
-        cb("Scale Factor", [
-            "Scale factor = ratio of corresponding sides.",
-            "Multiply a side by the scale factor to get the matching side.",
-            "Areas scale by the square of the scale factor.",
-        ], "Scale factor 2: sides double, area ×4."),
-        q("Similar triangles have equal ____ angles.", "fill", "Answer = ____"),
-        q("Corresponding sides of similar triangles are in the same ____", "fill", "Answer = ____"),
-        q("Sides 3,4,5 and 6,8,10: scale factor = ____", "fill", "Answer = ____"),
-        q("Sides 5,12,13 and 10,24,26: scale factor = ____", "fill", "Answer = ____"),
-        q("Rule with two equal angles: ____", "fill", "Answer = ____"),
-        q("If scale factor is 3, a side of 4 becomes ____", "fill", "Answer = ____"),
-        q("If scale factor is 2, area multiplies by ____", "fill", "Answer = ____"),
-        q("Triangle sides 2,3,4 scaled by 5 → ____,____,____", "fill", "Answer = ____"),
-        q("Two triangles with angles 50,60,70 each: similar? ____", "fill", "Answer = ____"),
-        q("Similar but different size triangles are congruent? ____", "fill", "Answer = ____"),
-        q("Side 6 corresponds to side 9. Scale factor = ____", "fill", "Answer = ____"),
-        q("Symbol for similar is ____", "fill", "Answer = ____"),
-        q("Scale factor 1 means the triangles are ____", "fill", "Answer = ____"),
-        q("Side ratio 1:2, so a side 7 matches ____", "fill", "Answer = ____"),
-        q("If two angles match, the third must also match. True/False? ____", "fill", "Answer = ____"),
-        q("True or False: Similar triangles have equal corresponding angles.", "fill", "Answer = ____"),
-        q("True or False: 3,4,5 and 6,8,10 have scale factor 2.", "fill", "Answer = ____"),
-        q("True or False: Scale factor 2 multiplies area by 4.", "fill", "Answer = ____"),
-        q("Spot: Sides 5,12,13 and 10,24,26 scale 3. Correct? Fix (2). ____", "fill", "Answer = ____"),
-        q("True or False: AA is a similarity rule.", "fill", "Answer = ____"),
+            "Similar = same shape, possibly different size. Corresponding angles equal, sides in the same ratio.",
+            "Similarity rules: AA (2 angles), SSS (all sides in ratio), SAS (2 sides in ratio + included angle).",
+            "Scale factor = ratio of corresponding sides. Areas scale by the SQUARE of the scale factor.",
+        ], "Sides 3,4,5 and 6,8,10 are similar -- scale factor 2. Area ratio = 4."),
     ]
-
-def _L16E_2():
-    return [
-        cb("Finding Missing Sides", [
-            "Set up a ratio of corresponding sides and solve.",
-            "Bigger ÷ smaller gives the scale factor.",
-            "Cross-multiply: a/b = c/d → ad = bc.",
-        ], "If 4/6 = x/9, then x = 6."),
-        q("4/6 = x/9: x = ____", "fill", "Answer = ____"),
-        q("3/5 = 6/x: x = ____", "fill", "Answer = ____"),
-        q("Triangles similar, sides 4 and 8 correspond. A side 5 matches ____", "fill", "Answer = ____"),
-        q("Scale factor 2.5, side 4 → ____", "fill", "Answer = ____"),
-        q("2/3 = x/12: x = ____", "fill", "Answer = ____"),
-        q("Similar triangles: 6/9 = 8/x. x = ____", "fill", "Answer = ____"),
-        q("Side 10 matches 15. A side 6 matches ____", "fill", "Answer = ____"),
-        q("5/10 = 7/x: x = ____", "fill", "Answer = ____"),
-        q("Scale factor 3, perimeter 12 → new perimeter ____", "fill", "Answer = ____"),
-        q("Scale factor 2, area 9 → new area ____", "fill", "Answer = ____"),
-        q("Triangle 3,4,5 ~ triangle 9,12,x. x = ____", "fill", "Answer = ____"),
-        q("Triangle 6,8,10 ~ 3,4,x. x = ____", "fill", "Answer = ____"),
-        q("8/12 = 10/x: x = ____", "fill", "Answer = ____"),
-        q("Side ratio 2:5, side 6 matches ____", "fill", "Answer = ____"),
-        q("Shadow method: 2m pole casts 3m shadow; tree casts 12m. Tree height = ____m", "fill", "Answer = ____"),
-        q("True or False: 4/6 = x/9 gives x = 6.", "fill", "Answer = ____"),
-        q("True or False: Scale factor 3 makes perimeter 12 become 36.", "fill", "Answer = ____"),
-        q("True or False: Triangle 3,4,5 ~ 9,12,15.", "fill", "Answer = ____"),
-        q("Spot: 3/5 = 6/x gives x = 8. Correct? Fix (10). ____", "fill", "Answer = ____"),
-        q("True or False: 2m pole/3m shadow makes a 12m shadow tree 8m tall.", "fill", "Answer = ____"),
-    ]
-
-def _L16E_3():
-    return [
-        tb("Similar Triangles — Tips", [
-            "Similar: equal angles, sides in proportion.",
-            "Scale factor = big side ÷ small side.",
-            "Length scales by k; area scales by k^2.",
-            "Solve missing sides by cross-multiplying ratios.",
-        ]),
-        q("Scale factor of 5,12,13 to 15,36,39: ____", "fill", "Answer = ____"),
-        q("6/8 = 9/x: x = ____", "fill", "Answer = ____"),
-        q("Triangle 4,6,8 ~ 6,9,x. x = ____", "fill", "Answer = ____"),
-        q("Scale factor 4, area 5 → ____", "fill", "Answer = ____"),
-        q("Side 12 matches 18. Side 8 matches ____", "fill", "Answer = ____"),
-        q("3/7 = x/21: x = ____", "fill", "Answer = ____"),
-        q("Triangle 5,12,13 ~ 10,24,x. x = ____", "fill", "Answer = ____"),
-        q("Scale factor 3, perimeter 20 → ____", "fill", "Answer = ____"),
-        q("9/12 = 12/x: x = ____", "fill", "Answer = ____"),
-        q("Pole 1.5m, shadow 2m; building shadow 20m. Height = ____m", "fill", "Answer = ____"),
-        q("Side ratio 3:4, side 9 matches ____", "fill", "Answer = ____"),
-        q("Scale factor 2, area 7 → ____", "fill", "Answer = ____"),
-        q("Triangle 7,24,25 ~ 14,48,x. x = ____", "fill", "Answer = ____"),
-        q("4/10 = 6/x: x = ____", "fill", "Answer = ____"),
-        q("Two triangles angles 40,60,80: similar? ____", "fill", "Answer = ____"),
-        q("True or False: 6/8 = 9/x gives x = 12.", "fill", "Answer = ____"),
-        q("True or False: Scale factor 4 multiplies area by 16.", "fill", "Answer = ____"),
-        q("True or False: 5,12,13 ~ 15,36,39 has scale factor 3.", "fill", "Answer = ____"),
-        q("Spot: 3/7 = x/21 gives x = 7. Correct? Fix (9). ____", "fill", "Answer = ____"),
-        q("True or False: Pole 1.5m/2m shadow makes 20m shadow building 15m.", "fill", "Answer = ____"),
-    ]
-
-def _L16E_4():
-    return [
-        q("Triangle 6,8,10 ~ 15,20,x. x = ____", "fill", "Answer = ____"),
-        q("8/14 = 12/x: x = ____", "fill", "Answer = ____"),
-        q("Scale factor of 7,24,25 to 21,72,75: ____", "fill", "Answer = ____"),
-        q("Area scale if length scale is 5: ____", "fill", "Answer = ____"),
-        q("Side 20 matches 28. Side 15 matches ____", "fill", "Answer = ____"),
-        q("Triangle 9,12,15 ~ 12,16,x. x = ____", "fill", "Answer = ____"),
-        q("5/8 = x/24: x = ____", "fill", "Answer = ____"),
-        q("Scale factor 3, area 6 → ____", "fill", "Answer = ____"),
-        q("Pole 2m casts 5m shadow; tower casts 40m. Height = ____m", "fill", "Answer = ____"),
-        q("Triangle 8,15,17 ~ 24,45,x. x = ____", "fill", "Answer = ____"),
-        q("Perimeter ratio equals side ratio. Scale 4, perimeter 9 → ____", "fill", "Answer = ____"),
-        q("10/25 = 14/x: x = ____", "fill", "Answer = ____"),
-        q("Triangle ABC ~ DEF, AB/DE = 2/3, AB=8: DE = ____", "fill", "Answer = ____"),
-        q("Area ratio 9:16, length ratio = ____", "fill", "Answer = ____"),
-        q("Map scale: 1cm = 50km. 7cm = ____km", "fill", "Answer = ____"),
-        q("True or False: 8/14 = 12/x gives x = 21.", "fill", "Answer = ____"),
-        q("True or False: Length scale 5 means area scale 25.", "fill", "Answer = ____"),
-        q("True or False: Area ratio 9:16 means length ratio 3:4.", "fill", "Answer = ____"),
-        q("Spot: Pole 2m/5m shadow makes 40m shadow tower 20m. Correct? Fix (16). ____", "fill", "Answer = ____"),
-        q("True or False: Map 1cm=50km makes 7cm = 350km.", "fill", "Answer = ____"),
-    ]
+    for _ in range(4):
+        k = random.randint(2, 5)
+        a, b, c = random.randint(lo, hi), random.randint(lo, hi), random.randint(lo, hi)
+        items.append(q(f"Triangle sides {a},{b},{c} are scaled by factor {k}. Find the new sides.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a = random.randint(lo, hi)
+        k = random.randint(2, 5)
+        items.append(q(f"Two similar triangles: a side of {a} corresponds to a side of {a*k}. Find the scale factor.", "fill", "Answer = ____"))
+    for _ in range(4):
+        k = random.randint(2, 4)
+        area = random.randint(lo, hi)
+        items.append(q(f"Two similar triangles have scale factor {k}. The smaller triangle has area {area}. Find the larger triangle's area.", "fill", "Answer = ____"))
+    for _ in range(3):
+        pole, shadow, obj_shadow = random.randint(2, 6), random.randint(2, 6), random.randint(10, 40)
+        height = pole * obj_shadow / shadow
+        if height == int(height):
+            items.append(q(f"A {pole}m pole casts a {shadow}m shadow. A tree casts a {obj_shadow}m shadow at the same time. Find the tree's height.", "fill", "Answer = ____"))
+        else:
+            items.append(q(f"Two triangles are similar with sides {lo} and {hi}. Find the scale factor.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("Two triangles have all three pairs of corresponding angles equal. Which similarity rule applies, and are they necessarily congruent?", "fill", "Answer = ____"))
+    for _ in range(2):
+        k = random.randint(2, 4)
+        shown = k * k if random.random() > 0.4 else k * k + 1
+        items.append(q(f"True or False: Scale factor {k} means the area ratio is {shown}.", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 16F — Pythagoras theorem
+# 16CUM2 — Basic Proportionality Theorem & Midpoint Theorem
 # ═══════════════════════════════════════════════════════════════════════════════
-def _L16F_1():
-    return [
-        cb("Pythagoras Theorem", [
-            "In a right triangle: (hypotenuse)^2 = (leg)^2 + (leg)^2.",
-            "The hypotenuse is the longest side, opposite the right angle.",
-            "a^2 + b^2 = c^2, where c is the hypotenuse.",
-        ], "Legs 3 and 4: c^2 = 9+16 = 25, so c = 5."),
-        cb("Common Pythagorean Triples", [
-            "3-4-5, 5-12-13, 8-15-17, 7-24-25, 9-40-41, 20-21-29.",
-            "Any multiple of a triple is also a triple (e.g. 6-8-10).",
-            "Recognising triples saves calculation time.",
-        ], "6-8-10 = 2 × (3-4-5)."),
-        q("Legs 3 and 4: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Legs 6 and 8: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Legs 5 and 12: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Legs 8 and 15: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 13, one leg 5: other leg = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 10, one leg 6: other leg = ____", "fill", "Answer = ____"),
-        q("Legs 9 and 12: hypotenuse = ____", "fill", "Answer = ____"),
-        q("The longest side of a right triangle is the ____", "fill", "Answer = ____"),
-        q("a^2 + b^2 = ____", "fill", "Answer = ____"),
-        q("Is 3-4-5 a Pythagorean triple? ____", "fill", "Answer = ____"),
-        q("Legs 7 and 24: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 25, one leg 7: other = ____", "fill", "Answer = ____"),
-        q("Legs 12 and 16: hypotenuse = ____", "fill", "Answer = ____"),
-        q("6-8-10 is a multiple of which triple? ____", "fill", "Answer = ____"),
-        q("Hypotenuse 17, one leg 8: other = ____", "fill", "Answer = ____"),
-        q("True or False: Hypotenuse is opposite the right angle.", "fill", "Answer = ____"),
-        q("True or False: Legs 3,4 give hypotenuse 5.", "fill", "Answer = ____"),
-        q("True or False: 5-12-13 is a Pythagorean triple.", "fill", "Answer = ____"),
-        q("Spot: Legs 6,8 give hypotenuse 12. Correct? Fix (10). ____", "fill", "Answer = ____"),
-        q("True or False: a^2 + b^2 = c^2 for right triangles.", "fill", "Answer = ____"),
+def _L16CUM2_s(sheet):
+    random.seed(1670 + sheet)
+    ranges = {1: (2, 5), 2: (2, 6), 3: (3, 8), 4: (3, 10)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Basic Proportionality Theorem (Thales)", [
+            "If DE is parallel to BC in triangle ABC (D on AB, E on AC), then AD/DB = AE/EC.",
+            "CONVERSE: if AD/DB = AE/EC, then DE MUST be parallel to BC.",
+            "This is the foundation theorem behind similar triangles.",
+        ], "AD=4,DB=2,AE=6: since 4/2=2, EC must be 3 for DE||BC (6/3=2)."),
+        cb("The Midpoint Theorem", [
+            "The segment joining the MIDPOINTS of two sides of a triangle is PARALLEL to the third side.",
+            "That segment is also exactly HALF the length of the third side.",
+            "CONVERSE: a line through the midpoint of one side, parallel to another side, bisects the third side.",
+        ], "Midpoints of two sides of a triangle with third side 10: the midsegment is 5, parallel to it."),
     ]
 
-def _L16F_2():
-    return [
-        cb("Using Pythagoras", [
-            "To find the hypotenuse: add the squares, take the root.",
-            "To find a leg: subtract the squares, take the root.",
-            "Check whether a triangle is right: does a^2+b^2=c^2?",
-        ], "Is 9,12,15 right? 81+144=225=15^2. Yes."),
-        q("Legs 9 and 40: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Legs 20 and 21: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 41, leg 9: other leg = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 29, leg 20: other leg = ____", "fill", "Answer = ____"),
-        q("Is 9,12,15 a right triangle? ____", "fill", "Answer = ____"),
-        q("Is 5,6,7 a right triangle? ____", "fill", "Answer = ____"),
-        q("Legs 10 and 24: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Legs 15 and 20: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 26, leg 10: other = ____", "fill", "Answer = ____"),
-        q("A ladder 13m, base 5m from wall, reaches height = ____m", "fill", "Answer = ____"),
-        q("Diagonal of a 6×8 rectangle = ____", "fill", "Answer = ____"),
-        q("Diagonal of a 9×12 rectangle = ____", "fill", "Answer = ____"),
-        q("Legs 1 and 1: hypotenuse = √2. Approx form: ____", "fill", "Answer = ____"),
-        q("Is 8,15,17 right? ____", "fill", "Answer = ____"),
-        q("Hypotenuse 15, leg 9: other = ____", "fill", "Answer = ____"),
-        q("True or False: 9,12,15 is a right triangle.", "fill", "Answer = ____"),
-        q("True or False: Legs 9,40 give hypotenuse 41.", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 6×8 rectangle is 10.", "fill", "Answer = ____"),
-        q("Spot: Ladder 13m, base 5m reaches 8m. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: 5,6,7 is a right triangle.", "fill", "Answer = ____"),
-    ]
+    def gen_bpt(hi):
+        db = random.randint(lo, hi)
+        mult = random.randint(1, 3)
+        ad = db * mult
+        ec = random.randint(lo, hi)
+        ae = ad * ec // db if (ad * ec) % db == 0 else db * random.randint(1, 3)
+        if (ad * ec) % db != 0:
+            ec = db * random.randint(1, 3)
+            ae = ad * ec // db
+        return ad, db, ae, ec
 
-def _L16F_3():
-    return [
-        tb("Pythagoras — Tips", [
-            "c^2 = a^2 + b^2 (c is hypotenuse, the longest side).",
-            "Leg = √(c^2 - other leg^2).",
-            "Memorise triples: 3-4-5, 5-12-13, 8-15-17, 7-24-25, 9-40-41, 20-21-29.",
-            "Right-triangle test: largest side^2 = sum of other two squares.",
-        ]),
-        q("Legs 3,4: hyp = ____", "fill", "Answer = ____"),
-        q("Legs 5,12: hyp = ____", "fill", "Answer = ____"),
-        q("Legs 8,15: hyp = ____", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("Hyp 13, leg 12: other = ____", "fill", "Answer = ____"),
-        q("Hyp 17, leg 15: other = ____", "fill", "Answer = ____"),
-        q("Hyp 25, leg 24: other = ____", "fill", "Answer = ____"),
-        q("Is 6,8,10 right? ____", "fill", "Answer = ____"),
-        q("Is 7,8,9 right? ____", "fill", "Answer = ____"),
-        q("Diagonal of 5×12 rectangle = ____", "fill", "Answer = ____"),
-        q("Diagonal of 8×15 rectangle = ____", "fill", "Answer = ____"),
-        q("Ladder 25, base 7: height = ____", "fill", "Answer = ____"),
-        q("Legs 12,35: hyp = ____", "fill", "Answer = ____"),
-        q("Hyp 37, leg 12: other = ____", "fill", "Answer = ____"),
-        q("Legs 20,21: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 7,24 give hyp 25.", "fill", "Answer = ____"),
-        q("True or False: 6,8,10 is a right triangle.", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 8×15 rectangle is 17.", "fill", "Answer = ____"),
-        q("Spot: Hyp 13, leg 12 gives other 6. Correct? Fix (5). ____", "fill", "Answer = ____"),
-        q("True or False: Legs 12,35 give hyp 37.", "fill", "Answer = ____"),
-    ]
-
-def _L16F_4():
-    return [
-        q("Legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("Legs 28,45: hyp = ____", "fill", "Answer = ____"),
-        q("Hyp 53, leg 28: other = ____", "fill", "Answer = ____"),
-        q("Hyp 61, leg 11: other = ____", "fill", "Answer = ____"),
-        q("Is 10,24,26 right? ____", "fill", "Answer = ____"),
-        q("Is 11,12,15 right? ____", "fill", "Answer = ____"),
-        q("Diagonal of 9×40 rectangle = ____", "fill", "Answer = ____"),
-        q("Diagonal of a square side 5 = 5√2 ≈ ____ (leave as 5√2)", "fill", "Answer = ____"),
-        q("Ladder 17m, height 15m: base distance = ____m", "fill", "Answer = ____"),
-        q("Two boats: one 9km north, one 12km east. Distance apart = ____km", "fill", "Answer = ____"),
-        q("Legs 33,56: hyp = ____", "fill", "Answer = ____"),
-        q("Hyp 65, leg 16: other = ____", "fill", "Answer = ____"),
-        q("Right triangle legs 1.5 and 2: hyp = ____", "fill", "Answer = ____"),
-        q("Is 20,21,29 right? ____", "fill", "Answer = ____"),
-        q("A 5m ladder's base is 3m out. Height reached = ____m", "fill", "Answer = ____"),
-        q("True or False: Legs 28,45 give hyp 53.", "fill", "Answer = ____"),
-        q("True or False: Boats 9km N and 12km E are 15km apart.", "fill", "Answer = ____"),
-        q("True or False: 10,24,26 is a right triangle.", "fill", "Answer = ____"),
-        q("Spot: Ladder 17m, height 15m gives base 9m. Correct? Fix (8). ____", "fill", "Answer = ____"),
-        q("True or False: Legs 1.5,2 give hypotenuse 2.5.", "fill", "Answer = ____"),
-    ]
-
+    for _ in range(6):
+        ad, db, ae, ec = gen_bpt(hi)
+        items.append(q(f"DE || BC in triangle ABC. AD={ad}, DB={db}, AE={ae}. Find EC.", "diagram", "____", "", "bpt_triangle", {"ad": ad, "db": db, "ae": ae, "ec": ec}))
+    for _ in range(5):
+        ad, db, ae, ec = gen_bpt(hi)
+        items.append(q(f"DE || BC in triangle ABC. AD={ad}, DB={db}, AE={ae}. Find EC using AD/DB=AE/EC.", "fill", "Answer = ____"))
+    for _ in range(4):
+        third_side = random.randint(lo * 2, hi * 2)
+        items.append(q(f"The third side of a triangle is {third_side}. Find the length of the midsegment (joining the midpoints of the other two sides).", "fill", "Answer = ____"))
+    for _ in range(3):
+        midseg = random.randint(lo, hi)
+        items.append(q(f"The midsegment of a triangle is {midseg}. Find the length of the third side (parallel to it).", "fill", "Answer = ____"))
+    for _ in range(2):
+        ad, db, ae, ec = gen_bpt(hi)
+        shown = ec if random.random() > 0.4 else ec + 1
+        items.append(q(f"True or False: DE||BC, AD={ad}, DB={db}, AE={ae}. This means EC={shown}.", "fill", "Answer = ____"))
+    return items
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Multi-sheet families
+# 16G — Pythagoras Theorem & its Converse
 # ═══════════════════════════════════════════════════════════════════════════════
 def _L16G_s(sheet):
-    s1 = [
-        cb("Applications of Triangles", [
-            "Triangles model ramps, ladders, roofs, shadows and navigation.",
-            "Use angle sum, Pythagoras and similarity to solve real problems.",
-            "Draw a diagram and label what you know.",
-        ], "Ladder against a wall → right triangle with Pythagoras."),
-        q("Ladder 5m, base 3m from wall: height = ____m", "fill", "Answer = ____"),
-        q("Ramp rises 3m over 4m horizontal: ramp length = ____m", "fill", "Answer = ____"),
-        q("Roof triangle: two equal sides, base angles 40 each, apex = ____°", "fill", "Answer = ____"),
-        q("Pole 6m, shadow 8m: distance top of pole to shadow tip = ____m", "fill", "Answer = ____"),
-        q("Two roads meet at 90°. Walk 6km then 8km: straight distance = ____km", "fill", "Answer = ____"),
-        q("Tree 2m casts 3m shadow; building shadow 30m: height = ____m", "fill", "Answer = ____"),
-        q("Triangular park sides 5,12,13: is it right-angled? ____", "fill", "Answer = ____"),
-        q("Ladder 13m reaches 12m up: base distance = ____m", "fill", "Answer = ____"),
-        q("Roof apex 100°, base angles equal: each = ____°", "fill", "Answer = ____"),
-        q("Right triangle ramp: rise 5, run 12, length = ____", "fill", "Answer = ____"),
-        q("Kite string 25m, horizontal 7m: height = ____m", "fill", "Answer = ____"),
-        q("Flagpole 9m, guy wire to point 12m away: wire length = ____m", "fill", "Answer = ____"),
-        q("Triangle field angles 50,60: third = ____°", "fill", "Answer = ____"),
-        q("Two towers 15m and 20m... shadows similar: pole 3m → shadow 4m, so 15m → ____m", "fill", "Answer = ____"),
-        q("Diagonal of a 12×16 gate = ____", "fill", "Answer = ____"),
-        q("True or False: Ladder 5m, base 3m reaches 4m.", "fill", "Answer = ____"),
-        q("True or False: Roads at 90°, walk 6km then 8km, straight 10km.", "fill", "Answer = ____"),
-        q("True or False: Tree 2m/3m shadow makes 30m shadow building 20m.", "fill", "Answer = ____"),
-        q("Spot: Ladder 13m up 12m gives base 6m. Correct? Fix (5). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 12×16 gate is 20.", "fill", "Answer = ____"),
+    random.seed(1680 + sheet)
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (7, 24, 25), (9, 40, 41), (20, 21, 29)]
+    items = [
+        cb("Pythagoras Theorem", [
+            "In a right triangle: (hypotenuse)^2 = (leg)^2 + (leg)^2.",
+            "Common triples: 3-4-5, 5-12-13, 8-15-17, 7-24-25 (and their multiples).",
+        ], "Legs 3,4: hyp = sqrt(9+16) = 5."),
+        cb("The CONVERSE of Pythagoras", [
+            "Given three side lengths, compare (longest)^2 to the sum of the other two squares.",
+            "EQUAL -> right triangle. Sum GREATER than longest^2 -> acute. Sum LESS -> obtuse.",
+            "This lets you classify a triangle just from its side lengths, no angles needed.",
+        ], "Sides 4,5,6: 16+25=41 > 36, so it's ACUTE. Sides 4,5,8: 16+25=41 < 64, so it's OBTUSE."),
     ]
-    s2 = [
-        cb("More Triangle Applications", [
-            "Combine theorems: find an angle, then a side.",
-            "Navigation: north/east legs form a right triangle.",
-            "Similar triangles scale heights from shadows.",
-        ], "Shadows give similar triangles → proportional heights."),
-        q("Ladder 17m reaches 15m: base = ____m", "fill", "Answer = ____"),
-        q("Walk 5km N, 12km E: distance from start = ____km", "fill", "Answer = ____"),
-        q("Roof base angles 35 each: apex = ____°", "fill", "Answer = ____"),
-        q("Pole 4m, shadow 3m: top to tip distance = ____m", "fill", "Answer = ____"),
-        q("Ramp rise 8, run 15: length = ____", "fill", "Answer = ____"),
-        q("Stick 1m casts 1.5m; tree shadow 18m: height = ____m", "fill", "Answer = ____"),
-        q("Triangle plot sides 8,15,17: right-angled? ____", "fill", "Answer = ____"),
-        q("Wire from 24m pole top to ground point 7m away: wire = ____m", "fill", "Answer = ____"),
-        q("Field angles 70,60: third = ____°", "fill", "Answer = ____"),
-        q("Ladder base 9m out, reaches 40m: ladder length = ____m", "fill", "Answer = ____"),
-        q("Two planes: 20km W and 21km N: separation = ____km", "fill", "Answer = ____"),
-        q("Isosceles roof, apex 80: base angle = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 7×24 panel = ____", "fill", "Answer = ____"),
-        q("Pole 1.5m casts 2m; building casts 16m: height = ____m", "fill", "Answer = ____"),
-        q("Right triangle legs 20,21: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: Walk 5km N, 12km E gives 13km.", "fill", "Answer = ____"),
-        q("True or False: Ladder reaching 40m, base 9m is 41m.", "fill", "Answer = ____"),
-        q("True or False: 8,15,17 plot is right-angled.", "fill", "Answer = ____"),
-        q("Spot: Stick 1m/1.5m makes 18m shadow tree 27m. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 7×24 panel is 25.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Triangle Applications — Tips", [
-            "Right triangle (ladder/ramp/navigation): use Pythagoras.",
-            "Shadows/heights: use similar triangles (proportions).",
-            "Angles in roofs/fields: use the 180° angle sum.",
-            "Always sketch and label the known parts first.",
-        ]),
-        q("Ladder 25m reaches 24m: base = ____m", "fill", "Answer = ____"),
-        q("Walk 8km N, 15km E: distance = ____km", "fill", "Answer = ____"),
-        q("Roof base angles 50 each: apex = ____°", "fill", "Answer = ____"),
-        q("Pole 5m, shadow 12m: top-to-tip = ____m", "fill", "Answer = ____"),
-        q("Ramp rise 7, run 24: length = ____", "fill", "Answer = ____"),
-        q("Stick 2m casts 3m; tree shadow 21m: height = ____m", "fill", "Answer = ____"),
-        q("Plot 9,40,41: right-angled? ____", "fill", "Answer = ____"),
-        q("Wire from 16m pole to 12m-away point: wire = ____m", "fill", "Answer = ____"),
-        q("Field angles 45,55: third = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 20×21 board = ____", "fill", "Answer = ____"),
-        q("Two ships 12km N, 35km E: apart = ____km", "fill", "Answer = ____"),
-        q("Isosceles roof apex 40: base angle = ____°", "fill", "Answer = ____"),
-        q("Pole 3m casts 5m; tower casts 40m: height = ____m", "fill", "Answer = ____"),
-        q("Ladder base 5m, length 13m: height = ____m", "fill", "Answer = ____"),
-        q("Diagonal of 9×12 frame = ____", "fill", "Answer = ____"),
-        q("True or False: Walk 8km N, 15km E gives 17km.", "fill", "Answer = ____"),
-        q("True or False: Plot 9,40,41 is right-angled.", "fill", "Answer = ____"),
-        q("True or False: Stick 2m/3m makes 21m shadow tree 14m.", "fill", "Answer = ____"),
-        q("Spot: Ladder 25m reaches 24m, base 6m. Correct? Fix (7). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 20×21 board is 29.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Ladder 41m reaches 40m: base = ____m", "fill", "Answer = ____"),
-        q("Walk 28km N, 45km E: distance = ____km", "fill", "Answer = ____"),
-        q("Roof base angles 25 each: apex = ____°", "fill", "Answer = ____"),
-        q("Pole 9m, shadow 12m: top-to-tip = ____m", "fill", "Answer = ____"),
-        q("Ramp rise 33, run 56: length = ____", "fill", "Answer = ____"),
-        q("Stick 1.5m casts 2m; building shadow 24m: height = ____m", "fill", "Answer = ____"),
-        q("Plot 12,35,37: right-angled? ____", "fill", "Answer = ____"),
-        q("Wire from 33m pole to 56m-away point: wire = ____m", "fill", "Answer = ____"),
-        q("Field angles in ratio 2:3:4: largest = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 11×60 sheet = ____", "fill", "Answer = ____"),
-        q("Two cars 16km N, 63km E: apart = ____km", "fill", "Answer = ____"),
-        q("Isosceles roof apex 70: base angle = ____°", "fill", "Answer = ____"),
-        q("Pole 2m casts 5m; tower casts 75m: height = ____m", "fill", "Answer = ____"),
-        q("Right triangle legs 48,55: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of square side 8 = 8√2 ≈ ____ (leave as 8√2)", "fill", "Answer = ____"),
-        q("True or False: Walk 28km N, 45km E gives 53km.", "fill", "Answer = ____"),
-        q("True or False: Plot 12,35,37 is right-angled.", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 11×60 sheet is 61.", "fill", "Answer = ____"),
-        q("Spot: Field ratio 2:3:4 largest = 90. Correct? Fix (80). ____", "fill", "Answer = ____"),
-        q("True or False: Legs 48,55 give hyp 73.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        a, b, c = random.choice(triples)
+        if random.random() > 0.5:
+            items.append(q(f"Legs {a} and {b}: find the hypotenuse.", "fill", "Answer = ____"))
+        else:
+            items.append(q(f"Hypotenuse {c}, one leg {a}: find the other leg.", "fill", "Answer = ____"))
+    for _ in range(6):
+        kind = random.choice(["right", "acute", "obtuse"])
+        a, b, c = random.choice(triples)
+        if kind == "right":
+            sides = (a, b, c)
+        elif kind == "acute":
+            sides = (a, b, c - random.randint(1, 2))
+        else:
+            sides = (a, b, c + random.randint(1, 3))
+        s1, s2, s3 = sides
+        items.append(q(f"Sides {s1}, {s2}, {s3}. Use the converse of Pythagoras to classify this triangle: right, acute, or obtuse?", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Verify: does {a}^2 + {b}^2 = {c}^2? Show both sides.", "fill", "Answer = ____"))
+    for _ in range(3):
+        a, b, c = random.choice(triples)
+        shown = "right" if random.random() > 0.4 else random.choice(["acute", "obtuse"])
+        items.append(q(f"True or False: Sides {a}, {b}, {c} form a {shown} triangle.", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("A triangle has sides where (longest side)^2 is LESS than the sum of the squares of the other two. What type of triangle is it?", "fill", "Answer = ____"))
+    return items
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16H — Applications of Triangles
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L16H_s(sheet):
-    s1 = [
-        cb("Mixed Triangles", [
-            "Combine all skills: types, angle sum, exterior angle, congruence, similarity, Pythagoras.",
-            "Read carefully and pick the right tool.",
-            "Show working step by step.",
-        ], "One sheet touching every Level 16 skill."),
-        q("Sides 5,5,8: type by sides = ____", "fill", "Answer = ____"),
-        q("Two angles 60,70: third = ____°", "fill", "Answer = ____"),
-        q("Opposite interior 50,60: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 6,8: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Sides 3,4,5 ~ 6,8,10: scale factor = ____", "fill", "Answer = ____"),
-        q("Rule: 3 equal sides = ____", "fill", "Answer = ____"),
-        q("Angles in ratio 1:2:3: largest = ____°", "fill", "Answer = ____"),
-        q("Equilateral angle = ____°", "fill", "Answer = ____"),
-        q("Hypotenuse 13, leg 5: other = ____", "fill", "Answer = ____"),
-        q("Isosceles base angles 55 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Exterior 120, opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("Is 8,15,17 right? ____", "fill", "Answer = ____"),
-        q("Scale factor 3, side 4 → ____", "fill", "Answer = ____"),
-        q("Angles 90,45,45: type by angle = ____", "fill", "Answer = ____"),
-        q("Legs 5,12: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: Sides 5,5,8 is isosceles.", "fill", "Answer = ____"),
-        q("True or False: Legs 6,8 give hypotenuse 10.", "fill", "Answer = ____"),
-        q("True or False: Ratio 1:2:3 gives largest 90.", "fill", "Answer = ____"),
-        q("Spot: Hypotenuse 13, leg 5 gives other 8. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: Exterior 120 with equal opposites gives 60 each.", "fill", "Answer = ____"),
+    random.seed(1690 + sheet)
+    ranges = {1: (3, 8), 2: (4, 10), 3: (5, 13), 4: (6, 16)}
+    lo, hi = ranges[sheet]
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (9, 12, 15)]
+    items = [
+        cb("Applications of Triangles", [
+            "Triangles model ladders, ramps, roofs, shadows, and navigation.",
+            "Draw a diagram, label what's known, then apply angle-sum, Pythagoras, or similarity.",
+        ], "Ladder 5m against a wall, base 3m from wall: height = sqrt(25-9) = 4m."),
     ]
-    s2 = [
-        cb("Mixed Practice — All Tools", [
-            "Identify the rule or theorem from the wording.",
-            "Pythagoras for right triangles, similarity for proportions.",
-            "Angle sum and exterior angle for angle problems.",
-        ], "Match the method to the question."),
-        q("Sides 7,7,7: type = ____", "fill", "Answer = ____"),
-        q("Two angles 95,35: third = ____°", "fill", "Answer = ____"),
-        q("Opposite interior 45,75: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 9,12: hyp = ____", "fill", "Answer = ____"),
-        q("5,12,13 ~ 10,24,26: scale = ____", "fill", "Answer = ____"),
-        q("Rule: 2 sides + included angle = ____", "fill", "Answer = ____"),
-        q("Ratio 2:3:5: largest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 40: base angle = ____°", "fill", "Answer = ____"),
-        q("Hyp 17, leg 8: other = ____", "fill", "Answer = ____"),
-        q("Exterior 130, opposite 70 and y: y = ____°", "fill", "Answer = ____"),
-        q("Is 9,12,15 right? ____", "fill", "Answer = ____"),
-        q("Scale factor 4, area 5 → ____", "fill", "Answer = ____"),
-        q("Diagonal of 8×15 rectangle = ____", "fill", "Answer = ____"),
-        q("Angles 100,40,40: type by side = ____", "fill", "Answer = ____"),
-        q("Legs 20,21: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: 5,12,13 ~ 10,24,26 has scale 2.", "fill", "Answer = ____"),
-        q("True or False: Is 9,12,15 right is true.", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 40 gives base 70 each.", "fill", "Answer = ____"),
-        q("Spot: Ratio 2:3:5 largest = 80. Correct? Fix (90). ____", "fill", "Answer = ____"),
-        q("True or False: Angles 100,40,40 makes it isosceles.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Mixed Triangles — Tips", [
-            "Types by side/angle; angle sum = 180; exterior = sum of opposites.",
-            "Congruence: SSS/SAS/ASA/AAS/RHS. Similarity: AA + proportions.",
-            "Pythagoras: c^2=a^2+b^2; recall the triples.",
-            "Pick the simplest tool the wording points to.",
-        ]),
-        q("Sides 6,6,10: type = ____", "fill", "Answer = ____"),
-        q("Two angles 88,52: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 55,65: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("6,8,10 ~ 3,4,5: scale (big to small) = ____", "fill", "Answer = ____"),
-        q("Rule: 2 angles + included side = ____", "fill", "Answer = ____"),
-        q("Ratio 1:1:4: largest = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 75 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Hyp 25, leg 24: other = ____", "fill", "Answer = ____"),
-        q("Exterior 140, opposite 80 and y: y = ____°", "fill", "Answer = ____"),
-        q("Is 7,24,25 right? ____", "fill", "Answer = ____"),
-        q("Scale 3, perimeter 10 → ____", "fill", "Answer = ____"),
-        q("Diagonal of 9×40 panel = ____", "fill", "Answer = ____"),
-        q("Equilateral lines of symmetry = ____", "fill", "Answer = ____"),
-        q("Legs 12,35: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 7,24 give hyp 25.", "fill", "Answer = ____"),
-        q("True or False: Ratio 1:1:4 gives largest 120.", "fill", "Answer = ____"),
-        q("True or False: Isosceles base 75 each gives vertex 30.", "fill", "Answer = ____"),
-        q("Spot: Hyp 25, leg 24 gives other 6. Correct? Fix (7). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 9×40 panel is 41.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Sides 13,13,24: type = ____", "fill", "Answer = ____"),
-        q("Two angles 105,28: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 48,72: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("8,15,17 ~ 24,45,51: scale = ____", "fill", "Answer = ____"),
-        q("Rule: right angle, hyp, leg = ____", "fill", "Answer = ____"),
-        q("Ratio 3:4:5: largest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 100: base angle = ____°", "fill", "Answer = ____"),
-        q("Hyp 41, leg 40: other = ____", "fill", "Answer = ____"),
-        q("Exterior 5x, opposite 2x and 60: x = ____", "fill", "Answer = ____"),
-        q("Is 11,60,61 right? ____", "fill", "Answer = ____"),
-        q("Scale factor 5, area 4 → ____", "fill", "Answer = ____"),
-        q("Diagonal of 28×45 board = ____", "fill", "Answer = ____"),
-        q("Two boats 33km N, 56km E: apart = ____km", "fill", "Answer = ____"),
-        q("Legs 16,63: hyp = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 9,40 give hyp 41.", "fill", "Answer = ____"),
-        q("True or False: 8,15,17 ~ 24,45,51 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Is 11,60,61 right is true.", "fill", "Answer = ____"),
-        q("Spot: Ratio 3:4:5 largest = 80. Correct? Fix (75). ____", "fill", "Answer = ____"),
-        q("True or False: Boats 33km N, 56km E are 65km apart.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        a, b, c = random.choice(triples)
+        k = random.choice([1, 1, 2])
+        a, b, c = a * k, b * k, c * k
+        items.append(q(f"A ladder {c}m long leans against a wall, its base {a}m from the wall. Find the height it reaches.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = random.choice(triples)
+        items.append(q(f"A ramp rises {a}m over a horizontal distance of {b}m. Find the ramp's length.", "fill", "Answer = ____"))
+    for _ in range(4):
+        base_angle = random.randint(30, 75)
+        apex = 180 - 2 * base_angle
+        items.append(q(f"A roof truss (isosceles triangle) has base angles of {base_angle}° each. Find the apex angle.", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Two roads meet at 90°. A car drives {a}km then turns and drives {b}km. Find the straight-line distance back to the start.", "fill", "Answer = ____"))
+    for _ in range(3):
+        pole, shadow = random.choice([(2, 3), (3, 4), (4, 5)])
+        obj_shadow = shadow * random.randint(3, 6)
+        height = pole * obj_shadow / shadow
+        items.append(q(f"A {pole}m pole casts a {shadow}m shadow. A building casts a {obj_shadow}m shadow. Find the building's height.", "fill", "Answer = ____"))
+    return items
 
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16I — Puzzle Geometry
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L16I_s(sheet):
-    s1 = [
+    random.seed(1700 + sheet)
+    ranges = {1: (10, 40), 2: (10, 60), 3: (5, 70), 4: (5, 80)}
+    lo, hi = ranges[sheet]
+    items = [
         cb("Puzzle Geometry", [
-            "Solve for unknown angles and sides using several rules together.",
-            "Look for isosceles marks, parallel lines, and right angles.",
-            "Combine angle sum, exterior angle and Pythagoras.",
-        ], "Isosceles + angle sum often unlocks the puzzle."),
-        q("Isosceles, vertex 2x, base angles x each: x = ____°", "fill", "Answer = ____"),
-        q("Angles x, x+30, x+60: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 3x equals interior opposites x and 80: x = ____", "fill", "Answer = ____"),
-        q("Right triangle, one acute 2x, other 3x: x = ____°", "fill", "Answer = ____"),
-        q("Triangle with angles 5x, 6x, 7x: middle angle = ____°", "fill", "Answer = ____"),
-        q("Two angles equal, third is 90: each equal = ____°", "fill", "Answer = ____"),
-        q("Legs equal length L, hypotenuse 10√2: L = ____", "fill", "Answer = ____"),
-        q("Isosceles base 40 each, find exterior at vertex = ____°", "fill", "Answer = ____"),
-        q("Angle x, its exterior 3x: x = ____°", "fill", "Answer = ____"),
-        q("Equilateral side s, perimeter 27: s = ____", "fill", "Answer = ____"),
-        q("Triangle angles x, 2x, 90: x = ____°", "fill", "Answer = ____"),
-        q("Right isosceles legs 6: hypotenuse = 6√2 ≈ ____ (leave 6√2)", "fill", "Answer = ____"),
-        q("Exterior angle 4x, opposite 3x and 25: x = ____", "fill", "Answer = ____"),
-        q("Isosceles, vertex x, base 2x each: x = ____°", "fill", "Answer = ____"),
-        q("Triangle angles in AP with middle 60: angles sum check, middle = ____°", "fill", "Answer = ____"),
-        q("True or False: Right triangle acute 2x,3x gives x = 18.", "fill", "Answer = ____"),
-        q("True or False: Angles 5x,6x,7x give x = 10.", "fill", "Answer = ____"),
-        q("True or False: Right isosceles legs equal.", "fill", "Answer = ____"),
-        q("Spot: Isosceles vertex 2x, base x each gives x = 60. Correct? Fix (45). ____", "fill", "Answer = ____"),
-        q("True or False: Equilateral perimeter 27 has side 9.", "fill", "Answer = ____"),
+            "Combine several rules together: angle sum, exterior angle, isosceles properties, parallel lines.",
+            "Look for isosceles marks, parallel-line arrows, and right angles in the description.",
+            "Set up an equation from what you're told, then solve step by step.",
+        ], "Isosceles triangle, vertex 2x, base angles x each: 2x+x+x=180 -> x=45."),
     ]
-    s2 = [
-        cb("Geometry Puzzles", [
-            "Set up equations from the diagram clues, then solve.",
-            "Use 'angles on a straight line = 180' and 'around a point = 360'.",
-            "Verify by substituting back into all conditions.",
-        ], "Combine straight-line and triangle angle facts."),
-        q("Angle x and 50 on a straight line: x = ____°", "fill", "Answer = ____"),
-        q("Triangle angles x, x, 2x: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 110 = opposite 60 and y: y = ____°", "fill", "Answer = ____"),
-        q("Right triangle, legs 8 and 6: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex angle equals each base angle: each = ____°", "fill", "Answer = ____"),
-        q("Angles 4x, 5x, 9x: largest = ____°", "fill", "Answer = ____"),
-        q("Two angles of triangle 35,45: exterior at third vertex = ____°", "fill", "Answer = ____"),
-        q("Right isosceles hypotenuse 10√2, legs = ____", "fill", "Answer = ____"),
-        q("Angle x with exterior 2x: x = ____°", "fill", "Answer = ____"),
-        q("Equilateral perimeter 36: side = ____", "fill", "Answer = ____"),
-        q("Triangle 3x-10, 2x, x+10: x = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angle 3x, vertex 2x: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 5x opposite 2x and 90: x = ____", "fill", "Answer = ____"),
-        q("Hypotenuse 26, one leg 24: other = ____", "fill", "Answer = ____"),
-        q("Angles around a point with a 90 and a 130 and x: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Angle x and 50 on a line gives x = 130.", "fill", "Answer = ____"),
-        q("True or False: Triangle x,x,2x gives x = 45.", "fill", "Answer = ____"),
-        q("True or False: Equilateral perimeter 36 has side 12.", "fill", "Answer = ____"),
-        q("Spot: Angles 4x,5x,9x give x = 12. Correct? Fix (10). ____", "fill", "Answer = ____"),
-        q("True or False: Hypotenuse 26, leg 24 gives other 10.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Geometry Puzzles — Tips", [
-            "Translate each clue into an equation.",
-            "Angle sum 180; straight line 180; around a point 360.",
-            "Isosceles gives a pair of equal angles to use.",
-            "Check the answer against every clue.",
-        ]),
-        q("Triangle x, 3x, 5x: smallest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 3x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 4x opposite x and 75: x = ____", "fill", "Answer = ____"),
-        q("Right triangle legs 12,16: hyp = ____", "fill", "Answer = ____"),
-        q("Angle x, exterior 5x: x = ____°", "fill", "Answer = ____"),
-        q("Angles 2x, 3x, 5x: largest = ____°", "fill", "Answer = ____"),
-        q("Equilateral perimeter 45: side = ____", "fill", "Answer = ____"),
-        q("Right isosceles legs 9: hyp = 9√2 ≈ ____ (leave 9√2)", "fill", "Answer = ____"),
-        q("Triangle 2x+5, 3x, 4x-5: x = ____°", "fill", "Answer = ____"),
-        q("Hypotenuse 25, one leg 20: other = ____", "fill", "Answer = ____"),
-        q("Isosceles base 2x each, vertex x: x = ____°", "fill", "Answer = ____"),
-        q("Angle on a line: x and 110: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 6x opposite 2x and 100: x = ____", "fill", "Answer = ____"),
-        q("Right triangle legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("Angles around a point: 120,90,60,x: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Triangle x,3x,5x gives smallest 20.", "fill", "Answer = ____"),
-        q("True or False: Right isosceles legs equal each other.", "fill", "Answer = ____"),
-        q("True or False: Equilateral perimeter 45 has side 15.", "fill", "Answer = ____"),
-        q("Spot: Isosceles vertex 3x base x each gives x = 30. Correct? Fix (36). ____", "fill", "Answer = ____"),
-        q("True or False: Hypotenuse 25, leg 20 gives other 15.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Triangle x, 4x, 7x: largest = ____°", "fill", "Answer = ____"),
-        q("Isosceles vertex 4x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 7x opposite 3x and 80: x = ____", "fill", "Answer = ____"),
-        q("Right triangle legs 20,15: hyp = ____", "fill", "Answer = ____"),
-        q("Angle x, exterior 8x: x = ____°", "fill", "Answer = ____"),
-        q("Angles 3x, 5x, 7x: middle = ____°", "fill", "Answer = ____"),
-        q("Equilateral perimeter 60: side = ____", "fill", "Answer = ____"),
-        q("Right isosceles hyp 14√2, legs = ____", "fill", "Answer = ____"),
-        q("Triangle 5x-20, 4x, 3x+20: x = ____°", "fill", "Answer = ____"),
-        q("Hypotenuse 37, one leg 35: other = ____", "fill", "Answer = ____"),
-        q("Isosceles base 4x each, vertex 2x: x = ____°", "fill", "Answer = ____"),
-        q("Exterior 100 opposite 3x and x: x = ____°", "fill", "Answer = ____"),
-        q("Right triangle legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("Angles around a point: 150,100,50,x: x = ____°", "fill", "Answer = ____"),
-        q("Triangle angles in ratio 5:6:7: largest = ____°", "fill", "Answer = ____"),
-        q("True or False: Triangle x,4x,7x gives largest 105.", "fill", "Answer = ____"),
-        q("True or False: Right triangle legs 20,15 give hyp 25.", "fill", "Answer = ____"),
-        q("True or False: Equilateral perimeter 60 has side 20.", "fill", "Answer = ____"),
-        q("Spot: Isosceles vertex 4x base x each gives x = 36. Correct? Fix (30). ____", "fill", "Answer = ____"),
-        q("True or False: Hypotenuse 37, leg 35 gives other 12.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(5):
+        x_val = random.randint(15, 50)
+        vertex = 2 * x_val
+        items.append(q(f"Isosceles triangle: vertex angle 2x, base angles x each. If x={x_val}, verify the angle sum works. Find the vertex angle.", "fill", "Answer = ____"))
+    for _ in range(4):
+        x_val = random.randint(10, 40)
+        items.append(q(f"Three angles: x, x+{random.randint(10,30)}, x+{random.randint(31,60)} sum to 180°. Find x.", "fill", "Answer = ____"))
+    for _ in range(4):
+        rem1 = random.randint(lo, hi)
+        x_coef = random.randint(2, 4)
+        ext = x_coef * random.randint(2, 5)
+        items.append(q(f"Exterior angle {x_coef}x equals the sum of remote interior angles x and {rem1}. Find x.", "fill", "Answer = ____"))
+    for _ in range(4):
+        acute = random.randint(20, 44)
+        items.append(q(f"A right triangle has one acute angle 2x and the other 3x. Find x, then both acute angles.", "fill", "Answer = ____"))
+    for _ in range(3):
+        val = random.randint(lo, hi)
+        items.append(q(f"Two parallel lines cut by a transversal. One angle is 3x and its co-interior angle is 2x. Find x.", "fill", "Answer = ____"))
+    return items
 
 
-def _L16J_s(sheet):
-    s1 = [
-        cb("Mixed Challenge — Triangles", [
-            "Hardest mix: multi-step with congruence proofs, similarity ratios and Pythagoras.",
-            "Area of triangle = ½ × base × height.",
-            "Plan the steps before computing.",
-        ], "Find an angle, then a side, then an area."),
-        q("Area of triangle base 10, height 6: ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 8,15: ____", "fill", "Answer = ____"),
-        q("Legs 9,12: hypotenuse = ____", "fill", "Answer = ____"),
-        q("Two angles 50,60: exterior at third vertex = ____°", "fill", "Answer = ____"),
-        q("5,12,13 ~ 15,36,39: scale = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 80: base angle = ____°", "fill", "Answer = ____"),
-        q("Area of right triangle legs 6,8: ____", "fill", "Answer = ____"),
-        q("Hypotenuse 17, leg 8: other leg = ____", "fill", "Answer = ____"),
-        q("Equilateral side 6, perimeter = ____", "fill", "Answer = ____"),
-        q("Ratio 2:3:4: largest angle = ____°", "fill", "Answer = ____"),
-        q("Scale factor 3, area 7 → ____", "fill", "Answer = ____"),
-        q("Is 20,21,29 right? ____", "fill", "Answer = ____"),
-        q("Area of triangle base 14, height 9: ____", "fill", "Answer = ____"),
-        q("Rule for 3 equal sides: ____", "fill", "Answer = ____"),
-        q("Exterior 5x opposite 2x and 60: x = ____", "fill", "Answer = ____"),
-        q("True or False: Area of legs 8,15 right triangle is 60.", "fill", "Answer = ____"),
-        q("True or False: 5,12,13 ~ 15,36,39 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Is 20,21,29 right is true.", "fill", "Answer = ____"),
-        q("Spot: Area base 10 height 6 = 60. Correct? Fix (30). ____", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 80 gives base 50 each.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Advanced Triangle Problems", [
-            "Use congruence to justify equal parts, then compute.",
-            "Similar triangles give proportional heights and areas.",
-            "Right-triangle area = ½ × leg × leg.",
-        ], "Area ratio of similar triangles = (scale factor)^2."),
-        q("Similar triangles scale 2, small area 5: large area = ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 5,12: ____", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("Two angles 45,55: third = ____°", "fill", "Answer = ____"),
-        q("8,15,17 ~ 16,30,34: scale = ____", "fill", "Answer = ____"),
-        q("Isosceles base 35 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Area of triangle base 20, height 7: ____", "fill", "Answer = ____"),
-        q("Hypotenuse 25, leg 7: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 21: side = ____", "fill", "Answer = ____"),
-        q("Ratio 1:2:3: largest = ____°", "fill", "Answer = ____"),
-        q("Scale factor 4, small area 3: large area = ____", "fill", "Answer = ____"),
-        q("Is 12,35,37 right? ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 9,40: ____", "fill", "Answer = ____"),
-        q("Exterior 130 opposite 70 and y: y = ____°", "fill", "Answer = ____"),
-        q("Right isosceles legs 5: area = ____", "fill", "Answer = ____"),
-        q("True or False: Scale 2 makes area 5 become 20.", "fill", "Answer = ____"),
-        q("True or False: Area of legs 5,12 right triangle is 30.", "fill", "Answer = ____"),
-        q("True or False: 8,15,17 ~ 16,30,34 has scale 2.", "fill", "Answer = ____"),
-        q("Spot: Area base 20 height 7 = 140. Correct? Fix (70). ____", "fill", "Answer = ____"),
-        q("True or False: Is 12,35,37 right is true.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Triangle Challenge — Tips", [
-            "Area = ½ base × height; right triangle = ½ leg × leg.",
-            "Similar area ratio = (length ratio)^2.",
-            "Use Pythagoras for missing sides; triples speed it up.",
-            "Combine angle sum and exterior angle for angle puzzles.",
-        ]),
-        q("Area of right triangle legs 20,21: ____", "fill", "Answer = ____"),
-        q("Similar scale 3, small area 4: large = ____", "fill", "Answer = ____"),
-        q("Legs 8,15: hyp = ____", "fill", "Answer = ____"),
-        q("Two angles 100,30: exterior at third = ____°", "fill", "Answer = ____"),
-        q("9,12,15 ~ 12,16,20: scale = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 90: base angle = ____°", "fill", "Answer = ____"),
-        q("Area of triangle base 16, height 9: ____", "fill", "Answer = ____"),
-        q("Hyp 41, leg 9: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 30: side = ____", "fill", "Answer = ____"),
-        q("Ratio 3:4:5: largest = ____°", "fill", "Answer = ____"),
-        q("Scale factor 5, area 2 → ____", "fill", "Answer = ____"),
-        q("Is 28,45,53 right? ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 12,35: ____", "fill", "Answer = ____"),
-        q("Exterior 150 opposite equal: each = ____°", "fill", "Answer = ____"),
-        q("Right isosceles legs 8: area = ____", "fill", "Answer = ____"),
-        q("True or False: Area of legs 20,21 right triangle is 210.", "fill", "Answer = ____"),
-        q("True or False: Similar scale 3 makes area 4 become 36.", "fill", "Answer = ____"),
-        q("True or False: 9,12,15 ~ 12,16,20 has scale 4/3.", "fill", "Answer = ____"),
-        q("Spot: Area base 16 height 9 = 144. Correct? Fix (72). ____", "fill", "Answer = ____"),
-        q("True or False: Is 28,45,53 right is true.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Area of right triangle legs 9,40: ____", "fill", "Answer = ____"),
-        q("Similar scale 4, small area 6: large = ____", "fill", "Answer = ____"),
-        q("Legs 11,60: hyp = ____", "fill", "Answer = ____"),
-        q("Two angles 95,40: exterior at third = ____°", "fill", "Answer = ____"),
-        q("7,24,25 ~ 21,72,75: scale = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 36: base angle = ____°", "fill", "Answer = ____"),
-        q("Area of triangle base 18, height 11: ____", "fill", "Answer = ____"),
-        q("Hyp 61, leg 11: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 48: side = ____", "fill", "Answer = ____"),
-        q("Ratio 4:5:9: largest = ____°", "fill", "Answer = ____"),
-        q("Scale factor 6, area 2 → ____", "fill", "Answer = ____"),
-        q("Is 33,56,65 right? ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 16,63: ____", "fill", "Answer = ____"),
-        q("Two boats 9km N, 40km E: apart = ____km", "fill", "Answer = ____"),
-        q("Right isosceles legs 10: area = ____", "fill", "Answer = ____"),
-        q("True or False: Area of legs 9,40 right triangle is 180.", "fill", "Answer = ____"),
-        q("True or False: 7,24,25 ~ 21,72,75 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Is 33,56,65 right is true.", "fill", "Answer = ____"),
-        q("Spot: Area base 18 height 11 = 198. Correct? Fix (99). ____", "fill", "Answer = ____"),
-        q("True or False: Boats 9km N, 40km E are 41km apart.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
-def _L16CUM1_s(sheet):
-    # Mixed A+B+C: types, angle sum, exterior angle
-    s1 = [
-        cb("Cumulative A+B+C", [
-            "Covers: types of triangles, angle sum, exterior angle theorem.",
-            "Classify, find third angles, and use exterior angles.",
-        ], "Type by side/angle; 180° sum; exterior = sum of opposites."),
-        q("Sides 6,6,6: type = ____", "fill", "Answer = ____"),
-        q("Two angles 70,55: third = ____°", "fill", "Answer = ____"),
-        q("Opposite interior 45,65: exterior = ____°", "fill", "Answer = ____"),
-        q("Sides 5,7,9: type = ____", "fill", "Answer = ____"),
-        q("Angles 90,40,50: type by angle = ____", "fill", "Answer = ____"),
-        q("Isosceles base angles 60 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Exterior 120, opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("Ratio 1:2:3: largest = ____°", "fill", "Answer = ____"),
-        q("Equilateral angle = ____°", "fill", "Answer = ____"),
-        q("Two angles 100,35: third = ____°", "fill", "Answer = ____"),
-        q("Interior 80: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles 110,40,30: type by angle = ____", "fill", "Answer = ____"),
-        q("Sides 8,8,3: type = ____", "fill", "Answer = ____"),
-        q("Exterior 100, opposite 40 and y: y = ____°", "fill", "Answer = ____"),
-        q("Angles in ratio 2:3:4: smallest = ____°", "fill", "Answer = ____"),
-        q("True or False: Sides 6,6,6 is equilateral.", "fill", "Answer = ____"),
-        q("True or False: Two angles 70,55 give third 55.", "fill", "Answer = ____"),
-        q("True or False: Opposite 45,65 give exterior 110.", "fill", "Answer = ____"),
-        q("Spot: Exterior 120 with equal opposites gives 50 each. Correct? Fix (60). ____", "fill", "Answer = ____"),
-        q("True or False: Ratio 1:2:3 gives largest 90.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Cumulative A+B+C — Practice", [
-            "Blend classification and angle work.",
-            "Use angle sum and exterior angle together.",
-        ], "Mix types, 180° sum, and exterior angles."),
-        q("Sides 9,9,9: type = ____", "fill", "Answer = ____"),
-        q("Two angles 85,45: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 55,75: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles 95,45,40: type by angle = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 40: base angle = ____°", "fill", "Answer = ____"),
-        q("Exterior 130, opposite 70 and y: y = ____°", "fill", "Answer = ____"),
-        q("Ratio 2:3:5: largest = ____°", "fill", "Answer = ____"),
-        q("Sides 7,7,12: type = ____", "fill", "Answer = ____"),
-        q("Two angles 120,25: third = ____°", "fill", "Answer = ____"),
-        q("Interior 105: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles x,2x,3x: x = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 50 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Exterior 4x opposite x and 45: x = ____", "fill", "Answer = ____"),
-        q("Angles 60,60,60: type by side = ____", "fill", "Answer = ____"),
-        q("Two angles 33,57: third = ____°", "fill", "Answer = ____"),
-        q("True or False: Sides 7,7,12 is isosceles.", "fill", "Answer = ____"),
-        q("True or False: Ratio 2:3:5 gives largest 90.", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 40 gives base 70 each.", "fill", "Answer = ____"),
-        q("Spot: Two angles 85,45 give third 60. Correct? Fix (50). ____", "fill", "Answer = ____"),
-        q("True or False: Angles x,2x,3x give x = 30.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative A+B+C — Tips", [
-            "Types: equilateral/isosceles/scalene; acute/right/obtuse.",
-            "Angle sum = 180; third = 180 - sum of two.",
-            "Exterior = sum of two opposite interior angles.",
-            "Isosceles gives two equal base angles.",
-        ]),
-        q("Sides 11,11,11: type = ____", "fill", "Answer = ____"),
-        q("Two angles 88,42: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 48,62: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles 100,50,30: type by angle = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 70: base angle = ____°", "fill", "Answer = ____"),
-        q("Exterior 140, opposite 80 and y: y = ____°", "fill", "Answer = ____"),
-        q("Ratio 3:4:5: largest = ____°", "fill", "Answer = ____"),
-        q("Sides 5,9,13: type = ____", "fill", "Answer = ____"),
-        q("Two angles 115,35: third = ____°", "fill", "Answer = ____"),
-        q("Interior 95: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles x,x,40: x = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 75 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Exterior 3x opposite 2x and 30: x = ____", "fill", "Answer = ____"),
-        q("Equilateral lines of symmetry = ____", "fill", "Answer = ____"),
-        q("Angles 25,25,130: type by side & angle = ____", "fill", "Answer = ____"),
-        q("True or False: Two angles 88,42 give third 50.", "fill", "Answer = ____"),
-        q("True or False: Ratio 3:4:5 gives largest 75.", "fill", "Answer = ____"),
-        q("True or False: Opposite 48,62 give exterior 110.", "fill", "Answer = ____"),
-        q("Spot: Isosceles vertex 70 gives base 65 each. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Angles 25,25,130 is obtuse isosceles.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Sides 13,13,13: type = ____", "fill", "Answer = ____"),
-        q("Two angles 97,38: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 53,67: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles 120,35,25: type by angle = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 36: base angle = ____°", "fill", "Answer = ____"),
-        q("Exterior 5x opposite 2x and 54: x = ____", "fill", "Answer = ____"),
-        q("Ratio 4:5:9: largest = ____°", "fill", "Answer = ____"),
-        q("Sides 8,8,8: type = ____", "fill", "Answer = ____"),
-        q("Two angles 105,28: third = ____°", "fill", "Answer = ____"),
-        q("Interior 112: exterior = ____°", "fill", "Answer = ____"),
-        q("Angles x,x+20,x+40: x = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 30 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Exterior 7x opposite 3x and 60: x = ____", "fill", "Answer = ____"),
-        q("Ratio 1:1:4: largest = ____°", "fill", "Answer = ____"),
-        q("Angles 90,45,45: type by side & angle = ____", "fill", "Answer = ____"),
-        q("True or False: Two angles 97,38 give third 45.", "fill", "Answer = ____"),
-        q("True or False: Ratio 4:5:9 gives largest 90.", "fill", "Answer = ____"),
-        q("True or False: Isosceles vertex 36 gives base 72 each.", "fill", "Answer = ____"),
-        q("Spot: Opposite 53,67 give exterior 110. Correct? Fix (120). ____", "fill", "Answer = ____"),
-        q("True or False: Angles 90,45,45 is right isosceles.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
-def _L16CUM2_s(sheet):
-    # Mixed D+E+F: congruence, similarity, Pythagoras
-    s1 = [
-        cb("Cumulative D+E+F", [
-            "Covers: congruence rules, similar triangles, Pythagoras theorem.",
-            "Pick the right rule; use ratios and c^2=a^2+b^2.",
-        ], "SSS/SAS/ASA/AAS/RHS; AA similarity; Pythagoras."),
-        q("Rule: 3 sides equal = ____", "fill", "Answer = ____"),
-        q("3,4,5 ~ 6,8,10: scale = ____", "fill", "Answer = ____"),
-        q("Legs 6,8: hyp = ____", "fill", "Answer = ____"),
-        q("Rule: 2 sides + included angle = ____", "fill", "Answer = ____"),
-        q("Hyp 13, leg 5: other = ____", "fill", "Answer = ____"),
-        q("Scale factor 3, side 5 → ____", "fill", "Answer = ____"),
-        q("Legs 5,12: hyp = ____", "fill", "Answer = ____"),
-        q("Rule: right angle, hyp, leg = ____", "fill", "Answer = ____"),
-        q("4/6 = x/9: x = ____", "fill", "Answer = ____"),
-        q("Is 9,12,15 right? ____", "fill", "Answer = ____"),
-        q("Rule: 2 angles + included side = ____", "fill", "Answer = ____"),
-        q("Scale 2, area 6 → ____", "fill", "Answer = ____"),
-        q("Legs 8,15: hyp = ____", "fill", "Answer = ____"),
-        q("Does AAA prove congruence? ____", "fill", "Answer = ____"),
-        q("Hyp 25, leg 24: other = ____", "fill", "Answer = ____"),
-        q("True or False: 3,4,5 ~ 6,8,10 has scale 2.", "fill", "Answer = ____"),
-        q("True or False: Legs 6,8 give hyp 10.", "fill", "Answer = ____"),
-        q("True or False: AAA proves congruence.", "fill", "Answer = ____"),
-        q("Spot: Hyp 13, leg 5 gives other 8. Correct? Fix (12). ____", "fill", "Answer = ____"),
-        q("True or False: 4/6 = x/9 gives x = 6.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Cumulative D+E+F — Practice", [
-            "Apply congruence, similarity and Pythagoras together.",
-            "Cross-multiply ratios; recall the triples.",
-        ], "Mix proofs, proportions, and right triangles."),
-        q("Rule: 2 angles + non-included side = ____", "fill", "Answer = ____"),
-        q("5,12,13 ~ 10,24,26: scale = ____", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("3/5 = 6/x: x = ____", "fill", "Answer = ____"),
-        q("Hyp 17, leg 8: other = ____", "fill", "Answer = ____"),
-        q("Scale 4, area 5 → ____", "fill", "Answer = ____"),
-        q("Is 8,15,17 right? ____", "fill", "Answer = ____"),
-        q("Two triangles 6,8,10 and 6,8,10: rule = ____", "fill", "Answer = ____"),
-        q("6/9 = 8/x: x = ____", "fill", "Answer = ____"),
-        q("Legs 20,21: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 9×12 rectangle = ____", "fill", "Answer = ____"),
-        q("Scale factor 2.5, side 4 → ____", "fill", "Answer = ____"),
-        q("Hyp 41, leg 9: other = ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF, AB=7: DE = ____", "fill", "Answer = ____"),
-        q("Pole 2m casts 3m; tree shadow 12m: height = ____m", "fill", "Answer = ____"),
-        q("True or False: 5,12,13 ~ 10,24,26 has scale 2.", "fill", "Answer = ____"),
-        q("True or False: Is 8,15,17 right is true.", "fill", "Answer = ____"),
-        q("True or False: 6/9 = 8/x gives x = 12.", "fill", "Answer = ____"),
-        q("Spot: 3/5 = 6/x gives x = 8. Correct? Fix (10). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 9×12 rectangle is 15.", "fill", "Answer = ____"),
-    ]
-    s3 = [
-        tb("Cumulative D+E+F — Tips", [
-            "Congruence: SSS/SAS/ASA/AAS/RHS; AAA & SSA fail.",
-            "Similar: equal angles, proportional sides; area scales by k^2.",
-            "Pythagoras: c^2=a^2+b^2; leg=√(c^2-b^2).",
-            "Recall triples to save time.",
-        ]),
-        q("Rule: hyp + leg in right triangles = ____", "fill", "Answer = ____"),
-        q("6,8,10 ~ 3,4,5: scale (big:small) = ____", "fill", "Answer = ____"),
-        q("Legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("8/12 = 10/x: x = ____", "fill", "Answer = ____"),
-        q("Hyp 37, leg 12: other = ____", "fill", "Answer = ____"),
-        q("Scale 3, area 4 → ____", "fill", "Answer = ____"),
-        q("Is 20,21,29 right? ____", "fill", "Answer = ____"),
-        q("Rule: 3 equal sides = ____", "fill", "Answer = ____"),
-        q("9/12 = 12/x: x = ____", "fill", "Answer = ____"),
-        q("Legs 12,35: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 8×15 board = ____", "fill", "Answer = ____"),
-        q("Scale factor 3, side 6 → ____", "fill", "Answer = ____"),
-        q("Hyp 53, leg 28: other = ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF, ∠A=50: ∠D = ____°", "fill", "Answer = ____"),
-        q("Pole 1.5m casts 2m; building shadow 20m: height = ____m", "fill", "Answer = ____"),
-        q("True or False: Legs 9,40 give hyp 41.", "fill", "Answer = ____"),
-        q("True or False: 8/12 = 10/x gives x = 15.", "fill", "Answer = ____"),
-        q("True or False: Is 20,21,29 right is true.", "fill", "Answer = ____"),
-        q("Spot: Scale 3 makes area 4 become 12. Correct? Fix (36). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 8×15 board is 17.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Rule: 2 sides + included angle = ____", "fill", "Answer = ____"),
-        q("7,24,25 ~ 21,72,75: scale = ____", "fill", "Answer = ____"),
-        q("Legs 28,45: hyp = ____", "fill", "Answer = ____"),
-        q("8/14 = 12/x: x = ____", "fill", "Answer = ____"),
-        q("Hyp 61, leg 11: other = ____", "fill", "Answer = ____"),
-        q("Scale 5, area 4 → ____", "fill", "Answer = ____"),
-        q("Is 33,56,65 right? ____", "fill", "Answer = ____"),
-        q("△ABC≅△DEF, perimeter ABC = 24: perimeter DEF = ____", "fill", "Answer = ____"),
-        q("10/25 = 14/x: x = ____", "fill", "Answer = ____"),
-        q("Legs 16,63: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 11×60 sheet = ____", "fill", "Answer = ____"),
-        q("Scale factor 4, side 9 → ____", "fill", "Answer = ____"),
-        q("Hyp 65, leg 16: other = ____", "fill", "Answer = ____"),
-        q("Map scale 1cm=50km, 7cm = ____km", "fill", "Answer = ____"),
-        q("Pole 2m casts 5m; tower shadow 40m: height = ____m", "fill", "Answer = ____"),
-        q("True or False: 7,24,25 ~ 21,72,75 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Legs 28,45 give hyp 53.", "fill", "Answer = ____"),
-        q("True or False: Is 33,56,65 right is true.", "fill", "Answer = ____"),
-        q("Spot: 8/14 = 12/x gives x = 18. Correct? Fix (21). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 11×60 sheet is 61.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
-
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16CUM3 — Areas of Triangles & Parallelograms on the Same Base
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L16CUM3_s(sheet):
-    # Mixed G+H+I: applications, mixed, puzzles
-    s1 = [
-        cb("Cumulative G+H+I", [
-            "Covers: applications, mixed triangle skills, geometry puzzles.",
-            "Apply theorems to real problems and solve for unknowns.",
-        ], "Ladders, shadows, and angle/side puzzles."),
-        q("Ladder 5m, base 3m: height = ____m", "fill", "Answer = ____"),
-        q("Sides 5,5,8: type = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 2x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Legs 6,8: hyp = ____", "fill", "Answer = ____"),
-        q("Two angles 60,70: exterior at third = ____°", "fill", "Answer = ____"),
-        q("Walk 6km N, 8km E: distance = ____km", "fill", "Answer = ____"),
-        q("Right triangle acute 2x,3x: x = ____°", "fill", "Answer = ____"),
-        q("Pole 2m casts 3m; tree shadow 30m: height = ____m", "fill", "Answer = ____"),
-        q("Angles 5x,6x,7x: middle = ____°", "fill", "Answer = ____"),
-        q("Hyp 13, leg 5: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 27: side = ____", "fill", "Answer = ____"),
-        q("Roof base angles 40 each: apex = ____°", "fill", "Answer = ____"),
-        q("Angles x,x,2x: x = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 12×16 gate = ____", "fill", "Answer = ____"),
-        q("Two angles 50,60: third = ____°", "fill", "Answer = ____"),
-        q("True or False: Ladder 5m, base 3m reaches 4m.", "fill", "Answer = ____"),
-        q("True or False: Walk 6km N, 8km E gives 10km.", "fill", "Answer = ____"),
-        q("True or False: Right triangle acute 2x,3x gives x = 18.", "fill", "Answer = ____"),
-        q("Spot: Pole 2m/3m makes 30m shadow tree 45m. Correct? Fix (20). ____", "fill", "Answer = ____"),
-        q("True or False: Equilateral perimeter 27 has side 9.", "fill", "Answer = ____"),
+    random.seed(1710 + sheet)
+    ranges = {1: (4, 10), 2: (5, 14), 3: (6, 18), 4: (8, 22)}
+    lo, hi = ranges[sheet]
+    items = [
+        cb("Areas on the Same Base, Between the Same Parallels", [
+            "Parallelograms on the SAME base and between the SAME parallels have EQUAL area.",
+            "A triangle on the same base and between the same parallels as a parallelogram has HALF its area.",
+            "Triangles on the same base and between the same parallels have EQUAL area.",
+            "The key idea: area only depends on base x height -- the SLANT doesn't matter.",
+        ], "Parallelogram base 8, height 5: area=40. A triangle on the same base/parallels has area 20."),
     ]
-    s2 = [
-        cb("Cumulative G+H+I — Practice", [
-            "Blend real-world triangles with puzzle solving.",
-            "Translate words to equations; verify.",
-        ], "Navigation, shadows, and angle puzzles."),
-        q("Ladder 17m reaches 15m: base = ____m", "fill", "Answer = ____"),
-        q("Sides 7,7,7: type = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 3x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Legs 9,12: hyp = ____", "fill", "Answer = ____"),
-        q("Walk 5km N, 12km E: distance = ____km", "fill", "Answer = ____"),
-        q("Angles x,3x,5x: smallest = ____°", "fill", "Answer = ____"),
-        q("Pole 1m casts 1.5m; tree shadow 18m: height = ____m", "fill", "Answer = ____"),
-        q("Two angles 95,35: third = ____°", "fill", "Answer = ____"),
-        q("Exterior 110 opposite 60 and y: y = ____°", "fill", "Answer = ____"),
-        q("Hyp 17, leg 8: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 36: side = ____", "fill", "Answer = ____"),
-        q("Roof apex 80, base angles equal: each = ____°", "fill", "Answer = ____"),
-        q("Right triangle legs 8,6: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 7×24 panel = ____", "fill", "Answer = ____"),
-        q("Angles around a point: 90,130,x: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Walk 5km N, 12km E gives 13km.", "fill", "Answer = ____"),
-        q("True or False: Sides 7,7,7 is equilateral.", "fill", "Answer = ____"),
-        q("True or False: Angles x,3x,5x give smallest 20.", "fill", "Answer = ____"),
-        q("Spot: Ladder 17m reaches 15m, base 9m. Correct? Fix (8). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 7×24 panel is 25.", "fill", "Answer = ____"),
+    for _ in range(5):
+        b = random.randint(lo, hi)
+        h = random.randint(lo, hi)
+        items.append(q(f"Parallelogram P1 has base {b} and height {h} (area={b*h}). Parallelogram P2 sits on the SAME base, between the SAME parallels. Find P2's area.", "fill", "Answer = ____"))
+    for _ in range(5):
+        b = random.randint(lo, hi)
+        h = random.randint(lo, hi)
+        para_area = b * h
+        items.append(q(f"A parallelogram has base {b} and height {h} (area={para_area}). A triangle sits on the same base, between the same parallels. Find the triangle's area.", "fill", "Answer = ____"))
+    for _ in range(4):
+        b = random.randint(lo, hi)
+        h = random.randint(lo, hi)
+        tri_area = 0.5 * b * h
+        items.append(q(f"Triangle T1 has base {b}, height {h} (area={tri_area:g}). Triangle T2 sits on the same base, between the same parallels. Find T2's area.", "fill", "Answer = ____"))
+    for _ in range(3):
+        b = random.randint(lo, hi)
+        h = random.randint(lo, hi)
+        para_area = b * h
+        shown = para_area // 2 if random.random() > 0.4 else para_area
+        items.append(q(f"True or False: A parallelogram (base {b}, height {h}, area {para_area}) and a triangle on the same base/parallels -- the triangle's area is {shown}.", "fill", "Answer = ____"))
+    for _ in range(3):
+        items.append(q("Two parallelograms share the same base and lie between the same two parallel lines. What can you say about their areas, even if their shapes (slant) differ?", "fill", "Answer = ____"))
+    return items
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16J — Lines, Angles & Triangles Mastery Challenge
+# ═══════════════════════════════════════════════════════════════════════════════
+def _L16J_s(sheet):
+    random.seed(1720 + sheet)
+    ranges = {1: (10, 60), 2: (15, 90), 3: (20, 120), 4: (25, 150)}
+    lo, hi = ranges[sheet]
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (9, 40, 41)]
+    items = [
+        cb("Lines, Angles & Triangles Mastery Challenge", [
+            "Every skill: angle pairs, transversals, triangle rules, BPT, Pythagoras, areas.",
+            "Bigger numbers here -- this challenge covers the whole level.",
+            "Speed challenge: each question has a point value.",
+        ], "Bronze 20+, Silver 30+, Gold 38+ (all correct)"),
     ]
-    s3 = [
-        tb("Cumulative G+H+I — Tips", [
-            "Right triangle problems → Pythagoras; shadows → similarity.",
-            "Angle puzzles → angle sum, exterior angle, isosceles.",
-            "Sketch and label; set up equations for unknowns.",
-            "Verify against every clue.",
-        ]),
-        q("Ladder 25m reaches 24m: base = ____m", "fill", "Answer = ____"),
-        q("Sides 6,6,11: type = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 4x, base x each: x = ____°", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("Walk 8km N, 15km E: distance = ____km", "fill", "Answer = ____"),
-        q("Angles 2x,3x,5x: largest = ____°", "fill", "Answer = ____"),
-        q("Pole 2m casts 3m; tree shadow 21m: height = ____m", "fill", "Answer = ____"),
-        q("Two angles 100,30: third = ____°", "fill", "Answer = ____"),
-        q("Exterior 140 opposite 80 and y: y = ____°", "fill", "Answer = ____"),
-        q("Hyp 25, leg 24: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 45: side = ____", "fill", "Answer = ____"),
-        q("Roof base angles 50 each: apex = ____°", "fill", "Answer = ____"),
-        q("Right triangle legs 20,21: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 20×21 board = ____", "fill", "Answer = ____"),
-        q("Angles around a point: 120,90,60,x: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Walk 8km N, 15km E gives 17km.", "fill", "Answer = ____"),
-        q("True or False: Sides 6,6,11 is isosceles.", "fill", "Answer = ____"),
-        q("True or False: Angles 2x,3x,5x give largest 90.", "fill", "Answer = ____"),
-        q("Spot: Pole 2m/3m makes 21m shadow tree 28m. Correct? Fix (14). ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 20×21 board is 29.", "fill", "Answer = ____"),
-    ]
-    s4 = [
-        q("Ladder 41m reaches 40m: base = ____m", "fill", "Answer = ____"),
-        q("Sides 8,8,15: type = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 2x, base 2x each: x = ____°", "fill", "Answer = ____"),
-        q("Legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("Walk 28km N, 45km E: distance = ____km", "fill", "Answer = ____"),
-        q("Angles x,4x,7x: largest = ____°", "fill", "Answer = ____"),
-        q("Pole 1.5m casts 2m; building shadow 24m: height = ____m", "fill", "Answer = ____"),
-        q("Two angles 105,28: third = ____°", "fill", "Answer = ____"),
-        q("Exterior 7x opposite 3x and 80: x = ____", "fill", "Answer = ____"),
-        q("Hyp 41, leg 40: other = ____", "fill", "Answer = ____"),
-        q("Equilateral perimeter 60: side = ____", "fill", "Answer = ____"),
-        q("Roof base angles 25 each: apex = ____°", "fill", "Answer = ____"),
-        q("Right triangle legs 33,56: hyp = ____", "fill", "Answer = ____"),
-        q("Diagonal of 11×60 sheet = ____", "fill", "Answer = ____"),
-        q("Triangle ratio 5:6:7: largest = ____°", "fill", "Answer = ____"),
-        q("True or False: Walk 28km N, 45km E gives 53km.", "fill", "Answer = ____"),
-        q("True or False: Sides 8,8,15 is isosceles.", "fill", "Answer = ____"),
-        q("True or False: Legs 9,40 give hyp 41.", "fill", "Answer = ____"),
-        q("Spot: Triangle ratio 5:6:7 largest = 84. Correct? ____", "fill", "Answer = ____"),
-        q("True or False: Diagonal of 11×60 sheet is 61.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(4):
+        a1 = random.randint(20, 85)
+        items.append(q(f"Complementary angles: one is {a1}°. Find the other.  [1 point]", "fill", "Answer = ____"))
+    for _ in range(4):
+        a1 = random.randint(30, 170)
+        items.append(q(f"Supplementary angles: one is {a1}°. Find the other.  [1 point]", "fill", "Answer = ____"))
+    for _ in range(4):
+        db = random.randint(2, 8)
+        mult = random.randint(1, 3)
+        ad = db * mult
+        ec = random.randint(2, 8)
+        ae = ad * ec // db if (ad * ec) % db == 0 else db
+        if (ad * ec) % db != 0:
+            ec = db
+            ae = ad
+        items.append(q(f"DE||BC: AD={ad}, DB={db}, AE={ae}. Find EC.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(4):
+        a, b, c = random.choice(triples)
+        k = random.randint(1, 3)
+        items.append(q(f"Legs {a*k} and {b*k}: find the hypotenuse.  [2 points]", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Sides {a}, {b}, {c+1}: classify using the converse of Pythagoras (right/acute/obtuse).  [2 points]", "fill", "Answer = ____"))
+    for _ in range(2):
+        items.append(q("True or False: AAA proves two triangles are congruent.  [1 point]", "fill", "Answer = ____ (True/False)"))
+    items.append(tb("Your Score", ["My total score: _____.  My badge: Bronze / Silver / Gold (circle one)"]))
+    return items
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 16REV — Level 16 Revision
+# ═══════════════════════════════════════════════════════════════════════════════
 def _L16REV_s(sheet):
-    s1 = [
-        cb("Level 16 Revision", [
-            "All Triangles: types, angle sum, exterior angle, congruence, similarity, Pythagoras.",
-            "Identify the tool, compute, verify.",
-        ], "One sheet across every Level 16 skill."),
-        q("Sides 5,5,5: type = ____", "fill", "Answer = ____"),
-        q("Two angles 70,60: third = ____°", "fill", "Answer = ____"),
-        q("Opposite interior 50,60: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 3,4: hyp = ____", "fill", "Answer = ____"),
-        q("3,4,5 ~ 6,8,10: scale = ____", "fill", "Answer = ____"),
-        q("Rule: 3 sides equal = ____", "fill", "Answer = ____"),
-        q("Equilateral angle = ____°", "fill", "Answer = ____"),
-        q("Isosceles base angles 55 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Hyp 13, leg 5: other = ____", "fill", "Answer = ____"),
-        q("Ratio 1:2:3: largest = ____°", "fill", "Answer = ____"),
-        q("Legs 5,12: hyp = ____", "fill", "Answer = ____"),
-        q("Is 8,15,17 right? ____", "fill", "Answer = ____"),
-        q("Scale 3, side 4 → ____", "fill", "Answer = ____"),
-        q("Angles 90,45,45: type by angle = ____", "fill", "Answer = ____"),
-        q("Exterior 120 opposite x and x: x = ____°", "fill", "Answer = ____"),
-        q("True or False: Sides 5,5,5 is equilateral.", "fill", "Answer = ____"),
-        q("True or False: Legs 3,4 give hyp 5.", "fill", "Answer = ____"),
-        q("True or False: 3,4,5 ~ 6,8,10 has scale 2.", "fill", "Answer = ____"),
-        q("Spot: Two angles 70,60 give third 60. Correct? Fix (50). ____", "fill", "Answer = ____"),
-        q("True or False: Is 8,15,17 right is true.", "fill", "Answer = ____"),
-    ]
-    s2 = [
-        cb("Level 16 Revision — Practice", [
-            "Faster pass with bigger numbers across all skills.",
-            "Use triples and angle rules to speed up.",
-        ], "Mixed revision, sheet 2."),
-        q("Sides 9,9,16: type = ____", "fill", "Answer = ____"),
-        q("Two angles 88,52: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 55,75: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 7,24: hyp = ____", "fill", "Answer = ____"),
-        q("5,12,13 ~ 15,36,39: scale = ____", "fill", "Answer = ____"),
-        q("Rule: 2 sides + included angle = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 40: base angle = ____°", "fill", "Answer = ____"),
-        q("Hyp 25, leg 24: other = ____", "fill", "Answer = ____"),
-        q("Ratio 2:3:4: largest = ____°", "fill", "Answer = ____"),
-        q("Legs 9,40: hyp = ____", "fill", "Answer = ____"),
-        q("Is 20,21,29 right? ____", "fill", "Answer = ____"),
-        q("Scale 4, area 5 → ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 6,8: ____", "fill", "Answer = ____"),
-        q("Exterior 130 opposite 70 and y: y = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 9×40 panel = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 7,24 give hyp 25.", "fill", "Answer = ____"),
-        q("True or False: 5,12,13 ~ 15,36,39 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Area of legs 6,8 right triangle is 24.", "fill", "Answer = ____"),
-        q("Spot: Ratio 2:3:4 largest = 90. Correct? Fix (80). ____", "fill", "Answer = ____"),
-        q("True or False: Is 20,21,29 right is true.", "fill", "Answer = ____"),
-    ]
-    s3 = [
+    random.seed(1730 + sheet)
+    ranges = {1: (10, 40), 2: (15, 60), 3: (20, 90), 4: (25, 120)}
+    lo, hi = ranges[sheet]
+    triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17)]
+    items = [
         tb("Level 16 Revision — Tips", [
-            "Types by side/angle; angle sum 180; exterior = sum of opposites.",
-            "Congruence SSS/SAS/ASA/AAS/RHS; similarity AA + ratios.",
-            "Pythagoras c^2=a^2+b^2; area = ½bh.",
-            "Recall triples; sketch to check.",
+            "Angle pairs: complementary (90), supplementary (180), vertically opposite (equal).",
+            "Transversal: corresponding/alternate angles equal; co-interior angles supplementary.",
+            "Triangle: angle sum=180, exterior=sum of remote interiors, inequality (2 sides>3rd).",
+            "Congruence (SSS/SAS/ASA/AAS/RHS) vs Similarity (AA/SSS/SAS ratios). BPT: AD/DB=AE/EC.",
+            "Pythagoras a^2+b^2=c^2 and its converse. Areas on same base/parallels are equal.",
         ]),
-        q("Sides 10,10,10: type = ____", "fill", "Answer = ____"),
-        q("Two angles 95,35: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 48,62: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 8,15: hyp = ____", "fill", "Answer = ____"),
-        q("6,8,10 ~ 9,12,15: scale = ____", "fill", "Answer = ____"),
-        q("Rule: right angle, hyp, leg = ____", "fill", "Answer = ____"),
-        q("Isosceles base angles 75 each: vertex = ____°", "fill", "Answer = ____"),
-        q("Hyp 41, leg 9: other = ____", "fill", "Answer = ____"),
-        q("Ratio 3:4:5: largest = ____°", "fill", "Answer = ____"),
-        q("Legs 12,35: hyp = ____", "fill", "Answer = ____"),
-        q("Is 12,35,37 right? ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 5,12: ____", "fill", "Answer = ____"),
-        q("Scale 5, area 2 → ____", "fill", "Answer = ____"),
-        q("Exterior 150 opposite equal: each = ____°", "fill", "Answer = ____"),
-        q("Diagonal of 12×35 board = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 8,15 give hyp 17.", "fill", "Answer = ____"),
-        q("True or False: 6,8,10 ~ 9,12,15 has scale 1.5.", "fill", "Answer = ____"),
-        q("True or False: Area of legs 5,12 right triangle is 30.", "fill", "Answer = ____"),
-        q("Spot: Hyp 41, leg 9 gives other 39. Correct? Fix (40). ____", "fill", "Answer = ____"),
-        q("True or False: Is 12,35,37 right is true.", "fill", "Answer = ____"),
     ]
-    s4 = [
-        q("Sides 14,14,14: type = ____", "fill", "Answer = ____"),
-        q("Two angles 97,38: third = ____°", "fill", "Answer = ____"),
-        q("Opposite 53,67: exterior = ____°", "fill", "Answer = ____"),
-        q("Legs 11,60: hyp = ____", "fill", "Answer = ____"),
-        q("7,24,25 ~ 21,72,75: scale = ____", "fill", "Answer = ____"),
-        q("Rule: 2 angles + included side = ____", "fill", "Answer = ____"),
-        q("Isosceles vertex 36: base angle = ____°", "fill", "Answer = ____"),
-        q("Hyp 61, leg 11: other = ____", "fill", "Answer = ____"),
-        q("Ratio 4:5:9: largest = ____°", "fill", "Answer = ____"),
-        q("Legs 16,63: hyp = ____", "fill", "Answer = ____"),
-        q("Is 33,56,65 right? ____", "fill", "Answer = ____"),
-        q("Area of right triangle legs 9,40: ____", "fill", "Answer = ____"),
-        q("Two boats 9km N, 40km E: apart = ____km", "fill", "Answer = ____"),
-        q("Exterior 5x opposite 2x and 60: x = ____", "fill", "Answer = ____"),
-        q("Diagonal of 16×63 sheet = ____", "fill", "Answer = ____"),
-        q("True or False: Legs 11,60 give hyp 61.", "fill", "Answer = ____"),
-        q("True or False: 7,24,25 ~ 21,72,75 has scale 3.", "fill", "Answer = ____"),
-        q("True or False: Is 33,56,65 right is true.", "fill", "Answer = ____"),
-        q("Spot: Area of legs 9,40 right triangle = 360. Correct? Fix (180). ____", "fill", "Answer = ____"),
-        q("True or False: Boats 9km N, 40km E are 41km apart.", "fill", "Answer = ____"),
-    ]
-    return [s1, s2, s3, s4][sheet - 1]
+    for _ in range(2):
+        a1 = random.randint(20, 85)
+        items.append(q(f"Complementary angles: one is {a1}°. Find the other.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a1 = random.randint(30, 170)
+        items.append(q(f"Supplementary angles: one is {a1}°. Find the other.", "fill", "Answer = ____"))
+    for _ in range(2):
+        val = random.randint(lo, hi)
+        items.append(q(f"Two parallel lines, transversal angle {val}°. Find its corresponding angle.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a = random.randint(lo, hi)
+        b = random.randint(lo, hi)
+        while a + b >= 175: b = random.randint(lo, hi)
+        items.append(q(f"Triangle angles {a}° and {b}°. Find the third.", "fill", "Answer = ____"))
+    for _ in range(2):
+        s1, s2, s3 = sorted([random.randint(3, 15) for _ in range(3)])
+        items.append(q(f"Can sides {s1}, {s2}, {s3} form a triangle?", "fill", "Answer = ____"))
+    for _ in range(2):
+        db = random.randint(2, 6)
+        ad = db * random.randint(1, 3)
+        ec = random.randint(2, 6)
+        items.append(q(f"DE||BC: AD={ad}, DB={db}, EC={ec}. Find AE.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Legs {a} and {b}: find the hypotenuse.", "fill", "Answer = ____"))
+    for _ in range(2):
+        a, b, c = random.choice(triples)
+        items.append(q(f"Sides {a}, {b}, {c}: is this a right triangle? Use the converse of Pythagoras.", "fill", "Answer = ____"))
+    for _ in range(2):
+        b = random.randint(lo, hi)
+        h = random.randint(lo, hi)
+        items.append(q(f"Parallelogram base {b}, height {h}. A triangle sits on the same base, between the same parallels. Find its area.", "fill", "Answer = ____"))
+    for _ in range(2):
+        desc = random.choice(["three sides equal", "two sides and the included angle", "two angles and the included side"])
+        items.append(q(f"Congruence rule for: {desc}?", "fill", "Answer = ____"))
+    return items
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DISPATCH for Level 16
 # ═══════════════════════════════════════════════════════════════════════════════
 DISPATCH_L16 = {
-    "16A":    {1: _L16A_1, 2: _L16A_2, 3: _L16A_3, 4: _L16A_4},
-    "16B":    {1: _L16B_1, 2: _L16B_2, 3: _L16B_3, 4: _L16B_4},
-    "16C":    {1: _L16C_1, 2: _L16C_2, 3: _L16C_3, 4: _L16C_4},
-    "16D":    {1: _L16D_1, 2: _L16D_2, 3: _L16D_3, 4: _L16D_4},
-    "16E":    {1: _L16E_1, 2: _L16E_2, 3: _L16E_3, 4: _L16E_4},
-    "16F":    {1: _L16F_1, 2: _L16F_2, 3: _L16F_3, 4: _L16F_4},
+    "16A":    {1: lambda: _L16A_s(1), 2: lambda: _L16A_s(2), 3: lambda: _L16A_s(3), 4: lambda: _L16A_s(4)},
+    "16B":    {1: lambda: _L16B_s(1), 2: lambda: _L16B_s(2), 3: lambda: _L16B_s(3), 4: lambda: _L16B_s(4)},
+    "16C":    {1: lambda: _L16C_s(1), 2: lambda: _L16C_s(2), 3: lambda: _L16C_s(3), 4: lambda: _L16C_s(4)},
+    "16CUM1": {1: lambda: _L16CUM1_s(1), 2: lambda: _L16CUM1_s(2), 3: lambda: _L16CUM1_s(3), 4: lambda: _L16CUM1_s(4)},
+    "16D":    {1: lambda: _L16D_s(1), 2: lambda: _L16D_s(2), 3: lambda: _L16D_s(3), 4: lambda: _L16D_s(4)},
+    "16E":    {1: lambda: _L16E_s(1), 2: lambda: _L16E_s(2), 3: lambda: _L16E_s(3), 4: lambda: _L16E_s(4)},
+    "16F":    {1: lambda: _L16F_s(1), 2: lambda: _L16F_s(2), 3: lambda: _L16F_s(3), 4: lambda: _L16F_s(4)},
+    "16CUM2": {1: lambda: _L16CUM2_s(1), 2: lambda: _L16CUM2_s(2), 3: lambda: _L16CUM2_s(3), 4: lambda: _L16CUM2_s(4)},
     "16G":    {1: lambda: _L16G_s(1), 2: lambda: _L16G_s(2), 3: lambda: _L16G_s(3), 4: lambda: _L16G_s(4)},
     "16H":    {1: lambda: _L16H_s(1), 2: lambda: _L16H_s(2), 3: lambda: _L16H_s(3), 4: lambda: _L16H_s(4)},
     "16I":    {1: lambda: _L16I_s(1), 2: lambda: _L16I_s(2), 3: lambda: _L16I_s(3), 4: lambda: _L16I_s(4)},
-    "16J":    {1: lambda: _L16J_s(1), 2: lambda: _L16J_s(2), 3: lambda: _L16J_s(3), 4: lambda: _L16J_s(4)},
-    "16CUM1": {1: lambda: _L16CUM1_s(1), 2: lambda: _L16CUM1_s(2), 3: lambda: _L16CUM1_s(3), 4: lambda: _L16CUM1_s(4)},
-    "16CUM2": {1: lambda: _L16CUM2_s(1), 2: lambda: _L16CUM2_s(2), 3: lambda: _L16CUM2_s(3), 4: lambda: _L16CUM2_s(4)},
     "16CUM3": {1: lambda: _L16CUM3_s(1), 2: lambda: _L16CUM3_s(2), 3: lambda: _L16CUM3_s(3), 4: lambda: _L16CUM3_s(4)},
+    "16J":    {1: lambda: _L16J_s(1), 2: lambda: _L16J_s(2), 3: lambda: _L16J_s(3), 4: lambda: _L16J_s(4)},
     "16REV":  {1: lambda: _L16REV_s(1), 2: lambda: _L16REV_s(2), 3: lambda: _L16REV_s(3), 4: lambda: _L16REV_s(4)},
 }
