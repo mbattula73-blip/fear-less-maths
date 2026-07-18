@@ -17879,6 +17879,203 @@ for _l13_key in list(_DISPATCH.keys()):
     if _l13_key.startswith("13") and not _l13_key[2:3].isdigit():
         _DISPATCH[_l13_key] = {sheet: _l13_wrap(fn, _l13_key) for sheet, fn in _DISPATCH[_l13_key].items()}
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 14 auto-visualizer: gives every Level 14 (Polynomials) question
+# a matching diagram built from its OWN polynomial/identity/factors.
+# First 2 diagrams per sheet worked (demo), rest blank scaffolds.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l14_re
+
+
+def _l14_parse_poly(s):
+    """'4x^3 - 2x + 7' -> [(4,3), (-2,1), (7,0)]. Returns None if the
+    string isn't a clean single-variable polynomial."""
+    s = s.strip().replace("−", "-")
+    if not s or any(ch in s for ch in "()=/y"):
+        return None
+    tokens = _l14_re.findall(r'([+-]?\s*\d*)x\^(\d+)|([+-]?\s*\d*)x(?!\^)|([+-]?\s*\d+)(?!x|\^)', s)
+    terms = []
+    for t_pow, p_exp, t_lin, t_const in tokens:
+        def coeff(cs):
+            cs = cs.replace(" ", "")
+            if cs in ("", "+"):
+                return 1
+            if cs == "-":
+                return -1
+            return int(cs)
+        if p_exp:
+            terms.append((coeff(t_pow), int(p_exp)))
+        elif t_lin:
+            terms.append((coeff(t_lin), 1))
+        elif t_const:
+            terms.append((int(t_const.replace(" ", "")), 0))
+    if not terms:
+        return None
+    rebuilt_ok = sum(1 for _ in terms) >= 1
+    return terms if rebuilt_ok else None
+
+
+def _l14_hcf_rests(terms_str, hcf):
+    """['6x^2','9x'], '3x' -> ['2x','3'] by coefficient division and
+    power subtraction (single-variable only). None if not divisible."""
+    mh = _l14_re.fullmatch(r'(\d*)(x?)(?:\^(\d+))?', hcf.replace("²", "^2").replace("³", "^3"))
+    if not mh:
+        return None
+    hco = int(mh.group(1)) if mh.group(1) else 1
+    hpw = (int(mh.group(3)) if mh.group(3) else (1 if mh.group(2) else 0))
+    rests = []
+    for t in terms_str:
+        t = t.replace("²", "^2").replace("³", "^3")
+        mt = _l14_re.fullmatch(r'([+-]?\d*)(x?)(?:\^(\d+))?', t.strip())
+        if not mt:
+            return None
+        tco_s = mt.group(1)
+        tco = int(tco_s) if tco_s not in ("", "+", "-") else (-1 if tco_s == "-" else 1)
+        tpw = (int(mt.group(3)) if mt.group(3) else (1 if mt.group(2) else 0))
+        if hco == 0 or tco % hco != 0 or tpw < hpw:
+            return None
+        rco = tco // hco
+        rpw = tpw - hpw
+        if rpw == 0:
+            rests.append(str(rco))
+        elif rpw == 1:
+            rests.append(f"{rco if rco != 1 else ''}x" if rco != -1 else "-x")
+        else:
+            rests.append(f"{rco if rco != 1 else ''}x^{rpw}" if rco != -1 else f"-x^{rpw}")
+    return rests
+
+
+def _l14_infer_diagram(text, sublevel_code=""):
+    t = text
+    # --- identities: (ax+b)^2 / (ax-b)^2 ---
+    m = _l14_re.search(r'\((\d*)x\s*([+-])\s*(\d+)\)\^2', t)
+    if m:
+        a_co, op, b = m.group(1), m.group(2), m.group(3)
+        a_lbl = f"{a_co}x" if a_co else "x"
+        return "identity_square", {"a_lbl": a_lbl, "b_lbl": b, "mode": "plus" if op == "+" else "minus"}
+    # --- identity: (ax+b)(ax-b) ---
+    m = _l14_re.search(r'\((\d*)x\s*\+\s*(\d+)\)\((\d*)x\s*-\s*(\d+)\)', t)
+    if m and m.group(1) == m.group(3) and m.group(2) == m.group(4):
+        a_co = m.group(1)
+        a_lbl = f"{a_co}x" if a_co else "x"
+        return "identity_square", {"a_lbl": a_lbl, "b_lbl": m.group(2), "mode": "diff"}
+    # --- (a+b)^2 style with letters ---
+    m = _l14_re.search(r'\(([a-z])\s*([+-])\s*([a-z])\)\^2', t)
+    if m:
+        return "identity_square", {"a_lbl": m.group(1), "b_lbl": m.group(3), "mode": "plus" if m.group(2) == "+" else "minus"}
+    # --- factorise quadratic: x^2 + bx + c ---
+    m = _l14_re.search(r'[Ff]actoris[e]?:?\s*x\^2\s*([+-])\s*(\d+)x\s*([+-])\s*(\d+)', t)
+    if m:
+        b = int(m.group(2)) * (1 if m.group(1) == "+" else -1)
+        c = int(m.group(4)) * (1 if m.group(3) == "+" else -1)
+        return "factor_x_method", {"b": b, "c": c}
+    m = _l14_re.search(r'x\^2\s*([+-])\s*(\d+)x\s*([+-])\s*(\d+)\s*=\s*\(x', t)
+    if m:
+        b = int(m.group(2)) * (1 if m.group(1) == "+" else -1)
+        c = int(m.group(4)) * (1 if m.group(3) == "+" else -1)
+        return "factor_x_method", {"b": b, "c": c}
+    m = _l14_re.search(r'^x\^2\s*([+-])\s*(\d+)x\s*([+-])\s*(\d+)\s*[:.]', t)
+    if m:
+        b = int(m.group(2)) * (1 if m.group(1) == "+" else -1)
+        c = int(m.group(4)) * (1 if m.group(3) == "+" else -1)
+        return "factor_x_method", {"b": b, "c": c}
+    # --- HCF factorisation: TERMS = HCF(____) ---
+    m = _l14_re.search(r'([0-9a-z^ +\-²³]+?)\s*=\s*([0-9]*x?(?:\^\d+)?)\(____\)', t)
+    if m:
+        lhs, hcf = m.group(1).strip(), m.group(2).strip()
+        parts = _l14_re.split(r'\s*([+-])\s*', lhs)
+        terms_str = []
+        cur_sign = ""
+        for p in parts:
+            if p in "+-":
+                cur_sign = p if p == "-" else ""
+            elif p.strip():
+                terms_str.append(cur_sign + p.strip())
+        if 2 <= len(terms_str) <= 3 and hcf:
+            rests = _l14_hcf_rests(terms_str, hcf)
+            if rests:
+                disp_terms = [ts.replace("^2", "²").replace("^3", "³") for ts in terms_str]
+                return "hcf_factor_boxes", {"terms": disp_terms, "hcf": hcf, "rests": [r.replace("^2", "²").replace("^3", "³") for r in rests]}
+    # --- degree / terms / coefficient / constant questions -> anatomy ---
+    m = _l14_re.search(r'(?:Degree of|How many terms in|Coefficient of x(?:\^\d)? in|Constant term in)\s+([0-9x^ +\-]+?)[?:]', t)
+    if m:
+        terms = _l14_parse_poly(m.group(1))
+        if terms and 1 <= len(terms) <= 4 and max(p for _, p in terms) <= 4:
+            if 'Degree' in t and len(terms) >= 2:
+                return "degree_staircase", {"terms": terms}
+            return "poly_anatomy", {"terms": terms}
+    # --- generic "polynomial p(x) = ..." with clean poly ---
+    m = _l14_re.search(r'p\(x\)\s*=\s*([0-9x^ +\-]+?)(?:[,.]|$)', t)
+    if m:
+        terms = _l14_parse_poly(m.group(1))
+        if terms and len(terms) <= 4 and max(p for _, p in terms) <= 4:
+            return "poly_anatomy", {"terms": terms}
+    # --- True/False about identity ---
+    m = _l14_re.search(r'\(x([+-])(\d+)\)\^2\s*=', t)
+    if m:
+        return "identity_square", {"a_lbl": "x", "b_lbl": m.group(2), "mode": "plus" if m.group(1) == "+" else "minus"}
+    return None
+
+
+_L14_FAMILY_FALLBACK = {
+    "14A": ("poly_anatomy", {"terms": [(3, 2), (5, 1), (-7, 0)]}),
+    "14B": ("like_terms_sort", {"groups": {"x²-terms": ["3x²", "2x²"], "x-terms": ["5x"], "constants": ["4"]}}),
+    "14C": ("like_terms_sort", {"groups": {"x²-terms": ["5x²", "2x²"], "x-terms": ["3x"], "constants": ["6"]}}),
+    "14CUM1": ("area_model", {"a": 1, "b": 3, "c": 1, "d": 2}),
+    "14D": ("area_model", {"a": 1, "b": 2, "c": 1, "d": 4}),
+    "14E": ("identity_square", {"a_lbl": "a", "b_lbl": "b", "mode": "plus"}),
+    "14F": ("factor_x_method", {"b": 5, "c": 6}),
+    "14CUM2": ("identity_square", {"a_lbl": "a", "b_lbl": "b", "mode": "plus"}),
+    "14G": ("poly_anatomy", {"terms": [(1, 2), (3, 1), (2, 0)]}),
+    "14H": ("polynomial_graph", {}),
+    "14I": ("factor_x_method", {"b": 7, "c": 12}),
+    "14CUM3": ("division_algorithm_box", {}),
+    "14J": ("identity_square", {"a_lbl": "a", "b_lbl": "b", "mode": "plus"}),
+    "14REV": ("poly_anatomy", {"terms": [(3, 2), (5, 1), (-7, 0)]}),
+}
+
+
+def _l14_fallback(sublevel_code):
+    for key in sorted(_L14_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L14_FAMILY_FALLBACK[key]
+    return ("poly_anatomy", {"terms": [(3, 2), (5, 1), (-7, 0)]})
+
+
+def _l14_visualize(items, sublevel_code):
+    fb_type, fb_params = _l14_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l14_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l14_wrap(fn, sublevel_code):
+    return lambda: _l14_visualize(fn(), sublevel_code)
+
+
+for _l14_key in list(_DISPATCH.keys()):
+    if _l14_key.startswith("14") and not _l14_key[2:3].isdigit():
+        _DISPATCH[_l14_key] = {sheet: _l14_wrap(fn, _l14_key) for sheet, fn in _DISPATCH[_l14_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [

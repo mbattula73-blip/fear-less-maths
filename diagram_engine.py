@@ -3294,15 +3294,19 @@ def _poly_term_str(coef, power, var="x"):
     return f"{sign}{coefstr}{varstr}"
 
 
-def area_model_svg(a=1, b=3, c=1, d=2, var="x", **kw):
+def area_model_svg(a=1, b=3, c=1, d=2, var="x", blank=False, **kw):
     """(ax+b)(cx+d) shown as a 4-region area-model rectangle -- the
-    standard visual for binomial multiplication (FOIL made concrete)."""
+    standard visual for binomial multiplication (FOIL made concrete).
+    blank=True keeps the row/column headers but empties the 4 product
+    cells for the student to fill."""
     col_labels = [_poly_term_str(a, 1, var), (f"+{b}" if b >= 0 else f"-{abs(b)}")]
     row_labels = [_poly_term_str(c, 1, var), (f"+{d}" if d >= 0 else f"-{abs(d)}")]
     cells = [
         [_poly_term_str(a * c, 2, var), _poly_term_str(a * d, 1, var)],
         [_poly_term_str(b * c, 1, var), _poly_term_str(b * d, 0, var)],
     ]
+    if blank:
+        cells = [["?", "?"], ["?", "?"]]
     cell_w, cell_h = 92, 62
     x0, y0 = 56, 46
     w = x0 + 2 * cell_w + 20
@@ -3320,16 +3324,20 @@ def area_model_svg(a=1, b=3, c=1, d=2, var="x", **kw):
     for i in range(2):
         for j in range(2):
             cx, cy = x0 + j * cell_w, y0 + i * cell_h
-            parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w}" height="{cell_h}" fill="{bgs[i*2+j]}" stroke="#2C3E50" stroke-width="1.5"/>')
+            bg = "#FAFBFC" if blank else bgs[i*2+j]
+            parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w}" height="{cell_h}" fill="{bg}" stroke="#2C3E50" stroke-width="1.5"/>')
             parts.append(f'<text x="{cx+cell_w/2:.1f}" y="{cy+cell_h/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{cells[i][j]}</text>')
-    parts.append(f'<text x="{w/2}" y="{y0+2*cell_h+24}" text-anchor="middle" font-family="Helvetica-Oblique" font-size="11" fill="#5D6D7E">Add all 4 areas together</text>')
+    tip = "Multiply row x column to fill each cell, then add." if blank else "Add all 4 areas together"
+    parts.append(f'<text x="{w/2}" y="{y0+2*cell_h+24}" text-anchor="middle" font-family="Helvetica-Oblique" font-size="11" fill="#5D6D7E">{tip}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def polynomial_graph_svg(coeffs=None, xrange=6, **kw):
+def polynomial_graph_svg(coeffs=None, xrange=6, blank=False, **kw):
     """Plots y=p(x) for a polynomial (coeffs = highest degree first, e.g.
     [1,-5,6] for x²-5x+6), marking the real zeroes (x-intercepts) found
-    within the visible range -- the geometric meaning of a zero."""
+    within the visible range -- the geometric meaning of a zero.
+    blank=True keeps the curve (it IS the question) but hides the
+    zero labels so the student reads them off the graph themselves."""
     coeffs = coeffs or [1, -5, 6]
 
     def evaluate(x):
@@ -3374,6 +3382,8 @@ def polynomial_graph_svg(coeffs=None, xrange=6, **kw):
         elif ys[i] * ys[i + 1] < 0:
             zx = xs[i] - ys[i] * (xs[i + 1] - xs[i]) / (ys[i + 1] - ys[i])
             zeroes.append(zx)
+    if blank:
+        zeroes = []
     for zx in zeroes:
         px, py = to_px(zx, 0)
         parts.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="5.5" fill="#A6362B"/>')
@@ -5155,6 +5165,256 @@ def surd_simplify_tree_svg(n=72, blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def identity_square_svg(a_lbl="a", b_lbl="b", mode="plus", blank=False, **kw):
+    """THE canonical geometric proof of (a+b)^2 = a^2 + 2ab + b^2: a
+    square of side (a+b) split into four area-proportional regions --
+    a^2, two ab rectangles, and b^2 (Level 14E). mode='minus' captions
+    the (a-b)^2 identity instead; mode='diff' captions (a+b)(a-b).
+    blank=True empties the region labels for the student to fill."""
+    a_frac = 0.62
+    S = 190
+    ox, oy = 90, 66
+    A = S * a_frac
+    B = S - A
+    w_svg, h_svg = 400, 340
+    parts = []
+    regions = [
+        (ox, oy, A, A, "#EAF4FC", f"{a_lbl}²" if not blank else "?", "#0C3A5C"),
+        (ox + A, oy, B, A, "#FFF8E1", f"{a_lbl}{b_lbl}" if not blank else "?", "#5c4708"),
+        (ox, oy + A, A, B, "#FFF8E1", f"{a_lbl}{b_lbl}" if not blank else "?", "#5c4708"),
+        (ox + A, oy + A, B, B, "#E7F8ED", f"{b_lbl}²" if not blank else "?", "#0B4F30"),
+    ]
+    for (rx, ry, rw, rh, fill, lbl, tcol) in regions:
+        parts.append(f'<rect x="{rx:.1f}" y="{ry:.1f}" width="{rw:.1f}" height="{rh:.1f}" fill="{fill}" stroke="#2C3E50" stroke-width="2"/>')
+        fs = 19 if min(rw, rh) > 60 else 15
+        parts.append(f'<text x="{rx+rw/2:.1f}" y="{ry+rh/2+6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="{fs}" fill="{tcol}">{lbl}</text>')
+    parts.append(f'<text x="{ox+A/2:.1f}" y="{oy-12:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#1B5E8C">{a_lbl}</text>')
+    parts.append(f'<text x="{ox+A+B/2:.1f}" y="{oy-12:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#1E7A44">{b_lbl}</text>')
+    parts.append(f'<text x="{ox-14:.1f}" y="{oy+A/2+5:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="15" fill="#1B5E8C">{a_lbl}</text>')
+    parts.append(f'<text x="{ox-14:.1f}" y="{oy+A+B/2+5:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="15" fill="#1E7A44">{b_lbl}</text>')
+    if blank:
+        caption = f"Whole square = ({a_lbl}+{b_lbl})² -- add the four regions."
+    else:
+        simple = a_lbl.isalpha() and b_lbl.isalpha() and len(a_lbl) == 1 and len(b_lbl) == 1
+        ab = f"{a_lbl}{b_lbl}" if simple else f"({a_lbl})({b_lbl})"
+        if mode == "minus":
+            caption = f"({a_lbl}-{b_lbl})² = {a_lbl}² - 2{ab} + {b_lbl}²  (same picture, subtract the strips)"
+        elif mode == "diff":
+            caption = f"({a_lbl}+{b_lbl})({a_lbl}-{b_lbl}) = {a_lbl}² - {b_lbl}²  (cut and rearrange)"
+        else:
+            caption = f"({a_lbl}+{b_lbl})² = {a_lbl}² + 2{ab} + {b_lbl}²  -- read it off the picture!"
+    parts.append(f'<text x="{w_svg/2}" y="{h_svg-20}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{caption}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">A square of side ({a_lbl}+{b_lbl})</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def factor_x_method_svg(b=5, c=6, blank=False, **kw):
+    """The international 'X method' (diamond) for factorising
+    x^2 + bx + c: PRODUCT c on top, SUM b on bottom, the two numbers
+    that satisfy both go in the side cells; then the factors read off
+    as (x+p)(x+q) (Level 14F). blank=True leaves the side cells and
+    factorisation empty."""
+    b, c = int(b), int(c)
+    p = q = None
+    for cand in range(-abs(c) - 1, abs(c) + 2):
+        if cand == 0 or c % cand != 0:
+            continue
+        other = c // cand
+        if cand + other == b:
+            p, q = cand, other
+            break
+    if p is None:
+        for cand in range(-40, 41):
+            for other in range(-40, 41):
+                if cand * other == c and cand + other == b:
+                    p, q = cand, other
+                    break
+            if p is not None:
+                break
+    w_svg, h_svg = 380, 320
+    cx, cy = w_svg / 2, 150
+    r = 78
+    parts = []
+    parts.append(f'<line x1="{cx-r}" y1="{cy-r}" x2="{cx+r}" y2="{cy+r}" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{cx+r}" y1="{cy-r}" x2="{cx-r}" y2="{cy+r}" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<text x="{cx}" y="{cy-r+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#A6362B">{c}</text>')
+    parts.append(f'<text x="{cx}" y="{cy-r-8:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#A6362B">PRODUCT</text>')
+    parts.append(f'<text x="{cx}" y="{cy+r-4:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#1E7A44">{b}</text>')
+    parts.append(f'<text x="{cx}" y="{cy+r+18:.1f}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#1E7A44">SUM</text>')
+    p_str = "?" if blank else str(p)
+    q_str = "?" if blank else str(q)
+    parts.append(f'<text x="{cx-r+14:.1f}" y="{cy+7:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="22" fill="#1B5E8C">{p_str}</text>')
+    parts.append(f'<text x="{cx+r-14:.1f}" y="{cy+7:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="22" fill="#1B5E8C">{q_str}</text>')
+    if blank:
+        bottom = f"Find two numbers: multiply to {c}, add to {b}."
+    else:
+        def sgn(v):
+            return f"+{v}" if v >= 0 else str(v)
+        bottom = f"x² {'+' if b>=0 else '-'} {abs(b)}x {'+' if c>=0 else '-'} {abs(c)} = (x{sgn(p)})(x{sgn(q)})"
+    parts.append(f'<text x="{w_svg/2}" y="{h_svg-24}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{bottom}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">The X method</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def poly_anatomy_svg(terms=None, blank=False, **kw):
+    """Full anatomy of a polynomial: each term boxed, coefficients and
+    the constant labelled, and a DEGREE crown over the highest power
+    (Level 14A). terms = list of (coeff, power). blank=True hides the
+    labels so the student identifies the parts."""
+    terms = terms or [(3, 2), (5, 1), (-7, 0)]
+    w_svg, h_svg = 470, 260
+    parts = []
+    x = 40
+    y = 120
+    term_centers = []
+    for i, (co, pw) in enumerate(terms):
+        if i > 0:
+            sign = "+" if co >= 0 else "-"
+            parts.append(f'<text x="{x:.1f}" y="{y:.1f}" font-family="Helvetica-Bold" font-size="22" fill="#2C3E50">{sign}</text>')
+            x += 26
+        mag = abs(co)
+        if pw == 0:
+            tstr = str(mag)
+            tw = len(tstr) * 14 + 26
+        elif pw == 1:
+            tstr = f"{mag if mag != 1 else ''}x"
+            tw = len(tstr) * 14 + 26
+        else:
+            tstr = f"{mag if mag != 1 else ''}x"
+            tw = len(tstr) * 14 + 40
+        if i == 0 and co < 0:
+            parts.append(f'<text x="{x:.1f}" y="{y:.1f}" font-family="Helvetica-Bold" font-size="22" fill="#2C3E50">-</text>')
+            x += 20
+        parts.append(f'<rect x="{x-8:.1f}" y="{y-30:.1f}" width="{tw}" height="44" rx="9" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{x:.1f}" y="{y:.1f}" font-family="Helvetica-Bold" font-size="21" fill="#0C3A5C">{tstr}</text>')
+        if pw >= 2:
+            sup_x = x + len(tstr) * 13
+            parts.append(f'<text x="{sup_x:.1f}" y="{y-11:.1f}" font-family="Helvetica-Bold" font-size="14" fill="#0C3A5C">{pw}</text>')
+        term_centers.append((x - 8 + tw / 2, pw, mag if pw > 0 else co))
+        x += tw + 10
+    max_pw = max(pw for _, pw in terms)
+    for (tcx, pw, coval) in term_centers:
+        if pw == max_pw and not blank:
+            parts.append(f'<polygon points="{tcx-16},{y-44} {tcx-10},{y-58} {tcx-4},{y-46} {tcx+2},{y-58} {tcx+8},{y-46} {tcx+14},{y-58} {tcx+18},{y-44}" fill="#B8860B"/>')
+            parts.append(f'<text x="{tcx:.1f}" y="{y-66:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#B8860B">DEGREE = {max_pw}</text>')
+    if not blank:
+        first = term_centers[0]
+        parts.append(f'<line x1="{first[0]:.1f}" y1="{y+18:.1f}" x2="{first[0]:.1f}" y2="{y+44:.1f}" stroke="#A6362B" stroke-width="1.5" stroke-dasharray="3,2"/>')
+        parts.append(f'<text x="{first[0]:.1f}" y="{y+62:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">coefficient {first[2]}</text>')
+        last = term_centers[-1]
+        if terms[-1][1] == 0:
+            parts.append(f'<line x1="{last[0]:.1f}" y1="{y+18:.1f}" x2="{last[0]:.1f}" y2="{y+84:.1f}" stroke="#1E7A44" stroke-width="1.5" stroke-dasharray="3,2"/>')
+            parts.append(f'<text x="{last[0]:.1f}" y="{y+100:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">constant term {last[2]}</text>')
+        parts.append(f'<text x="{w_svg/2}" y="{h_svg-8}" text-anchor="middle" font-family="Helvetica" font-size="11.5" fill="#5D6D7E">{len(terms)} terms -- degree = highest power</text>')
+    else:
+        parts.append(f'<text x="{w_svg/2}" y="{h_svg-14}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">Label: terms, coefficients, constant, and the DEGREE.</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Anatomy of a polynomial</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def degree_staircase_svg(terms=None, blank=False, **kw):
+    """Terms of a polynomial placed on a staircase by power -- constant
+    on step 0, x-term on step 1, x^2 on step 2... The highest occupied
+    step IS the degree (Level 14A). blank=True leaves the steps empty
+    for the student to place the terms."""
+    terms = terms or [(3, 2), (5, 1), (-7, 0)]
+    max_pw = max(pw for _, pw in terms)
+    n_steps = max_pw + 1
+    step_w, step_h = 100, 52
+    w_svg = 80 + n_steps * step_w
+    h_svg = 110 + n_steps * step_h
+    ox = 40
+    base_y = h_svg - 40
+    parts = []
+    by_pw = {pw: co for co, pw in terms}
+    for s in range(n_steps):
+        sx = ox + s * step_w
+        sy = base_y - (s + 1) * step_h
+        parts.append(f'<rect x="{sx}" y="{sy}" width="{step_w}" height="{(s+1)*step_h}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{sx+step_w/2:.1f}" y="{base_y+22:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">power {s}</text>')
+        if s in by_pw and not blank:
+            co = by_pw[s]
+            if s == 0:
+                lbl = str(co)
+            elif s == 1:
+                lbl = f"{co if co not in (1,-1) else ('-' if co==-1 else '')}x"
+            else:
+                lbl = f"{co if co not in (1,-1) else ('-' if co==-1 else '')}x^{s}"
+            parts.append(f'<rect x="{sx+12}" y="{sy+8}" width="{step_w-24}" height="34" rx="8" fill="#FFF8E1" stroke="#9A7209" stroke-width="2"/>')
+            parts.append(f'<text x="{sx+step_w/2:.1f}" y="{sy+31:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#5c4708">{lbl}</text>')
+    if not blank:
+        top_x = ox + (n_steps - 1) * step_w + step_w / 2
+        top_y = base_y - n_steps * step_h
+        parts.append(f'<text x="{top_x:.1f}" y="{top_y-12:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">highest step = DEGREE {max_pw}</text>')
+    else:
+        parts.append(f'<text x="{w_svg/2}" y="{h_svg-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">Place each term on its power step. Highest step = degree.</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="26" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Degree staircase</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def hcf_factor_boxes_svg(terms=None, hcf="3x", rests=None, blank=False, **kw):
+    """Common-factor factorisation: each term boxed and split into
+    HCF x rest, with the shared HCF highlighted, concluding
+    HCF(rest1 + rest2 ...) (Level 14F). blank=True hides the splits."""
+    terms = terms or ["6x²", "9x"]
+    rests = rests or ["2x", "3"]
+    w_svg = max(420, 120 * len(terms) + 140)
+    h_svg = 250
+    parts = []
+    x = 40
+    y = 78
+    for i, (t, r) in enumerate(zip(terms, rests)):
+        if i > 0:
+            parts.append(f'<text x="{x:.1f}" y="{y+24:.1f}" font-family="Helvetica-Bold" font-size="20" fill="#2C3E50">+</text>')
+            x += 26
+        parts.append(f'<rect x="{x}" y="{y}" width="104" height="40" rx="8" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{x+52:.1f}" y="{y+26:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0C3A5C">{t}</text>')
+        parts.append(f'<line x1="{x+52:.1f}" y1="{y+42:.1f}" x2="{x+52:.1f}" y2="{y+62:.1f}" stroke="#2C3E50" stroke-width="1.8"/>')
+        if blank:
+            parts.append(f'<rect x="{x+2}" y="{y+64}" width="100" height="34" rx="7" fill="#FAFBFC" stroke="#9AA5B1" stroke-width="1.8" stroke-dasharray="5,3"/>')
+            parts.append(f'<text x="{x+52:.1f}" y="{y+86:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#5D6D7E">? x ?</text>')
+        else:
+            parts.append(f'<rect x="{x+2}" y="{y+64}" width="100" height="34" rx="7" fill="#FFF8E1" stroke="#9A7209" stroke-width="1.8"/>')
+            parts.append(f'<text x="{x+52:.1f}" y="{y+86:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{hcf} x {r}</text>')
+        x += 116
+    if blank:
+        bottom = "Split each term into (common factor) x (what's left)."
+    else:
+        inner = " + ".join(rests)
+        bottom = f"= {hcf}({inner})"
+    parts.append(f'<text x="{w_svg/2}" y="{h_svg-30}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#A6362B">{bottom}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Take out the common factor</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def division_algorithm_box_svg(p_str="x³-6x²+11x-6", d_str="x-1", q_str="x²-5x+6", r_val=0, blank=False, **kw):
+    """The Division Algorithm p(x) = divisor x quotient + remainder as
+    nested labelled boxes (Level 14CUM3). blank=True hides quotient and
+    remainder."""
+    w_svg, h_svg = 470, 250
+    parts = []
+    parts.append(f'<rect x="30" y="56" width="{w_svg-60}" height="52" rx="10" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{w_svg/2}" y="88" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0C3A5C">p(x) = {p_str}</text>')
+    parts.append(f'<line x1="{w_svg/2}" y1="110" x2="{w_svg/2}" y2="132" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<polygon points="{w_svg/2},138 {w_svg/2-7},126 {w_svg/2+7},126" fill="#2C3E50"/>')
+    q_disp = "?" if blank else q_str
+    r_disp = "?" if blank else str(r_val)
+    y2 = 146
+    parts.append(f'<rect x="30" y="{y2}" width="120" height="44" rx="9" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2.5"/>')
+    parts.append(f'<text x="90" y="{y2+28}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#0B4F30">({d_str})</text>')
+    parts.append(f'<text x="162" y="{y2+28}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">x</text>')
+    parts.append(f'<rect x="176" y="{y2}" width="170" height="44" rx="9" fill="#FFF8E1" stroke="#9A7209" stroke-width="2.5"/>')
+    parts.append(f'<text x="261" y="{y2+28}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#5c4708">{q_disp}</text>')
+    parts.append(f'<text x="358" y="{y2+28}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">+</text>')
+    parts.append(f'<rect x="372" y="{y2}" width="66" height="44" rx="9" fill="#FDEDEB" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="405" y="{y2+28}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#A6362B">{r_disp}</text>')
+    parts.append(f'<text x="90" y="{y2+62}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#1E7A44">divisor</text>')
+    parts.append(f'<text x="261" y="{y2+62}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#9A7209">quotient</text>')
+    parts.append(f'<text x="405" y="{y2+62}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#A6362B">remainder</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Division Algorithm: p(x) = divisor x quotient + remainder</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -5226,6 +5486,12 @@ SVG_DIAGRAM_FUNCTIONS = {
     "sqrt_side_area": sqrt_side_area_svg,
     "sci_notation_slider": sci_notation_slider_svg,
     "surd_simplify_tree": surd_simplify_tree_svg,
+    "identity_square": identity_square_svg,
+    "factor_x_method": factor_x_method_svg,
+    "poly_anatomy": poly_anatomy_svg,
+    "degree_staircase": degree_staircase_svg,
+    "hcf_factor_boxes": hcf_factor_boxes_svg,
+    "division_algorithm_box": division_algorithm_box_svg,
 }
 
 
