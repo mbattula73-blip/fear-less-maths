@@ -353,7 +353,10 @@ class Col:
                                                "term_label", "like_terms_sort", "function_machine_svg",
                                                "substitution_steps", "repeated_addition",
                                                "algebra_tiles", "balance_scale",
-                                               "solve_equation_ladder", "inverse_machine", "consecutive_bar")
+                                               "solve_equation_ladder", "inverse_machine", "consecutive_bar",
+                                               "power_expansion", "square_dots_grid", "cube_stack_3d",
+                                               "index_law_visual", "power_ladder", "sqrt_side_area",
+                                               "sci_notation_slider", "surd_simplify_tree")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)

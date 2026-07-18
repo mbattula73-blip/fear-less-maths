@@ -4846,6 +4846,315 @@ def consecutive_bar_svg(count=3, step=1, total=27, kind="integer", blank=False, 
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def _pow_txt(x, y, base, exp, font_size=18, color="#2C3E50", anchor="start"):
+    """SVG for base^exp with a TRUE raised smaller exponent (two text
+    elements -- unicode superscripts don't render via svglib)."""
+    base_str, exp_str = str(base), str(exp)
+    sup_size = font_size * 0.62
+    sup_dy = -font_size * 0.45
+    base_w = len(base_str) * font_size * 0.60
+    exp_w = len(exp_str) * sup_size * 0.62
+    total_w = base_w + exp_w + 2
+    if anchor == "middle":
+        bx = x - total_w / 2
+    elif anchor == "end":
+        bx = x - total_w
+    else:
+        bx = x
+    out = f'<text x="{bx:.1f}" y="{y:.1f}" font-family="Helvetica-Bold" font-size="{font_size}" fill="{color}">{base_str}</text>'
+    out += f'<text x="{bx+base_w+1:.1f}" y="{y+sup_dy:.1f}" font-family="Helvetica-Bold" font-size="{sup_size:.1f}" fill="{color}">{exp_str}</text>'
+    return out
+
+
+def power_expansion_svg(base=2, exp=4, blank=False, **kw):
+    """The anatomy of a power: base^exp with BASE and INDEX labelled,
+    then the expansion chain base x base x ... = value (Level 13A).
+    blank=True hides the expansion and the final value."""
+    base, exp = int(base), int(exp)
+    value = base ** exp
+    w_svg, h_svg = 460, 250
+    parts = []
+    cx = 90
+    parts.append(_pow_txt(cx, 80, base, exp, font_size=40, color="#1B5E8C"))
+    base_w = len(str(base)) * 40 * 0.60
+    parts.append(f'<line x1="{cx+base_w/2:.1f}" y1="92" x2="{cx+base_w/2:.1f}" y2="116" stroke="#1B5E8C" stroke-width="1.5" stroke-dasharray="3,2"/>')
+    parts.append(f'<rect x="{cx+base_w/2-34:.1f}" y="116" width="68" height="22" rx="11" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="1.3"/>')
+    parts.append(f'<text x="{cx+base_w/2:.1f}" y="131" text-anchor="middle" font-family="Helvetica-Bold" font-size="11.5" fill="#1B5E8C">BASE</text>')
+    exp_x = cx + base_w + len(str(exp)) * 24 * 0.62 / 2
+    parts.append(f'<line x1="{exp_x:.1f}" y1="50" x2="{exp_x+40:.1f}" y2="34" stroke="#A6362B" stroke-width="1.5" stroke-dasharray="3,2"/>')
+    parts.append(f'<rect x="{exp_x+40:.1f}" y="22" width="60" height="22" rx="11" fill="#FDEDEB" stroke="#A6362B" stroke-width="1.3"/>')
+    parts.append(f'<text x="{exp_x+70:.1f}" y="37" text-anchor="middle" font-family="Helvetica-Bold" font-size="11.5" fill="#A6362B">INDEX</text>')
+    if blank:
+        chain = " x ".join(["____"] * exp)
+        parts.append(f'<text x="{cx:.1f}" y="185" font-family="Helvetica-Bold" font-size="17" fill="#5D6D7E">= {chain} = ____</text>')
+        parts.append(f'<text x="{cx:.1f}" y="218" font-family="Helvetica" font-size="12" fill="#1E7A44">Write {base} that many times, then multiply.</text>')
+    else:
+        chain = " x ".join([str(base)] * exp)
+        parts.append(f'<text x="{cx:.1f}" y="185" font-family="Helvetica-Bold" font-size="19" fill="#2C3E50">= {chain} = {value}</text>')
+        parts.append(f'<text x="{cx:.1f}" y="218" font-family="Helvetica" font-size="12" fill="#1E7A44">The index counts how many times the base is multiplied.</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def square_dots_grid_svg(n=4, blank=False, **kw):
+    """n^2 as a literal n x n grid of squares -- WHY 'squared' is called
+    squared (Level 13A/13E). blank=True shows an empty n x n outline."""
+    n = int(n)
+    cell = min(200 // max(n, 1), 40)
+    gw = n * cell
+    w_svg = max(gw + 120, 320)
+    h_svg = gw + 120
+    ox, oy = (w_svg - gw) / 2, 70
+    parts = []
+    for r in range(n):
+        for c in range(n):
+            fill = "#FAFBFC" if blank else "#AFCBE3"
+            parts.append(f'<rect x="{ox+c*cell:.1f}" y="{oy+r*cell:.1f}" width="{cell}" height="{cell}" fill="{fill}" stroke="#1B5E8C" stroke-width="1.5"/>')
+    parts.append(f'<text x="{ox+gw/2:.1f}" y="{oy+gw+24:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{n} across</text>')
+    parts.append(f'<text x="{ox-12:.1f}" y="{oy+gw/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{n} down</text>')
+    title_val = "____" if blank else str(n * n)
+    parts.insert(0, _pow_txt(w_svg/2 - 40, 34, n, 2, font_size=20, color="#2C3E50"))
+    parts.insert(1, f'<text x="{w_svg/2 - 8:.1f}" y="34" font-family="Helvetica-Bold" font-size="20" fill="#2C3E50">= {n} x {n} = {title_val}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def cube_stack_3d_svg(n=3, blank=False, **kw):
+    """n^3 as a pseudo-3D n x n x n stack of unit cubes -- WHY 'cubed'
+    is called cubed (Level 13A/13E). blank=True hides the total count."""
+    import math as _m
+    n = int(n)
+    u = min(120 // max(n, 1), 34)
+    dx, dy = u * 0.5, -u * 0.29
+    w_svg, h_svg = 400, 320
+    ox = 110
+    oy = 240
+    parts = []
+    for z in range(n):          # depth (back to front handled by draw order)
+        for y_ in range(n):     # height
+            for x_ in range(n): # width
+                X = ox + x_ * u + z * dx
+                Y = oy - y_ * u + z * dy
+                # front face
+                parts.append(f'<rect x="{X:.1f}" y="{Y-u:.1f}" width="{u}" height="{u}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="1.2"/>')
+                # top face
+                top = f"{X:.1f},{Y-u:.1f} {X+dx:.1f},{Y-u+dy:.1f} {X+u+dx:.1f},{Y-u+dy:.1f} {X+u:.1f},{Y-u:.1f}"
+                parts.append(f'<polygon points="{top}" fill="#CFE4F3" stroke="#1B5E8C" stroke-width="1.2"/>')
+                # right face
+                right = f"{X+u:.1f},{Y-u:.1f} {X+u+dx:.1f},{Y-u+dy:.1f} {X+u+dx:.1f},{Y+dy:.1f} {X+u:.1f},{Y:.1f}"
+                parts.append(f'<polygon points="{right}" fill="#AFCBE3" stroke="#1B5E8C" stroke-width="1.2"/>')
+    title_val = "____" if blank else str(n ** 3)
+    parts.append(_pow_txt(150, 40, n, 3, font_size=20, color="#2C3E50"))
+    parts.append(f'<text x="182" y="40" font-family="Helvetica-Bold" font-size="20" fill="#2C3E50">= {n} x {n} x {n} = {title_val}</text>')
+    parts.append(f'<text x="{w_svg/2}" y="{h_svg-14}" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#1E7A44">{n} wide, {n} deep, {n} tall -- count the unit cubes</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def index_law_visual_svg(base=2, m=3, n=4, mode="multiply", blank=False, **kw):
+    """The index laws made visible. multiply: (b·b·b) x (b·b·b·b)
+    merge into one group of m+n factors. divide: m factors over n
+    factors with n pairs cancelled, leaving m-n. (Level 13B/13CUM1).
+    blank=True hides the merged/net result."""
+    base, m, n = int(base), int(m), int(n)
+    w_svg, h_svg = 480, 240
+    parts = []
+    b = str(base)
+    if mode == "multiply":
+        g1 = " x ".join([b] * m)
+        g2 = " x ".join([b] * n)
+        parts.append(f'<rect x="30" y="60" width="{m*26+24}" height="40" rx="9" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{30+(m*26+24)/2:.1f}" y="86" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#0C3A5C">{g1}</text>')
+        parts.append(_pow_txt(30 + (m*26+24)/2, 48, base, m, font_size=14, color="#1B5E8C", anchor="middle"))
+        x2 = 30 + m*26 + 24 + 34
+        parts.append(f'<text x="{x2-22:.1f}" y="86" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">x</text>')
+        parts.append(f'<rect x="{x2}" y="60" width="{n*26+24}" height="40" rx="9" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2"/>')
+        parts.append(f'<text x="{x2+(n*26+24)/2:.1f}" y="86" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#0B4F30">{g2}</text>')
+        parts.append(_pow_txt(x2 + (n*26+24)/2, 48, base, n, font_size=14, color="#1E7A44", anchor="middle"))
+        parts.append(f'<line x1="{w_svg/2}" y1="108" x2="{w_svg/2}" y2="136" stroke="#2C3E50" stroke-width="2.5"/>')
+        parts.append(f'<polygon points="{w_svg/2},142 {w_svg/2-7},130 {w_svg/2+7},130" fill="#2C3E50"/>')
+        if blank:
+            parts.append(f'<text x="{w_svg/2}" y="172" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#5D6D7E">____ factors of {base} altogether</text>')
+            parts.append(f'<text x="{w_svg/2}" y="205" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#A6362B">Count all the {base}s -- ADD the indices.</text>')
+        else:
+            total = m + n
+            allf = " x ".join([b] * total)
+            parts.append(f'<text x="{w_svg/2}" y="168" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{allf}</text>')
+            parts.append(_pow_txt(w_svg/2 - 46, 200, base, m, font_size=15, color="#1B5E8C", anchor="middle"))
+            parts.append(_pow_txt(w_svg/2 - 14, 200, base, n, font_size=15, color="#1E7A44", anchor="middle"))
+            parts.append(f'<text x="{w_svg/2-30:.1f}" y="200" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">x</text>')
+            parts.append(f'<text x="{w_svg/2+8:.1f}" y="200" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">=</text>')
+            parts.append(_pow_txt(w_svg/2 + 42, 200, base, m + n, font_size=15, color="#A6362B", anchor="middle"))
+            parts.append(f'<text x="{w_svg/2+90:.1f}" y="200" font-family="Helvetica" font-size="12" fill="#A6362B">({m}+{n}={m+n})</text>')
+        title = "Multiplying powers: ADD the indices"
+    else:
+        top = " x ".join([b] * m)
+        bot = " x ".join([b] * n)
+        cxm = w_svg / 2
+        parts.append(f'<text x="{cxm}" y="78" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#0C3A5C">{top}</text>')
+        parts.append(f'<line x1="{cxm-m*15:.1f}" y1="92" x2="{cxm+m*15:.1f}" y2="92" stroke="#2C3E50" stroke-width="2.5"/>')
+        parts.append(f'<text x="{cxm}" y="118" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#0B4F30">{bot}</text>')
+        # cancellation strokes over the first n factors top and bottom
+        for i in range(min(n, m)):
+            fx = cxm - m * 15 + 8 + i * 30
+            parts.append(f'<line x1="{fx:.1f}" y1="80" x2="{fx+14:.1f}" y2="64" stroke="#A6362B" stroke-width="2"/>')
+            bx2 = cxm - n * 15 + 8 + i * 30
+            parts.append(f'<line x1="{bx2:.1f}" y1="120" x2="{bx2+14:.1f}" y2="104" stroke="#A6362B" stroke-width="2"/>')
+        if blank:
+            parts.append(f'<text x="{cxm}" y="170" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#5D6D7E">____ factors of {base} survive</text>')
+            parts.append(f'<text x="{cxm}" y="202" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#A6362B">Cancel pairs top and bottom -- SUBTRACT the indices.</text>')
+        else:
+            parts.append(_pow_txt(cxm - 60, 172, base, m, font_size=15, color="#1B5E8C", anchor="middle"))
+            parts.append(f'<text x="{cxm-38:.1f}" y="172" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">÷</text>')
+            parts.append(_pow_txt(cxm - 8, 172, base, n, font_size=15, color="#1E7A44", anchor="middle"))
+            parts.append(f'<text x="{cxm+14:.1f}" y="172" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">=</text>')
+            parts.append(_pow_txt(cxm + 48, 172, base, m - n, font_size=15, color="#A6362B", anchor="middle"))
+            parts.append(f'<text x="{cxm+92:.1f}" y="172" font-family="Helvetica" font-size="12" fill="#A6362B">({m}-{n}={m-n})</text>')
+        title = "Dividing powers: SUBTRACT the indices"
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{title}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def power_ladder_svg(base=2, top_exp=3, bottom_exp=-2, blank=False, **kw):
+    """The dividing ladder: base^top ... down to base^bottom, each row
+    = previous ÷ base -- the canonical picture of WHY a^0 = 1 and why
+    negative powers are fractions (Level 13A/13D). blank=True keeps the
+    top two rows and blanks the values below."""
+    from fractions import Fraction
+    base, top_exp, bottom_exp = int(base), int(top_exp), int(bottom_exp)
+    rows = []
+    for e in range(top_exp, bottom_exp - 1, -1):
+        v = Fraction(base) ** e
+        v_str = str(v.numerator) if v.denominator == 1 else f"1/{v.denominator}"
+        rows.append((e, v_str))
+    w_svg = 340
+    row_h = 40
+    h_svg = 70 + row_h * len(rows) + 16
+    ox, oy = 70, 76
+    parts = []
+    for i, (e, v_str) in enumerate(rows):
+        ry = oy + i * row_h
+        hide = blank and i >= 2
+        val = "____" if hide else v_str
+        col = "#A6362B" if e == 0 and not hide else "#2C3E50"
+        parts.append(_pow_txt(ox, ry, base, e, font_size=17, color="#1B5E8C"))
+        parts.append(f'<text x="{ox+58:.1f}" y="{ry:.1f}" font-family="Helvetica-Bold" font-size="17" fill="{col}">= {val}</text>')
+        if i < len(rows) - 1:
+            parts.append(f'<text x="{ox+170:.1f}" y="{ry+row_h/2+4:.1f}" font-family="Helvetica" font-size="12" fill="#1E7A44">÷ {base}</text>')
+            parts.append(f'<line x1="{ox+160:.1f}" y1="{ry+8:.1f}" x2="{ox+160:.1f}" y2="{ry+row_h-6:.1f}" stroke="#1E7A44" stroke-width="1.6"/>')
+            parts.append(f'<polygon points="{ox+160},{ry+row_h-2} {ox+155},{ry+row_h-10} {ox+165},{ry+row_h-10}" fill="#1E7A44"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Each step down: divide by {base}</text>')
+    parts.insert(1, f'<text x="{w_svg/2}" y="48" text-anchor="middle" font-family="Helvetica" font-size="11.5" fill="#5D6D7E">Keep the pattern going past zero...</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def sqrt_side_area_svg(area=25, blank=False, **kw):
+    """A square with its AREA printed inside; the side length is the
+    square root -- makes a^(1/2) concrete (Level 13E). blank=True hides
+    the side value."""
+    import math as _m
+    area = int(area)
+    side = _m.isqrt(area)
+    S = 150
+    w_svg, h_svg = 360, 260
+    ox, oy = 110, 60
+    parts = []
+    parts.append(f'<rect x="{ox}" y="{oy}" width="{S}" height="{S}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{ox+S/2:.1f}" y="{oy+S/2-6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">Area</text>')
+    parts.append(f'<text x="{ox+S/2:.1f}" y="{oy+S/2+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="19" fill="#A6362B">= {area}</text>')
+    side_str = "?" if blank else str(side)
+    parts.append(f'<line x1="{ox:.1f}" y1="{oy+S+18:.1f}" x2="{ox+S:.1f}" y2="{oy+S+18:.1f}" stroke="#1E7A44" stroke-width="1.6"/>')
+    parts.append(f'<text x="{ox+S/2:.1f}" y="{oy+S+38:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#1E7A44">side = √{area} = {side_str}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Square root = the side of the square</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def sci_notation_slider_svg(number=56000, blank=False, **kw):
+    """Decimal-point hop diagram for scientific notation: the digits of
+    the number with numbered arc hops showing how many places the point
+    moves, ending at 'a x 10^n' (Level 13F). blank=True hides the power.
+    Works for large numbers (positive power) and decimals (negative)."""
+    from decimal import Decimal
+    num = Decimal(str(number))
+    s = format(num, 'f')
+    if '.' in s:
+        s = s.rstrip('0').rstrip('.') if s.rstrip('0').rstrip('.') else '0'
+        if num < 1 and '.' not in s:
+            s = format(num, 'f')
+    is_small = num < 1
+    digits = s.replace(".", "")
+    digits = digits.lstrip("0") if is_small else digits
+    lead = digits[0]
+    rest = digits[1:].rstrip("0")
+    mant = lead + ("." + rest if rest else "")
+    if is_small:
+        frac = s.split(".")[1]
+        n_exp = -(len(frac) - len(frac.lstrip("0")) + 1)
+    else:
+        n_exp = len(s.split(".")[0]) - 1
+    w_svg, h_svg = 440, 230
+    parts = []
+    ch_w = 30
+    disp = s
+    x0 = (w_svg - len(disp) * ch_w) / 2
+    y0 = 100
+    for i, ch in enumerate(disp):
+        parts.append(f'<text x="{x0+i*ch_w+ch_w/2:.1f}" y="{y0:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="26" fill="#2C3E50">{ch}</text>')
+    hops = abs(n_exp)
+    if is_small:
+        pt_idx = disp.index(".")
+        hop_start = pt_idx
+        direction = 1
+    else:
+        hop_start = len(disp)
+        direction = -1
+    for h in range(hops):
+        a = x0 + (hop_start + direction * h) * ch_w
+        b2 = x0 + (hop_start + direction * (h + 1)) * ch_w
+        mid = (a + b2) / 2
+        parts.append(f'<path d="M {a:.1f} {y0+8:.1f} Q {mid:.1f} {y0+34:.1f} {b2:.1f} {y0+8:.1f}" fill="none" stroke="#A6362B" stroke-width="2"/>')
+        parts.append(f'<text x="{mid:.1f}" y="{y0+46:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">{h+1}</text>')
+    exp_str = "____" if blank else str(n_exp)
+    parts.append(f'<text x="{w_svg/2 - 60:.1f}" y="188" text-anchor="middle" font-family="Helvetica-Bold" font-size="19" fill="#1B5E8C">= {mant} x 10</text>')
+    sup_x = w_svg/2 - 60 + (len(f"= {mant} x 10") * 19 * 0.30)
+    parts.append(f'<text x="{sup_x+12:.1f}" y="179" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{exp_str}</text>')
+    dirn = "right" if is_small else "left"
+    parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Move the decimal point {dirn} -- count the hops</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def surd_simplify_tree_svg(n=72, blank=False, **kw):
+    """Simplifying a surd: √n split into √(square x rest) = k√rest,
+    shown as a mini two-branch tree (Level 13CUM2). blank=True shows
+    only √n with empty branches."""
+    import math as _m
+    n = int(n)
+    best_k = 1
+    for k in range(2, int(_m.isqrt(n)) + 1):
+        if n % (k * k) == 0:
+            best_k = k
+    sq = best_k * best_k
+    rest = n // sq
+    w_svg, h_svg = 380, 260
+    cx = w_svg / 2
+    parts = []
+    parts.append(f'<circle cx="{cx}" cy="66" r="34" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{cx}" y="73" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#0C3A5C">√{n}</text>')
+    lx, rx, ny = cx - 90, cx + 90, 160
+    parts.append(f'<line x1="{cx-16:.1f}" y1="94" x2="{lx+12:.1f}" y2="{ny-26}" stroke="#2C3E50" stroke-width="2"/>')
+    parts.append(f'<line x1="{cx+16:.1f}" y1="94" x2="{rx-12:.1f}" y2="{ny-26}" stroke="#2C3E50" stroke-width="2"/>')
+    if blank:
+        parts.append(f'<circle cx="{lx}" cy="{ny}" r="30" fill="#FAFBFC" stroke="#9AA5B1" stroke-width="2" stroke-dasharray="6,4"/>')
+        parts.append(f'<circle cx="{rx}" cy="{ny}" r="30" fill="#FAFBFC" stroke="#9AA5B1" stroke-width="2" stroke-dasharray="6,4"/>')
+        parts.append(f'<text x="{cx}" y="226" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">Split out the largest PERFECT SQUARE factor.</text>')
+    else:
+        parts.append(f'<circle cx="{lx}" cy="{ny}" r="30" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2.5"/>')
+        parts.append(f'<text x="{lx}" y="{ny+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#0B4F30">√{sq}</text>')
+        parts.append(f'<circle cx="{rx}" cy="{ny}" r="30" fill="#FFF8E1" stroke="#9A7209" stroke-width="2.5"/>')
+        parts.append(f'<text x="{rx}" y="{ny+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#5c4708">√{rest}</text>')
+        parts.append(f'<text x="{lx}" y="{ny+48}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">= {best_k}</text>')
+        parts.append(f'<text x="{cx}" y="230" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="#A6362B">√{n} = √({sq} x {rest}) = {best_k}√{rest}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="26" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Simplify the surd</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -4909,6 +5218,14 @@ SVG_DIAGRAM_FUNCTIONS = {
     "solve_equation_ladder": solve_equation_ladder_svg,
     "inverse_machine": inverse_machine_svg,
     "consecutive_bar": consecutive_bar_svg,
+    "power_expansion": power_expansion_svg,
+    "square_dots_grid": square_dots_grid_svg,
+    "cube_stack_3d": cube_stack_3d_svg,
+    "index_law_visual": index_law_visual_svg,
+    "power_ladder": power_ladder_svg,
+    "sqrt_side_area": sqrt_side_area_svg,
+    "sci_notation_slider": sci_notation_slider_svg,
+    "surd_simplify_tree": surd_simplify_tree_svg,
 }
 
 

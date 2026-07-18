@@ -17727,6 +17727,158 @@ for _l12_key in list(_DISPATCH.keys()):
     if _l12_key.startswith("12") and not _l12_key[2:3].isdigit():
         _DISPATCH[_l12_key] = {sheet: _l12_wrap(fn, _l12_key) for sheet, fn in _DISPATCH[_l12_key].items()}
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 13 auto-visualizer: gives every Level 13 (Powers & Indices)
+# question a matching diagram, inferred from its own text/numbers.
+# First 2 diagrams per sheet worked (demo), rest blank scaffolds.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l13_re
+
+
+def _l13_infer_diagram(text, sublevel_code=""):
+    t = text
+    # --- surds ---
+    m = _l13_re.search(r'(?:Simplify\s+)?√(\d+)\s*=?\s*(?:\d+√____|\.)?', t)
+    if ('Simplify √' in t or '√' in t and '= ' in t and '√____' in t) and m:
+        n = int(m.group(1))
+        import math as _m
+        if _m.isqrt(n) ** 2 != n and any(n % (k*k) == 0 for k in range(2, _m.isqrt(n)+1)):
+            return "surd_simplify_tree", {"n": n}
+    # --- fractional power 1/2 (square root) ---
+    m = _l13_re.search(r'(\d+)\^\(1/2\)', t)
+    if m:
+        import math as _m
+        a = int(m.group(1))
+        if _m.isqrt(a) ** 2 == a:
+            return "sqrt_side_area", {"area": a}
+    # --- fractional power 1/3 (cube root) ---
+    m = _l13_re.search(r'(\d+)\^\(1/3\)', t)
+    if m:
+        v = int(m.group(1))
+        r = round(v ** (1/3))
+        if r ** 3 == v:
+            return "cube_stack_3d", {"n": r}
+    # --- negative powers -> the ladder ---
+    m = _l13_re.search(r'(\d+)\^\(-(\d+)\)', t)
+    if m:
+        base, ne = int(m.group(1)), int(m.group(2))
+        return "power_ladder", {"base": base, "top_exp": 2, "bottom_exp": -max(ne, 1)}
+    # --- a^0 questions -> ladder to zero ---
+    if _l13_re.search(r'power 0|(\d+)\^0', t):
+        m2 = _l13_re.search(r'(\d+)\^0', t)
+        base = int(m2.group(1)) if m2 else 2
+        if base > 6:
+            base = 2
+        return "power_ladder", {"base": base, "top_exp": 3, "bottom_exp": 0}
+    # --- index laws: multiply ---
+    m = _l13_re.search(r'([0-9a-z]+)\^(\d+)\s*[×x]\s*\1\^(\d+)', t)
+    if m:
+        b, e1, e2 = m.group(1), int(m.group(2)), int(m.group(3))
+        base = int(b) if b.isdigit() else 2
+        if e1 <= 6 and e2 <= 6:
+            return "index_law_visual", {"base": base, "m": e1, "n": e2, "mode": "multiply"}
+        return "power_expansion", {"base": base if base <= 10 else 2, "exp": min(e1, 5)}
+    # --- index laws: divide ---
+    m = _l13_re.search(r'([0-9a-z]+)\^(\d+)\s*÷\s*\1\^(\d+)', t)
+    if m:
+        b, e1, e2 = m.group(1), int(m.group(2)), int(m.group(3))
+        base = int(b) if b.isdigit() else 2
+        if e1 <= 9 and e2 <= 6:
+            return "index_law_visual", {"base": base, "m": e1, "n": e2, "mode": "divide"}
+        return "power_expansion", {"base": base if base <= 10 else 2, "exp": 4}
+    # --- scientific notation: ordinary -> sci ---
+    m = _l13_re.search(r'^(\d{2,}0+|\d+)\s*=\s*[\d.]+\s*[×x]\s*10\^', t)
+    if m:
+        return "sci_notation_slider", {"number": int(m.group(1))}
+    m = _l13_re.search(r'^(0\.\d+)\s*=\s*[\d.]+\s*[×x]\s*10\^', t)
+    if m:
+        return "sci_notation_slider", {"number": float(m.group(1))}
+    m = _l13_re.search(r'Write (\d+) in scientific notation', t)
+    if m:
+        return "sci_notation_slider", {"number": int(m.group(1))}
+    m = _l13_re.search(r'Write (0\.\d+) in scientific notation', t)
+    if m:
+        return "sci_notation_slider", {"number": float(m.group(1))}
+    # --- squares: n^2 with small n -> the grid ---
+    m = _l13_re.search(r'(\d+)\^2\b', t)
+    if m:
+        b = int(m.group(1))
+        if 2 <= b <= 8:
+            return "square_dots_grid", {"n": b}
+    # --- cubes: n^3 with small n -> the 3D stack ---
+    m = _l13_re.search(r'(\d+)\^3\b', t)
+    if m:
+        b = int(m.group(1))
+        if 2 <= b <= 4:
+            return "cube_stack_3d", {"n": b}
+    # --- generic power a^n -> expansion anatomy ---
+    m = _l13_re.search(r'(\d+)\^(\d+)', t)
+    if m:
+        b, e = int(m.group(1)), int(m.group(2))
+        if 2 <= b <= 10 and 1 <= e <= 5:
+            return "power_expansion", {"base": b, "exp": e}
+    return None
+
+
+_L13_FAMILY_FALLBACK = {
+    "13A": ("power_expansion", {"base": 2, "exp": 3}),
+    "13B": ("index_law_visual", {"base": 2, "m": 3, "n": 4, "mode": "multiply"}),
+    "13C": ("index_law_visual", {"base": 2, "m": 3, "n": 2, "mode": "multiply"}),
+    "13CUM1": ("index_law_visual", {"base": 2, "m": 3, "n": 2, "mode": "multiply"}),
+    "13D": ("power_ladder", {"base": 2, "top_exp": 2, "bottom_exp": -2}),
+    "13E": ("sqrt_side_area", {"area": 25}),
+    "13F": ("sci_notation_slider", {"number": 56000}),
+    "13CUM2": ("surd_simplify_tree", {"n": 72}),
+    "13G": ("power_expansion", {"base": 2, "exp": 3}),
+    "13H": ("powers_of_ten_scale", {"lo": -6, "hi": 8}),
+    "13I": ("power_expansion", {"base": 2, "exp": 4}),
+    "13CUM3": ("exponential_growth", {}),
+    "13J": ("index_law_visual", {"base": 2, "m": 3, "n": 4, "mode": "multiply"}),
+    "13REV": ("power_expansion", {"base": 2, "exp": 3}),
+}
+
+
+def _l13_fallback(sublevel_code):
+    for key in sorted(_L13_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L13_FAMILY_FALLBACK[key]
+    return ("power_expansion", {"base": 2, "exp": 3})
+
+
+def _l13_visualize(items, sublevel_code):
+    fb_type, fb_params = _l13_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l13_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l13_wrap(fn, sublevel_code):
+    return lambda: _l13_visualize(fn(), sublevel_code)
+
+
+for _l13_key in list(_DISPATCH.keys()):
+    if _l13_key.startswith("13") and not _l13_key[2:3].isdigit():
+        _DISPATCH[_l13_key] = {sheet: _l13_wrap(fn, _l13_key) for sheet, fn in _DISPATCH[_l13_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [
