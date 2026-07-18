@@ -2807,10 +2807,12 @@ def algebra_tiles_svg(pos_x=0, pos_const=0, neg_x=0, neg_const=0, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
 
 
-def balance_scale_svg(left_text="x + 3", right_text="7", w=380, **kw):
+def balance_scale_svg(left_text="x + 3", right_text="7", w=380, blank=False, **kw):
     """Renders a balance scale in equilibrium with the two sides of an
     equation on each pan -- the standard visual for equation solving.
-    Returns a raw SVG string."""
+    Returns a raw SVG string. (The `blank` flag is accepted for a
+    uniform interface but has no effect: the scale shows the equation,
+    which IS the question -- there is no answer on it to hide.)"""
     h = 220
     cx = w / 2
     beam_y = 64
@@ -3084,11 +3086,17 @@ def _grid_svg_base(rng=10, size=340, margin=36):
     return parts, to_px
 
 
-def linear_equation_graph_svg(a=1, b=1, c=6, rng=10, **kw):
+def linear_equation_graph_svg(a=1, b=1, c=6, rng=10, blank=False, **kw):
     """Plots the single line ax+by=c on a coordinate grid, marking its
-    x- and y-intercepts. The core visual for graphing linear equations."""
+    x- and y-intercepts. The core visual for graphing linear equations.
+    blank=True shows an empty grid with the equation, for the student to
+    plot the line themselves."""
     size = 340
     parts, to_px = _grid_svg_base(rng, size)
+    if blank:
+        eqn = _fmt_equation(a, b, c)
+        parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">Plot: {eqn}</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
     pts = _line_points(a, b, c, rng)
     if pts:
         (x1, y1), (x2, y2) = pts
@@ -3114,12 +3122,20 @@ def linear_equation_graph_svg(a=1, b=1, c=6, rng=10, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
-def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, **kw):
+def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, blank=False, **kw):
     """Plots two lines on one grid and marks their intersection, or notes
     if they're parallel/coincident -- the visual for the graphical method
-    and for consistent/inconsistent/dependent systems."""
+    and for consistent/inconsistent/dependent systems. blank=True shows
+    an empty grid with both equations, for the student to plot and read
+    off the answer themselves."""
     size = 360
     parts, to_px = _grid_svg_base(rng, size)
+    eqn1 = _fmt_equation(a1, b1, c1)
+    eqn2 = _fmt_equation(a2, b2, c2)
+    if blank:
+        parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{eqn1}   and   {eqn2}</text>')
+        parts.append(f'<text x="{size/2}" y="{size-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">Plot both lines -- where do they meet?</text>')
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
     for (a, b, c, color) in [(a1, b1, c1, "#1B5E8C"), (a2, b2, c2, "#1E7A44")]:
         pts = _line_points(a, b, c, rng)
         if pts:
@@ -3144,8 +3160,6 @@ def two_line_graph_svg(a1=1, b1=1, c1=6, a2=1, b2=-1, c2=2, rng=10, **kw):
         prop_c = (a1 * c2 == a2 * c1) and (b1 * c2 == b2 * c1)
         status_text = "Coincident -- INFINITE solutions" if prop_c else "Parallel -- NO solution"
 
-    eqn1 = _fmt_equation(a1, b1, c1)
-    eqn2 = _fmt_equation(a2, b2, c2)
     parts.insert(0, f'<text x="{size/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{eqn1}   and   {eqn2}</text>')
     parts.append(f'<text x="{size/2}" y="{size-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">{status_text}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
@@ -4715,6 +4729,123 @@ def single_bracket_area_svg(a=3, b=4, var="x", op="+", blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def solve_equation_ladder_svg(a=2, b=3, op="+", total=11, var="x", blank=False, **kw):
+    """A vertical 'undo the operations' ladder for a two-step equation
+    ax +/- b = total: shows each line down to x = answer, with the
+    inverse operation labelled on the right at each step (Level 12C).
+    blank=True keeps the starting equation and blanks the steps below."""
+    a, b, total = int(a), int(b), int(total)
+    if op == "+":
+        after_b = total - b
+    else:
+        after_b = total + b
+    ans = after_b // a if a else after_b
+    inv1 = f"{'-' if op == '+' else '+'} {b} both sides"
+    inv2 = f"÷ {a} both sides"
+    lines = [
+        (f"{a}{var} {op} {b} = {total}", ""),
+        (f"{a}{var} = {after_b}", inv1),
+        (f"{var} = {ans}", inv2),
+    ]
+    if blank:
+        lines = [lines[0], ("____", inv1), ("____", inv2)]
+    w_svg = 340
+    row_h = 54
+    h_svg = 70 + row_h * len(lines) + 20
+    ox, oy = 40, 80
+    parts = []
+    for i, (eq, note) in enumerate(lines):
+        ry = oy + i * row_h
+        is_last = (i == len(lines) - 1)
+        fill, stroke, tcol = ("#E7F8ED", "#1E7A44", "#0B4F30") if (is_last and not blank) else ("#EAF4FC", "#1B5E8C", "#0C3A5C")
+        if blank and i > 0:
+            fill, stroke, tcol = ("#FAFBFC", "#9AA5B1", "#5D6D7E")
+        dash = ' stroke-dasharray="6,4"' if (blank and i > 0) else ""
+        parts.append(f'<rect x="{ox:.1f}" y="{ry:.1f}" width="170" height="38" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"{dash}/>')
+        parts.append(f'<text x="{ox+85:.1f}" y="{ry+25:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="17" fill="{tcol}">{eq}</text>')
+        if note:
+            parts.append(f'<text x="{ox+180:.1f}" y="{ry+24:.1f}" font-family="Helvetica" font-size="12" fill="#A6362B">{note}</text>')
+        if not is_last:
+            ay = ry + 38
+            parts.append(f'<line x1="{ox+85:.1f}" y1="{ay+2:.1f}" x2="{ox+85:.1f}" y2="{ay+row_h-40:.1f}" stroke="#2C3E50" stroke-width="2"/>')
+            parts.append(f'<polygon points="{ox+85},{ay+row_h-38} {ox+79},{ay+row_h-47} {ox+91},{ay+row_h-47}" fill="#2C3E50"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">Solve step by step</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def inverse_machine_svg(a=2, b=3, op="+", total=11, var="x", blank=False, **kw):
+    """A two-row 'forward / backward' machine for a two-step equation:
+    top row shows x -> (xa) -> (+b) -> total; bottom row shows the same
+    boxes reversed with inverse operations, ending at x -- makes 'undo
+    in reverse order' concrete (Level 12B/12C/12I). blank=True hides the
+    recovered x value at the end of the backward row."""
+    a, b, total = int(a), int(b), int(total)
+    inv_op = "-" if op == "+" else "+"
+    w_svg, h_svg = 460, 220
+    parts = []
+    # forward row
+    fy = 55
+    boxes_f = [(var, "#EAF4FC", "#1B5E8C"), (f"×{a}", "#FFF8E1", "#9A7209"), (f"{op}{b}", "#FFF8E1", "#9A7209"), (str(total), "#E7F8ED", "#1E7A44")]
+    bx = 30
+    bw, gap = 80, 24
+    parts.append(f'<text x="20" y="{fy-14}" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">FORWARD</text>')
+    for i, (lbl, fill, stroke) in enumerate(boxes_f):
+        parts.append(f'<rect x="{bx}" y="{fy}" width="{bw}" height="42" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"/>')
+        parts.append(f'<text x="{bx+bw/2}" y="{fy+27}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{lbl}</text>')
+        if i < len(boxes_f) - 1:
+            parts.append(f'<line x1="{bx+bw}" y1="{fy+21}" x2="{bx+bw+gap}" y2="{fy+21}" stroke="#2C3E50" stroke-width="2"/>')
+            parts.append(f'<polygon points="{bx+bw+gap},{fy+21} {bx+bw+gap-9},{fy+16} {bx+bw+gap-9},{fy+26}" fill="#2C3E50"/>')
+        bx += bw + gap
+    # backward row
+    by = 140
+    ans = (total - b) // a if op == "+" else (total + b) // a
+    ans_str = "?" if blank else str(ans)
+    boxes_b = [(str(total), "#E7F8ED", "#1E7A44"), (f"{inv_op}{b}", "#FDEDEB", "#A6362B"), (f"÷{a}", "#FDEDEB", "#A6362B"), (ans_str, "#EAF4FC", "#1B5E8C")]
+    bx = 30
+    parts.append(f'<text x="20" y="{by-14}" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">BACKWARD (undo)</text>')
+    for i, (lbl, fill, stroke) in enumerate(boxes_b):
+        parts.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="42" rx="8" fill="{fill}" stroke="{stroke}" stroke-width="2"/>')
+        parts.append(f'<text x="{bx+bw/2}" y="{by+27}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{lbl}</text>')
+        if i < len(boxes_b) - 1:
+            parts.append(f'<line x1="{bx+bw}" y1="{by+21}" x2="{bx+bw+gap}" y2="{by+21}" stroke="#2C3E50" stroke-width="2"/>')
+            parts.append(f'<polygon points="{bx+bw+gap},{by+21} {bx+bw+gap-9},{by+16} {bx+bw+gap-9},{by+26}" fill="#2C3E50"/>')
+        bx += bw + gap
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{a}{var} {op} {b} = {total}  --  undo in reverse</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def consecutive_bar_svg(count=3, step=1, total=27, kind="integer", blank=False, **kw):
+    """A stacked bar model for 'consecutive numbers sum to total' word
+    problems: `count` bars, each = x plus an offset (0, step, 2*step...),
+    all summing to total (Level 12I). blank=True hides the computed x.
+    kind='integer' uses +1 steps, 'even'/'odd' use +2."""
+    count, step, total = int(count), int(step), int(total)
+    offsets = [i * step for i in range(count)]
+    x_val = (total - sum(offsets)) // count
+    w_svg, h_svg = 440, 90 + count * 46
+    ox, oy = 40, 70
+    bar_unit = 20
+    parts = []
+    labels_desc = {"integer": "consecutive numbers", "even": "consecutive even numbers", "odd": "consecutive odd numbers"}
+    desc = labels_desc.get(kind, "consecutive numbers")
+    for i, off in enumerate(offsets):
+        by = oy + i * 46
+        xw = 120
+        parts.append(f'<rect x="{ox}" y="{by}" width="{xw}" height="34" rx="6" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        parts.append(f'<text x="{ox+xw/2}" y="{by+23}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#0C3A5C">x</text>')
+        if off > 0:
+            ow = off * bar_unit
+            parts.append(f'<rect x="{ox+xw}" y="{by}" width="{ow}" height="34" rx="6" fill="#FFF8E1" stroke="#9A7209" stroke-width="2"/>')
+            parts.append(f'<text x="{ox+xw+ow/2}" y="{by+23}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#5c4708">+{off}</text>')
+        lbl = f"x+{off}" if off else "x"
+        parts.append(f'<text x="{ox+xw+off*bar_unit+12}" y="{by+23}" font-family="Helvetica" font-size="13" fill="#5D6D7E">= {lbl}</text>')
+    ty = oy + count * 46 + 4
+    ans_str = "____" if blank else str(x_val)
+    parts.append(f'<text x="{ox}" y="{ty+14}" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">Total = {total}   so   {count}x + {sum(offsets)} = {total},  x = {ans_str}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{count} {desc} add to {total}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -4775,6 +4906,9 @@ SVG_DIAGRAM_FUNCTIONS = {
     "scale_comparison": scale_comparison_svg,
     "word_to_expression": word_to_expression_svg,
     "single_bracket_area": single_bracket_area_svg,
+    "solve_equation_ladder": solve_equation_ladder_svg,
+    "inverse_machine": inverse_machine_svg,
+    "consecutive_bar": consecutive_bar_svg,
 }
 
 

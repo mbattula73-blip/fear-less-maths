@@ -17571,6 +17571,162 @@ for _l11_key in list(_DISPATCH.keys()):
     if _l11_key.startswith("11") and not _l11_key[2:3].isdigit():
         _DISPATCH[_l11_key] = {sheet: _l11_wrap(fn, _l11_key) for sheet, fn in _DISPATCH[_l11_key].items()}
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 12 auto-visualizer: gives every Level 12 (Algebra -- Equations)
+# question a matching diagram, inferred from its own text/numbers.
+# First 2 diagrams per sheet worked (demo), rest blank scaffolds.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l12_re
+
+
+def _l12_infer_diagram(text, sublevel_code=""):
+    t = text
+    # --- consecutive integers / even / odd ---
+    m = _l12_re.search(r'([Ss]um of (?:two|three|2|3) consecutive (even |odd )?numbers?) (?:is|=) (\d+)', t)
+    if m:
+        even_odd = (m.group(2) or "").strip()
+        total = int(m.group(3))
+        count = 3 if "three" in t.lower() or "3 " in t else 2
+        step = 2 if even_odd in ("even", "odd") else 1
+        kind = even_odd if even_odd else "integer"
+        return "consecutive_bar", {"count": count, "step": step, "total": total, "kind": kind}
+    m = _l12_re.search(r'x \+ \(x\+1\)(?: \+ \(x\+2\))? = (\d+)', t)
+    if m:
+        total = int(m.group(1))
+        count = 3 if "(x+2)" in t else 2
+        return "consecutive_bar", {"count": count, "step": 1, "total": total, "kind": "integer"}
+    m = _l12_re.search(r'x \+ \(x\+2\) = (\d+)', t)
+    if m:
+        return "consecutive_bar", {"count": 2, "step": 2, "total": int(m.group(1)), "kind": "even"}
+    # --- two-variable pair (graphical) ---
+    m = _l12_re.search(r'(-?\d*)x\s*([+-])\s*(\d*)y\s*=\s*(-?\d+).*?(-?\d*)x\s*([+-])\s*(\d*)y\s*=\s*(-?\d+)', t)
+    if m:
+        def _co(s, sign):
+            v = 1 if s == "" else int(s)
+            return v if sign == "+" else -v
+        a1 = 1 if m.group(1) in ("", "-") else int(m.group(1))
+        if m.group(1) == "-":
+            a1 = -1
+        b1 = _co(m.group(3), m.group(2))
+        c1 = int(m.group(4))
+        a2 = 1 if m.group(5) in ("", "-") else int(m.group(5))
+        if m.group(5) == "-":
+            a2 = -1
+        b2 = _co(m.group(7), m.group(6))
+        c2 = int(m.group(8))
+        return "two_line_graph", {"a1": a1, "b1": b1, "c1": c1, "a2": a2, "b2": b2, "c2": c2}
+    # --- single line graph / intercepts ---
+    m = _l12_re.search(r'(?:Graph|For|graph)\s+(-?\d*)x\s*([+-])\s*(\d*)y\s*=\s*(-?\d+)', t)
+    if m:
+        a = 1 if m.group(1) in ("", "-") else int(m.group(1))
+        if m.group(1) == "-":
+            a = -1
+        bv = 1 if m.group(3) == "" else int(m.group(3))
+        b = bv if m.group(2) == "+" else -bv
+        c = int(m.group(4))
+        return "linear_equation_graph", {"a": a, "b": b, "c": c}
+    # --- word-form: "twice a number ... N" / "three times ... N" ---
+    m = _l12_re.search(r'2x\s*([+-])\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        op, b, total = m.group(1), int(m.group(2)), int(m.group(3))
+        return "inverse_machine", {"a": 2, "b": b, "op": op, "total": total}
+    m = _l12_re.search(r'3x\s*([+-])\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        op, b, total = m.group(1), int(m.group(2)), int(m.group(3))
+        return "inverse_machine", {"a": 3, "b": b, "op": op, "total": total}
+    m = _l12_re.search(r'5x\s*([+-])\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        op, b, total = m.group(1), int(m.group(2)), int(m.group(3))
+        return "inverse_machine", {"a": 5, "b": b, "op": op, "total": total}
+    # --- two-step equation: ax + b = total ---
+    m = _l12_re.search(r'(\d+)x\s*([+-])\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        a, op, b, total = int(m.group(1)), m.group(2), int(m.group(3)), int(m.group(4))
+        if sublevel_code.startswith(("12C", "12I")):
+            return "solve_equation_ladder", {"a": a, "b": b, "op": op, "total": total}
+        return "inverse_machine", {"a": a, "b": b, "op": op, "total": total}
+    # --- one-step: ax = total ---
+    m = _l12_re.search(r'(\d+)x\s*=\s*(\d+)', t)
+    if m:
+        a, total = int(m.group(1)), int(m.group(2))
+        return "balance_scale", {"left_text": f"{a}x", "right_text": str(total)}
+    # --- one-step: x + b = total / x - b = total ---
+    m = _l12_re.search(r'\bx\s*([+-])\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        op, b, total = m.group(1), int(m.group(2)), int(m.group(3))
+        return "balance_scale", {"left_text": f"x {op} {b}", "right_text": str(total)}
+    # --- x/n = total ---
+    m = _l12_re.search(r'x\s*/\s*(\d+)\s*=\s*(\d+)', t)
+    if m:
+        n, total = int(m.group(1)), int(m.group(2))
+        return "balance_scale", {"left_text": f"x/{n}", "right_text": str(total)}
+    # --- "left side / right side" identification ---
+    m = _l12_re.search(r'In (.+?)=(.+?), the (left|right) side', t)
+    if m:
+        left, right = m.group(1).strip(), m.group(2).strip()
+        return "balance_scale", {"left_text": left, "right_text": right}
+    return None
+
+
+_L12_FAMILY_FALLBACK = {
+    "12A": ("balance_scale", {"left_text": "x + 3", "right_text": "7"}),
+    "12B": ("balance_scale", {"left_text": "x + 4", "right_text": "9"}),
+    "12C": ("solve_equation_ladder", {"a": 2, "b": 3, "op": "+", "total": 11}),
+    "12CUM1": ("linear_equation_graph", {"a": 1, "b": 1, "c": 6}),
+    "12D": ("balance_scale", {"left_text": "x + 3", "right_text": "10"}),
+    "12E": ("balance_scale", {"left_text": "2x", "right_text": "12"}),
+    "12F": ("inverse_machine", {"a": 2, "b": 1, "op": "+", "total": 13}),
+    "12CUM2": ("two_line_graph", {"a1": 1, "b1": 1, "c1": 6, "a2": 1, "b2": -1, "c2": 2}),
+    "12G": ("two_line_graph", {"a1": 1, "b1": 1, "c1": 6, "a2": 1, "b2": -1, "c2": 2}),
+    "12H": ("balance_scale", {"left_text": "2x", "right_text": "10"}),
+    "12I": ("inverse_machine", {"a": 2, "b": 5, "op": "+", "total": 17}),
+    "12CUM3": ("two_line_graph", {"a1": 1, "b1": 1, "c1": 6, "a2": 2, "b2": 2, "c2": 8}),
+    "12J": ("two_line_graph", {"a1": 2, "b1": 1, "c1": 8, "a2": 1, "b2": -1, "c2": 1}),
+    "12REV": ("balance_scale", {"left_text": "x + 3", "right_text": "7"}),
+}
+
+
+def _l12_fallback(sublevel_code):
+    for key in sorted(_L12_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L12_FAMILY_FALLBACK[key]
+    return ("balance_scale", {"left_text": "x + 3", "right_text": "7"})
+
+
+def _l12_visualize(items, sublevel_code):
+    fb_type, fb_params = _l12_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l12_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l12_wrap(fn, sublevel_code):
+    return lambda: _l12_visualize(fn(), sublevel_code)
+
+
+for _l12_key in list(_DISPATCH.keys()):
+    if _l12_key.startswith("12") and not _l12_key[2:3].isdigit():
+        _DISPATCH[_l12_key] = {sheet: _l12_wrap(fn, _l12_key) for sheet, fn in _DISPATCH[_l12_key].items()}
+
 def _fallback(code, sheet):
     """Placeholder for levels not yet written — makes app never crash."""
     return [
