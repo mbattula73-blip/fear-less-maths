@@ -18130,6 +18130,13 @@ try:
 except Exception as _e:
     pass
 
+# Merge in Level 26 (Number Systems) content from content_l26.py
+try:
+    from content_l26 import DISPATCH_L26
+    _DISPATCH.update(DISPATCH_L26)
+except Exception as _e:
+    pass
+
 # Merge in Pre-Level (Pre-Primary counting & number sense) content from content_pre.py
 try:
     from content_pre import PRE_DISPATCH

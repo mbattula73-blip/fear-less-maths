@@ -6002,6 +6002,172 @@ def area_same_base_svg(base=8, height=5, shape="para_para", blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def number_hierarchy_svg(number="5", memberships=None, blank=False, **kw):
+    """Nested-set diagram: R contains Q contains Z contains W contains N,
+    drawn as concentric rounded rectangles, with the given number placed
+    in the innermost set it belongs to (Irrationals sit inside R but
+    outside Q, drawn as a separate lobe). blank=True hides which sets
+    are highlighted, leaving just the empty nested diagram to fill in."""
+    memberships = memberships or []
+    w_svg, h_svg = 420, 340
+    sets = [
+        ("R — Real Numbers", 380, 300, "#EAF4FC", "#1B5E8C"),
+        ("Q — Rational Numbers", 290, 220, "#E7F8ED", "#1E7A44"),
+        ("Z — Integers", 210, 155, "#FFF8E1", "#9A7209"),
+        ("W — Whole Numbers", 145, 100, "#FDEDEB", "#A6362B"),
+        ("N — Natural Numbers", 85, 55, "#F3E9F8", "#7D3C98"),
+    ]
+    cx, cy = w_svg / 2 - 30, h_svg / 2 + 10
+    parts = []
+    for label, bw, bh, fill, stroke in sets:
+        parts.append(f'<rect x="{cx-bw/2:.1f}" y="{cy-bh/2:.1f}" width="{bw}" height="{bh}" rx="18" fill="{fill}" opacity="0.85" stroke="{stroke}" stroke-width="2"/>')
+        parts.append(f'<text x="{cx-bw/2+8:.1f}" y="{cy-bh/2+16:.1f}" font-family="Helvetica-Bold" font-size="11" fill="{stroke}">{label}</text>')
+    # irrational lobe: a circle overlapping R but outside Q
+    irr_cx, irr_cy = cx + 130, cy - 90
+    parts.append(f'<circle cx="{irr_cx}" cy="{irr_cy}" r="46" fill="#FDF2E9" opacity="0.9" stroke="#B8860B" stroke-width="2"/>')
+    parts.append(f'<text x="{irr_cx-40:.1f}" y="{irr_cy-30:.1f}" font-family="Helvetica-Bold" font-size="10.5" fill="#B8860B">Irrationals</text>')
+    if not blank:
+        is_irr = "irrational" in memberships
+        px, py = (irr_cx, irr_cy) if is_irr else (cx, cy + 5)
+        parts.append(f'<circle cx="{px}" cy="{py}" r="6" fill="#A6362B" stroke="white" stroke-width="1.5"/>')
+        parts.append(f'<text x="{px+10:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{number}</text>')
+        title = f"Where does {number} belong?"
+    else:
+        title = "Place the number in its smallest matching set"
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#2C3E50">{title}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def closure_test_svg(a=3, b=5, op="-", set_name="N", blank=False, **kw):
+    """Shows a op b computed, with a check or cross marking whether the
+    result stays inside the named set -- the visual for testing closure
+    (Level 26A). blank=True hides the result and the verdict mark."""
+    a_s, b_s = str(a), str(b)
+    try:
+        av, bv = float(a), float(b)
+        result = {"+": av + bv, "-": av - bv, "×": av * bv, "÷": (av / bv if bv else None)}[op]
+    except Exception:
+        result = None
+    in_set = {
+        "N": lambda x: x is not None and x == int(x) and x >= 1,
+        "W": lambda x: x is not None and x == int(x) and x >= 0,
+        "Z": lambda x: x is not None and x == int(x),
+        "Q": lambda x: x is not None,
+    }.get(set_name, lambda x: True)
+    stays = result is not None and in_set(result)
+    w_svg, h_svg = 360, 200
+    parts = []
+    parts.append(f'<rect x="30" y="60" width="300" height="60" rx="10" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    res_str = "?" if blank else (f"{result:g}" if result is not None else "undefined")
+    parts.append(f'<text x="{w_svg/2}" y="97" text-anchor="middle" font-family="Helvetica-Bold" font-size="20" fill="#2C3E50">{a_s} {op} {b_s} = {res_str}</text>')
+    if not blank:
+        mark = "\u2713" if stays else "\u2717"
+        mcolor = "#1E7A44" if stays else "#A6362B"
+        parts.append(f'<circle cx="{w_svg-30:.1f}" cy="60" r="18" fill="{mcolor}" opacity="0.15" stroke="{mcolor}" stroke-width="2"/>')
+        parts.append(f'<text x="{w_svg-30:.1f}" y="67" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="{mcolor}">{mark}</text>')
+        verdict = f"Stays in {set_name}" if stays else f"Leaves {set_name}!"
+        parts.append(f'<text x="{w_svg/2}" y="150" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="{mcolor}">{verdict}</text>')
+    else:
+        parts.append(f'<text x="{w_svg/2}" y="150" text-anchor="middle" font-family="Helvetica" font-size="12" fill="#5D6D7E">Compute the result -- does it stay in {set_name}?</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="26" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Closure test: is {set_name} closed under \u201c{op}\u201d?</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_expansion_svg(num=1, den=8, blank=False, **kw):
+    """Shows a fraction's denominator prime-factorised to predict its
+    decimal expansion type: only 2s/5s -> terminating; anything else ->
+    recurring -- then the actual expansion. blank=True hides the
+    expansion and verdict, keeping the factorisation prompt."""
+    from fractions import Fraction
+    num, den = int(num), int(den)
+    d = den
+    factors = []
+    for p in (2, 5):
+        while d % p == 0:
+            factors.append(p)
+            d //= p
+    other = d
+    terminating = (other == 1)
+    w_svg, h_svg = 380, 220
+    parts = []
+    fact_str = " x ".join(str(f) for f in factors) if factors else "1"
+    if other > 1:
+        fact_str += f" x {other}" if factors else str(other)
+    parts.append(f'<text x="{w_svg/2}" y="70" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">{num}/{den}</text>')
+    parts.append(f'<text x="{w_svg/2}" y="98" text-anchor="middle" font-family="Helvetica" font-size="13" fill="#1B5E8C">denominator = {fact_str}</text>')
+    if blank:
+        cap1 = "Only 2s and 5s -> TERMINATING.  Any other prime -> RECURRING."
+        cap2 = "Which is it here?"
+    else:
+        dec = num / den
+        dec_str = f"{dec:.6g}"
+        verdict = "TERMINATING" if terminating else "RECURRING"
+        vcolor = "#1E7A44" if terminating else "#A6362B"
+        parts.append(f'<text x="{w_svg/2}" y="130" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="{vcolor}">{verdict}</text>')
+        cap1 = f"{num}/{den} = {dec_str}{'...' if not terminating else ''}"
+        cap2 = "Only 2s and 5s in the denominator -> terminating."
+    parts.append(f'<text x="{w_svg/2}" y="165" text-anchor="middle" font-family="Helvetica" font-size="11.5" fill="#5D6D7E">{cap1}</text>')
+    parts.append(f'<text x="{w_svg/2}" y="184" text-anchor="middle" font-family="Helvetica" font-size="11.5" fill="#5D6D7E">{cap2}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="26" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Predict the decimal expansion</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def recurring_to_fraction_svg(digits="3", period_len=1, blank=False, **kw):
+    """The standard algebra ladder for converting a recurring decimal to
+    a fraction: x = 0.dRR..., multiply by 10^period, subtract, solve
+    (Level 26 CUM1). blank=True keeps the setup line and blanks the
+    solving steps."""
+    period_len = int(period_len)
+    mult = 10 ** period_len
+    lines_worked = [
+        f"x = 0.{digits}{digits[-period_len:]}...",
+        f"{mult}x = {digits}.{digits[-period_len:]}...",
+        f"{mult}x - x = {digits}.{digits[-period_len:]}... - 0.{digits}{digits[-period_len:]}...",
+        f"{mult-1}x = {int(digits)}",
+        f"x = {int(digits)}/{mult-1}",
+    ]
+    lines_blank = [lines_worked[0], "____", "____", "____", "x = ____"]
+    lines = lines_blank if blank else lines_worked
+    w_svg, row_h = 400, 34
+    h_svg = 60 + row_h * len(lines) + 20
+    ox, oy = 30, 70
+    parts = []
+    for i, line in enumerate(lines):
+        parts.append(f'<text x="{ox}" y="{oy+i*row_h:.1f}" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{line}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Recurring decimal -&gt; fraction</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def rationalize_steps_svg(kind="single", a=1, b=3, c=None, blank=False, **kw):
+    """Shows the multiply-by-conjugate steps for rationalising a
+    denominator: kind='single' for 1/sqrt(b), kind='binomial' for
+    1/(a+sqrt(c)) or 1/(sqrt(b)+sqrt(c)) (Level 26G/26H). blank=True
+    keeps the starting expression and hides the worked steps."""
+    import math as _m
+    a, b = int(a), int(b)
+    w_svg, h_svg = 400, 200
+    parts = []
+    if kind == "single":
+        start = f"1 / \u221a{b}"
+        mult = f"\u221a{b} / \u221a{b}"
+        result = f"\u221a{b} / {b}"
+    else:
+        c = int(c) if c is not None else 2
+        start = f"1 / ({a} + \u221a{c})"
+        mult = f"({a} - \u221a{c}) / ({a} - \u221a{c})"
+        denom = a * a - c
+        result = f"({a} - \u221a{c}) / {denom}"
+    parts.append(f'<text x="30" y="70" font-family="Helvetica-Bold" font-size="17" fill="#2C3E50">{start}</text>')
+    if blank:
+        parts.append(f'<text x="30" y="112" font-family="Helvetica" font-size="13" fill="#5D6D7E">Multiply top and bottom by the conjugate...</text>')
+        parts.append(f'<text x="30" y="150" font-family="Helvetica-Bold" font-size="15" fill="#5D6D7E">= ____</text>')
+    else:
+        parts.append(f'<text x="30" y="112" font-family="Helvetica" font-size="13" fill="#A6362B">x   {mult}</text>')
+        parts.append(f'<text x="30" y="150" font-family="Helvetica-Bold" font-size="17" fill="#1E7A44">= {result}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="28" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Rationalise the denominator</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6091,6 +6257,11 @@ SVG_DIAGRAM_FUNCTIONS = {
     "midpoint_theorem": midpoint_theorem_svg,
     "pythagoras": pythagoras_svg,
     "area_same_base": area_same_base_svg,
+    "number_hierarchy": number_hierarchy_svg,
+    "closure_test": closure_test_svg,
+    "decimal_expansion": decimal_expansion_svg,
+    "recurring_to_fraction": recurring_to_fraction_svg,
+    "rationalize_steps": rationalize_steps_svg,
 }
 
 

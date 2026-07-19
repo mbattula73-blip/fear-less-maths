@@ -27,6 +27,7 @@ LEVELS = {
     18: {"name": "Mensuration"},
     19: {"name": "Trigonometry"},
     20: {"name": "Statistics, Probability & AP"},
+    26: {"name": "Number Systems"},
 }
 
 SUBLEVELS = {
@@ -228,6 +229,11 @@ SUBLEVELS = {
          ("20F","Mode"),("20CUM2","Mixed D+E+F"),("20G","Probability basics"),
          ("20H","Probability problems"),("20I","Mixed statistics & probability"),("20CUM3","Mixed G+H+I"),
          ("20J","Grand challenge"),("20REV","Level 20 Revision")],
+    26: [("26A","Natural, Whole & Integers"),("26B","Rational numbers"),("26C","Decimal expansions"),
+         ("26CUM1","Recurring decimal to fraction"),("26D","Irrational numbers"),("26E","The real number line"),
+         ("26CUM2","Review B-E"),("26F","Surds — simplifying"),("26G","Rationalising (single term)"),
+         ("26H","Rationalising (binomial/conjugate)"),("26CUM3","Mixed review F/G/H"),("26I","Laws of exponents for real numbers"),
+         ("26J","Word problems"),("26REV","Level 26 Revision")],
 }
 
 SHEET_OPTIONS = [

@@ -364,7 +364,9 @@ class Col:
                                                "bpt_triangle", "triangle_classify", "angle_sum_triangle",
                                                "congruence", "triangle_inequality", "isosceles_theorem",
                                                "similar_triangles", "midpoint_theorem", "pythagoras",
-                                               "area_same_base")
+                                               "area_same_base", "number_hierarchy", "closure_test",
+                                               "decimal_expansion", "recurring_to_fraction", "rationalize_steps",
+                                               "surd_simplify_tree", "index_law_visual")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)
