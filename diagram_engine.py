@@ -3615,10 +3615,11 @@ def points_lines_rays_svg(**kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def angle_pair_svg(kind="complementary", a1=35, **kw):
+def angle_pair_svg(kind="complementary", a1=35, blank=False, **kw):
     """Illustrates a pair of angles: complementary (sum 90, right-angle
     mark), supplementary/linear pair (sum 180, straight line), or
-    vertical (two crossing lines, opposite angles equal)."""
+    vertical (two crossing lines, opposite angles equal). blank=True
+    hides the second (derived) angle's value."""
     import math as _m
     w, h = 320, 260
     cx, cy = 160, 190
@@ -3632,17 +3633,19 @@ def angle_pair_svg(kind="complementary", a1=35, **kw):
         parts.append(f'<line x1="{cx}" y1="{cy}" x2="{mx:.1f}" y2="{my:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
         parts.append(f'<rect x="{cx}" y="{cy-14}" width="14" height="14" fill="none" stroke="#7F8C8D" stroke-width="1.5"/>')
         parts.append(f'<text x="{cx+38:.1f}" y="{cy-18}" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{a1}°</text>')
-        parts.append(f'<text x="{cx+12}" y="{cy-60}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{90-a1}°</text>')
-        cap = f"{a1}° + {90-a1}° = 90°  (Complementary)"
+        other_str = "?" if blank else f"{90-a1}°"
+        parts.append(f'<text x="{cx+12}" y="{cy-60}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{other_str}</text>')
+        cap = f"{a1}° + ? = 90°  (Complementary)" if blank else f"{a1}° + {90-a1}° = 90°  (Complementary)"
     elif kind in ("supplementary", "linear"):
         parts.append(f'<line x1="{cx-r}" y1="{cy}" x2="{cx+r}" y2="{cy}" stroke="#2C3E50" stroke-width="2.5"/>')
         rad = _m.radians(a1)
         mx, my = cx + r * _m.cos(rad), cy - r * _m.sin(rad)
         parts.append(f'<line x1="{cx}" y1="{cy}" x2="{mx:.1f}" y2="{my:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
         parts.append(f'<text x="{cx+42:.1f}" y="{cy-22}" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">{a1}°</text>')
-        parts.append(f'<text x="{cx-56}" y="{cy-22}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{180-a1}°</text>')
+        other_str = "?" if blank else f"{180-a1}°"
+        parts.append(f'<text x="{cx-56}" y="{cy-22}" font-family="Helvetica-Bold" font-size="14" fill="#1E7A44">{other_str}</text>')
         nm = "Linear Pair" if kind == "linear" else "Supplementary"
-        cap = f"{a1}° + {180-a1}° = 180°  ({nm})"
+        cap = f"{a1}° + ? = 180°  ({nm})" if blank else f"{a1}° + {180-a1}° = 180°  ({nm})"
     else:
         rad1 = _m.radians(a1)
         x1, y1 = cx + r * _m.cos(rad1), cy - r * _m.sin(rad1)
@@ -3687,9 +3690,10 @@ def transversal_angles_svg(**kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def bpt_triangle_svg(ad=4, db=2, ae=6, ec=3, **kw):
+def bpt_triangle_svg(ad=4, db=2, ae=6, ec=3, blank=False, **kw):
     """Triangle with DE parallel to BC (D on AB, E on AC), illustrating
-    the Basic Proportionality Theorem: AD/DB = AE/EC."""
+    the Basic Proportionality Theorem: AD/DB = AE/EC. blank=True hides
+    the EC label (the usual unknown), keeping AD/DB/AE visible."""
     w, h = 320, 300
     ax, ay = 160, 45
     bx, by = 40, 260
@@ -3712,7 +3716,8 @@ def bpt_triangle_svg(ad=4, db=2, ae=6, ec=3, **kw):
     parts.append(f'<text x="{(ax+dx)/2-20:.1f}" y="{(ay+dy)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ad}</text>')
     parts.append(f'<text x="{(dx+bx)/2-20:.1f}" y="{(dy+by)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{db}</text>')
     parts.append(f'<text x="{(ax+ex)/2+10:.1f}" y="{(ay+ey)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ae}</text>')
-    parts.append(f'<text x="{(ex+cx)/2+10:.1f}" y="{(ey+cy)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ec}</text>')
+    ec_str = "?" if blank else str(ec)
+    parts.append(f'<text x="{(ex+cx)/2+10:.1f}" y="{(ey+cy)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{ec_str}</text>')
     parts.insert(0, f'<text x="{w/2}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">DE || BC:  AD/DB = AE/EC</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
@@ -5589,6 +5594,414 @@ def slope_intercept_anatomy_svg(m=2, c=1, blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 {size} {size}">' + "".join(parts) + "</svg>"
 
 
+def _triangle_pts(kind="scalene", w=300, h=240, top_pad=50, side_pad=40):
+    """Returns (A,B,C) pixel points for a triangle of the given family,
+    shaped to visually match its type (used across several Level 16
+    diagrams so the picture always matches the label)."""
+    bx0, by = side_pad, h - 30
+    bx1 = w - side_pad
+    if kind == "equilateral":
+        apex_x = (bx0 + bx1) / 2
+    elif kind == "isosceles":
+        apex_x = (bx0 + bx1) / 2
+    elif kind == "right":
+        apex_x = bx0
+    elif kind == "obtuse":
+        apex_x = bx0 - 30
+    else:  # scalene
+        apex_x = bx0 + (bx1 - bx0) * 0.38
+    apex_y = top_pad
+    return (apex_x, apex_y), (bx0, by), (bx1, by)
+
+
+def triangle_classify_svg(angles=None, sides=None, blank=False, **kw):
+    """Draws a triangle shaped to match the given angles/sides, with
+    tick marks on equal sides and arc marks on equal/right angles, and
+    classifies it both ways (by angle: acute/right/obtuse; by side:
+    equilateral/isosceles/scalene) (Level 16 CUM1). blank=True hides
+    the classification words, leaving only the marked-up picture."""
+    angles = angles or [60, 60, 60]
+    sides = sides or None
+    a1, a2, a3 = angles
+    if max(angles) > 90:
+        kind = "obtuse"; ang_label = "OBTUSE"
+    elif max(angles) == 90:
+        kind = "right"; ang_label = "RIGHT"
+    else:
+        kind = "acute"; ang_label = "ACUTE"
+    if sides:
+        s1, s2, s3 = sides
+        if s1 == s2 == s3:
+            side_label = "EQUILATERAL"; shape_kind = "equilateral"
+        elif s1 == s2 or s2 == s3 or s1 == s3:
+            side_label = "ISOSCELES"; shape_kind = "isosceles"
+        else:
+            side_label = "SCALENE"; shape_kind = "scalene"
+    else:
+        side_label = None
+        shape_kind = "right" if kind == "right" else ("equilateral" if a1 == a2 == a3 else "scalene")
+    w, h = 320, 280
+    A, B, C = _triangle_pts(shape_kind, w, h)
+    parts = []
+    parts.append(f'<polygon points="{A[0]:.1f},{A[1]:.1f} {B[0]:.1f},{B[1]:.1f} {C[0]:.1f},{C[1]:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    # angle labels at each vertex
+    for (pt, ang, name) in [(A, a1, "A"), (B, a2, "B"), (C, a3, "C")]:
+        parts.append(f'<text x="{pt[0]:.1f}" y="{pt[1]+(20 if pt is not A else -12):.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{ang}°</text>')
+    if sides:
+        mids = [((B[0]+C[0])/2, (B[1]+C[1])/2+16), ((A[0]+C[0])/2+14, (A[1]+C[1])/2), ((A[0]+B[0])/2-14, (A[1]+B[1])/2)]
+        for (mx, my), sv in zip(mids, [sides[0], sides[1], sides[2]]):
+            parts.append(f'<text x="{mx:.1f}" y="{my:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{sv}</text>')
+    if blank:
+        cap = "Classify by angle AND by side."
+    else:
+        cap = f"By angle: {ang_label}" + (f"   |   By side: {side_label}" if side_label else "")
+    parts.insert(0, f'<text x="{w/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def angle_sum_triangle_svg(a=60, b=70, mode="sum", blank=False, **kw):
+    """A triangle with two interior angles labelled and the third left
+    for the student (mode='sum': third interior angle via 180° sum), OR
+    an exterior-angle diagram where the exterior angle at one vertex is
+    shown equal to the sum of the two remote interior angles
+    (mode='exterior') (Level 16 CUM1). blank=True hides the computed
+    value only -- the given angles always stay visible."""
+    a, b = int(a), int(b)
+    c = 180 - a - b
+    w, h = 320, 280
+    kind = "obtuse" if max(a, b, c) > 90 else ("right" if max(a, b, c) == 90 else "acute")
+    A, B, C = _triangle_pts(kind, w, h)
+    parts = []
+    parts.append(f'<polygon points="{A[0]:.1f},{A[1]:.1f} {B[0]:.1f},{B[1]:.1f} {C[0]:.1f},{C[1]:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<text x="{A[0]:.1f}" y="{A[1]-12:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{a}°</text>')
+    parts.append(f'<text x="{B[0]+14:.1f}" y="{B[1]+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{b}°</text>')
+    c_str = "?" if blank else f"{c}°"
+    if mode == "exterior":
+        # extend BC beyond C to show the exterior angle at C
+        ext_x = C[0] + (C[0] - B[0]) * 0.5
+        ext_y = C[1] + (C[1] - B[1]) * 0.5
+        parts.append(f'<line x1="{B[0]:.1f}" y1="{B[1]:.1f}" x2="{ext_x:.1f}" y2="{ext_y:.1f}" stroke="#1B5E8C" stroke-width="2" stroke-dasharray="5,3"/>')
+        ext_val = a + b
+        ext_str = "?" if blank else f"{ext_val}°"
+        parts.append(f'<text x="{C[0]-10:.1f}" y="{C[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#7D3C98">{c_str}</text>')
+        parts.append(f'<text x="{ext_x+14:.1f}" y="{ext_y-2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{ext_str}</text>')
+        cap = f"Exterior angle = {a}° + {b}° = {ext_str}  (remote interior angles)" if not blank else "Exterior angle = sum of the two remote interior angles"
+    else:
+        parts.append(f'<text x="{C[0]:.1f}" y="{C[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#7D3C98">{c_str}</text>')
+        cap = f"{a}° + {b}° + {c_str} = 180°" if not blank else f"{a}° + {b}° + ? = 180°"
+    parts.insert(0, f'<text x="{w/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def congruence_svg(rule="SAS", blank=False, **kw):
+    """Two triangles side by side with the matching parts marked
+    exactly as the given congruence rule requires: tick marks (single/
+    double/triple) on equal sides, arc marks on equal angles, a square
+    for the right angle in RHS. This is the picture that makes 'which
+    parts must match' concrete (Level 16D). blank=True removes the rule
+    name from the caption, leaving only the marks for the student to
+    read off the rule."""
+    w, h = 420, 240
+    gap = 210
+    def tri(ox):
+        A = (ox + 70, 40)
+        B = (ox, 200)
+        C = (ox + 150, 200)
+        return A, B, C
+    A1, B1, C1 = tri(20)
+    A2, B2, C2 = tri(20 + gap)
+    parts = []
+
+    def draw(A, B, C, color):
+        return f'<polygon points="{A[0]},{A[1]} {B[0]},{B[1]} {C[0]},{C[1]}" fill="#EAF4FC" stroke="{color}" stroke-width="2.5"/>'
+
+    def tick(P, Q, n, color, offset=0.5):
+        mx, my = P[0] + (Q[0]-P[0])*offset, P[1] + (Q[1]-P[1])*offset
+        import math as _m
+        dx, dy = Q[0]-P[0], Q[1]-P[1]
+        ln = _m.hypot(dx, dy) or 1
+        nx, ny = -dy/ln, dx/ln
+        out = []
+        for k in range(n):
+            off_along = (k - (n-1)/2) * 7
+            px, py = mx + (dx/ln)*off_along, my + (dy/ln)*off_along
+            out.append(f'<line x1="{px-nx*5:.1f}" y1="{py-ny*5:.1f}" x2="{px+nx*5:.1f}" y2="{py+ny*5:.1f}" stroke="{color}" stroke-width="2"/>')
+        return "".join(out)
+
+    parts.append(draw(A1, B1, C1, "#1B5E8C"))
+    parts.append(draw(A2, B2, C2, "#A6362B"))
+    for (P, lbl) in [(A1, "A"), (B1, "B"), (C1, "C")]:
+        parts.append(f'<text x="{P[0]:.1f}" y="{P[1]+(-8 if P[1]<100 else 16):.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">{lbl}</text>')
+    for (P, lbl) in [(A2, "D"), (B2, "E"), (C2, "F")]:
+        parts.append(f'<text x="{P[0]:.1f}" y="{P[1]+(-8 if P[1]<100 else 16):.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{lbl}</text>')
+
+    mark_color = "#1E7A44"
+    if rule == "SSS":
+        for n, (P1, Q1, P2, Q2) in enumerate([(A1,B1,A2,B2), (B1,C1,B2,C2), (A1,C1,A2,C2)], start=1):
+            parts.append(tick(P1, Q1, n, mark_color)); parts.append(tick(P2, Q2, n, mark_color))
+    elif rule == "SAS":
+        parts.append(tick(A1, B1, 1, mark_color)); parts.append(tick(A2, B2, 1, mark_color))
+        parts.append(tick(A1, C1, 2, mark_color)); parts.append(tick(A2, C2, 2, mark_color))
+        parts.append(f'<path d="M {A1[0]-14:.1f} {A1[1]+18:.1f} Q {A1[0]:.1f} {A1[1]+8:.1f} {A1[0]+14:.1f} {A1[1]+18:.1f}" fill="none" stroke="#7D3C98" stroke-width="2"/>')
+        parts.append(f'<path d="M {A2[0]-14:.1f} {A2[1]+18:.1f} Q {A2[0]:.1f} {A2[1]+8:.1f} {A2[0]+14:.1f} {A2[1]+18:.1f}" fill="none" stroke="#7D3C98" stroke-width="2"/>')
+    elif rule in ("ASA", "AAS"):
+        parts.append(f'<path d="M {B1[0]+10:.1f} {B1[1]-18:.1f} Q {B1[0]+18:.1f} {B1[1]-8:.1f} {B1[0]+22:.1f} {B1[1]-2:.1f}" fill="none" stroke="#7D3C98" stroke-width="2"/>')
+        parts.append(f'<path d="M {B2[0]+10:.1f} {B2[1]-18:.1f} Q {B2[0]+18:.1f} {B2[1]-8:.1f} {B2[0]+22:.1f} {B2[1]-2:.1f}" fill="none" stroke="#7D3C98" stroke-width="2"/>')
+        parts.append(f'<path d="M {C1[0]-22:.1f} {C1[1]-2:.1f} Q {C1[0]-18:.1f} {C1[1]-8:.1f} {C1[0]-10:.1f} {C1[1]-18:.1f}" fill="none" stroke="#B8860B" stroke-width="2"/>')
+        parts.append(f'<path d="M {C2[0]-22:.1f} {C2[1]-2:.1f} Q {C2[0]-18:.1f} {C2[1]-8:.1f} {C2[0]-10:.1f} {C2[1]-18:.1f}" fill="none" stroke="#B8860B" stroke-width="2"/>')
+        parts.append(tick(B1, C1, 1, mark_color)); parts.append(tick(B2, C2, 1, mark_color))
+    elif rule == "RHS":
+        for (P, Q, R) in [(A1, B1, C1), (A2, B2, C2)]:
+            sx = 1 if R[0] > P[0] else -1
+            parts.append(f'<rect x="{P[0]-2:.1f}" y="{P[1]-2:.1f}" width="10" height="10" fill="none" stroke="#B8860B" stroke-width="1.6"/>')
+        parts.append(tick(B1, C1, 1, mark_color)); parts.append(tick(B2, C2, 1, mark_color))
+        parts.append(tick(A1, B1, 2, mark_color)); parts.append(tick(A2, B2, 2, mark_color))
+
+    if blank:
+        cap = "Which parts are marked equal? Name the congruence rule."
+    else:
+        cap = f"Marked parts match the {rule} rule -- so Triangle ABC = Triangle DEF"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def triangle_inequality_svg(a=3, b=4, c=5, blank=False, **kw):
+    """Shows the three side lengths as bars, with the two shorter ones
+    stacked to compare against the longest -- makes the triangle
+    inequality check (sum of two smaller sides vs the largest) visual
+    instead of purely arithmetic (Level 16E). blank=True hides the
+    verdict, keeping the bars and the given lengths."""
+    a, b, c = float(a), float(b), float(c)
+    s1, s2, s3 = sorted([a, b, c])  # s1<=s2<=s3
+    valid = (s1 + s2) > s3
+    w, h = 360, 220
+    unit = min(280 / max(s1+s2, s3), 30)
+    bar_h = 26
+    parts = []
+    y1 = 50
+    parts.append(f'<rect x="40" y="{y1}" width="{s1*unit:.1f}" height="{bar_h}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<text x="{40+s1*unit/2:.1f}" y="{y1+bar_h/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">{s1:g}</text>')
+    parts.append(f'<rect x="{40+s1*unit:.1f}" y="{y1}" width="{s2*unit:.1f}" height="{bar_h}" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2"/>')
+    parts.append(f'<text x="{40+s1*unit+s2*unit/2:.1f}" y="{y1+bar_h/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{s2:g}</text>')
+    parts.append(f'<text x="{40+(s1+s2)*unit+8:.1f}" y="{y1+bar_h/2+5:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">= {s1+s2:g} together</text>')
+    y2 = y1 + bar_h + 24
+    parts.append(f'<rect x="40" y="{y2}" width="{s3*unit:.1f}" height="{bar_h}" fill="#FDEDEB" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<text x="{40+s3*unit/2:.1f}" y="{y2+bar_h/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{s3:g} (longest side)</text>')
+    # comparison guide line at s3 length, dropped down to compare visually
+    parts.append(f'<line x1="{40+s3*unit:.1f}" y1="{y1-8:.1f}" x2="{40+s3*unit:.1f}" y2="{y2+bar_h+8:.1f}" stroke="#9AA5B1" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    if blank:
+        cap = f"Do the two shorter sides ({s1:g} + {s2:g}) beat the longest ({s3:g})?"
+    else:
+        verdict = "VALID triangle" if valid else "NOT a triangle"
+        symbol = "beats" if valid else "does not beat"
+        cap = f"{s1:g} + {s2:g} = {s1+s2:g}, which {symbol} {s3:g}  -->  {verdict}"
+    parts.insert(0, f'<text x="{w/2}" y="22" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def isosceles_theorem_svg(base_angle=65, blank=False, **kw):
+    """An isosceles triangle with the two equal sides tick-marked and
+    the two equal base angles arc-marked -- the picture behind 'angles
+    opposite equal sides are equal' (Level 16E). blank=True hides the
+    second base-angle's value, keeping the tick/arc marks (the given
+    fact) visible."""
+    base_angle = float(base_angle)
+    vertex = 180 - 2 * base_angle
+    w, h = 320, 260
+    A = (160, 40)
+    B = (50, 210)
+    C = (270, 210)
+    parts = []
+    parts.append(f'<polygon points="{A[0]},{A[1]} {B[0]},{B[1]} {C[0]},{C[1]}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for (P, Q) in [(A, B), (A, C)]:
+        mx, my = (P[0]+Q[0])/2, (P[1]+Q[1])/2
+        import math as _m
+        dx, dy = Q[0]-P[0], Q[1]-P[1]
+        ln = _m.hypot(dx, dy) or 1
+        nx, ny = -dy/ln, dx/ln
+        parts.append(f'<line x1="{mx-nx*5:.1f}" y1="{my-ny*5:.1f}" x2="{mx+nx*5:.1f}" y2="{my+ny*5:.1f}" stroke="#1E7A44" stroke-width="2.2"/>')
+    parts.append(f'<text x="{A[0]:.1f}" y="{A[1]-12:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#7D3C98">{vertex:g}°</text>')
+    parts.append(f'<text x="{B[0]+16:.1f}" y="{B[1]-6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{base_angle:g}°</text>')
+    other_str = "?" if blank else f"{base_angle:g}°"
+    parts.append(f'<text x="{C[0]-16:.1f}" y="{C[1]-6:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{other_str}</text>')
+    parts.append(f'<path d="M {B[0]+22:.1f} {B[1]:.1f} A 22 22 0 0 1 {B[0]+10:.1f} {B[1]-19:.1f}" fill="none" stroke="#B8860B" stroke-width="1.8"/>')
+    parts.append(f'<path d="M {C[0]-22:.1f} {C[1]:.1f} A 22 22 0 0 0 {C[0]-10:.1f} {C[1]-19:.1f}" fill="none" stroke="#B8860B" stroke-width="1.8"/>')
+    cap = "Equal sides (tick marks) -> equal base angles" if blank else f"Equal sides -> base angles equal: both {base_angle:g}°"
+    parts.insert(0, f'<text x="{w/2}" y="22" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def similar_triangles_svg(sides1=(3, 4, 5), k=2, blank=False, **kw):
+    """Two similar triangles drawn to true relative scale, small one
+    fully labelled, large one showing the scale factor -- makes 'same
+    shape, different size, sides in the same ratio' concrete (Level
+    16F). blank=True hides the large triangle's side lengths."""
+    a, b, c = sides1
+    k = float(k)
+    w, h = 420, 260
+    unit1 = 60 / max(a, b, c)
+    unit2 = unit1  # keep both drawn at a readable size; scale is shown by side length text, not by literal pixel scale, so the small triangle stays legible
+    A1 = (70, 60); B1 = (70 - 0, 60 + b*unit1); 
+    # build small right-ish triangle using a,b as legs for a clean look, hyp c labeled along hypotenuse
+    A1 = (70, 190)
+    B1 = (70, 190 - b*unit1)
+    C1 = (70 + a*unit1, 190)
+    scale2 = 70 + a*unit1 + 60
+    A2 = (scale2, 190)
+    B2 = (scale2, 190 - b*unit1*1.5)
+    C2 = (scale2 + a*unit1*1.5, 190)
+    parts = []
+    parts.append(f'<polygon points="{A1[0]},{A1[1]} {B1[0]},{B1[1]} {C1[0]},{C1[1]}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(f'<polygon points="{A2[0]},{A2[1]} {B2[0]},{B2[1]} {C2[0]},{C2[1]}" fill="#FDEDEB" stroke="#A6362B" stroke-width="2.5"/>')
+    parts.append(f'<text x="{(A1[0]+B1[0])/2-12:.1f}" y="{(A1[1]+B1[1])/2:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">{b:g}</text>')
+    parts.append(f'<text x="{(A1[0]+C1[0])/2:.1f}" y="{A1[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">{a:g}</text>')
+    parts.append(f'<text x="{(B1[0]+C1[0])/2+14:.1f}" y="{(B1[1]+C1[1])/2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">{c:g}</text>')
+    b2, a2v, c2v = ("?", "?", "?") if blank else (f"{b*k:g}", f"{a*k:g}", f"{c*k:g}")
+    parts.append(f'<text x="{(A2[0]+B2[0])/2-14:.1f}" y="{(A2[1]+B2[1])/2:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{b2}</text>')
+    parts.append(f'<text x="{(A2[0]+C2[0])/2:.1f}" y="{A2[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{a2v}</text>')
+    parts.append(f'<text x="{(B2[0]+C2[0])/2+16:.1f}" y="{(B2[1]+C2[1])/2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{c2v}</text>')
+    # right-angle squares to make the correspondence obvious
+    parts.append(f'<rect x="{A1[0]:.1f}" y="{A1[1]-9:.1f}" width="9" height="9" fill="none" stroke="#5D6D7E" stroke-width="1.4"/>')
+    parts.append(f'<rect x="{A2[0]:.1f}" y="{A2[1]-9:.1f}" width="9" height="9" fill="none" stroke="#5D6D7E" stroke-width="1.4"/>')
+    cap = f"Scale factor = {k:g}  --  corresponding sides all x{k:g}"
+    parts.insert(0, f'<text x="{w/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def midpoint_theorem_svg(third_side=10, blank=False, **kw):
+    """Triangle ABC with D, E the true MIDPOINTS of AB and AC, DE drawn
+    parallel to BC and visibly half its length -- the picture for the
+    Midpoint Theorem (Level 16 CUM2). blank=True hides DE's computed
+    length."""
+    third_side = float(third_side)
+    w, h = 320, 300
+    A = (160, 45); B = (40, 260); C = (280, 260)
+    D = ((A[0]+B[0])/2, (A[1]+B[1])/2)
+    E = ((A[0]+C[0])/2, (A[1]+C[1])/2)
+    parts = []
+    parts.append(f'<polygon points="{A[0]},{A[1]} {B[0]},{B[1]} {C[0]},{C[1]}" fill="none" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<line x1="{D[0]:.1f}" y1="{D[1]:.1f}" x2="{E[0]:.1f}" y2="{E[1]:.1f}" stroke="#1B5E8C" stroke-width="2.5"/>')
+    for (P, Q) in [(A, D), (D, B), (A, E), (E, C)]:
+        mx, my = (P[0]+Q[0])/2, (P[1]+Q[1])/2
+        import math as _m
+        dx, dy = Q[0]-P[0], Q[1]-P[1]
+        ln = _m.hypot(dx, dy) or 1
+        nx, ny = -dy/ln, dx/ln
+        parts.append(f'<line x1="{mx-nx*4:.1f}" y1="{my-ny*4:.1f}" x2="{mx+nx*4:.1f}" y2="{my+ny*4:.1f}" stroke="#1E7A44" stroke-width="2"/>')
+    for (P, lbl) in [(A, "A"), (B, "B"), (C, "C"), (D, "D"), (E, "E")]:
+        parts.append(f'<circle cx="{P[0]:.1f}" cy="{P[1]:.1f}" r="4" fill="#A6362B"/>')
+        ly = P[1] - 12 if lbl in ("A",) else (P[1] + 16 if lbl in ("B","C") else P[1] - 10)
+        lx = P[0] - 14 if lbl in ("B", "D") else (P[0] + 14 if lbl in ("C", "E") else P[0])
+        parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{lbl}</text>')
+    de_str = "?" if blank else f"{third_side/2:g}"
+    parts.append(f'<text x="{(D[0]+E[0])/2:.1f}" y="{(D[1]+E[1])/2-10:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">DE = {de_str}</text>')
+    parts.append(f'<text x="{(B[0]+C[0])/2:.1f}" y="{B[1]+22:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#5D6D7E">BC = {third_side:g}</text>')
+    cap = "D, E are midpoints -- DE || BC and DE = ½ BC"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def pythagoras_svg(a=3, b=4, c=5, find="hyp", blank=False, **kw):
+    """A right triangle with a literal square constructed on each side,
+    each square labelled with its area (a², b², c²) -- the classic
+    'squares on the sides' proof picture, with a² + b² = c² read
+    straight off the areas. find='hyp' or 'leg' controls which square
+    is left blank as the unknown. blank=True additionally hides the
+    numeric equation at the bottom (keeps only the square-area labels
+    appropriate to what's given vs asked)."""
+    a, b, c = float(a), float(b), float(c)
+    scale = 130 / max(a, b, c, 6)
+    aw, bw = a*scale, b*scale
+    w, h = 420, 380
+    # place right angle at origin-ish
+    ox, oy = 150, 230
+    Bp = (ox, oy)          # right angle vertex
+    Cp = (ox + aw, oy)     # along +x
+    Ap = (ox, oy - bw)     # along -y
+    parts = []
+    # square on base (a) below
+    parts.append(f'<rect x="{Bp[0]:.1f}" y="{oy:.1f}" width="{aw:.1f}" height="{aw:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+    a2_str = "?" if (blank and find == "leg_a") else f"{a:g}²={a*a:g}"
+    parts.append(f'<text x="{Bp[0]+aw/2:.1f}" y="{oy+aw/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">{a2_str}</text>')
+    # square on height (b) to the left
+    parts.append(f'<rect x="{ox-bw:.1f}" y="{oy-bw:.1f}" width="{bw:.1f}" height="{bw:.1f}" fill="#E7F8ED" stroke="#1E7A44" stroke-width="2"/>')
+    b2_str = "?" if (blank and find == "leg_b") else f"{b:g}²={b*b:g}"
+    parts.append(f'<text x="{ox-bw/2:.1f}" y="{oy-bw/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{b2_str}</text>')
+    # triangle itself
+    parts.append(f'<polygon points="{Ap[0]},{Ap[1]} {Bp[0]},{Bp[1]} {Cp[0]},{Cp[1]}" fill="#FFF8E1" stroke="#2C3E50" stroke-width="2.5"/>')
+    parts.append(f'<rect x="{Bp[0]:.1f}" y="{Bp[1]-10:.1f}" width="10" height="10" fill="none" stroke="#2C3E50" stroke-width="1.5"/>')
+    # square on hypotenuse, rotated -- approximate with a polygon using perpendicular offset
+    import math as _m
+    hx, hy = Cp[0]-Ap[0], Cp[1]-Ap[1]
+    hl = _m.hypot(hx, hy) or 1
+    nx, ny = -hy/hl, hx/hl
+    P1, P2 = Ap, Cp
+    P3 = (P2[0] + nx*hl, P2[1] + ny*hl)
+    P4 = (P1[0] + nx*hl, P1[1] + ny*hl)
+    parts.append(f'<polygon points="{P1[0]:.1f},{P1[1]:.1f} {P2[0]:.1f},{P2[1]:.1f} {P3[0]:.1f},{P3[1]:.1f} {P4[0]:.1f},{P4[1]:.1f}" fill="#FDEDEB" stroke="#A6362B" stroke-width="2"/>')
+    cx_h, cy_h = (P1[0]+P2[0]+P3[0]+P4[0])/4, (P1[1]+P2[1]+P3[1]+P4[1])/4
+    c2_str = "?" if (blank and find == "hyp") else f"{c:g}²={c*c:g}"
+    parts.append(f'<text x="{cx_h:.1f}" y="{cy_h+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{c2_str}</text>')
+    if find == "hyp":
+        cap = f"a² + b² = c²  -->  {a:g}² + {b:g}² = c²" if blank else f"{a:g}² + {b:g}² = {a*a:g} + {b*b:g} = {a*a+b*b:g} = c²  -->  c = {c:g}"
+    elif find == "leg_b":
+        cap = "a² + b² = c²  -->  find the missing leg" if blank else f"{c:g}² - {a:g}² = {c*c:g} - {a*a:g} = {b*b:g}  -->  b = {b:g}"
+    else:
+        cap = "a² + b² = c²  -->  find the missing leg" if blank else f"{c:g}² - {b:g}² = {c*c:g} - {b*b:g} = {a*a:g}  -->  a = {a:g}"
+    parts.insert(0, f'<text x="{w/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def area_same_base_svg(base=8, height=5, shape="para_para", blank=False, **kw):
+    """Two shapes (parallelogram-parallelogram, parallelogram-triangle,
+    or triangle-triangle) drawn sharing the SAME base and squeezed
+    between the SAME pair of parallel lines, with different slants --
+    makes 'area only depends on base x height, not the slant' visible
+    at a glance (Level 16 CUM3). blank=True hides the computed areas."""
+    base, height = float(base), float(height)
+    w, h = 420, 220
+    scale = min(280 / base, 22)
+    bw = base * scale
+    ht = height * scale
+    x0 = 60
+    y_top = 40
+    y_bot = y_top + ht
+    parts = []
+    parts.append(f'<line x1="10" y1="{y_top}" x2="{w-10}" y2="{y_top}" stroke="#9AA5B1" stroke-width="1.6" stroke-dasharray="5,3"/>')
+    parts.append(f'<line x1="10" y1="{y_bot}" x2="{w-10}" y2="{y_bot}" stroke="#9AA5B1" stroke-width="1.6" stroke-dasharray="5,3"/>')
+    parts.append(f'<line x1="{x0}" y1="{y_bot}" x2="{x0+bw}" y2="{y_bot}" stroke="#2C3E50" stroke-width="3"/>')
+    slant1, slant2 = 18, -26
+    def shape_pts(kind, slant):
+        if kind == "para":
+            return [(x0, y_bot), (x0+bw, y_bot), (x0+bw+slant, y_top), (x0+slant, y_top)]
+        else:  # triangle apex
+            apex_x = x0 + bw/2 + slant
+            return [(x0, y_bot), (x0+bw, y_bot), (apex_x, y_top)]
+    k1, k2 = shape.split("_")
+    pts1 = shape_pts(k1, slant1)
+    pts2 = shape_pts(k2, slant2)
+    poly1 = " ".join(f"{px:.1f},{py:.1f}" for px, py in pts1)
+    poly2 = " ".join(f"{px:.1f},{py:.1f}" for px, py in pts2)
+    parts.append(f'<polygon points="{poly1}" fill="#1B5E8C" opacity="0.28" stroke="#1B5E8C" stroke-width="2.2"/>')
+    parts.append(f'<polygon points="{poly2}" fill="#A6362B" opacity="0.22" stroke="#A6362B" stroke-width="2.2"/>')
+    parts.append(f'<line x1="{x0+8:.1f}" y1="{y_bot:.1f}" x2="{x0+8:.1f}" y2="{y_top:.1f}" stroke="#1E7A44" stroke-width="1.6" stroke-dasharray="3,2"/>')
+    h_str = "?" if blank else f"{height:g}"
+    parts.append(f'<text x="{x0+14:.1f}" y="{(y_top+y_bot)/2:.1f}" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">h={h_str}</text>')
+    parts.append(f'<text x="{x0+bw/2:.1f}" y="{y_bot+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">base = {base:g}</text>')
+    para_area = base * height
+    tri_area = base * height / 2
+    if blank:
+        cap = "Same base, same parallels -- what can you say about the areas?"
+    elif shape == "para_para":
+        cap = f"Both area = base x height = {base:g} x {height:g} = {para_area:g}  (EQUAL)"
+    elif k1 == "para":
+        cap = f"Parallelogram = {para_area:g}   Triangle = ½ x {para_area:g} = {tri_area:g}"
+    else:
+        cap = f"Both triangles: area = ½ x {base:g} x {height:g} = {tri_area:g}  (EQUAL)"
+    parts.insert(0, f'<text x="{w/2}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -5669,6 +6082,15 @@ SVG_DIAGRAM_FUNCTIONS = {
     "quadrant_map": quadrant_map_svg,
     "point_plot_path": point_plot_path_svg,
     "slope_intercept_anatomy": slope_intercept_anatomy_svg,
+    "triangle_classify": triangle_classify_svg,
+    "angle_sum_triangle": angle_sum_triangle_svg,
+    "congruence": congruence_svg,
+    "triangle_inequality": triangle_inequality_svg,
+    "isosceles_theorem": isosceles_theorem_svg,
+    "similar_triangles": similar_triangles_svg,
+    "midpoint_theorem": midpoint_theorem_svg,
+    "pythagoras": pythagoras_svg,
+    "area_same_base": area_same_base_svg,
 }
 
 

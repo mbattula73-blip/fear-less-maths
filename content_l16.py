@@ -650,3 +650,240 @@ DISPATCH_L16 = {
     "16J":    {1: lambda: _L16J_s(1), 2: lambda: _L16J_s(2), 3: lambda: _L16J_s(3), 4: lambda: _L16J_s(4)},
     "16REV":  {1: lambda: _L16REV_s(1), 2: lambda: _L16REV_s(2), 3: lambda: _L16REV_s(3), 4: lambda: _L16REV_s(4)},
 }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 16 auto-visualizer: gives every Level 16 (Lines, Angles &
+# Triangles) question a matching diagram built from its OWN numbers.
+# First 2 diagrams per sheet worked (demo), rest blank scaffolds.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l16_re
+
+
+def _l16_infer_diagram(text, sublevel_code=""):
+    t = text
+
+    # --- angle pairs (16B) ---
+    m = _l16_re.search(r'complementary\. One is (\d+)°', t)
+    if m:
+        return "angle_pair", {"kind": "complementary", "a1": int(m.group(1))}
+    m = _l16_re.search(r'supplementary\. One is (\d+)°', t)
+    if m:
+        return "angle_pair", {"kind": "supplementary", "a1": int(m.group(1))}
+    m = _l16_re.search(r'Two complementary angles: one is (\d+)°', t)
+    if m:
+        return "angle_pair", {"kind": "complementary", "a1": int(m.group(1))}
+    m = _l16_re.search(r'Two supplementary angles: one is (\d+)°', t)
+    if m:
+        return "angle_pair", {"kind": "supplementary", "a1": int(m.group(1))}
+    m = _l16_re.search(r'vertically opposite angle', t)
+    if m:
+        return "angle_pair", {"kind": "vertical", "a1": 50}
+
+    # --- parallel lines / transversal (16C) ---
+    if 'transversal' in t.lower() or 'alternate interior' in t.lower() or 'co-interior' in t.lower():
+        return "transversal_angles", {}
+    if 'corresponding' in t.lower() and ('parallel' in t.lower() or 'diagram' in t.lower()):
+        return "transversal_angles", {}
+
+    # --- triangle type / angle sum / exterior angle (16CUM1) ---
+    m = _l16_re.search(r'has angles (\d+)° and (\d+)°\. Find the third angle', t)
+    if m:
+        return "angle_sum_triangle", {"a": int(m.group(1)), "b": int(m.group(2)), "mode": "sum"}
+    m = _l16_re.search(r'remote interior angles are (\d+)° and (\d+)°', t)
+    if m:
+        return "angle_sum_triangle", {"a": int(m.group(1)), "b": int(m.group(2)), "mode": "exterior"}
+    m = _l16_re.search(r'exterior angle is (\d+)°\. One remote interior angle is (\d+)°', t)
+    if m:
+        ext, rem = int(m.group(1)), int(m.group(2))
+        other = ext - rem
+        return "angle_sum_triangle", {"a": rem, "b": other, "mode": "exterior"}
+    m = _l16_re.search(r'Sides (\d+), (\d+), (\d+): classify this triangle by its sides', t)
+    if m:
+        s1, s2, s3 = (int(x) for x in m.groups())
+        return "triangle_classify", {"angles": [60, 60, 60], "sides": [s1, s2, s3]}
+
+    # --- congruence (16D) ---
+    m = _l16_re.search(r'three sides equal', t)
+    if m:
+        return "congruence", {"rule": "SSS"}
+    m = _l16_re.search(r'two sides and the INCLUDED angle equal', t)
+    if m:
+        return "congruence", {"rule": "SAS"}
+    m = _l16_re.search(r'two angles and the INCLUDED side equal', t)
+    if m:
+        return "congruence", {"rule": "ASA"}
+    m = _l16_re.search(r'two angles and a NON-included side equal', t)
+    if m:
+        return "congruence", {"rule": "AAS"}
+    m = _l16_re.search(r'right angle, hypotenuse, and one side', t)
+    if m:
+        return "congruence", {"rule": "RHS"}
+    m = _l16_re.search(r'Given (.+?), the rule is (\w+)', t)
+    if m:
+        rule_map = {"three sides equal": "SSS", "two sides and the INCLUDED angle equal": "SAS",
+                    "two angles and the INCLUDED side equal": "ASA", "two angles and a NON-included side equal": "AAS",
+                    "a right angle, hypotenuse, and one side equal (right triangles)": "RHS"}
+        rule = rule_map.get(m.group(1), "SSS")
+        return "congruence", {"rule": rule}
+
+    # --- triangle inequality / isosceles (16E) ---
+    m = _l16_re.search(r'sides (\d+), (\d+), (\d+)\? Check the triangle inequality', t)
+    if m:
+        a, b, c = (int(x) for x in m.groups())
+        return "triangle_inequality", {"a": a, "b": b, "c": c}
+    m = _l16_re.search(r'Sides (\d+), (\d+), (\d+): which pair', t)
+    if m:
+        a, b, c = (int(x) for x in m.groups())
+        return "triangle_inequality", {"a": a, "b": b, "c": c}
+    m = _l16_re.search(r'base angle opposite one of them is (\d+)°', t)
+    if m:
+        return "isosceles_theorem", {"base_angle": int(m.group(1))}
+    m = _l16_re.search(r'vertex angle (\d+)°, base angles equal', t)
+    if m:
+        vertex = int(m.group(1))
+        base = (180 - vertex) / 2
+        return "isosceles_theorem", {"base_angle": base}
+
+    # --- similar triangles (16F) ---
+    m = _l16_re.search(r'Triangle sides (\d+),(\d+),(\d+) are scaled by factor (\d+)', t)
+    if m:
+        a, b, c, k = (int(x) for x in m.groups())
+        return "similar_triangles", {"sides1": (a, b, c), "k": k}
+    m = _l16_re.search(r'a side of (\d+) corresponds to a side of (\d+)', t)
+    if m:
+        a, ak = int(m.group(1)), int(m.group(2))
+        k = ak // a if a and ak % a == 0 else 2
+        return "similar_triangles", {"sides1": (a, a+1, a+2), "k": k}
+
+    # --- BPT / midpoint theorem (16CUM2) ---
+    m = _l16_re.search(r'AD=(\d+), DB=(\d+), AE=(\d+)', t)
+    if m:
+        ad, db, ae = (int(x) for x in m.groups())
+        ec = ae * db // ad if ad else 1
+        return "bpt_triangle", {"ad": ad, "db": db, "ae": ae, "ec": ec}
+    m = _l16_re.search(r'third side of a triangle is (\d+)\. Find the length of the midsegment', t)
+    if m:
+        return "midpoint_theorem", {"third_side": int(m.group(1))}
+    m = _l16_re.search(r'midsegment of a triangle is (\d+)\. Find the length of the third side', t)
+    if m:
+        return "midpoint_theorem", {"third_side": int(m.group(1)) * 2}
+
+    # --- Pythagoras (16G, 16H) ---
+    m = _l16_re.search(r'Legs (\d+) and (\d+): find the hypotenuse', t)
+    if m:
+        a, b = (int(x) for x in m.groups())
+        import math as _m
+        c = _m.isqrt(a*a + b*b)
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "hyp"}
+    m = _l16_re.search(r'Hypotenuse (\d+), one leg (\d+): find the other leg', t)
+    if m:
+        c, a = (int(x) for x in m.groups())
+        import math as _m
+        b = _m.isqrt(c*c - a*a)
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "leg_b"}
+    m = _l16_re.search(r'Sides (\d+), (\d+), (\d+)\. Use the converse', t)
+    if m:
+        a, b, c = sorted(int(x) for x in m.groups())
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "hyp"}
+    m = _l16_re.search(r'Verify: does (\d+)\^2 \+ (\d+)\^2 = (\d+)\^2', t)
+    if m:
+        a, b, c = (int(x) for x in m.groups())
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "hyp"}
+    m = _l16_re.search(r'ladder (\d+)m long leans against a wall, its base (\d+)m from the wall', t)
+    if m:
+        c, a = (int(x) for x in m.groups())
+        import math as _m
+        b2 = c*c - a*a
+        b = _m.isqrt(b2) if b2 > 0 else 1
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "leg_b"}
+    m = _l16_re.search(r'ramp rises (\d+)m over a horizontal distance of (\d+)m', t)
+    if m:
+        a, b = (int(x) for x in m.groups())
+        import math as _m
+        c = round((a*a + b*b) ** 0.5, 1)
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "hyp"}
+    m = _l16_re.search(r'drives (\d+)km then turns and drives (\d+)km', t)
+    if m:
+        a, b = (int(x) for x in m.groups())
+        c = round((a*a + b*b) ** 0.5, 1)
+        return "pythagoras", {"a": a, "b": b, "c": c, "find": "hyp"}
+    m = _l16_re.search(r'roof truss \(isosceles triangle\) has base angles of (\d+)°', t)
+    if m:
+        return "isosceles_theorem", {"base_angle": int(m.group(1))}
+
+    # --- areas on same base (16CUM3) ---
+    m = _l16_re.search(r'Parallelogram P1 has base (\d+) and height (\d+).*?SAME base.*?SAME parallels', t)
+    if m:
+        b, h = (int(x) for x in m.groups())
+        return "area_same_base", {"base": b, "height": h, "shape": "para_para"}
+    m = _l16_re.search(r'parallelogram has base (\d+) and height (\d+).*?triangle sits on the same base', t)
+    if m:
+        b, h = (int(x) for x in m.groups())
+        return "area_same_base", {"base": b, "height": h, "shape": "para_tri"}
+    m = _l16_re.search(r'Triangle T1 has base (\d+), height (\d+).*?Triangle T2 sits on the same base', t)
+    if m:
+        b, h = (int(x) for x in m.groups())
+        return "area_same_base", {"base": b, "height": h, "shape": "tri_tri"}
+
+    return None
+
+
+_L16_FAMILY_FALLBACK = {
+    "16A": ("points_lines_rays", {}),
+    "16B": ("angle_pair", {"kind": "complementary", "a1": 35}),
+    "16C": ("transversal_angles", {}),
+    "16CUM1": ("angle_sum_triangle", {"a": 60, "b": 70, "mode": "sum"}),
+    "16D": ("congruence", {"rule": "SAS"}),
+    "16E": ("triangle_inequality", {"a": 3, "b": 4, "c": 5}),
+    "16F": ("similar_triangles", {"sides1": (3, 4, 5), "k": 2}),
+    "16CUM2": ("bpt_triangle", {"ad": 4, "db": 2, "ae": 6, "ec": 3}),
+    "16G": ("pythagoras", {"a": 3, "b": 4, "c": 5, "find": "hyp"}),
+    "16H": ("pythagoras", {"a": 3, "b": 4, "c": 5, "find": "hyp"}),
+    "16I": ("angle_sum_triangle", {"a": 60, "b": 70, "mode": "sum"}),
+    "16CUM3": ("area_same_base", {"base": 8, "height": 5, "shape": "para_para"}),
+    "16J": ("triangle_classify", {"angles": [90, 45, 45], "sides": [5, 5, 7]}),
+    "16REV": ("pythagoras", {"a": 3, "b": 4, "c": 5, "find": "hyp"}),
+}
+
+
+def _l16_fallback(sublevel_code):
+    for key in sorted(_L16_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L16_FAMILY_FALLBACK[key]
+    return ("points_lines_rays", {})
+
+
+def _l16_visualize(items, sublevel_code):
+    fb_type, fb_params = _l16_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l16_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l16_wrap(fn, sublevel_code):
+    return lambda: _l16_visualize(fn(), sublevel_code)
+
+
+DISPATCH_L16 = {
+    sub: {sheet: _l16_wrap(fn, sub) for sheet, fn in sheets.items()}
+    for sub, sheets in DISPATCH_L16.items()
+}
