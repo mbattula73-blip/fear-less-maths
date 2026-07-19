@@ -19,7 +19,7 @@ LEVELS = {
     10: {"name": "Ratio & Proportion"},
     11: {"name": "Algebra — Expressions"},
     12: {"name": "Algebra — Equations"},
-    13: {"name": "Powers & Indices"},
+    13: {"name": "Number Systems"},
     14: {"name": "Polynomials"},
     15: {"name": "Coordinate Geometry"},
     16: {"name": "Lines, Angles & Triangles"},
@@ -27,7 +27,6 @@ LEVELS = {
     18: {"name": "Mensuration"},
     19: {"name": "Trigonometry"},
     20: {"name": "Statistics, Probability & AP"},
-    26: {"name": "Number Systems"},
 }
 
 SUBLEVELS = {
@@ -189,11 +188,11 @@ SUBLEVELS = {
          ("12F","Equation puzzles"),("12CUM2","Two-variable equations & substitution method"),("12G","Pair of equations: graphical & elimination methods"),
          ("12H","Speed solving"),("12I","Hard problems"),("12CUM3","Consistent, inconsistent & dependent systems"),
          ("12J","Cross-multiplication method challenge"),("12REV","Level 12 Revision")],
-    13: [("13A","Powers concept"),("13B","Laws of indices"),("13C","Simplification"),
-         ("13CUM1","Index law verification"),("13D","Negative powers"),("13E","Fractional powers"),
-         ("13F","Scientific notation"),("13CUM2","Surds"),("13G","Word problems"),
-         ("13H","Powers of ten scale"),("13I","Puzzle problems"),("13CUM3","Exponential growth vs decay"),
-         ("13J","Powers mastery challenge"),("13REV","Level 13 Revision")],
+    13: [("13A","Natural, Whole & Integers"),("13B","Rational numbers"),("13C","Decimal expansions"),
+         ("13CUM1","Recurring decimal to fraction"),("13D","Irrational numbers"),("13E","The real number line"),
+         ("13CUM2","Review B-E"),("13F","Surds — simplifying"),("13G","Rationalising (single term)"),
+         ("13H","Rationalising (binomial/conjugate)"),("13CUM3","Mixed review F/G/H"),("13I","Laws of exponents for real numbers"),
+         ("13J","Word problems"),("13REV","Level 13 Revision")],
     14: [("14A","Polynomial basics"),("14B","Addition"),("14C","Subtraction"),
          ("14CUM1","Area model for multiplication"),("14D","Multiplication"),("14E","Identities"),
          ("14F","Factorisation"),("14CUM2","Cube identities"),("14G","Polynomial problems"),
@@ -229,11 +228,6 @@ SUBLEVELS = {
          ("20F","Mode"),("20CUM2","Mixed D+E+F"),("20G","Probability basics"),
          ("20H","Probability problems"),("20I","Mixed statistics & probability"),("20CUM3","Mixed G+H+I"),
          ("20J","Grand challenge"),("20REV","Level 20 Revision")],
-    26: [("26A","Natural, Whole & Integers"),("26B","Rational numbers"),("26C","Decimal expansions"),
-         ("26CUM1","Recurring decimal to fraction"),("26D","Irrational numbers"),("26E","The real number line"),
-         ("26CUM2","Review B-E"),("26F","Surds — simplifying"),("26G","Rationalising (single term)"),
-         ("26H","Rationalising (binomial/conjugate)"),("26CUM3","Mixed review F/G/H"),("26I","Laws of exponents for real numbers"),
-         ("26J","Word problems"),("26REV","Level 26 Revision")],
 }
 
 SHEET_OPTIONS = [

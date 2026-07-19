@@ -18130,10 +18130,14 @@ try:
 except Exception as _e:
     pass
 
-# Merge in Level 26 (Number Systems) content from content_l26.py
+# Replace Level 13's content (Powers & Indices) with Number Systems --
+# from content_l13_numsys.py. This OVERRIDES the inline 13A-13REV
+# lambdas defined in the main _DISPATCH literal above (and the L13
+# power-diagram auto-visualizer wrapping applied to them earlier in
+# this file), since this update() call runs after both.
 try:
-    from content_l26 import DISPATCH_L26
-    _DISPATCH.update(DISPATCH_L26)
+    from content_l13_numsys import DISPATCH_L13NS
+    _DISPATCH.update(DISPATCH_L13NS)
 except Exception as _e:
     pass
 

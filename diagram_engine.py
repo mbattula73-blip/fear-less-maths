@@ -6004,33 +6004,52 @@ def area_same_base_svg(base=8, height=5, shape="para_para", blank=False, **kw):
 
 def number_hierarchy_svg(number="5", memberships=None, blank=False, **kw):
     """Nested-set diagram: R contains Q contains Z contains W contains N,
-    drawn as concentric rounded rectangles, with the given number placed
-    in the innermost set it belongs to (Irrationals sit inside R but
-    outside Q, drawn as a separate lobe). blank=True hides which sets
-    are highlighted, leaving just the empty nested diagram to fill in."""
+    drawn as concentric rounded rectangles with an external colour-key
+    legend (not labels crammed inside the small boxes, which collided
+    with the plotted number). Irrationals sit inside R but outside Q,
+    drawn as a separate lobe. The plotted number sits low in its
+    innermost matching box, well clear of every box edge. blank=True
+    hides the plotted number, leaving just the diagram to fill in."""
     memberships = memberships or []
-    w_svg, h_svg = 420, 340
+    w_svg, h_svg = 460, 320
     sets = [
-        ("R — Real Numbers", 380, 300, "#EAF4FC", "#1B5E8C"),
-        ("Q — Rational Numbers", 290, 220, "#E7F8ED", "#1E7A44"),
-        ("Z — Integers", 210, 155, "#FFF8E1", "#9A7209"),
-        ("W — Whole Numbers", 145, 100, "#FDEDEB", "#A6362B"),
-        ("N — Natural Numbers", 85, 55, "#F3E9F8", "#7D3C98"),
+        ("R — Real Numbers", 340, 260, "#EAF4FC", "#1B5E8C"),
+        ("Q — Rational Numbers", 260, 195, "#E7F8ED", "#1E7A44"),
+        ("Z — Integers", 190, 138, "#FFF8E1", "#9A7209"),
+        ("W — Whole Numbers", 130, 90, "#FDEDEB", "#A6362B"),
+        ("N — Natural Numbers", 76, 48, "#F3E9F8", "#7D3C98"),
     ]
-    cx, cy = w_svg / 2 - 30, h_svg / 2 + 10
+    cx, cy = 190, 190
     parts = []
     for label, bw, bh, fill, stroke in sets:
-        parts.append(f'<rect x="{cx-bw/2:.1f}" y="{cy-bh/2:.1f}" width="{bw}" height="{bh}" rx="18" fill="{fill}" opacity="0.85" stroke="{stroke}" stroke-width="2"/>')
-        parts.append(f'<text x="{cx-bw/2+8:.1f}" y="{cy-bh/2+16:.1f}" font-family="Helvetica-Bold" font-size="11" fill="{stroke}">{label}</text>')
+        parts.append(f'<rect x="{cx-bw/2:.1f}" y="{cy-bh/2:.1f}" width="{bw}" height="{bh}" rx="16" fill="{fill}" opacity="0.85" stroke="{stroke}" stroke-width="2"/>')
     # irrational lobe: a circle overlapping R but outside Q
-    irr_cx, irr_cy = cx + 130, cy - 90
-    parts.append(f'<circle cx="{irr_cx}" cy="{irr_cy}" r="46" fill="#FDF2E9" opacity="0.9" stroke="#B8860B" stroke-width="2"/>')
-    parts.append(f'<text x="{irr_cx-40:.1f}" y="{irr_cy-30:.1f}" font-family="Helvetica-Bold" font-size="10.5" fill="#B8860B">Irrationals</text>')
+    irr_cx, irr_cy = cx + 145, cy - 95
+    parts.append(f'<circle cx="{irr_cx}" cy="{irr_cy}" r="42" fill="#FDF2E9" opacity="0.9" stroke="#B8860B" stroke-width="2"/>')
+    # external legend, one row per set + irrationals, well clear of the nested boxes
+    legend_x = 360
+    legend_y = 60
+    legend_rows = [(s[0], s[4]) for s in sets] + [("Irrationals (in R, outside Q)", "#B8860B")]
+    for i, (label, color) in enumerate(legend_rows):
+        ly = legend_y + i * 24
+        parts.append(f'<rect x="{legend_x}" y="{ly-11:.1f}" width="13" height="13" fill="{color}" opacity="0.85"/>')
+        short = label.split(" — ")[0].split(" (")[0]
+        parts.append(f'<text x="{legend_x+18}" y="{ly:.1f}" font-family="Helvetica-Bold" font-size="10.5" fill="{color}">{short}</text>')
     if not blank:
-        is_irr = "irrational" in memberships
-        px, py = (irr_cx, irr_cy) if is_irr else (cx, cy + 5)
+        if "irrational" in memberships:
+            px, py = irr_cx, irr_cy + 12
+        elif "natural" in memberships:
+            px, py = cx, cy + 6          # innermost box (N) -- centre is now label-free
+        elif "whole" in memberships:
+            px, py = cx, cy - 34         # inside W, outside N
+        elif "integer" in memberships:
+            px, py = cx, cy - 55         # inside Z, outside W
+        elif "rational" in memberships:
+            px, py = cx, cy - 80         # inside Q, outside Z
+        else:
+            px, py = cx, cy - 105        # inside R only, outside Q (and not the irrational lobe)
         parts.append(f'<circle cx="{px}" cy="{py}" r="6" fill="#A6362B" stroke="white" stroke-width="1.5"/>')
-        parts.append(f'<text x="{px+10:.1f}" y="{py-8:.1f}" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{number}</text>')
+        parts.append(f'<text x="{px:.1f}" y="{py+20:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{number}</text>')
         title = f"Where does {number} belong?"
     else:
         title = "Place the number in its smallest matching set"
