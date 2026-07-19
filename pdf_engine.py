@@ -358,7 +358,8 @@ class Col:
                                                "index_law_visual", "power_ladder", "sqrt_side_area",
                                                "sci_notation_slider", "surd_simplify_tree",
                                                "identity_square", "factor_x_method", "poly_anatomy",
-                                               "degree_staircase", "hcf_factor_boxes", "division_algorithm_box")
+                                               "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
+                                               "quadrant_map", "point_plot_path", "slope_intercept_anatomy")
                     iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                     ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)

@@ -1247,3 +1247,130 @@ DISPATCH_L15 = {
     "15CUM3": {1: lambda: _L15CUM3_s(1), 2: lambda: _L15CUM3_s(2), 3: lambda: _L15CUM3_s(3), 4: lambda: _L15CUM3_s(4)},
     "15REV":  {1: lambda: _L15REV_s(1), 2: lambda: _L15REV_s(2), 3: lambda: _L15REV_s(3), 4: lambda: _L15REV_s(4)},
 }
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Level 15 auto-visualizer: gives every Level 15 (Coordinate Geometry)
+# question a matching diagram built from its OWN coordinates.
+# First 2 diagrams per sheet worked (demo), rest blank scaffolds.
+# ═══════════════════════════════════════════════════════════════════════════════
+import re as _l15_re
+
+
+def _l15_pairs(text):
+    """Extracts coordinate pairs like (3, 2) or (-4,-6) from text."""
+    return [(int(a), int(b)) for a, b in _l15_re.findall(r'\((-?\d+)\s*,\s*(-?\d+)\)', text)]
+
+
+def _l15_rng_for(pts):
+    m = max((max(abs(x), abs(y)) for x, y in pts), default=6)
+    return max(m + 2, 6)
+
+
+def _l15_infer_diagram(text, sublevel_code=""):
+    t = text
+    pts = _l15_pairs(t)
+    # --- section formula: A(...), B(...), ratio m:n ---
+    m = _l15_re.search(r'ratio\s+(\d+)\s*:\s*(\d+)', t)
+    if m and len(pts) >= 2:
+        mm, nn = int(m.group(1)), int(m.group(2))
+        return "section_segment", {"p1": pts[0], "p2": pts[1], "m": mm, "n": nn, "rng": _l15_rng_for(pts)}
+    # --- midpoint questions ---
+    if 'Midpoint' in t or 'midpoint' in t:
+        if len(pts) >= 2:
+            return "midpoint_segment", {"p1": pts[0], "p2": pts[1], "rng": _l15_rng_for(pts)}
+    # --- distance questions ---
+    if 'Distance' in t or 'distance' in t:
+        if len(pts) >= 2:
+            return "distance_segment", {"p1": pts[0], "p2": pts[1], "rng": _l15_rng_for(pts)}
+    # --- area of triangle / collinearity with 3 points ---
+    if len(pts) >= 3 and ('area' in t.lower() or 'collinear' in t.lower() or 'triangle' in t.lower()):
+        return "triangle_coords", {"p1": pts[0], "p2": pts[1], "p3": pts[2], "rng": _l15_rng_for(pts)}
+    # --- slope-intercept: y = mx + c ---
+    m = _l15_re.search(r'y\s*=\s*(-?\d+)x\s*([+-])\s*(\d+)', t)
+    if m:
+        slope = int(m.group(1))
+        c = int(m.group(3)) * (1 if m.group(2) == '+' else -1)
+        if abs(slope) <= 4 and abs(c) <= 7:
+            return "slope_intercept_anatomy", {"m": slope, "c": c}
+    m = _l15_re.search(r'y\s*=\s*(-?\d+)x(?!\^)', t)
+    if m:
+        slope = int(m.group(1))
+        if abs(slope) <= 4:
+            return "slope_intercept_anatomy", {"m": slope, "c": 0}
+    m = _l15_re.search(r'y\s*=\s*x(?![\^\w])', t)
+    if m:
+        return "slope_intercept_anatomy", {"m": 1, "c": 0}
+    # --- quadrant questions ---
+    if 'uadrant' in t and len(pts) >= 1:
+        return "quadrant_map", {"point": pts[0]}
+    if 'uadrant' in t:
+        return "quadrant_map", {}
+    # --- plotting-as-path questions ---
+    if ('plot' in t.lower() or 'right' in t.lower() and 'up' in t.lower()) and len(pts) == 1:
+        return "point_plot_path", {"point": pts[0]}
+    # --- axis / origin / generic single or multi point ---
+    if len(pts) >= 1:
+        rng = _l15_rng_for(pts)
+        return "plot_points_grid", {"points": pts[:4], "rng": rng}
+    return None
+
+
+_L15_FAMILY_FALLBACK = {
+    "15A": ("quadrant_map", {}),
+    "15B": ("point_plot_path", {"point": (3, 2)}),
+    "15C": ("distance_segment", {"p1": (0, 0), "p2": (3, 4), "rng": 6}),
+    "15CUM1": ("plot_points_grid", {"points": [(3, 2), (-3, 2), (-3, -2), (3, -2)], "rng": 6}),
+    "15D": ("midpoint_segment", {"p1": (2, 4), "p2": (6, 8), "rng": 10}),
+    "15E": ("section_segment", {"p1": (0, 0), "p2": (6, 0), "m": 1, "n": 2, "rng": 8}),
+    "15F": ("slope_intercept_anatomy", {"m": 2, "c": 1}),
+    "15CUM2": ("midpoint_segment", {"p1": (2, 4), "p2": (6, 8), "rng": 10}),
+    "15G": ("slope_intercept_anatomy", {"m": 2, "c": 1}),
+    "15H": ("triangle_coords", {"p1": (0, 0), "p2": (6, 0), "p3": (3, 5), "rng": 8}),
+    "15I": ("plot_points_grid", {"points": [(3, 2)], "rng": 8}),
+    "15CUM3": ("triangle_coords", {"p1": (1, 1), "p2": (2, 3), "p3": (3, 5), "rng": 8}),
+    "15J": ("distance_segment", {"p1": (0, 0), "p2": (3, 4), "rng": 6}),
+    "15REV": ("quadrant_map", {}),
+}
+
+
+def _l15_fallback(sublevel_code):
+    for key in sorted(_L15_FAMILY_FALLBACK, key=len, reverse=True):
+        if sublevel_code.startswith(key):
+            return _L15_FAMILY_FALLBACK[key]
+    return ("quadrant_map", {})
+
+
+def _l15_visualize(items, sublevel_code):
+    fb_type, fb_params = _l15_fallback(sublevel_code)
+    out = []
+    diagram_count = 0
+    for item in items:
+        new_item = dict(item)
+        if item.get("type") in ("fill", "word"):
+            inferred = _l15_infer_diagram(item["text"], sublevel_code)
+            new_item["type"] = "diagram"
+            if inferred:
+                new_item["diagram_type"], params = inferred
+            else:
+                new_item["diagram_type"], params = fb_type, fb_params
+            params = dict(params)
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        elif item.get("type") == "diagram":
+            params = dict(item.get("diagram_params") or {})
+            params["blank"] = diagram_count >= 2
+            new_item["diagram_params"] = params
+            diagram_count += 1
+        out.append(new_item)
+    return out
+
+
+def _l15_wrap(fn, sublevel_code):
+    return lambda: _l15_visualize(fn(), sublevel_code)
+
+
+DISPATCH_L15 = {
+    sub: {sheet: _l15_wrap(fn, sub) for sheet, fn in sheets.items()}
+    for sub, sheets in DISPATCH_L15.items()
+}
