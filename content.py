@@ -18198,13 +18198,26 @@ try:
 except Exception as _e:
     pass
 
-# Replace the original Level 6 (Fractions) in place with the research-based
-# redesign -- adds GCF/LCM, fraction multiplication, and fraction division,
-# none of which existed in the original. Overrides the 6A-6REV entries
-# defined earlier in the main _DISPATCH literal above.
+# Level 6 is now Factors, Multiples, HCF & LCM (swapped from Level 9 on
+# 2026-07-20, since HCF/LCM is a genuine prerequisite for simplifying
+# fractions and finding a common denominator -- it now teaches before
+# Fractions instead of three levels after it). Overrides the 6A-6REV
+# entries defined earlier in the main _DISPATCH literal above.
 try:
     from content_l6_redesign import LEVEL6_DISPATCH
     _DISPATCH.update(LEVEL6_DISPATCH)
+except Exception as _e:
+    pass
+
+# Level 9 is now Fractions (the same v3 redesign content that used to be
+# Level 6, swapped down here in the same move). Overrides the 9A-9REV
+# entries defined earlier in the main _DISPATCH literal above (those
+# also get the Level 9 diagram auto-visualizer applied to them first,
+# but this import replaces them with fresh unwrapped fraction content,
+# which is correct -- fractions never had that treatment).
+try:
+    from content_l9_fractions import LEVEL9_DISPATCH
+    _DISPATCH.update(LEVEL9_DISPATCH)
 except Exception as _e:
     pass
 
