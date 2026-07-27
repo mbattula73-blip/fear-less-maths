@@ -4372,33 +4372,44 @@ def factor_array_svg(n=12, rows=None, cols=None, blank=False, **kw):
 
 
 def factor_rainbow_svg(n=12, blank=False, **kw):
-    """A number line 1..n with arcs ('rainbows') connecting each factor
-    pair -- the classic factor-rainbow visual (Level 9A). blank=True
-    shows only the number line, no arcs, so the student draws them."""
+    """A number line showing ONLY the factor positions of n (not every
+    integer 1..n -- for n=96 that would cram 96 labels into a fixed-
+    width line and make them unreadable), with arcs ('rainbows')
+    connecting each factor pair -- the classic factor-rainbow visual
+    (Level 6A/9A). Spacing between factor positions is even (not to
+    numeric scale) so labels stay legible regardless of how large or
+    spread-out the factors are. blank=True shows only the line and
+    tick marks, no numbers or arcs, so the student fills them in."""
     n = int(n)
     factors = [d for d in range(1, n + 1) if n % d == 0]
-    w_svg = min(max(420, 26 * n + 100), 720)
+    nf = len(factors)
+    # canvas and font scale with FACTOR COUNT, not with n itself
+    font_size = 15 if nf <= 8 else (13 if nf <= 12 else 11)
+    slot_w = 62 if nf <= 8 else (48 if nf <= 12 else 38)
+    w_svg = max(420, slot_w * (nf - 1) + 100)
     h_svg = 280
     ox = 50
-    step = (w_svg - 2 * ox) / max(n - 1, 1)
+    step = (w_svg - 2 * ox) / max(nf - 1, 1)
     y_line = 190
     parts = []
     parts.append(f'<line x1="{ox}" y1="{y_line}" x2="{w_svg-ox}" y2="{y_line}" stroke="#1B5E8C" stroke-width="3"/>')
-    for i in range(1, n + 1):
-        x = ox + (i - 1) * step
+    positions = {}
+    for i, f in enumerate(factors):
+        x = ox + i * step
+        positions[f] = x
         parts.append(f'<line x1="{x:.1f}" y1="{y_line-7}" x2="{x:.1f}" y2="{y_line+7}" stroke="#1B5E8C" stroke-width="2"/>')
-        parts.append(f'<text x="{x:.1f}" y="{y_line+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{i}</text>')
+        if not blank:
+            parts.append(f'<text x="{x:.1f}" y="{y_line+24}" text-anchor="middle" font-family="Helvetica-Bold" font-size="{font_size}" fill="#2C3E50">{f}</text>')
     if blank:
-        parts.append(f'<text x="{w_svg/2}" y="{y_line-100:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">Draw an arc for each factor pair of {n}</text>')
+        parts.append(f'<text x="{w_svg/2}" y="{y_line-100:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">Label each factor of {n} on the line, then draw an arc for each factor pair</text>')
         parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Factor rainbow for {n}</text>')
         return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
     colors = ["#A6362B", "#1E7A44", "#7D3C98", "#B8860B", "#1B5E8C"]
     pairs = [(f, n // f) for f in factors if f <= n // f]
     for idx, (a, b) in enumerate(pairs):
-        xa = ox + (a - 1) * step
-        xb = ox + (b - 1) * step
+        xa, xb = positions[a], positions[b]
         rx = max((xb - xa) / 2, 1)
-        ry = min(30 + idx * 16, 160)
+        ry = min(24 + idx * 15, 150)
         col = colors[idx % len(colors)]
         parts.append(f'<path d="M {xa:.1f} {y_line:.1f} A {rx:.1f} {ry:.1f} 0 0 1 {xb:.1f} {y_line:.1f}" fill="none" stroke="{col}" stroke-width="3"/>')
     parts.insert(0, f'<text x="{w_svg/2}" y="30" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Factor rainbow for {n}</text>')

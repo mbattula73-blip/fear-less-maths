@@ -61,15 +61,17 @@ def _l6_prime_factors_multiset(n):
 
 # ═══ Diagram-cap emitter: first 2 worked, next 4 blank, rest plain ═══
 class _Sheet:
-    """Accumulates up to 20 items for one worksheet, capping diagrams
-    at 2 worked + 4 blank (6 total) regardless of how many computation/
-    word items are added -- everything after that is plain text."""
+    """Accumulates up to 20 items for one worksheet. Diagrams cap at 12
+    (2 worked + 10 blank) -- high density is good for this level, the
+    earlier cap of 6 was overcorrecting; diagrams only get dropped to
+    plain text past 12 so a sheet doesn't return to 20/20 diagram
+    fatigue on sublevels with lots of diagram-eligible questions."""
     def __init__(self):
         self.items = []
         self.diagram_count = 0
 
     def add(self, text, ans="Answer = ____", qtype="fill", dtype=None, dparams=None):
-        if dtype is not None and self.diagram_count < 6:
+        if dtype is not None and self.diagram_count < 12:
             blank = self.diagram_count >= 2
             params = dict(dparams or {})
             params["blank"] = blank
@@ -145,7 +147,7 @@ def _L6A_s(sheet):
     ])
     comp_pool = _esc_pick(range(lo, hi), 10)
     for i, n in enumerate(comp_pool):
-        if i < 6:
+        if i < 10:
             S.add(f"List ALL factors of {n}.", "Answer = ____", dtype="factor_array", dparams={"n": n})
         else:
             S.add(f"List ALL factors of {n}.", "Answer = ____")
@@ -192,7 +194,7 @@ def _L6B_s(sheet):
     for i, n in enumerate(_esc_pick(range(lo, hi), 6)):
         which = random.randint(4, 9)
         text = f"What is the {which}th multiple of {n}?"
-        if i < 2:
+        if i < 6:
             S.add(text, "Answer = ____", dtype="multiples_number_line", dparams={"n": n, "count": which + 1})
         else:
             S.add(text, "Answer = ____")
@@ -270,7 +272,7 @@ def _L6D_s(sheet):
     ])
     for i, (a, b) in enumerate(pairs[:10]):
         text = f"HCF({a}, {b}) = ____"
-        if i < 6:
+        if i < 10:
             S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": "hcf"})
         else:
             S.add(text, "Answer = ____")
@@ -316,7 +318,7 @@ def _L6CUM1_s(sheet):
     pool = _esc_pick(range(lo, hi), 10)
     for i, n in enumerate(pool):
         text = f"Complete the factor tree for {n}."
-        if i < 6:
+        if i < 10:
             S.add(text, "Answer = ____", dtype="factor_tree", dparams={"n": n})
         else:
             S.add(text, "Answer = ____")
@@ -352,7 +354,7 @@ def _L6E_s(sheet):
     ])
     for i, (a, b) in enumerate(pairs[:10]):
         text = f"LCM({a}, {b}) = ____"
-        if i < 6:
+        if i < 10:
             S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": "lcm"})
         else:
             S.add(text, "Answer = ____")
@@ -399,13 +401,13 @@ def _L6F_s(sheet):
     pairs = _pair_pool(lo, hi, 17)
     for i, (a, b) in enumerate(pairs[:7]):
         text = random.choice(hcf_ctx).format(a=a, b=b)
-        if i < 3:
+        if i < 7:
             S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": "hcf"})
         else:
             S.add(text, "Answer = ____", "word")
     for i, (a, b) in enumerate(pairs[7:11]):
         text = random.choice(lcm_ctx).format(a=a, b=b)
-        if i < 3:
+        if i < 4:
             S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": "lcm"})
         else:
             S.add(text, "Answer = ____", "word")
@@ -449,7 +451,7 @@ def _L6CUM2_s(sheet):
         for p in common:
             a_only.remove(p)
         text = f"Draw the Venn diagram for {a} and {b}'s prime factors, then read off HCF and LCM."
-        if i < 6:
+        if i < 10:
             S.add(text, "", dtype="venn_two", dparams={"a_only": a_only, "common": common, "b_only": pb_copy, "label_a": str(a), "label_b": str(b)})
         else:
             S.add(text, "Answer = ____")
@@ -492,7 +494,7 @@ def _L6G_s(sheet):
     ]
     for i, (a, b) in enumerate(pairs[:8]):
         text = random.choice(ctx).format(a=a, b=b)
-        if i < 6:
+        if i < 8:
             mode = "hcf" if "HCF" in text or "equal" in text.split("using")[0] else "lcm"
             S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": mode})
         else:
@@ -532,7 +534,7 @@ def _L6H_s(sheet):
     ])
     for i, (a, b) in enumerate(pairs[:10]):
         text = f"Use the Euclidean Algorithm to find HCF({b}, {a})."
-        if i < 6:
+        if i < 10:
             S.add(text, "", dtype="euclidean_algorithm", dparams={"a": b, "b": a})
         else:
             S.add(text, "Answer = ____")
@@ -605,11 +607,16 @@ def _L6CUM3_s(sheet):
         ], "2,3,5,7,11,13,17,19,23,29... primes under 30."),
     ])
     used_c3 = set()
-    for i, n in enumerate(_esc_pick(range(max(lo, 10), hi), 6, used=used_c3)):
+    grid_hi = min(hi, 100)
+    for i, n in enumerate(_esc_pick(range(max(lo, 10), grid_hi), 6, used=used_c3)):
         text = f"Is {n} prime or composite? Check using the hundred grid."
         S.add(text, "Answer = ____", dtype="hundred_grid_highlight", dparams={"n": n, "highlight": [n]})
     for n in _esc_pick(range(lo, hi), 4, used=used_c3):
-        S.add(f"Is {n} prime or composite?", "Answer = ____")
+        text = f"Is {n} prime or composite?"
+        if n <= 100:
+            S.add(text, "Answer = ____", dtype="hundred_grid_highlight", dparams={"n": n, "highlight": [n]})
+        else:
+            S.add(text, "Answer = ____")
     for _ in range(4):
         n = random.randint(max(lo, 4), hi)
         S.add(f"Find a pair of TWIN primes (differ by 2) near {n}.", "Answer = ____", "word")
@@ -646,7 +653,7 @@ def _L6J_s(sheet):
             triples.append(tuple(sorted((a, b, c))))
     for i, (a, b, c) in enumerate(triples):
         text = f"HCF({a}, {b}, {c}) = ____"
-        if i < 2:
+        if i < 6:
             ab = _l6_hcf(a, b)
             S.add(text, "", dtype="ladder_division", dparams={"a": ab, "b": c, "mode": "hcf"})
         else:
@@ -691,17 +698,25 @@ def _L6REV_s(sheet):
         mode = random.choice(["hcf", "lcm"])
         label = "HCF" if mode == "hcf" else "LCM"
         text = f"{label}({a}, {b}) = ____"
-        if i < 4:
+        if i < 6:
             dtype = "euclidean_algorithm" if mode == "hcf" else "ladder_division"
             dparams = {"a": max(a, b), "b": min(a, b)} if mode == "hcf" else {"a": a, "b": b, "mode": "lcm"}
             S.add(text, "", dtype=dtype, dparams=dparams)
         else:
             S.add(text, "Answer = ____")
-    for a, b in pairs[6:10]:
+    for i, (a, b) in enumerate(pairs[6:10]):
         n = random.randint(lo, hi)
-        S.add(f"Is {n} prime? Find its prime factorisation regardless.", "Answer = ____", "word")
-    for a, b in pairs[10:14]:
-        S.add(f"Two tapes {a}cm and {b}cm are cut into equal pieces, nothing wasted -- longest piece?", "Answer = ____", "word")
+        text = f"Is {n} prime? Find its prime factorisation regardless."
+        if i < 2:
+            S.add(text, "Answer = ____", dtype="factor_tree", dparams={"n": n})
+        else:
+            S.add(text, "Answer = ____", "word")
+    for i, (a, b) in enumerate(pairs[10:14]):
+        text = f"Two tapes {a}cm and {b}cm are cut into equal pieces, nothing wasted -- longest piece?"
+        if i < 2:
+            S.add(text, "", dtype="ladder_division", dparams={"a": a, "b": b, "mode": "hcf"})
+        else:
+            S.add(text, "Answer = ____", "word")
     for _ in range(3):
         a, b = random.choice(pairs)
         S.add(f"For {a} and {b}: is HCF x LCM = {a} x {b} true here? Verify it.", "Answer = ____", "word")
