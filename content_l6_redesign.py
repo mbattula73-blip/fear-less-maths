@@ -571,9 +571,12 @@ def _L6I_s(sheet):
     for i, n in enumerate(_esc_pick(range(lo, hi), 10)):
         nfac = len(_l6_factors_of(n))
         mult_of = random.choice([d for d in _l6_factors_of(n) if d > 1])
-        text = f"I am a number between {lo} and {hi}. I am a multiple of {mult_of} and I have exactly {nfac} factors. What number am I? (one answer: {n})"
-        if i < 6:
-            S.add(text, "Answer = ____", dtype="factor_rainbow", dparams={"n": n})
+        text = f"I'm between {lo}-{hi}, a multiple of {mult_of}, with {nfac} factors. Who am I? (e.g. {n})"
+        if i < 10:
+            if n <= 15:
+                S.add(text, "Answer = ____", dtype="factor_rainbow", dparams={"n": n})
+            else:
+                S.add(text, "Answer = ____", dtype="factor_array", dparams={"n": n})
         else:
             S.add(text, "Answer = ____", "word")
     for _ in range(4):
