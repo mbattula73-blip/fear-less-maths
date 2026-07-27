@@ -4322,11 +4322,32 @@ def circle_ring_svg(outer_r=14, inner_r=7, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def factor_array_svg(n=12, rows=3, cols=4, blank=False, **kw):
+def factor_array_svg(n=12, rows=None, cols=None, blank=False, **kw):
     """A rectangular array (rows x cols grid) showing that rows and cols
-    are a factor pair of n -- the array model for factors (Level 9A).
+    are a factor pair of n -- the array model for factors (Level 9A/6A).
+    If rows/cols aren't both given, a genuine factor pair of n is
+    derived automatically (the pair closest to square, for the best
+    layout) rather than defaulting to an arbitrary unrelated shape.
     blank=True hides the grid/caption, leaving just an empty box for the
     student to sketch and work out themselves."""
+    n = int(n)
+    import math as _m
+    if rows is None or cols is None:
+        best = (1, n)
+        for d in range(int(_m.isqrt(n)), 0, -1):
+            if n % d == 0:
+                best = (d, n // d)
+                break
+        rows, cols = best
+    else:
+        rows, cols = int(rows), int(cols)
+        if rows * cols != n:
+            best = (1, n)
+            for d in range(int(_m.isqrt(n)), 0, -1):
+                if n % d == 0:
+                    best = (d, n // d)
+                    break
+            rows, cols = best
     w_svg, h_svg = 380, 300
     if blank:
         parts = []
