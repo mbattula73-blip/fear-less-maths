@@ -38,6 +38,24 @@ def _pair_q(n, kind):
               {"count": n, "kind": kind})
 
 
+def _train_q(n, kind):
+    """Even/Odd via a coupled-car train -- kept to counts <=10 so the
+    single-row layout stays legible; callers only use this when n<=10,
+    pair_grouping's grid handles bigger counts."""
+    return q("Is this even or odd?", "diagram", "____", "", "number_train",
+              {"count": n, "kind": kind})
+
+
+def _numberline_q(mark, span=7):
+    """Is-it-even/odd via the color-coded number line (blue=even,
+    amber=odd) with `mark` circled -- auto-windows to a legible strip
+    even when lo/hi span a wide range."""
+    lo = max(1, mark - span)
+    hi = mark + span
+    return q("Is the circled number even or odd?", "diagram", "____", "",
+              "even_odd_numberline", {"lo": lo, "hi": hi, "mark": mark})
+
+
 def _array_q(n, rows):
     return q("Is this number prime?", "diagram", "____", "", "array_grid",
               {"n": n, "rows": rows})
@@ -46,6 +64,26 @@ def _array_q(n, rows):
 def _group_q(n, group_size, kind):
     return q("Find the group size.", "diagram", "____", "", "object_group",
               {"count": n, "kind": kind, "group_size": group_size})
+
+
+def _rect_q(n, group_size, kind):
+    """Equal grouping as a colored, bracket-labeled rectangle (shows
+    'groups' and 'size' at once) -- falls back to the plain object_group
+    rows when there'd be more than 8 groups, so the rectangle never gets
+    too tall to read."""
+    groups = max(1, n // max(group_size, 1))
+    if groups > 8:
+        return _group_q(n, group_size, kind)
+    return q("How many groups? How many in each group?", "diagram", "____", "",
+              "factor_rectangle", {"n": n, "group_size": group_size, "kind": kind})
+
+
+def _tree_q(n):
+    """Blank factor tree (root only, empty branches) for the student to
+    complete by hand -- a genuine prime-factorisation picture, not just
+    equal-grouping rows."""
+    return q("Complete the factor tree. Split into two factors each time.",
+              "diagram", "____", "", "factor_tree", {"n": n, "blank": True})
 
 
 def _eq_q(left, right, kind, op):
@@ -88,7 +126,10 @@ def _pairing_block(lo, hi, sheet):
     else:
         items = [cb("Even or Odd — Fast Round", ["Decide quickly: paired evenly, or one left over?"], "")]
     for idx, n in enumerate(picks):
-        items.append(_pair_q(n, _kind(idx)))
+        if n <= 10 and idx % 2 == 1:
+            items.append(_train_q(n, _kind(idx)))
+        else:
+            items.append(_pair_q(n, _kind(idx)))
     return items
 
 
@@ -102,7 +143,10 @@ def _CUM1_s(sheet):
     items = [cb("Review: Pairing & Even/Odd", ["Mix of small and bigger groups."], "")] if sheet != 3 else \
         [tb("Review Tips", ["Always loop pairs first, then look for a leftover."])]
     for idx, n in enumerate(picks):
-        items.append(_pair_q(n, _kind(idx)))
+        if n <= 10 and idx % 3 == 1:
+            items.append(_train_q(n, _kind(idx)))
+        else:
+            items.append(_pair_q(n, _kind(idx)))
     return items
 
 
@@ -125,6 +169,9 @@ def _C_s(sheet):
             start = start - (start % 2)  # force even
         else:
             start = start - (start % 2) + 1  # force odd
+        if i % 4 == 3:
+            items.append(_numberline_q(start + 2))
+            continue
         seq = [start, start+2, start+4, start+6]
         hide = random.randint(1, 3)
         seq_display = [v if j != hide else None for j, v in enumerate(seq)]
@@ -134,7 +181,8 @@ def _C_s(sheet):
 
 
 def _D_s(sheet):
-    """Even/Odd with bigger numbers (21-50), still using pair_grouping."""
+    """Even/Odd with bigger numbers (21-50): pair_grouping for the direct
+    count, even_odd_numberline for the last-digit-pattern view."""
     random.seed(400 + sheet)
     picks = [random.choice(range(21, 51)) for _ in range(19)]
     if sheet == 1:
@@ -147,9 +195,12 @@ def _D_s(sheet):
     else:
         items = [cb("Even or Odd — Mastery", ["Decide using the last digit rule."], "")]
     for idx, n in enumerate(picks):
-        # cap visual pairing to a manageable count for legibility; bigger
-        # numbers still get the same picture logic, just capped at 20 objects
-        items.append(_pair_q(min(n, 20), _kind(idx)))
+        if idx % 3 == 2:
+            items.append(_numberline_q(n))
+        else:
+            # cap visual pairing to a manageable count for legibility; bigger
+            # numbers still get the same picture logic, just capped at 20 objects
+            items.append(_pair_q(min(n, 20), _kind(idx)))
     return items
 
 
@@ -160,10 +211,16 @@ def _CUM2_s(sheet):
     for i in range(19):
         if i % 2 == 0:
             n = random.randint(1, 20)
-            items.append(_pair_q(n, _kind(i)))
+            if n <= 10 and i % 4 == 1:
+                items.append(_train_q(n, _kind(i)))
+            else:
+                items.append(_pair_q(n, _kind(i)))
         else:
             start = random.randint(1, 40)
             start = start - (start % 2)
+            if i % 5 == 1:
+                items.append(_numberline_q(start + 2))
+                continue
             seq = [start, start+2, start+4, start+6]
             hide = random.randint(1, 3)
             seq_display = [v if j != hide else None for j, v in enumerate(seq)]
@@ -196,7 +253,7 @@ def _E_s(sheet):
         groups = random.randint(2,5)
         pairs.append((gs*groups, gs))
     for n, gs in pairs[:19]:
-        items.append(_group_q(n, gs, _kind(n)))
+        items.append(_rect_q(n, gs, _kind(n)))
     return items
 
 
@@ -279,7 +336,10 @@ def _H_s(sheet):
         groups = random.randint(2,6)
         pairs.append((gs*groups, gs))
     for n, gs in pairs[:19]:
-        items.append(_group_q(n, gs, _kind(n)))
+        if n % 3 == 0 and n <= 40:
+            items.append(_tree_q(n))
+        else:
+            items.append(_rect_q(n, gs, _kind(n)))
     return items
 
 
@@ -290,15 +350,23 @@ def _I_s(sheet):
     items = [cb("Picture Puzzles", ["Look carefully, then decide."], "")] if sheet != 3 else \
         [tb("Puzzle Tips", ["Pairing tells you EVEN/ODD. The dot shape tells you PRIME/COMPOSITE."])]
     for i in range(19):
-        choice = i % 3
+        choice = i % 6
         if choice == 0:
-            items.append(_pair_q(random.randint(1, 20), _kind(i)))
+            n = random.randint(1, 20)
+            items.append(_train_q(n, _kind(i)) if n <= 10 else _pair_q(n, _kind(i)))
         elif choice == 1:
             n = random.choice([2,3,4,5,6,7,8,9,10,11,12,13,14,15])
             items.append(_array_q(n, _smallest_factor(n)))
-        else:
+        elif choice == 2:
             items.append(_eq_q(random.randint(1, 15), random.randint(1, 5), _kind(i),
                                 "+" if i % 2 == 0 else "-"))
+        elif choice == 3:
+            items.append(_numberline_q(random.randint(3, 18)))
+        elif choice == 4:
+            n, gs = random.choice([(12,3),(8,2),(15,3),(20,4),(9,3),(18,3)])
+            items.append(_rect_q(n, gs, _kind(i)))
+        else:
+            items.append(_pair_q(random.randint(1, 20), _kind(i)))
     return items
 
 
@@ -308,11 +376,13 @@ def _J_s(sheet):
     random.seed(1200 + sheet)
     items = [cb("Mixed Challenge", ["Even/odd, prime/composite, grouping, and equations all mixed."], "")]
     builders = [
-        lambda: _pair_q(random.randint(1, 20), _kind(random.randint(0,3))),
+        lambda: (lambda n: _train_q(n, _kind(random.randint(0,3))) if n <= 10 else _pair_q(n, _kind(random.randint(0,3))))(random.randint(1, 20)),
         lambda: (lambda n: _array_q(n, _smallest_factor(n)))(random.choice([2,3,5,6,7,8,9,10,11,12])),
-        lambda: _group_q(random.choice([6,8,9,10,12,14,15,16]), random.choice([2,3,4]), _kind(random.randint(0,3))),
+        lambda: _rect_q(*random.choice([(6,2),(8,2),(9,3),(10,2),(12,3),(14,2),(15,3),(16,4)]), _kind(random.randint(0,3))),
         lambda: _eq_q(random.randint(1,15), random.randint(1,5), _kind(random.randint(0,3)),
                        "+" if random.random() > 0.5 else "-"),
+        lambda: _numberline_q(random.randint(2, 30)),
+        lambda: _tree_q(random.choice([8,9,10,12,14,15,16,18,20])),
     ]
     for i in range(19):
         items.append(builders[i % len(builders)]())
@@ -323,14 +393,16 @@ def _REV_s(sheet):
     random.seed(1300 + sheet)
     items = [cb("Level 22 Revision", ["Every skill from this level, mixed together."], "")]
     builders = [
-        lambda: _pair_q(random.randint(1, 20), _kind(random.randint(0,3))),
+        lambda: (lambda n: _train_q(n, _kind(random.randint(0,3))) if n <= 10 else _pair_q(n, _kind(random.randint(0,3))))(random.randint(1, 20)),
         lambda: (lambda n: _array_q(n, _smallest_factor(n)))(random.choice([2,3,4,5,6,7,8,9,10,11,12,13,14,15])),
-        lambda: _group_q(random.choice([6,8,9,10,12,14,15,16,18,20]), random.choice([2,3,4,5]), _kind(random.randint(0,3))),
+        lambda: _rect_q(*random.choice([(6,2),(8,2),(9,3),(10,2),(12,3),(14,2),(15,3),(16,4),(18,3),(20,4)]), _kind(random.randint(0,3))),
         lambda: _eq_q(random.randint(1,15), random.randint(1,5), _kind(random.randint(0,3)),
                        "+" if random.random() > 0.5 else "-"),
         lambda: (lambda s: q("Find the missing number in the pattern.", "diagram", "____", "",
                               "sequence_boxes", {"seq": [s, s+2, None, s+6], "label": "pattern"}))(
                               (random.randint(1,20) // 2) * 2),
+        lambda: _numberline_q(random.randint(2, 30)),
+        lambda: _tree_q(random.choice([8,9,10,12,14,15,16,18,20,21,24])),
     ]
     for i in range(19):
         items.append(builders[i % len(builders)]())

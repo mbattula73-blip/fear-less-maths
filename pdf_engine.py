@@ -218,7 +218,9 @@ def _est(item, cw=None):
                                              "vertical_numberline_blank", "vertical_numberline_example",
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank", "mixed_number_area_blank",
-                                             "mixed_number_area_example")
+                                             "mixed_number_area_example",
+                                             "pair_grouping", "array_grid", "number_train",
+                                             "even_odd_numberline", "factor_rectangle")
     matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
     diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
@@ -384,7 +386,9 @@ class Col:
                                               "math_maze_blank", "function_machine_blank",
                                               "number_pyramid_blank", "mixed_number_area_blank",
                                               "mixed_number_area_example", "decimal_mult_area_blank",
-                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank")
+                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank",
+                                              "pair_grouping", "array_grid", "number_train",
+                                              "even_odd_numberline", "factor_rectangle")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                    "factor_tree", "venn_two",
                                                    "ratio_bar", "proportion_graph", "cross_multiply_bowtie")

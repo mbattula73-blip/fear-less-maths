@@ -987,10 +987,10 @@ def compare_blocks(left=47, right=52, **kw) -> BytesIO:
 
 
 def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
-    """Objects grouped into pairs with a loop drawn around each pair; if
-    count is odd, the last object stands alone with no loop (visually
-    showing 'leftover'). EVEN OR ODD? mascot above + EVEN/ODD tick boxes
-    at the bottom. Wordless except the two tick-box keywords."""
+    """Objects grouped into pairs with a colored loop drawn around each
+    pair; if count is odd, the last object stands alone inside a dashed
+    red 'leftover' loop (visually showing why it's ODD). EVEN OR ODD?
+    mascot above + color-tinted EVEN/ODD tick boxes at the bottom."""
     r = 14
     cell = r*2 + 10
     pair_gap = 26
@@ -1005,21 +1005,27 @@ def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
 
-    idx = 0
     for p in range(n_pairs):
         row, col = divmod(p, cols)
         x0 = 15 + col*(cell*2+pair_gap)
         y0 = icon_h + 10 + row*(cell+20)
         cx1, cy1 = x0+r, y0+r
         cx2, cy2 = x0+cell+r, y0+r
+        d.ellipse([x0-6, y0-6, x0+cell*2-2, y0+cell+2], fill=C_TEAL, outline=C_TEAL_D, width=3)
         _draw_object(d, cx1, cy1, r, kind)
         _draw_object(d, cx2, cy2, r, kind)
-        d.ellipse([x0-6, y0-6, x0+cell*2-2, y0+cell+2], outline=C_BORDER, width=2)
-        idx += 1
     if has_leftover:
         row, col = divmod(n_pairs, cols)
         x0 = 15 + col*(cell*2+pair_gap)
         y0 = icon_h + 10 + row*(cell+20)
+        d.ellipse([x0-8, y0-8, x0+cell+4, y0+cell+4], outline=C_MARK, width=3)
+        # dash the leftover ring by hand (PIL has no native dashed ellipse)
+        import math as _m
+        cx0, cy0 = x0+cell/2-2, y0+cell/2-2
+        rad = cell/2+6
+        for a in range(0, 360, 18):
+            a1, a2 = _m.radians(a), _m.radians(a+9)
+            d.arc([cx0-rad, cy0-rad, cx0+rad, cy0+rad], _m.degrees(a1), _m.degrees(a2), fill=C_MARK, width=3)
         _draw_object(d, x0+r, y0+r, r, kind)
 
     box_y = h - 45
@@ -1027,9 +1033,11 @@ def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
     gap = 20
     start_x = (w - (box_w*2 + gap)) / 2
     fnt = _font_reg(13)
+    fills = [C_TEAL, C_RED]
+    outlines = [C_TEAL_D, C_MARK]
     for i, label in enumerate(["EVEN", "ODD"]):
         bx = start_x + i*(box_w+gap)
-        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], outline=C_BORDER, width=2)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=2)
         tw = d.textlength(label, font=fnt)
         d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
     return _to_bytes(img)
@@ -1038,7 +1046,10 @@ def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
 def array_grid(n=6, rows=2, **kw) -> BytesIO:
     """Dots arranged in a grid (rows x cols=n/rows) to visually teach
     prime vs composite: a single straight LINE (1 row) = PRIME, a
-    rectangular GRID (2+ rows) = COMPOSITE. PRIME OR NOT? mascot above +
+    rectangular GRID (2+ rows) = COMPOSITE. Each row is filled in a
+    different color from a repeating palette, so the RECTANGLE shape
+    (multiple colored rows stacking neatly) reads instantly against a
+    single-color straight line. PRIME OR NOT? mascot above + color-tinted
     PRIME/COMPOSITE tick boxes at the bottom."""
     cols = max(1, n // max(rows, 1))
     r = 12
@@ -1050,22 +1061,199 @@ def array_grid(n=6, rows=2, **kw) -> BytesIO:
     h = icon_h + rows*cell + 80
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "primecomp")
+    row_palette = [(C_BLUE, C_BLUE_D), (C_AMBER, C_AMBER_D), (C_TEAL, C_TEAL_D), (C_RED, C_RED_D)]
     for i in range(n):
         row, col = divmod(i, cols)
         cx = x_start + r + col*cell
         cy = icon_h + 10 + r + row*cell
-        d.ellipse([cx-r, cy-r, cx+r, cy+r], outline=C_BORDER, width=2)
+        fill_c, out_c = row_palette[row % len(row_palette)]
+        d.ellipse([cx-r, cy-r, cx+r, cy+r], fill=fill_c, outline=out_c, width=2)
 
     box_y = h - 45
     box_w, box_h = 95, 30
     gap = 20
     start_x = (w - (box_w*2 + gap)) / 2
     fnt = _font_reg(12)
+    fills = [C_GRAY, C_TEAL]
+    outlines = [C_GRAY_D, C_TEAL_D]
     for i, label in enumerate(["PRIME", "COMPOSITE"]):
         bx = start_x + i*(box_w+gap)
-        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], outline=C_BORDER, width=2)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=2)
         tw = d.textlength(label, font=fnt)
         d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def number_train(count=6, kind="apple", **kw) -> BytesIO:
+    """A colorful train of cars, coupled in twos with a bright coupler bar
+    between each pair -- a linear alternative to pair_grouping's grid-of-
+    loops layout, for visual variety when teaching even/odd. If count is
+    odd, the last car is a red caboose that has no partner, with a "?"
+    over it. A simple locomotive leads the line. Even/Odd tick boxes
+    match pair_grouping's."""
+    r = 15
+    car_w = r*2 + 6
+    coupler_w = 14
+    gap = 8
+    n_pairs = count // 2
+    has_leftover = count % 2 == 1
+    loco_w = 46
+    icon_h = 70
+    track_y = icon_h + 60
+    n_cars = count
+    w = loco_w + 20 + n_cars*car_w + (n_cars-1)*gap + (n_pairs)*coupler_w + 40
+    h = track_y + 40
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
+
+    # track
+    d.line([10, track_y, w-10, track_y], fill=C_GRAY_D, width=3)
+    for tx in range(10, int(w)-10, 14):
+        d.line([tx, track_y-2, tx, track_y+6], fill=C_GRAY_D, width=2)
+
+    # locomotive
+    lx0 = 15
+    d.rectangle([lx0, track_y-46, lx0+loco_w, track_y-8], fill=C_BLUE, outline=C_BORDER, width=2)
+    d.polygon([(lx0, track_y-46), (lx0+loco_w*0.4, track_y-46), (lx0+loco_w*0.4, track_y-58),
+               (lx0+loco_w*0.1, track_y-58)], fill=C_BLUE_D, outline=C_BORDER)
+    d.ellipse([lx0+8, track_y-16, lx0+8+16, track_y], fill=C_GRAY_D, outline=C_BORDER, width=2)
+    d.ellipse([lx0+loco_w-24, track_y-16, lx0+loco_w-8, track_y], fill=C_GRAY_D, outline=C_BORDER, width=2)
+
+    x = lx0 + loco_w + 16
+    _obj_kinds = ["apple", "star", "balloon", "flower"]
+    pair_colors = [(C_TEAL, C_TEAL_D), (C_BLUE, C_BLUE_D), (C_AMBER, C_AMBER_D)]
+    car_i = 0
+    for p in range(n_pairs):
+        fill_c, out_c = pair_colors[p % len(pair_colors)]
+        for side in range(2):
+            cy = track_y - r - 8
+            d.rounded_rectangle([x, cy-r, x+car_w, cy+r], radius=6, fill=fill_c, outline=out_c, width=2)
+            _draw_object(d, x+car_w/2, cy, r*0.6, _obj_kinds[car_i % 4])
+            d.ellipse([x+car_w/2-10, track_y-16, x+car_w/2+10, track_y], fill=C_GRAY_D, outline=C_BORDER, width=2)
+            car_i += 1
+            if side == 0:
+                d.rectangle([x+car_w, cy-4, x+car_w+coupler_w, cy+4], fill=out_c)
+                x += car_w + coupler_w
+            else:
+                x += car_w + gap
+    if has_leftover:
+        cy = track_y - r - 8
+        d.rounded_rectangle([x, cy-r, x+car_w, cy+r], radius=6, fill=C_RED, outline=C_MARK, width=3)
+        _draw_object(d, x+car_w/2, cy, r*0.6, _obj_kinds[car_i % 4])
+        d.ellipse([x+car_w/2-10, track_y-16, x+car_w/2+10, track_y], fill=C_GRAY_D, outline=C_BORDER, width=2)
+        fnt_q = _font(14)
+        d.text((x+car_w/2-4, cy-r-20), "?", fill=C_MARK, font=fnt_q)
+
+    box_y = h - 25
+    box_w, box_h = 70, 20
+    fnt = _font_reg(11)
+    gap2 = 16
+    start_x = (w - (box_w*2 + gap2)) / 2
+    fills = [C_TEAL, C_RED]; outlines = [C_TEAL_D, C_MARK]
+    for i, label in enumerate(["EVEN", "ODD"]):
+        bx = start_x + i*(box_w+gap2)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=2)
+        tw = d.textlength(label, font=fnt)
+        d.text((bx+box_w/2-tw/2, box_y+box_h/2-7), label, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
+    """A number line where every EVEN number sits on a blue dot and every
+    ODD number sits on an orange dot -- the color pattern itself teaches
+    'evens and odds alternate'. One number (mark) is circled in red as
+    the question target, with a small +2 skip-count arc hinting at the
+    pattern. Wide (lo, hi) ranges are auto-windowed to at most 14 numbers
+    centered on mark, so a 21-50 range stays legible instead of stretching
+    into an unreadably long strip."""
+    if mark is None:
+        mark = lo + (hi - lo)//2
+    MAX_SHOWN = 14
+    if hi - lo + 1 > MAX_SHOWN:
+        half = MAX_SHOWN // 2
+        lo2 = max(lo, mark - half)
+        hi2 = min(hi, lo2 + MAX_SHOWN - 1)
+        lo2 = max(lo, hi2 - MAX_SHOWN + 1)
+        lo, hi = lo2, hi2
+    n = hi - lo + 1
+    step = 34
+    w = 40 + (n-1)*step + 40
+    icon_h = 70
+    line_y = icon_h + 60
+    h = line_y + 50
+    img, d = _blank(max(w, 260), h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
+    d.line([30, line_y, w-30, line_y], fill=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    for i, val in enumerate(range(lo, hi+1)):
+        x = 30 + i*step
+        is_even = (val % 2 == 0)
+        fill_c, out_c = (C_BLUE, C_BLUE_D) if is_even else (C_AMBER, C_AMBER_D)
+        rr = 10
+        d.line([x, line_y-5, x, line_y+5], fill=C_BORDER, width=1)
+        if val == mark:
+            d.ellipse([x-rr-5, line_y-rr-5, x+rr+5, line_y+rr+5], outline=C_MARK, width=3)
+        d.ellipse([x-rr, line_y-rr, x+rr, line_y+rr], fill=fill_c, outline=out_c, width=2)
+        tw = d.textlength(str(val), font=fnt)
+        d.text((x-tw/2, line_y-6), str(val), fill=C_BORDER, font=fnt)
+    if mark - 2 >= lo:
+        x1 = 30 + (mark-2-lo)*step
+        x2 = 30 + (mark-lo)*step
+        arc_top = line_y - 44
+        d.arc([x1, arc_top, x2, line_y-8], 200, 340, fill=C_HOP, width=3)
+        fnt2 = _font_reg(12)
+        d.text(((x1+x2)/2-8, arc_top-2), "+2", fill=C_HOP, font=fnt2)
+    legend_y = h - 22
+    for i, (lbl, fc, oc) in enumerate([("EVEN", C_BLUE, C_BLUE_D), ("ODD", C_AMBER, C_AMBER_D)]):
+        lx = w/2 - 90 + i*110
+        d.ellipse([lx, legend_y, lx+16, legend_y+16], fill=fc, outline=oc, width=2)
+        d.text((lx+22, legend_y+1), lbl, fill=C_BORDER, font=fnt)
+    return _to_bytes(img)
+
+
+def factor_rectangle(n=12, group_size=3, kind="apple", **kw) -> BytesIO:
+    """Equal-grouping shown as a colored rectangle of object rows (group
+    size = columns) with a bracket under ONE row labeled 'group size' and
+    a bracket beside the rows labeled 'groups', so the picture answers
+    'how many groups?' and 'how big is each group?' at once -- richer
+    than plain unbracketed rows of objects."""
+    groups = max(1, n // max(group_size, 1))
+    r = 14
+    cell = r*2 + 8
+    icon_h = 70
+    left_pad = 46
+    w = left_pad + group_size*cell + 50
+    h = icon_h + groups*cell + 60
+    img, d = _blank(w, h)
+    _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "group")
+    palette = [(C_BLUE, C_BLUE_D), (C_TEAL, C_TEAL_D), (C_AMBER, C_AMBER_D), (C_RED, C_RED_D)]
+    top = icon_h + 10
+    for row in range(groups):
+        fill_c, out_c = palette[row % len(palette)]
+        y0 = top + row*cell
+        d.rectangle([left_pad-4, y0-2, left_pad+group_size*cell, y0+cell-6], fill=fill_c, outline=out_c, width=2)
+        for col in range(group_size):
+            cx = left_pad + r + col*cell
+            cy = y0 + r
+            _draw_object(d, cx, cy, r*0.75, kind)
+    # bracket beside rows = "groups"
+    bx = left_pad - 18
+    by0, by1 = top-4, top + groups*cell - 6
+    d.line([bx, by0, bx-6, by0], fill=C_BORDER, width=2)
+    d.line([bx-6, by0, bx-6, by1], fill=C_BORDER, width=2)
+    d.line([bx-6, by1, bx, by1], fill=C_BORDER, width=2)
+    fnt = _font_reg(11)
+    d.text((6, (by0+by1)/2-14), f"{groups}", fill=C_BORDER, font=_font(14))
+    d.text((2, (by0+by1)/2+2), "groups", fill=C_BORDER, font=fnt)
+    # bracket under first row = "group size"
+    gy = top + cell - 4
+    gx0, gx1 = left_pad, left_pad + group_size*cell
+    d.line([gx0, gy, gx0, gy+6], fill=C_BORDER, width=2)
+    d.line([gx0, gy+6, gx1, gy+6], fill=C_BORDER, width=2)
+    d.line([gx1, gy+6, gx1, gy], fill=C_BORDER, width=2)
+    lbl = f"{group_size} in each group"
+    tw = d.textlength(lbl, font=fnt)
+    d.text(((gx0+gx1)/2-tw/2, gy+10), lbl, fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -2682,6 +2870,9 @@ DIAGRAM_FUNCTIONS = {
     "compare_blocks": compare_blocks,
     "pair_grouping": pair_grouping,
     "array_grid": array_grid,
+    "number_train": number_train,
+    "even_odd_numberline": even_odd_numberline,
+    "factor_rectangle": factor_rectangle,
     "multiply_grid": multiply_grid,
     "repeated_groups": repeated_groups,
     "sharing_baskets": sharing_baskets,
