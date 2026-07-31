@@ -1001,7 +1001,7 @@ def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
     w = cols * (cell*2 + pair_gap) + 30
     rows = (n_pairs + (1 if has_leftover else 0) + cols - 1) // cols
     rows = max(rows, 1)
-    h = icon_h + rows*(cell+20) + 60
+    h = icon_h + rows*(cell+20) + 110
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
 
@@ -1028,18 +1028,18 @@ def pair_grouping(count=6, kind="apple", **kw) -> BytesIO:
             d.arc([cx0-rad, cy0-rad, cx0+rad, cy0+rad], _m.degrees(a1), _m.degrees(a2), fill=C_MARK, width=3)
         _draw_object(d, x0+r, y0+r, r, kind)
 
-    box_y = h - 45
-    box_w, box_h = 70, 30
-    gap = 20
+    box_y = h - 90
+    box_w, box_h = 170, 60
+    gap = 30
     start_x = (w - (box_w*2 + gap)) / 2
-    fnt = _font_reg(13)
+    fnt = _font(34)
     fills = [C_TEAL, C_RED]
     outlines = [C_TEAL_D, C_MARK]
     for i, label in enumerate(["EVEN", "ODD"]):
         bx = start_x + i*(box_w+gap)
-        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=2)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=3)
         tw = d.textlength(label, font=fnt)
-        d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
+        d.text((bx+box_w/2-tw/2, box_y+box_h/2-19), label, fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -1055,10 +1055,13 @@ def array_grid(n=6, rows=2, **kw) -> BytesIO:
     r = 12
     cell = r*2 + 10
     icon_h = 70
-    w = max(cols*cell + 30, 260)
+    box_w, box_h = 155, 60
+    gap = 30
+    min_w = box_w*2 + gap + 40
+    w = max(cols*cell + 30, 260, min_w)
     grid_w = cols * cell
     x_start = (w - grid_w) / 2
-    h = icon_h + rows*cell + 80
+    h = icon_h + rows*cell + 130
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "primecomp")
     row_palette = [(C_BLUE, C_BLUE_D), (C_AMBER, C_AMBER_D), (C_TEAL, C_TEAL_D), (C_RED, C_RED_D)]
@@ -1069,18 +1072,16 @@ def array_grid(n=6, rows=2, **kw) -> BytesIO:
         fill_c, out_c = row_palette[row % len(row_palette)]
         d.ellipse([cx-r, cy-r, cx+r, cy+r], fill=fill_c, outline=out_c, width=2)
 
-    box_y = h - 45
-    box_w, box_h = 95, 30
-    gap = 20
+    box_y = h - 90
     start_x = (w - (box_w*2 + gap)) / 2
-    fnt = _font_reg(12)
+    fnt = _font(26)
     fills = [C_GRAY, C_TEAL]
     outlines = [C_GRAY_D, C_TEAL_D]
     for i, label in enumerate(["PRIME", "COMPOSITE"]):
         bx = start_x + i*(box_w+gap)
-        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=2)
+        d.rectangle([bx, box_y, bx+box_w, box_y+box_h], fill=fills[i], outline=outlines[i], width=3)
         tw = d.textlength(label, font=fnt)
-        d.text((bx+box_w/2-tw/2, box_y+box_h/2-8), label, fill=C_BORDER, font=fnt)
+        d.text((bx+box_w/2-tw/2, box_y+box_h/2-16), label, fill=C_BORDER, font=fnt)
     return _to_bytes(img)
 
 
@@ -1168,7 +1169,7 @@ def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
     into an unreadably long strip."""
     if mark is None:
         mark = lo + (hi - lo)//2
-    MAX_SHOWN = 14
+    MAX_SHOWN = 7
     if hi - lo + 1 > MAX_SHOWN:
         half = MAX_SHOWN // 2
         lo2 = max(lo, mark - half)
@@ -1176,39 +1177,39 @@ def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
         lo2 = max(lo, hi2 - MAX_SHOWN + 1)
         lo, hi = lo2, hi2
     n = hi - lo + 1
-    step = 38
+    step = 70
     w = 40 + (n-1)*step + 40
     icon_h = 70
-    line_y = icon_h + 62
-    h = line_y + 52
+    line_y = icon_h + 110
+    h = line_y + 60
     img, d = _blank(max(w, 260), h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
     d.line([30, line_y, w-30, line_y], fill=C_BORDER, width=2)
-    fnt = _font(11)
+    fnt = _font(40)
     for i, val in enumerate(range(lo, hi+1)):
         x = 30 + i*step
         is_even = (val % 2 == 0)
         fill_c, out_c = (C_BLUE, C_BLUE_D) if is_even else (C_AMBER, C_AMBER_D)
-        rr = 13
+        rr = 28
         d.line([x, line_y-5, x, line_y+5], fill=C_BORDER, width=1)
         if val == mark:
-            d.ellipse([x-rr-5, line_y-rr-5, x+rr+5, line_y+rr+5], outline=C_MARK, width=3)
-        d.ellipse([x-rr, line_y-rr, x+rr, line_y+rr], fill=fill_c, outline=out_c, width=2)
+            d.ellipse([x-rr-6, line_y-rr-6, x+rr+6, line_y+rr+6], outline=C_MARK, width=4)
+        d.ellipse([x-rr, line_y-rr, x+rr, line_y+rr], fill=fill_c, outline=out_c, width=3)
         tw = d.textlength(str(val), font=fnt)
-        d.text((x-tw/2, line_y-7), str(val), fill=C_BORDER, font=fnt)
+        d.text((x-tw/2, line_y-21), str(val), fill=C_BORDER, font=fnt)
     if mark - 2 >= lo:
         x1 = 30 + (mark-2-lo)*step
         x2 = 30 + (mark-lo)*step
-        arc_top = line_y - 44
-        d.arc([x1, arc_top, x2, line_y-8], 200, 340, fill=C_HOP, width=3)
-        fnt2 = _font(12)
-        d.text(((x1+x2)/2-8, arc_top-2), "+2", fill=C_HOP, font=fnt2)
-    legend_y = h - 22
-    fnt_legend = _font_reg(12)
+        arc_top = line_y - 76
+        d.arc([x1, arc_top, x2, line_y-14], 200, 340, fill=C_HOP, width=4)
+        fnt2 = _font(20)
+        d.text(((x1+x2)/2-13, arc_top-6), "+2", fill=C_HOP, font=fnt2)
+    legend_y = h - 26
+    fnt_legend = _font_reg(14)
     for i, (lbl, fc, oc) in enumerate([("EVEN", C_BLUE, C_BLUE_D), ("ODD", C_AMBER, C_AMBER_D)]):
-        lx = w/2 - 90 + i*110
-        d.ellipse([lx, legend_y, lx+16, legend_y+16], fill=fc, outline=oc, width=2)
-        d.text((lx+22, legend_y+1), lbl, fill=C_BORDER, font=fnt_legend)
+        lx = w/2 - 100 + i*130
+        d.ellipse([lx, legend_y, lx+20, legend_y+20], fill=fc, outline=oc, width=2)
+        d.text((lx+27, legend_y+2), lbl, fill=C_BORDER, font=fnt_legend)
     return _to_bytes(img)
 
 
@@ -1222,9 +1223,9 @@ def factor_rectangle(n=12, group_size=3, kind="apple", **kw) -> BytesIO:
     r = 14
     cell = r*2 + 8
     icon_h = 70
-    left_pad = 46
-    w = left_pad + group_size*cell + 50
-    h = icon_h + groups*cell + 60
+    left_pad = 92
+    w = left_pad + group_size*cell + 90
+    h = icon_h + groups*cell + 90
     img, d = _blank(w, h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "group")
     palette = [(C_BLUE, C_BLUE_D), (C_TEAL, C_TEAL_D), (C_AMBER, C_AMBER_D), (C_RED, C_RED_D)]
@@ -1238,23 +1239,24 @@ def factor_rectangle(n=12, group_size=3, kind="apple", **kw) -> BytesIO:
             cy = y0 + r
             _draw_object(d, cx, cy, r*0.75, kind)
     # bracket beside rows = "groups"
-    bx = left_pad - 18
+    bx = left_pad - 22
     by0, by1 = top-4, top + groups*cell - 6
-    d.line([bx, by0, bx-6, by0], fill=C_BORDER, width=2)
-    d.line([bx-6, by0, bx-6, by1], fill=C_BORDER, width=2)
-    d.line([bx-6, by1, bx, by1], fill=C_BORDER, width=2)
-    fnt = _font_reg(11)
-    d.text((6, (by0+by1)/2-14), f"{groups}", fill=C_BORDER, font=_font(14))
-    d.text((2, (by0+by1)/2+2), "groups", fill=C_BORDER, font=fnt)
+    d.line([bx, by0, bx-8, by0], fill=C_BORDER, width=3)
+    d.line([bx-8, by0, bx-8, by1], fill=C_BORDER, width=3)
+    d.line([bx-8, by1, bx, by1], fill=C_BORDER, width=3)
+    fnt = _font(20)
+    d.text((8, (by0+by1)/2-34), f"{groups}", fill=C_BORDER, font=_font(32))
+    d.text((6, (by0+by1)/2+4), "groups", fill=C_BORDER, font=fnt)
     # bracket under first row = "group size"
     gy = top + cell - 4
     gx0, gx1 = left_pad, left_pad + group_size*cell
-    d.line([gx0, gy, gx0, gy+6], fill=C_BORDER, width=2)
-    d.line([gx0, gy+6, gx1, gy+6], fill=C_BORDER, width=2)
-    d.line([gx1, gy+6, gx1, gy], fill=C_BORDER, width=2)
-    lbl = f"{group_size} in each group"
-    tw = d.textlength(lbl, font=fnt)
-    d.text(((gx0+gx1)/2-tw/2, gy+10), lbl, fill=C_BORDER, font=fnt)
+    d.line([gx0, gy, gx0, gy+8], fill=C_BORDER, width=3)
+    d.line([gx0, gy+8, gx1, gy+8], fill=C_BORDER, width=3)
+    d.line([gx1, gy+8, gx1, gy], fill=C_BORDER, width=3)
+    lbl = f"{group_size} per group"
+    fnt2 = _font(28)
+    tw = d.textlength(lbl, font=fnt2)
+    d.text(((gx0+gx1)/2-tw/2, gy+16), lbl, fill=C_BORDER, font=fnt2)
     return _to_bytes(img)
 
 
@@ -2663,13 +2665,13 @@ def factor_tree(n=60, blank=False, **kw) -> BytesIO:
     if blank:
         w, h = 480, 360
         img, dr = _blank(w, h)
-        fnt = _font(16)
-        radius = 26
-        cx, cy = w // 2, 50
-        dr.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=C_BLUE, outline=C_BORDER, width=2)
+        fnt = _font(36)
+        radius = 34
+        cx, cy = w // 2, 55
+        dr.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], fill=C_BLUE, outline=C_BORDER, width=3)
         txt = str(n)
         tw = dr.textlength(txt, font=fnt)
-        dr.text((cx - tw/2, cy - 10), txt, fill=C_TEXT, font=fnt)
+        dr.text((cx - tw/2, cy - 21), txt, fill=C_TEXT, font=fnt)
         lx, rx, ny = cx - 110, cx + 110, cy + 110
         dr.line([cx, cy + radius, lx, ny - 30], fill=C_BORDER, width=2)
         dr.line([cx, cy + radius, rx, ny - 30], fill=C_BORDER, width=2)

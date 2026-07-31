@@ -219,9 +219,9 @@ def _est(item, cw=None):
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank", "mixed_number_area_blank",
                                              "mixed_number_area_example",
-                                             "pair_grouping", "array_grid", "number_train",
-                                             "even_odd_numberline", "factor_rectangle")
-    matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
+                                             "number_train", "even_odd_numberline")
+    matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example",
+                                                  "pair_grouping", "array_grid", "factor_rectangle")
     diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
     avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
@@ -387,11 +387,11 @@ class Col:
                                               "number_pyramid_blank", "mixed_number_area_blank",
                                               "mixed_number_area_example", "decimal_mult_area_blank",
                                               "decimal_mult_area_example", "decimal_zoom_numberline_blank",
-                                              "pair_grouping", "array_grid", "number_train",
-                                              "even_odd_numberline", "factor_rectangle")
+                                              "number_train", "even_odd_numberline")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                    "factor_tree", "venn_two",
-                                                   "ratio_bar", "proportion_graph", "cross_multiply_bowtie")
+                                                   "ratio_bar", "proportion_graph", "cross_multiply_bowtie",
+                                                   "pair_grouping", "array_grid", "factor_rectangle")
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                         c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
