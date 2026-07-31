@@ -1189,10 +1189,17 @@ def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
     for i, val in enumerate(range(lo, hi+1)):
         x = 30 + i*step
         is_even = (val % 2 == 0)
-        fill_c, out_c = (C_BLUE, C_BLUE_D) if is_even else (C_AMBER, C_AMBER_D)
+        is_mark = (val == mark)
+        # The dot being asked about must NOT be colored by its true even/odd
+        # status -- that would hand over the answer. Only context numbers
+        # get the informative blue/amber; the target stays neutral.
+        if is_mark:
+            fill_c, out_c = (C_GRAY, C_GRAY_D)
+        else:
+            fill_c, out_c = (C_BLUE, C_BLUE_D) if is_even else (C_AMBER, C_AMBER_D)
         rr = 28
         d.line([x, line_y-5, x, line_y+5], fill=C_BORDER, width=1)
-        if val == mark:
+        if is_mark:
             d.ellipse([x-rr-6, line_y-rr-6, x+rr+6, line_y+rr+6], outline=C_MARK, width=4)
         d.ellipse([x-rr, line_y-rr, x+rr, line_y+rr], fill=fill_c, outline=out_c, width=3)
         tw = d.textlength(str(val), font=fnt)
@@ -1214,11 +1221,13 @@ def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
 
 
 def factor_rectangle(n=12, group_size=3, kind="apple", **kw) -> BytesIO:
-    """Equal-grouping shown as a colored rectangle of object rows (group
-    size = columns) with a bracket under ONE row labeled 'group size' and
-    a bracket beside the rows labeled 'groups', so the picture answers
-    'how many groups?' and 'how big is each group?' at once -- richer
-    than plain unbracketed rows of objects."""
+    """Equal-grouping shown as a colored rectangle of object rows, with a
+    bracket under ONE row labeled 'in each group' and a bracket beside
+    the rows labeled 'groups' -- the brackets show WHERE to count, not
+    the count itself, so the student still has to count the rows and the
+    items in one row to answer 'how many groups? how many in each
+    group?'. Never print groups/group_size as text here -- that would be
+    printing the answer key on the question."""
     groups = max(1, n // max(group_size, 1))
     r = 14
     cell = r*2 + 8
@@ -1245,16 +1254,15 @@ def factor_rectangle(n=12, group_size=3, kind="apple", **kw) -> BytesIO:
     d.line([bx-8, by0, bx-8, by1], fill=C_BORDER, width=3)
     d.line([bx-8, by1, bx, by1], fill=C_BORDER, width=3)
     fnt = _font(20)
-    d.text((8, (by0+by1)/2-34), f"{groups}", fill=C_BORDER, font=_font(32))
-    d.text((6, (by0+by1)/2+4), "groups", fill=C_BORDER, font=fnt)
+    d.text((10, (by0+by1)/2-12), "groups", fill=C_BORDER, font=fnt)
     # bracket under first row = "group size"
     gy = top + cell - 4
     gx0, gx1 = left_pad, left_pad + group_size*cell
     d.line([gx0, gy, gx0, gy+8], fill=C_BORDER, width=3)
     d.line([gx0, gy+8, gx1, gy+8], fill=C_BORDER, width=3)
     d.line([gx1, gy+8, gx1, gy], fill=C_BORDER, width=3)
-    lbl = f"{group_size} per group"
-    fnt2 = _font(28)
+    lbl = "in each group"
+    fnt2 = _font(20)
     tw = d.textlength(lbl, font=fnt2)
     d.text(((gx0+gx1)/2-tw/2, gy+16), lbl, fill=C_BORDER, font=fnt2)
     return _to_bytes(img)
