@@ -1176,38 +1176,39 @@ def even_odd_numberline(lo=1, hi=20, mark=None, **kw) -> BytesIO:
         lo2 = max(lo, hi2 - MAX_SHOWN + 1)
         lo, hi = lo2, hi2
     n = hi - lo + 1
-    step = 34
+    step = 40
     w = 40 + (n-1)*step + 40
     icon_h = 70
-    line_y = icon_h + 60
-    h = line_y + 50
+    line_y = icon_h + 66
+    h = line_y + 54
     img, d = _blank(max(w, 260), h)
     _draw_mini_mascot_flag(d, w/2 - 14, 26, 22, "evenodd")
     d.line([30, line_y, w-30, line_y], fill=C_BORDER, width=2)
-    fnt = _font_reg(11)
+    fnt = _font(15)
     for i, val in enumerate(range(lo, hi+1)):
         x = 30 + i*step
         is_even = (val % 2 == 0)
         fill_c, out_c = (C_BLUE, C_BLUE_D) if is_even else (C_AMBER, C_AMBER_D)
-        rr = 10
+        rr = 15
         d.line([x, line_y-5, x, line_y+5], fill=C_BORDER, width=1)
         if val == mark:
             d.ellipse([x-rr-5, line_y-rr-5, x+rr+5, line_y+rr+5], outline=C_MARK, width=3)
         d.ellipse([x-rr, line_y-rr, x+rr, line_y+rr], fill=fill_c, outline=out_c, width=2)
         tw = d.textlength(str(val), font=fnt)
-        d.text((x-tw/2, line_y-6), str(val), fill=C_BORDER, font=fnt)
+        d.text((x-tw/2, line_y-9), str(val), fill=C_BORDER, font=fnt)
     if mark - 2 >= lo:
         x1 = 30 + (mark-2-lo)*step
         x2 = 30 + (mark-lo)*step
-        arc_top = line_y - 44
-        d.arc([x1, arc_top, x2, line_y-8], 200, 340, fill=C_HOP, width=3)
-        fnt2 = _font_reg(12)
-        d.text(((x1+x2)/2-8, arc_top-2), "+2", fill=C_HOP, font=fnt2)
-    legend_y = h - 22
+        arc_top = line_y - 50
+        d.arc([x1, arc_top, x2, line_y-10], 200, 340, fill=C_HOP, width=3)
+        fnt2 = _font(13)
+        d.text(((x1+x2)/2-9, arc_top-4), "+2", fill=C_HOP, font=fnt2)
+    legend_y = h - 24
+    fnt_legend = _font_reg(12)
     for i, (lbl, fc, oc) in enumerate([("EVEN", C_BLUE, C_BLUE_D), ("ODD", C_AMBER, C_AMBER_D)]):
         lx = w/2 - 90 + i*110
-        d.ellipse([lx, legend_y, lx+16, legend_y+16], fill=fc, outline=oc, width=2)
-        d.text((lx+22, legend_y+1), lbl, fill=C_BORDER, font=fnt)
+        d.ellipse([lx, legend_y, lx+18, legend_y+18], fill=fc, outline=oc, width=2)
+        d.text((lx+24, legend_y+2), lbl, fill=C_BORDER, font=fnt_legend)
     return _to_bytes(img)
 
 
