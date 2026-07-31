@@ -446,6 +446,23 @@ def _concept_page(c, concept_items, ws_id, tier, topic, level_num, sublevel_code
     except Exception:
         pass
 
+def _pack(col, items):
+    """Fill one column in STRICT list order.
+
+    Stops at the first item that doesn't fit and hands back everything from
+    that point on. The previous version kept walking the whole list after a
+    miss, so a shorter later question could slip into the leftover space at
+    the bottom of a column -- which is why sheets like PreCUM2-1 read
+    1,2,3,4,5,16,6,7,... The question numbers were correct; the *placement*
+    was not. Never reorder: an unfilled sliver of column is fine, a jumbled
+    worksheet is not.
+    """
+    for i, item in enumerate(items):
+        if not col.render(item):
+            return items[i:]
+    return []
+
+
 def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     ws_id=f"{sublevel_code}-{sheet_num}"; tier=get_tier(sheet_num)
     topic=dict(SUBLEVELS.get(level_num,[])).get(sublevel_code,"")
@@ -490,21 +507,21 @@ def build_pdf(level_num:int, sublevel_code:str, sheet_num:str)->BytesIO:
     _outer(c); _header(c,ws_id,tier,topic,level_num)
     _sidebar(c,P1_TOP,P1_BOT,page=1); _divider(c,P1_TOP,P1_BOT)
     rl=Col(c,LX,CW,P1_TOP,P1_BOT); rr=Col(c,RX,CW,P1_TOP,P1_BOT)
-    p2=[]
-    for item in questions:
-        if not rl.render(item): p2.append(item)
-    p3=[]
-    for item in p2:
-        if not rr.render(item): p3.append(item)
-    c.showPage()
-    # Page 2
-    _outer(c); _sidebar(c,P2_TOP,P2_BOT,page=2); _divider(c,P2_TOP,P2_BOT); _footer_p2(c)
-    rl2=Col(c,LX,CW,P2_TOP,P2_BOT); rr2=Col(c,RX,CW,P2_TOP,P2_BOT)
-    p4=[]
-    for item in p3:
-        if not rl2.render(item): p4.append(item)
-    for item in p4: rr2.render(item)
-    _rough_work(c,rl2); _rough_work(c,rr2)
+    pending=_pack(rr,_pack(rl,questions))
+
+    # Page 2 onward. Almost every sheet finishes on page 2 (unchanged), but a
+    # handful of question-dense sublevels genuinely need more room than four
+    # columns give. Keep opening continuation pages rather than silently
+    # dropping the tail -- a worksheet promising 20 questions must print 20.
+    while True:
+        c.showPage()
+        _outer(c); _sidebar(c,P2_TOP,P2_BOT,page=2); _divider(c,P2_TOP,P2_BOT)
+        cl=Col(c,LX,CW,P2_TOP,P2_BOT); cr=Col(c,RX,CW,P2_TOP,P2_BOT)
+        pending=_pack(cr,_pack(cl,pending))
+        if not pending:
+            _footer_p2(c)
+            _rough_work(c,cl); _rough_work(c,cr)
+            break
 
     # Page 3 — concept & tips (Level 7+). Skipped when the rich concept page
     # will be shown (it replaces this), to avoid a redundant page.
