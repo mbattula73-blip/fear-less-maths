@@ -190,6 +190,40 @@ def _footer_p2(c):
     c.drawCentredString(SX+SW/2,MB+5*mm,"Parent")
     c.drawCentredString(SX+SW/2,MB+1.5*mm,"Signature:")
 
+def _precise_diag_h(dtype, params):
+    """Generate the diagram and measure its ACTUAL height once scaled into
+    its print box, matching the render path in Col._q, instead of
+    assuming a flat worst-case constant. These diagram types vary
+    enormously in size by parameter (a 6-object pair_grouping vs a
+    20-object one), so a flat estimate either wastes page budget on the
+    small cases or under-estimates on the big ones -- this keeps the
+    fit-check and the actual draw honest with each other."""
+    try:
+        from diagram_engine import generate_diagram
+        from PIL import Image
+        buf = generate_diagram(dtype, params)
+        if not buf:
+            return 34*mm
+        im = Image.open(buf)
+        nw, nh = im.size
+        if not nw or not nh:
+            return 34*mm
+        if dtype == "factor_rectangle":
+            box_w, box_h = 68*mm, 20*mm
+        elif dtype == "array_grid":
+            box_w, box_h = 60*mm, 24*mm
+        elif dtype == "factor_tree" and params.get("blank"):
+            box_w, box_h = 46*mm, 26*mm
+        elif dtype == "factor_tree":
+            box_w, box_h = 86*mm, 56*mm
+        else:
+            box_w, box_h = 78*mm, 32*mm
+        scale = min(box_w/nw, box_h/nh)
+        return nh*scale
+    except Exception:
+        return 34*mm
+
+
 def _est(item, cw=None):
     if item.get("type")=="concept_box":
         title=item.get("section_title",""); bullets=item.get("section_bullets",[]); example=item.get("example","")
@@ -218,17 +252,20 @@ def _est(item, cw=None):
                                              "vertical_numberline_blank", "vertical_numberline_example",
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank", "mixed_number_area_blank",
-                                             "mixed_number_area_example",
-                                             "number_train", "even_odd_numberline")
-    matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example",
-                                                  "pair_grouping", "array_grid", "factor_rectangle")
-    diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
+                                             "mixed_number_area_example")
+    matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
+    precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
+                      "factor_rectangle", "factor_tree")
+    if item.get("diagram_type") in precise_types:
+        diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
+    else:
+        diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
-    avail_text = max((cw or 60*mm) - 10*mm, 20*mm)
+    avail_text = max((cw or 60*mm) - 8*mm, 20*mm)
     n_lines = max(2, len(_wrap(text, "Helvetica", 12, avail_text))) if text else 2
-    text_h = n_lines * 4.5*mm
+    text_h = n_lines * (12*1.45)
     tier_h = 4*mm if item.get("tier") else 0
-    return tier_h+2*mm+text_h+diag_h+4.5*mm+(3.5*mm if item.get("diagram_type") else 10.5*mm)
+    return tier_h+2*mm+text_h+diag_h+4.5*mm+(9.5*mm if item.get("diagram_type") else 10.5*mm)
 
 class Col:
     def __init__(self,c,x,cw,top,bot):
@@ -387,13 +424,21 @@ class Col:
                                               "number_pyramid_blank", "mixed_number_area_blank",
                                               "mixed_number_area_example", "decimal_mult_area_blank",
                                               "decimal_mult_area_example", "decimal_zoom_numberline_blank",
-                                              "number_train", "even_odd_numberline")
+                                              "number_train", "even_odd_numberline",
+                                              "pair_grouping")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
-                                                   "factor_tree", "venn_two",
-                                                   "ratio_bar", "proportion_graph", "cross_multiply_bowtie",
-                                                   "pair_grouping", "array_grid", "factor_rectangle")
-                        iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
-                        ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
+                                                   "venn_two", "ratio_bar", "proportion_graph",
+                                                   "cross_multiply_bowtie") or (dtype == "factor_tree" and not dparm.get("blank"))
+                        compact_diag = dtype in ("factor_rectangle",)
+                        array_diag = dtype == "array_grid"
+                        tree_blank = (dtype == "factor_tree" and dparm.get("blank"))
+                        if tree_blank:
+                            iw = min(cw-3*mm, 46*mm); ih = 26*mm
+                        elif array_diag:
+                            iw = min(cw-3*mm, 60*mm); ih = 24*mm
+                        else:
+                            iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else (68*mm if compact_diag else 68*mm)))
+                            ih=56*mm if matching_diag else (32*mm if big_diag else (20*mm if compact_diag else 18*mm))
                         c.drawImage(path,x+1.5*mm,self.y-ih,width=iw,height=ih,preserveAspectRatio=True,mask='auto')
                         self.y-=ih+1.5*mm
                     except: pass
