@@ -229,7 +229,7 @@ def _precise_diag_h(dtype, params):
             box_w, box_h = 68*mm, 20*mm
         elif dtype == "array_grid":
             box_w, box_h = 60*mm, 24*mm
-        elif dtype == "venn_two":
+        elif dtype in ("venn_two", "cross_multiply_bowtie"):
             box_w, box_h = 70*mm, 40*mm
         elif dtype == "factor_tree" and params.get("blank"):
             box_w, box_h = 46*mm, 26*mm
@@ -275,7 +275,7 @@ def _est(item, cw=None):
                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank")
     matching_diag = item.get("diagram_type") in (
         "matching_vertical_blank", "matching_vertical_example",
-        "ratio_bar", "proportion_graph", "cross_multiply_bowtie",
+        "ratio_bar", "proportion_graph",
         "linear_equation_graph", "two_line_graph", "powers_of_ten_scale", "exponential_growth",
         "area_model", "polynomial_graph", "plot_points_grid", "distance_segment",
         "midpoint_segment", "section_segment", "triangle_coords", "points_lines_rays",
@@ -297,7 +297,7 @@ def _est(item, cw=None):
         "rationalize_steps")
     precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
                       "factor_rectangle", "factor_tree", "euclidean_algorithm", "ladder_division",
-                      "hundred_grid_highlight", "factor_array", "venn_two")
+                      "hundred_grid_highlight", "factor_array", "venn_two", "cross_multiply_bowtie")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -474,12 +474,12 @@ class Col:
                                               "number_train", "even_odd_numberline",
                                               "pair_grouping")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
-                                                   "ratio_bar", "proportion_graph",
-                                                   "cross_multiply_bowtie") or (dtype == "factor_tree" and not dparm.get("blank"))
+                                                   "ratio_bar", "proportion_graph"
+                                                   ) or (dtype == "factor_tree" and not dparm.get("blank"))
                         compact_diag = dtype in ("factor_rectangle",)
                         array_diag = dtype == "array_grid"
                         tree_blank = (dtype == "factor_tree" and dparm.get("blank"))
-                        venn_compact = dtype == "venn_two"
+                        venn_compact = dtype in ("venn_two", "cross_multiply_bowtie")
                         if tree_blank:
                             iw = min(cw-3*mm, 46*mm); ih = 26*mm
                         elif array_diag:

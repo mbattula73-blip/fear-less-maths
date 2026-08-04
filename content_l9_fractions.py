@@ -106,7 +106,8 @@ def _B_s(sheet):
         num = random.randint(1, den * 3)
         is_proper = num < den
         shown = "proper" if random.random() > 0.4 else "improper"
-        return q(f"True or False: {num}/{den} is a {shown} fraction.", "fill", "____ (True/False)")
+        article = "an" if shown == "improper" else "a"
+        return q(f"True or False: {num}/{den} is {article} {shown} fraction.", "fill", "____ (True/False)")
 
     def missing(i, sheet):
         den = random.randint(2, 6)

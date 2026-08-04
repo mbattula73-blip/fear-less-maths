@@ -18266,6 +18266,21 @@ try:
 except Exception as _e:
     pass
 
+# Level 7 v3 architecture (2026-08-04): every Level 7/Fractions worksheet
+# restructured to 20 questions in three blocks, same pattern as Level
+# 6's v3 rewrite -- Q1-12 the sheet's own topic (Q1-6 WITH diagram,
+# Q7-12 varied no-diagram formats), Q13-15 "Quick Review" of prerequisite
+# skills (Level 3 3-digit subtraction, Level 4 2-digit x 2-digit
+# multiplication, Level 6 HCF/LCM at a harder range -- toughened per
+# direct request, not simple fact recall), Q16-20 "Speed Calculation"
+# (5 toughened whole-number arithmetic questions). Layered after the
+# Level 7/9 swap above so it wins.
+try:
+    from content_l7_v3_redesign import LEVEL7_V3_DISPATCH
+    _DISPATCH.update(LEVEL7_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Replace the original Level 3 (Addition & Subtraction) in place with a
 # smaller-step-size redesign. Analysis of the original found it jumped
 # straight from single-digit to 2-digit+2-digit addition with no bridge,
