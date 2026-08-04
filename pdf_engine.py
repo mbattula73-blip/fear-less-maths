@@ -202,7 +202,8 @@ def _precise_diag_h(dtype, params):
                                   "hundred_grid_highlight", "factor_array",
                                   "ratio_objects", "ratio_table", "double_number_line",
                                   "continued_ratio_bar", "unit_rate", "similar_figures",
-                                  "scale_comparison")
+                                  "scale_comparison", "term_label", "word_to_expression",
+                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort")
     try:
         if compact_matching:
             from diagram_engine import generate_svg_diagram
@@ -285,9 +286,8 @@ def _est(item, cw=None):
         "angle_pair", "transversal_angles", "bpt_triangle", "quadrilateral_types",
         "quadrilateral_diagonals", "polygon_angle_sum", "factor_array", "factor_rainbow",
         "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
-        "word_to_expression", "single_bracket_area",
-        "term_label", "like_terms_sort", "function_machine_svg", "substitution_steps",
-        "repeated_addition", "algebra_tiles", "balance_scale", "solve_equation_ladder",
+        "substitution_steps",
+        "repeated_addition", "solve_equation_ladder",
         "inverse_machine", "consecutive_bar", "power_expansion", "square_dots_grid",
         "cube_stack_3d", "index_law_visual", "power_ladder", "sqrt_side_area",
         "sci_notation_slider", "surd_simplify_tree", "identity_square", "factor_x_method",
@@ -301,7 +301,9 @@ def _est(item, cw=None):
                       "factor_rectangle", "factor_tree", "euclidean_algorithm", "ladder_division",
                       "hundred_grid_highlight", "factor_array", "venn_two", "cross_multiply_bowtie",
                       "ratio_objects", "ratio_table", "double_number_line", "continued_ratio_bar",
-                      "unit_rate", "similar_figures", "scale_comparison", "ratio_bar", "proportion_graph")
+                      "unit_rate", "similar_figures", "scale_comparison", "ratio_bar", "proportion_graph",
+                      "term_label", "word_to_expression", "single_bracket_area", "algebra_tiles",
+                      "balance_scale", "function_machine_svg", "like_terms_sort")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -432,10 +434,7 @@ class Col:
                                                "quadrilateral_diagonals", "polygon_angle_sum",
                                                "factor_array", "factor_rainbow", "multiples_number_line",
                                                "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
-                                               "word_to_expression", "single_bracket_area",
-                                               "term_label", "like_terms_sort", "function_machine_svg",
                                                "substitution_steps", "repeated_addition",
-                                               "algebra_tiles", "balance_scale",
                                                "solve_equation_ladder", "inverse_machine", "consecutive_bar",
                                                "power_expansion", "square_dots_grid", "cube_stack_3d",
                                                "index_law_visual", "power_ladder", "sqrt_side_area",
@@ -454,7 +453,8 @@ class Col:
                                                   "hundred_grid_highlight", "factor_array",
                                                   "ratio_objects", "ratio_table", "double_number_line",
                                                   "continued_ratio_bar", "unit_rate", "similar_figures",
-                                                  "scale_comparison")
+                                                  "scale_comparison", "term_label", "word_to_expression",
+                                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort")
                     if compact_matching:
                         iw = min(cw-3*mm, 70*mm); ih = 40*mm
                     else:

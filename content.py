@@ -18408,6 +18408,23 @@ try:
 except Exception as _e:
     pass
 
+# Level 11 v3 architecture (2026-08-04): every Level 11/Algebra Expressions
+# worksheet restructured to 20 questions in four blocks, same pattern as
+# Level 10 -- reorganizes the sheet's own existing 100% SVG diagram
+# content rather than authoring new diagrams. Also fixes a real answer-
+# leak bug in term_label_svg (used in 288 questions across this level --
+# it always labeled which part of a term was the Coefficient/Variable/
+# Exponent, even when the question was asking the student to identify
+# exactly that). Q13-15 Quick Review toughened beyond Level 10: 3-digit
+# x 3-digit multiplication (Level 4), 4-digit / 3-digit division
+# (Level 5), ratio simplification harder than Level 10's tier. Q16-20
+# Speed Calculation escalated further than Level 10's version.
+try:
+    from content_l11_v3_redesign import LEVEL11_V3_DISPATCH
+    _DISPATCH.update(LEVEL11_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

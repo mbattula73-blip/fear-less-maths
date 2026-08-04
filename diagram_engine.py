@@ -2987,9 +2987,15 @@ def balance_scale_svg(left_text="x + 3", right_text="7", w=380, blank=False, **k
 </svg>'''
 
 
-def term_label_svg(coefficient=5, variable="x", exponent=None, **kw):
+def term_label_svg(coefficient=5, variable="x", exponent=None, blank=True, **kw):
     """Breaks a term like '5x' or '5x^2' into its parts, with a labelled
-    connector under each piece: Coefficient / Variable / Exponent."""
+    connector under each piece: Coefficient / Variable / Exponent.
+    blank=True (the default, since most uses of this diagram are
+    questions asking the student to identify one of these parts) shows
+    the term itself but NOT the part labels -- otherwise the diagram
+    would answer 'which part is the coefficient?' outright. blank=False
+    is for genuine worked examples that are teaching the terminology,
+    not testing it."""
     fs = 34
     char_w = fs * 0.62
     inter_part_gap = 60
@@ -3003,20 +3009,23 @@ def term_label_svg(coefficient=5, variable="x", exponent=None, **kw):
     x0 = 30
     y_term = 68
     width = max(coef_w + inter_part_gap + var_w + inter_part_gap + exp_w + 60, 300)
-    height = 150
+    height = 150 if not blank else 100
 
     parts = []
     cx = x0
-    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#1B5E8C">{coef_str}</text>')
+    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#2C3E50">{coef_str}</text>')
     coef_mid = cx + coef_w / 2
     cx += coef_w + inter_part_gap
-    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#1E7A44">{var_str}</text>')
+    parts.append(f'<text x="{cx}" y="{y_term}" font-family="Helvetica-Bold" font-size="{fs}" fill="#2C3E50">{var_str}</text>')
     var_mid = cx + var_w / 2
     cx += var_w + inter_part_gap
     exp_mid = None
     if exp_str:
-        parts.append(f'<text x="{cx}" y="{y_term-16}" font-family="Helvetica-Bold" font-size="{fs*0.6:.0f}" fill="#A6362B">{exp_str}</text>')
+        parts.append(f'<text x="{cx}" y="{y_term-16}" font-family="Helvetica-Bold" font-size="{fs*0.6:.0f}" fill="#2C3E50">{exp_str}</text>')
         exp_mid = cx + exp_w / 2
+
+    if blank:
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">' + "".join(parts) + "</svg>"
 
     label_y = y_term + 46
 
