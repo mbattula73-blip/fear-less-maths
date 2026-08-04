@@ -18244,6 +18244,28 @@ try:
 except Exception as _e:
     pass
 
+# Level 7 <-> Level 9 swap (2026-08-04): Fractions moves to Level 7,
+# immediately after Factors/Multiples/HCF/LCM (Level 6) -- simplifying a
+# fraction (GCF) and finding a common denominator (LCM) are direct
+# applications of the skill just taught, so Fractions belongs right
+# after it rather than after Decimals/Integers. Decimals moves to
+# Level 9. Purely a routing swap -- both content_l9_fractions.py and
+# content_l7_redesign.py are unchanged; only which sublevel code each
+# lands on is remapped, the same lightweight approach used for the
+# original Level 6/9 swap above.
+try:
+    _l7_sub_codes = ("A", "B", "C", "CUM1", "D", "E", "F", "CUM2",
+                      "G", "H", "I", "CUM3", "J", "REV")
+    _l7_old = {f"7{s}": _DISPATCH[f"7{s}"] for s in _l7_sub_codes if f"7{s}" in _DISPATCH}
+    _l9_old = {f"9{s}": _DISPATCH[f"9{s}"] for s in _l7_sub_codes if f"9{s}" in _DISPATCH}
+    for _s in _l7_sub_codes:
+        if f"9{_s}" in _l9_old:
+            _DISPATCH[f"7{_s}"] = _l9_old[f"9{_s}"]
+        if f"7{_s}" in _l7_old:
+            _DISPATCH[f"9{_s}"] = _l7_old[f"7{_s}"]
+except Exception as _e:
+    pass
+
 # Replace the original Level 3 (Addition & Subtraction) in place with a
 # smaller-step-size redesign. Analysis of the original found it jumped
 # straight from single-digit to 2-digit+2-digit addition with no bridge,

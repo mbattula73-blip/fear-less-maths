@@ -2777,11 +2777,16 @@ def get_concept_page(sublevel_code, level_num, topic):
     if level_num == 6:
         return _L6.get(sublevel_code)
     if level_num == 7:
-        return _L7.get(sublevel_code)
+        # Level 7<->9 content swap (2026-08-04): Level 7 is now Fractions,
+        # Level 9 is now Decimals. _L7/_L9 below are the original
+        # (unswapped) topic-keyed dicts -- _L9 holds the Fractions specs,
+        # keyed like "9A". sublevel_code here is the CURRENT code, "7A",
+        # so re-key by swapping the leading digit before the lookup.
+        return _L9.get("9" + sublevel_code[1:])
     if level_num == 8:
         return _L8.get(sublevel_code)
     if level_num == 9:
-        return _L9.get(sublevel_code)
+        return _L7.get("7" + sublevel_code[1:])
     if level_num == 10:
         return _L10.get(sublevel_code)
     if level_num == 11:
