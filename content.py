@@ -18425,6 +18425,24 @@ try:
 except Exception as _e:
     pass
 
+# Level 12 v3 architecture (2026-08-04): every Level 12/Algebra Equations
+# worksheet restructured to 20 questions in four blocks, same pattern as
+# Levels 10/11 (reorganizes existing 100% SVG diagram content). All 7
+# diagram types used here were already correctly designed with no
+# answer leaks -- a cleaner audit than Levels 10/11. Q13-15 Quick
+# Review toughened beyond Level 11: 3-digit x 3-digit multiplication
+# (Level 4), 4-digit / 3-digit division (Level 5), simplifying an
+# expression harder than Level 11's tier. Q16-20 Speed Calculation is
+# BODMAS (order of operations) per direct request -- brackets + mixed
+# operations at sheet 1, escalating to multiple brackets/exponents by
+# sheet 4, every expression constructed or retried to guarantee a
+# clean non-negative integer result.
+try:
+    from content_l12_v3_redesign import LEVEL12_V3_DISPATCH
+    _DISPATCH.update(LEVEL12_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

@@ -203,9 +203,11 @@ def _precise_diag_h(dtype, params):
                                   "ratio_objects", "ratio_table", "double_number_line",
                                   "continued_ratio_bar", "unit_rate", "similar_figures",
                                   "scale_comparison", "term_label", "word_to_expression",
-                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort")
+                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
+                                  "inverse_machine")
+    graph_box = dtype in ("linear_equation_graph", "two_line_graph")
     try:
-        if compact_matching:
+        if compact_matching or graph_box:
             from diagram_engine import generate_svg_diagram
             from svglib.svglib import svg2rlg
             from io import StringIO
@@ -216,7 +218,7 @@ def _precise_diag_h(dtype, params):
             nw, nh = d.width, d.height
             if not nw or not nh:
                 return 34*mm
-            box_w, box_h = 70*mm, 40*mm
+            box_w, box_h = (40*mm, 40*mm) if graph_box else (70*mm, 40*mm)
             scale = min(box_w/nw, box_h/nh)
             return nh*scale
 
@@ -280,7 +282,7 @@ def _est(item, cw=None):
     matching_diag = item.get("diagram_type") in (
         "matching_vertical_blank", "matching_vertical_example",
         "ratio_bar", "proportion_graph",
-        "linear_equation_graph", "two_line_graph", "powers_of_ten_scale", "exponential_growth",
+        "powers_of_ten_scale", "exponential_growth",
         "area_model", "polynomial_graph", "plot_points_grid", "distance_segment",
         "midpoint_segment", "section_segment", "triangle_coords", "points_lines_rays",
         "angle_pair", "transversal_angles", "bpt_triangle", "quadrilateral_types",
@@ -288,7 +290,7 @@ def _est(item, cw=None):
         "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
         "substitution_steps",
         "repeated_addition", "solve_equation_ladder",
-        "inverse_machine", "consecutive_bar", "power_expansion", "square_dots_grid",
+        "consecutive_bar", "power_expansion", "square_dots_grid",
         "cube_stack_3d", "index_law_visual", "power_ladder", "sqrt_side_area",
         "sci_notation_slider", "surd_simplify_tree", "identity_square", "factor_x_method",
         "poly_anatomy", "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
@@ -303,7 +305,8 @@ def _est(item, cw=None):
                       "ratio_objects", "ratio_table", "double_number_line", "continued_ratio_bar",
                       "unit_rate", "similar_figures", "scale_comparison", "ratio_bar", "proportion_graph",
                       "term_label", "word_to_expression", "single_bracket_area", "algebra_tiles",
-                      "balance_scale", "function_machine_svg", "like_terms_sort")
+                      "balance_scale", "function_machine_svg", "like_terms_sort",
+                      "inverse_machine", "linear_equation_graph", "two_line_graph")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -424,7 +427,6 @@ class Col:
                                           "number_pyramid_blank", "algebra_tiles", "balance_scale",
                                           "mixed_number_area_blank", "mixed_number_area_example")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
-                                               "linear_equation_graph", "two_line_graph",
                                                "powers_of_ten_scale", "exponential_growth",
                                                "area_model", "polynomial_graph",
                                                "plot_points_grid", "distance_segment",
@@ -435,7 +437,7 @@ class Col:
                                                "factor_array", "factor_rainbow", "multiples_number_line",
                                                "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
                                                "substitution_steps", "repeated_addition",
-                                               "solve_equation_ladder", "inverse_machine", "consecutive_bar",
+                                               "solve_equation_ladder", "consecutive_bar",
                                                "power_expansion", "square_dots_grid", "cube_stack_3d",
                                                "index_law_visual", "power_ladder", "sqrt_side_area",
                                                "sci_notation_slider", "surd_simplify_tree",
@@ -454,9 +456,13 @@ class Col:
                                                   "ratio_objects", "ratio_table", "double_number_line",
                                                   "continued_ratio_bar", "unit_rate", "similar_figures",
                                                   "scale_comparison", "term_label", "word_to_expression",
-                                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort")
+                                                  "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
+                                                  "inverse_machine")
+                    graph_box = dtype in ("linear_equation_graph", "two_line_graph")
                     if compact_matching:
                         iw = min(cw-3*mm, 70*mm); ih = 40*mm
+                    elif graph_box:
+                        iw = min(cw-3*mm, 40*mm); ih = 40*mm
                     else:
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)

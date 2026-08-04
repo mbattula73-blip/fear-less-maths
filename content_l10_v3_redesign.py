@@ -123,7 +123,11 @@ def _l10v3_quick_review(sheet):
     items.append(_C.q(f"Quick Review (Level 4): {a} x {b} = ____", "fill", "Answer = ____"))
 
     d = random.randint(t["dlo"], t["dhi"])
-    k = random.randint(t["dlo"], min(t["dhi"], t["dbig"] // d))
+    k_lo = t["dlo"]
+    k_hi = min(t["dhi"], t["dbig"] // d)
+    if k_hi < k_lo:
+        k_hi = k_lo
+    k = random.randint(k_lo, k_hi)
     n = d * k
     items.append(_C.q(f"Quick Review (Level 5): {n} / {d} = ____", "fill", "Answer = ____"))
 
