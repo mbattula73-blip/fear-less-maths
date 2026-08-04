@@ -2784,9 +2784,16 @@ def get_concept_page(sublevel_code, level_num, topic):
         # so re-key by swapping the leading digit before the lookup.
         return _L9.get("9" + sublevel_code[1:])
     if level_num == 8:
-        return _L8.get(sublevel_code)
-    if level_num == 9:
+        # Level 8<->9 swap (2026-08-04): Level 8 is now Decimals (moved
+        # from Level 9), Level 9 is now Integers/Percentage (moved from
+        # Level 8). _L7 below holds the original Decimals specs (keyed
+        # "7A" -- content_l7_redesign.py's own original numbering,
+        # before either swap), _L8 holds the original Integers/
+        # Percentage specs (keyed "8A".."8N"). Re-key by swapping the
+        # leading digit/prefix to match sublevel_code's CURRENT code.
         return _L7.get("7" + sublevel_code[1:])
+    if level_num == 9:
+        return _L8.get("8" + sublevel_code[1:])
     if level_num == 10:
         return _L10.get(sublevel_code)
     if level_num == 11:

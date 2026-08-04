@@ -18339,6 +18339,27 @@ try:
 except Exception as _e:
     pass
 
+# Level 8 <-> Level 9 swap (2026-08-04): Decimals moves to Level 8,
+# immediately after Fractions (Level 7) -- decimals are just another
+# notation for the same "parts of a whole" idea fractions just taught,
+# so the two belong back-to-back. Integers (+ the bundled Percentage
+# sublevels H-N) move to Level 9. Unlike the Level 7/9 swap, these two
+# levels use DIFFERENT sublevel lettering schemes (Decimals: A,B,C,
+# CUM1,D,E,F,CUM2,G,H,I,CUM3,J,REV -- Integers/Percentage: a flat A-N),
+# so this is a generic prefix swap rather than a letter-for-letter one:
+# every existing '8<suffix>' dispatch entry moves to '9<suffix>', and
+# every '9<suffix>' entry moves to '8<suffix>', whatever the suffix is.
+try:
+    import re as _re
+    _l89_old8 = {k: v for k, v in _DISPATCH.items() if _re.match(r"^8[A-Z]", k)}
+    _l89_old9 = {k: v for k, v in _DISPATCH.items() if _re.match(r"^9[A-Z]", k)}
+    for _k, _v in _l89_old8.items():
+        _DISPATCH["9" + _k[1:]] = _v
+    for _k, _v in _l89_old9.items():
+        _DISPATCH["8" + _k[1:]] = _v
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
