@@ -198,7 +198,24 @@ def _precise_diag_h(dtype, params):
     20-object one), so a flat estimate either wastes page budget on the
     small cases or under-estimates on the big ones -- this keeps the
     fit-check and the actual draw honest with each other."""
+    compact_matching = dtype in ("euclidean_algorithm", "ladder_division",
+                                  "hundred_grid_highlight", "factor_array")
     try:
+        if compact_matching:
+            from diagram_engine import generate_svg_diagram
+            from svglib.svglib import svg2rlg
+            from io import StringIO
+            svg_str = generate_svg_diagram(dtype, params)
+            if not svg_str:
+                return 34*mm
+            d = svg2rlg(StringIO(svg_str))
+            nw, nh = d.width, d.height
+            if not nw or not nh:
+                return 34*mm
+            box_w, box_h = 70*mm, 40*mm
+            scale = min(box_w/nw, box_h/nh)
+            return nh*scale
+
         from diagram_engine import generate_diagram
         from PIL import Image
         buf = generate_diagram(dtype, params)
@@ -212,6 +229,8 @@ def _precise_diag_h(dtype, params):
             box_w, box_h = 68*mm, 20*mm
         elif dtype == "array_grid":
             box_w, box_h = 60*mm, 24*mm
+        elif dtype == "venn_two":
+            box_w, box_h = 70*mm, 40*mm
         elif dtype == "factor_tree" and params.get("blank"):
             box_w, box_h = 46*mm, 26*mm
         elif dtype == "factor_tree":
@@ -252,10 +271,33 @@ def _est(item, cw=None):
                                              "vertical_numberline_blank", "vertical_numberline_example",
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank", "mixed_number_area_blank",
-                                             "mixed_number_area_example")
-    matching_diag = item.get("diagram_type") in ("matching_vertical_blank", "matching_vertical_example")
+                                             "mixed_number_area_example", "decimal_mult_area_blank",
+                                             "decimal_mult_area_example", "decimal_zoom_numberline_blank")
+    matching_diag = item.get("diagram_type") in (
+        "matching_vertical_blank", "matching_vertical_example",
+        "ratio_bar", "proportion_graph", "cross_multiply_bowtie",
+        "linear_equation_graph", "two_line_graph", "powers_of_ten_scale", "exponential_growth",
+        "area_model", "polynomial_graph", "plot_points_grid", "distance_segment",
+        "midpoint_segment", "section_segment", "triangle_coords", "points_lines_rays",
+        "angle_pair", "transversal_angles", "bpt_triangle", "quadrilateral_types",
+        "quadrilateral_diagonals", "polygon_angle_sum", "factor_array", "factor_rainbow",
+        "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
+        "ratio_objects", "ratio_table", "double_number_line", "continued_ratio_bar", "unit_rate",
+        "similar_figures", "scale_comparison", "word_to_expression", "single_bracket_area",
+        "term_label", "like_terms_sort", "function_machine_svg", "substitution_steps",
+        "repeated_addition", "algebra_tiles", "balance_scale", "solve_equation_ladder",
+        "inverse_machine", "consecutive_bar", "power_expansion", "square_dots_grid",
+        "cube_stack_3d", "index_law_visual", "power_ladder", "sqrt_side_area",
+        "sci_notation_slider", "surd_simplify_tree", "identity_square", "factor_x_method",
+        "poly_anatomy", "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
+        "quadrant_map", "point_plot_path", "slope_intercept_anatomy", "triangle_classify",
+        "angle_sum_triangle", "congruence", "triangle_inequality", "isosceles_theorem",
+        "similar_triangles", "midpoint_theorem", "pythagoras", "area_same_base",
+        "number_hierarchy", "closure_test", "decimal_expansion", "recurring_to_fraction",
+        "rationalize_steps")
     precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
-                      "factor_rectangle", "factor_tree")
+                      "factor_rectangle", "factor_tree", "euclidean_algorithm", "ladder_division",
+                      "hundred_grid_highlight", "factor_array", "venn_two")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -406,8 +448,13 @@ class Col:
                                                "area_same_base", "number_hierarchy", "closure_test",
                                                "decimal_expansion", "recurring_to_fraction", "rationalize_steps",
                                                "surd_simplify_tree", "index_law_visual")
-                    iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
-                    ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
+                    compact_matching = dtype in ("euclidean_algorithm", "ladder_division",
+                                                  "hundred_grid_highlight", "factor_array")
+                    if compact_matching:
+                        iw = min(cw-3*mm, 70*mm); ih = 40*mm
+                    else:
+                        iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
+                        ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)
                     scale=min(iw/svg_drawing.width, ih/svg_drawing.height)
                     svg_drawing.scale(scale,scale)
                     drawn_w=svg_drawing.width*scale
@@ -427,15 +474,18 @@ class Col:
                                               "number_train", "even_odd_numberline",
                                               "pair_grouping")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
-                                                   "venn_two", "ratio_bar", "proportion_graph",
+                                                   "ratio_bar", "proportion_graph",
                                                    "cross_multiply_bowtie") or (dtype == "factor_tree" and not dparm.get("blank"))
                         compact_diag = dtype in ("factor_rectangle",)
                         array_diag = dtype == "array_grid"
                         tree_blank = (dtype == "factor_tree" and dparm.get("blank"))
+                        venn_compact = dtype == "venn_two"
                         if tree_blank:
                             iw = min(cw-3*mm, 46*mm); ih = 26*mm
                         elif array_diag:
                             iw = min(cw-3*mm, 60*mm); ih = 24*mm
+                        elif venn_compact:
+                            iw = min(cw-3*mm, 70*mm); ih = 40*mm
                         else:
                             iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else (68*mm if compact_diag else 68*mm)))
                             ih=56*mm if matching_diag else (32*mm if big_diag else (20*mm if compact_diag else 18*mm))

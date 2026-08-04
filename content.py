@@ -18209,6 +18209,19 @@ try:
 except Exception as _e:
     pass
 
+# v3 architecture (2026-08-04): every Level 6 worksheet restructured to
+# 20 questions in three purposeful blocks -- Q1-12 this sheet's own topic
+# (Q1-6 concrete w/ diagram, Q7-12 abstract, varied question shapes),
+# Q13-15 "Quick Review" of the three prior-level skills Factors/HCF/LCM
+# is built on (Level 2 primes, Level 4 multiplication, Level 5 division),
+# Q16-20 "Speed Calculation" (rapid multiplication/division fact drill).
+# Layered after the original LEVEL6_DISPATCH above so it wins.
+try:
+    from content_l6_v3_redesign import LEVEL6_V3_DISPATCH
+    _DISPATCH.update(LEVEL6_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Level 9 is now Fractions (the same v3 redesign content that used to be
 # Level 6, swapped down here in the same move). Overrides the 9A-9REV
 # entries defined earlier in the main _DISPATCH literal above (those
