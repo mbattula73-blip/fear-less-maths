@@ -18376,6 +18376,21 @@ try:
 except Exception as _e:
     pass
 
+# Level 9 v3 architecture (2026-08-04): every Level 9/Integers+Percentage
+# worksheet restructured to 20 questions in four blocks, same pattern as
+# Level 8's rewrite -- Q1-6 freshly-authored diagram questions on new SVG
+# diagrams (integer number line, integer "hop" jump, sign-rule chart,
+# percentage grid, percentage bar model, discount/markup price tag),
+# Q7-12 text-based, Q13-15 Quick Review toughened BEYOND Level 8's tier
+# (Level 4 3-digit x 2-digit multiplication, Level 5 4-digit / 2-digit
+# division, Level 8 decimal ops at a harder range), Q16-20 Speed
+# Calculation toughened beyond Level 8's version of this block.
+try:
+    from content_l9_v3_redesign import LEVEL9_V3_DISPATCH
+    _DISPATCH.update(LEVEL9_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

@@ -6545,6 +6545,170 @@ def decimal_align_svg(num1="3.4", num2="12.75", op="+", blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def integer_numberline_svg(lo=-10, hi=10, mark=None, blank=False, **kw):
+    """An integer number line from lo to hi, zero marked distinctly, one
+    value circled as the question target -- blank=True omits the tick
+    labels (student fills them in) but always keeps zero and the
+    circled mark visible."""
+    n = hi - lo
+    w_svg = 60 + n * 30
+    h_svg = 110
+    y = 60
+    parts = []
+    parts.append(f'<line x1="30" y1="{y}" x2="{w_svg-20}" y2="{y}" stroke="#2C3E50" stroke-width="2"/>')
+    for i, val in enumerate(range(lo, hi + 1)):
+        x = 30 + i * (w_svg - 50) / n
+        is_zero = val == 0
+        parts.append(f'<line x1="{x:.1f}" y1="{y-6}" x2="{x:.1f}" y2="{y+6}" stroke="#2C3E50" stroke-width="{2.2 if is_zero else 1.4}"/>')
+        if not blank and (val % 2 == 0 or hi - lo <= 12):
+            color = "#A6362B" if is_zero else "#5D6D7E"
+            parts.append(f'<text x="{x:.1f}" y="{y+22}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="{color}">{val}</text>')
+    if mark is not None:
+        mx = 30 + (mark - lo) * (w_svg - 50) / n
+        parts.append(f'<circle cx="{mx:.1f}" cy="{y}" r="9" fill="none" stroke="#1E7A44" stroke-width="2.4"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Integer number line</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def integer_hop_svg(start=-3, jump=5, blank=False, **kw):
+    """Visualizes start + jump as a single arc hop on an integer number
+    line -- lands exactly on the sum. A right-pointing arc for a
+    positive jump, left-pointing for negative, so the direction itself
+    teaches the sign rule. blank=True hides the landing label."""
+    end = start + jump
+    lo, hi = min(start, end, -1) - 2, max(start, end, 1) + 2
+    n = hi - lo
+    w_svg = 60 + n * 32
+    h_svg = 140
+    y = 90
+    parts = []
+    parts.append(f'<line x1="30" y1="{y}" x2="{w_svg-20}" y2="{y}" stroke="#2C3E50" stroke-width="2"/>')
+    for val in range(lo, hi + 1):
+        x = 30 + (val - lo) * (w_svg - 50) / n
+        parts.append(f'<line x1="{x:.1f}" y1="{y-5}" x2="{x:.1f}" y2="{y+5}" stroke="#2C3E50" stroke-width="{2.2 if val==0 else 1.2}"/>')
+        parts.append(f'<text x="{x:.1f}" y="{y+20}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#5D6D7E">{val}</text>')
+    sx = 30 + (start - lo) * (w_svg - 50) / n
+    ex = 30 + (end - lo) * (w_svg - 50) / n
+    parts.append(f'<circle cx="{sx:.1f}" cy="{y}" r="5" fill="#1B5E8C"/>')
+    arc_h = 35
+    midx = (sx + ex) / 2
+    parts.append(f'<path d="M {sx:.1f} {y} Q {midx:.1f} {y-arc_h} {ex:.1f} {y}" fill="none" stroke="#1E7A44" stroke-width="2.2" marker-end="url(#ihop)"/>')
+    parts.append('<defs><marker id="ihop" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1E7A44"/></marker></defs>')
+    jump_lbl = f"+{jump}" if jump >= 0 else str(jump)
+    parts.append(f'<text x="{midx:.1f}" y="{y-arc_h-6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{jump_lbl}</text>')
+    if not blank:
+        parts.append(f'<circle cx="{ex:.1f}" cy="{y}" r="7" fill="none" stroke="#A6362B" stroke-width="2.2"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{start} {jump_lbl} = ?</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def sign_rule_chart_svg(a=1, b=1, op="x", blank=False, **kw):
+    """A 2x2 sign-rule reference grid (++ = +, +- = -, -+ = -, -- = +)
+    with the current question's own sign-pair highlighted -- teaches
+    the general rule while asking about one specific case."""
+    cell = 70
+    ox, oy = 70, 55
+    signs = [("+", "+", "+"), ("+", "-", "-"), ("-", "+", "-"), ("-", "-", "+")]
+    a_sign = "+" if a >= 0 else "-"
+    b_sign = "+" if b >= 0 else "-"
+    parts = []
+    for i, (s1, s2, res) in enumerate(signs):
+        r, c = i // 2, i % 2
+        x, y = ox + c * cell, oy + r * cell
+        is_current = (s1 == a_sign and s2 == b_sign)
+        fill = "#FFF3CD" if is_current else "#EAF4FC"
+        stroke = "#B7791F" if is_current else "#1B5E8C"
+        parts.append(f'<rect x="{x}" y="{y}" width="{cell-4}" height="{cell-4}" fill="{fill}" stroke="{stroke}" stroke-width="{2.4 if is_current else 1.4}"/>')
+        label = f"{s1}{op}{s2}" if blank and is_current else f"{s1}{op}{s2} = {res}"
+        parts.append(f'<text x="{x+(cell-4)/2}" y="{y+(cell-4)/2+5}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{label}</text>')
+    w_svg, h_svg = ox + 2 * cell + 20, oy + 2 * cell + 20
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Sign rules</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def percent_grid_svg(shaded=25, blank=False, **kw):
+    """A 10x10 grid (100 squares = 100%), `shaded` cells filled to show
+    a percentage concretely -- the direct SVG 'grid box' visual for
+    percentages, same family as decimal_grid. blank=True leaves every
+    cell unshaded for the student to colour in themselves."""
+    cols, rows = 10, 10
+    cell = 24
+    pad = 14
+    w_svg = cols * cell + pad * 2
+    h_svg = rows * cell + pad * 2 + 30
+    parts = []
+    for r in range(rows):
+        for c in range(cols):
+            idx = r * cols + c
+            x0, y0 = pad + c * cell, pad + 30 + r * cell
+            fill = "#EAF4FC" if (not blank and idx < shaded) else "white"
+            stroke = "#1B5E8C" if (not blank and idx < shaded) else "#8B98A5"
+            parts.append(f'<rect x="{x0}" y="{y0}" width="{cell}" height="{cell}" fill="{fill}" stroke="{stroke}" stroke-width="1.2"/>')
+    label = f"{shaded}%" if not blank else "shade to show ___%"
+    parts.insert(0, f'<text x="{w_svg/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{label}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def percent_bar_svg(percent=25, quantity=None, blank=False, **kw):
+    """A single bar model split into 100 equal segments (visually
+    grouped into 10s), `percent` of it shaded, with the total quantity
+    labeled if given -- the 'percentage OF a quantity' picture, distinct
+    from the grid (which is pure percent concept)."""
+    w_bar, h_bar = 300, 40
+    ox, oy = 40, 60
+    parts = []
+    parts.append(f'<rect x="{ox}" y="{oy}" width="{w_bar}" height="{h_bar}" fill="white" stroke="#1B5E8C" stroke-width="2"/>')
+    if not blank:
+        shaded_w = w_bar * percent / 100
+        parts.append(f'<rect x="{ox}" y="{oy}" width="{shaded_w:.1f}" height="{h_bar}" fill="#EAF4FC" stroke="none"/>')
+    for i in range(1, 10):
+        x = ox + i * w_bar / 10
+        parts.append(f'<line x1="{x:.1f}" y1="{oy}" x2="{x:.1f}" y2="{oy+h_bar}" stroke="#1B5E8C" stroke-width="1" opacity="0.5"/>')
+    parts.append(f'<rect x="{ox}" y="{oy}" width="{w_bar}" height="{h_bar}" fill="none" stroke="#1B5E8C" stroke-width="2"/>')
+    label = f"{percent}% shaded" if not blank else "shade ___%"
+    parts.append(f'<text x="{ox+w_bar/2}" y="{oy-12}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{label}</text>')
+    if quantity is not None:
+        parts.append(f'<text x="{ox+w_bar/2}" y="{oy+h_bar+22}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#5D6D7E">Whole bar = {quantity}</text>')
+    w_svg, h_svg = ox + w_bar + 30, oy + h_bar + 45
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Percentage bar model</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def price_tag_svg(original=500, percent=20, kind="discount", blank=False, **kw):
+    """A price-tag visual for discount/markup/profit-loss: original
+    price shown with a strikethrough, new price below it, and the
+    percentage change labeled on a connecting arrow -- kind='discount'
+    (price down) or 'markup' (price up). blank=True hides the new
+    price so the student works it out."""
+    if kind == "discount":
+        new_price = original * (100 - percent) / 100
+        arrow_color, verb = "#A6362B", f"-{percent}%"
+    else:
+        new_price = original * (100 + percent) / 100
+        arrow_color, verb = "#1E7A44", f"+{percent}%"
+    w_svg, h_svg = 260, 170
+    cx = w_svg / 2
+    parts = []
+    tag_w, tag_h = 140, 55
+    tx, ty = cx - tag_w / 2, 30
+    parts.append(f'<rect x="{tx}" y="{ty}" width="{tag_w}" height="{tag_h}" rx="8" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+    parts.append(f'<circle cx="{tx+16}" cy="{ty+tag_h/2}" r="5" fill="white" stroke="#1B5E8C" stroke-width="1.6"/>')
+    parts.append(f'<text x="{cx+8}" y="{ty+tag_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">Rs {original}</text>')
+    parts.append(f'<line x1="{tx+20}" y1="{ty+tag_h/2}" x2="{tx+tag_w-10}" y2="{ty+tag_h/2}" stroke="#A6362B" stroke-width="2"/>')
+    parts.append(f'<text x="{cx}" y="{ty+tag_h+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="{arrow_color}">{verb}</text>')
+    parts.append(f'<line x1="{cx}" y1="{ty+tag_h+4}" x2="{cx}" y2="{ty+tag_h+40}" stroke="{arrow_color}" stroke-width="2" marker-end="url(#pt)"/>')
+    parts.append(f'<defs><marker id="pt" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto"><path d="M0,0 L8,0 L4,7 Z" fill="{arrow_color}"/></marker></defs>')
+    ny = ty + tag_h + 60
+    if not blank:
+        parts.append(f'<rect x="{tx}" y="{ny}" width="{tag_w}" height="{tag_h}" rx="8" fill="#F0F9F1" stroke="#1E7A44" stroke-width="2"/>')
+        parts.append(f'<text x="{cx}" y="{ny+tag_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#1E7A44">Rs {new_price:.0f}</text>')
+    else:
+        parts.append(f'<rect x="{tx}" y="{ny}" width="{tag_w}" height="{tag_h}" rx="8" fill="white" stroke="#8B98A5" stroke-width="1.6" stroke-dasharray="4,3"/>')
+        parts.append(f'<text x="{cx}" y="{ny+tag_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#8B98A5">Rs ?</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="18" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{"Discount" if kind=="discount" else "Markup"}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6645,6 +6809,12 @@ SVG_DIAGRAM_FUNCTIONS = {
     "decimal_shift": decimal_shift_svg,
     "decimal_area_model": decimal_area_model_svg,
     "decimal_align": decimal_align_svg,
+    "integer_numberline": integer_numberline_svg,
+    "integer_hop": integer_hop_svg,
+    "sign_rule_chart": sign_rule_chart_svg,
+    "percent_grid": percent_grid_svg,
+    "percent_bar": percent_bar_svg,
+    "price_tag": price_tag_svg,
 }
 
 
