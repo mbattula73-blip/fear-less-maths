@@ -2747,10 +2747,14 @@ def ratio_bar(parts=None, labels=None, blank=False, **kw) -> BytesIO:
     return _to_bytes(img)
 
 
-def proportion_graph(kind="direct", k=2, xmax=10, **kw) -> BytesIO:
+def proportion_graph(kind="direct", k=2, xmax=10, blank=True, **kw) -> BytesIO:
     """Plots y=kx (direct -- straight line through origin) or y=k/x
     (inverse -- a curve), so the defining visual difference between the
-    two is actually shown, not just described."""
+    two is actually shown, not just described. blank=True (the default
+    for practice items) hides the '(Direct/Inverse Proportion)' label
+    and the k value -- otherwise the title would just state the answer
+    to 'is this direct or inverse, and what is k?' outright. The plotted
+    curve itself (the actual data) is never hidden."""
     w, h = 400, 400
     img, dr = _blank(w, h)
     margin = 45
@@ -2773,13 +2777,16 @@ def proportion_graph(kind="direct", k=2, xmax=10, **kw) -> BytesIO:
         return ox + (x / xmax) * plot_w, oy - (y / ymax) * plot_h
 
     pts = [to_px(x, y) for x, y in zip(xs, ys)]
-    color = C_BLUE_D if kind == "direct" else C_RED_D
+    color = C_TEXT if blank else (C_BLUE_D if kind == "direct" else C_RED_D)
     for i in range(len(pts) - 1):
         dr.line([pts[i], pts[i + 1]], fill=color, width=3)
     for p in pts:
         dr.ellipse([p[0] - 3, p[1] - 3, p[0] + 3, p[1] + 3], fill=color)
 
-    label = f"y = {k}x  (Direct Proportion)" if kind == "direct" else f"y = {k}/x  (Inverse Proportion)"
+    if blank:
+        label = "y = ?"
+    else:
+        label = f"y = {k}x  (Direct Proportion)" if kind == "direct" else f"y = {k}/x  (Inverse Proportion)"
     lw = dr.textlength(label, font=_font(12))
     dr.text((w/2 - lw/2, 10), label, fill=color, font=_font(12))
     return _to_bytes(img)

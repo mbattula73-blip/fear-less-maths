@@ -18391,6 +18391,23 @@ try:
 except Exception as _e:
     pass
 
+# Level 10 v3 architecture (2026-08-04): every Level 10/Ratio & Proportion
+# worksheet restructured to 20 questions in four blocks. Level 10 already
+# had full SVG diagram coverage (100% of questions) from an earlier
+# campaign, so this reorganizes the sheet's own existing rich diagram
+# content into Q1-6 (diagram, prioritizing diagram-DEPENDENT questions
+# that can't go elsewhere) + Q7-12 (the sheet's own self-contained
+# questions, diagram stripped) rather than authoring anything new.
+# Q13-15 Quick Review toughened beyond Level 9's tier (Level 4 3-digit x
+# 2-digit multiplication, Level 5 4-digit / 2-digit division, Level 9
+# percentage-of-a-quantity at a harder range). Q16-20 Speed Calculation
+# escalated further than Level 9's version.
+try:
+    from content_l10_v3_redesign import LEVEL10_V3_DISPATCH
+    _DISPATCH.update(LEVEL10_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
