@@ -18360,6 +18360,22 @@ try:
 except Exception as _e:
     pass
 
+# Level 8 v3 architecture (2026-08-04): every Level 8/Decimals worksheet
+# restructured to 20 questions in four blocks per direct request --
+# Q1-6 freshly-authored diagram questions on new SVG decimal diagrams
+# (grid boxes, place-value chart, number line, area model, point-shift,
+# add/sub alignment -- added to diagram_engine.py specifically for this
+# level), Q7-12 text-based on the same topic, Q13-15 "Quick Review"
+# toughened (Level 4 2-digit x 3-digit multiplication, Level 5 3-digit
+# / 2-digit division, Level 7 decimal<->fraction conversion at a harder
+# range), Q16-20 "Speed Calculation" toughened whole-number arithmetic,
+# escalated further than Level 7's version of this block.
+try:
+    from content_l8_v3_redesign import LEVEL8_V3_DISPATCH
+    _DISPATCH.update(LEVEL8_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

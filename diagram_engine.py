@@ -6352,6 +6352,199 @@ def rationalize_steps_svg(kind="single", a=1, b=3, c=None, blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def decimal_grid_svg(shaded=34, size=100, blank=False, **kw):
+    """The core decimal 'grid box' diagram: a 10x10 grid (100 squares)
+    for hundredths, or a single row of 10 for tenths (size=10). blank=
+    True leaves every cell unshaded (outline only) for the student to
+    colour in themselves; otherwise `shaded` cells are filled to show
+    the decimal concretely. This is the direct SVG equivalent of
+    fraction_bar_blank/factor_array's role for fractions -- the
+    picture a decimal literally IS, not just an illustration of one."""
+    cols = 10
+    rows = 10 if size == 100 else 1
+    cell = 26
+    pad = 14
+    w_svg = cols * cell + pad * 2
+    h_svg = rows * cell + pad * 2 + 30
+    parts = []
+    for r in range(rows):
+        for c in range(cols):
+            idx = r * cols + c
+            x0, y0 = pad + c * cell, pad + 30 + r * cell
+            fill = "#EAF4FC" if (not blank and idx < shaded) else "white"
+            stroke = "#1B5E8C" if (not blank and idx < shaded) else "#8B98A5"
+            parts.append(f'<rect x="{x0}" y="{y0}" width="{cell}" height="{cell}" fill="{fill}" stroke="{stroke}" stroke-width="1.3"/>')
+    label = f"{shaded}/{size}" if not blank else f"shade to show ___/{size}"
+    parts.insert(0, f'<text x="{w_svg/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{label}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_numberline_svg(lo=0.0, hi=1.0, mark=None, divisions=10, blank=False, **kw):
+    """A decimal number line from lo to hi with `divisions` equal steps
+    labeled, and one value circled as the question target -- blank=True
+    omits the tick labels (student fills them in) but always keeps the
+    circled mark position visible."""
+    n = divisions
+    step = (hi - lo) / n
+    w_svg = 60 + n * 46
+    h_svg = 130
+    y = 70
+    parts = []
+    parts.append(f'<line x1="40" y1="{y}" x2="{w_svg-20}" y2="{y}" stroke="#2C3E50" stroke-width="2"/>')
+    for i in range(n + 1):
+        x = 40 + i * (w_svg - 60) / n
+        val = lo + i * step
+        parts.append(f'<line x1="{x:.1f}" y1="{y-6}" x2="{x:.1f}" y2="{y+6}" stroke="#2C3E50" stroke-width="1.6"/>')
+        if not blank:
+            parts.append(f'<text x="{x:.1f}" y="{y+24}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#5D6D7E">{val:.2f}</text>')
+    if mark is not None:
+        mx = 40 + ((mark - lo) / (hi - lo)) * (w_svg - 60)
+        parts.append(f'<circle cx="{mx:.1f}" cy="{y}" r="9" fill="none" stroke="#A6362B" stroke-width="2.4"/>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Decimal number line</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_place_chart_svg(number="3.45", blank=False, **kw):
+    """A place-value chart: one column per digit (ones | tenths |
+    hundredths | ...), the decimal point marked between the whole and
+    fractional columns. blank=True shows empty column boxes with just
+    the headers, for the student to fill each digit in themselves."""
+    s = str(number)
+    whole, _, frac = s.partition(".")
+    frac_names = ["Tenths", "Hundredths", "Thousandths", "Ten-thousandths"]
+    headers_whole = ["Hundreds", "Tens", "Ones"][-len(whole):] if len(whole) <= 3 else ["Ones"] * len(whole)
+    headers_frac = frac_names[:len(frac)]
+    cell_w, cell_h = 54, 46
+    parts = []
+    x = 30
+    for i, ch in enumerate(whole):
+        hy = 46
+        parts.append(f'<rect x="{x}" y="{hy}" width="{cell_w}" height="{cell_h}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="1.6"/>')
+        parts.append(f'<text x="{x+cell_w/2}" y="{hy-8}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#5D6D7E">{headers_whole[i]}</text>')
+        if not blank:
+            parts.append(f'<text x="{x+cell_w/2}" y="{hy+cell_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">{ch}</text>')
+        x += cell_w
+    dot_x = x + 6
+    parts.append(f'<circle cx="{dot_x}" cy="{46+cell_h-8}" r="3.2" fill="#A6362B"/>')
+    x += 16
+    for i, ch in enumerate(frac):
+        hy = 46
+        parts.append(f'<rect x="{x}" y="{hy}" width="{cell_w}" height="{cell_h}" fill="#FFF6E8" stroke="#B7791F" stroke-width="1.6"/>')
+        parts.append(f'<text x="{x+cell_w/2}" y="{hy-8}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#5D6D7E">{headers_frac[i]}</text>')
+        if not blank:
+            parts.append(f'<text x="{x+cell_w/2}" y="{hy+cell_h/2+6}" text-anchor="middle" font-family="Helvetica-Bold" font-size="18" fill="#B7791F">{ch}</text>')
+        x += cell_w
+    w_svg = x + 30
+    h_svg = 150
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Place value chart</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_shift_svg(number="3.45", op="x10", **kw):
+    """Visualizes multiplying/dividing a decimal by 10/100/1000 as the
+    decimal point shifting across fixed digit slots -- an arrow shows
+    the direction and size of the shift, digits stay in place."""
+    digits = [c for c in str(number) if c != "."]
+    dot_idx = str(number).index(".")
+    shift = {"x10": 1, "x100": 2, "x1000": 3, "/10": -1, "/100": -2, "/1000": -3}.get(op, 1)
+    cell = 32
+    w_svg = len(digits) * cell + 100
+    h_svg = 160
+    parts = []
+    x0 = 50
+    for i, dgt in enumerate(digits):
+        x = x0 + i * cell
+        parts.append(f'<rect x="{x}" y="50" width="{cell-4}" height="40" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="1.4"/>')
+        parts.append(f'<text x="{x+(cell-4)/2}" y="76" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="#2C3E50">{dgt}</text>')
+    orig_dot_x = x0 + dot_idx * cell - 2
+    parts.append(f'<circle cx="{orig_dot_x}" cy="90" r="3" fill="#A6362B"/>')
+    parts.append(f'<text x="{orig_dot_x}" y="106" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#A6362B">start</text>')
+    new_dot_idx = max(0, min(len(digits), dot_idx + shift))
+    new_dot_x = x0 + new_dot_idx * cell - 2
+    arrow_y = 40
+    parts.append(f'<line x1="{orig_dot_x}" y1="{arrow_y}" x2="{new_dot_x}" y2="{arrow_y}" stroke="#1E7A44" stroke-width="2" marker-end="url(#arrow)"/>')
+    parts.append(f'<text x="{(orig_dot_x+new_dot_x)/2}" y="{arrow_y-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{op}</text>')
+    parts.append('<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1E7A44"/></marker></defs>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{number} {op} = ?  (move the point)</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_area_model_svg(d1=3, d2=4, dec1=1, dec2=1, blank=False, **kw):
+    """Area-model grid for decimal multiplication: a rectangle d1 x d2
+    subdivided into a grid, shaded to visualize the product -- decimal
+    points marked on each side. blank=True omits the shading/product
+    label so the student works it out."""
+    scale = 22
+    w_grid, h_grid = d1 * scale, d2 * scale
+    ox, oy = 60, 50
+    parts = []
+    parts.append(f'<rect x="{ox}" y="{oy}" width="{w_grid}" height="{h_grid}" fill="{"white" if blank else "#EAF4FC"}" stroke="#1B5E8C" stroke-width="2"/>')
+    for i in range(1, d1):
+        x = ox + i * scale
+        parts.append(f'<line x1="{x}" y1="{oy}" x2="{x}" y2="{oy+h_grid}" stroke="#1B5E8C" stroke-width="1"/>')
+    for j in range(1, d2):
+        y = oy + j * scale
+        parts.append(f'<line x1="{ox}" y1="{y}" x2="{ox+w_grid}" y2="{y}" stroke="#1B5E8C" stroke-width="1"/>')
+    n1 = f"{d1/(10**dec1):.{dec1}f}"
+    n2 = f"{d2/(10**dec2):.{dec2}f}"
+    parts.append(f'<text x="{ox+w_grid/2}" y="{oy-10}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{n1}</text>')
+    parts.append(f'<text x="{ox-14}" y="{oy+h_grid/2+4}" text-anchor="end" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{n2}</text>')
+    if not blank:
+        product = d1 * d2
+        pdec = dec1 + dec2
+        pn = f"{product/(10**pdec):.{pdec}f}"
+        parts.append(f'<text x="{ox+w_grid/2}" y="{oy+h_grid+22}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{d1*d2} small squares = {pn}</text>')
+    parts.insert(0, f'<text x="{(ox*2+w_grid)/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Decimal multiplication -- area model</text>')
+    w_svg, h_svg = ox + w_grid + 30, oy + h_grid + 45
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
+def decimal_align_svg(num1="3.4", num2="12.75", op="+", blank=False, **kw):
+    """Two decimals stacked and right-aligned on the decimal point (a
+    vertical dashed guide line through both points) -- the key visual
+    for why you must line up decimal points before adding/subtracting,
+    not just right-align the digits like whole numbers. blank=True
+    shows the aligned numbers but no answer line filled in."""
+    def parts_of(s):
+        w, _, f = s.partition(".")
+        return w, f
+    w1, f1 = parts_of(num1)
+    w2, f2 = parts_of(num2)
+    max_w = max(len(w1), len(w2))
+    cell = 26
+    n_cols = max_w + 1 + max(len(f1), len(f2))
+    w_svg = n_cols * cell + 80
+    h_svg = 170
+    parts = []
+    dot_col = max_w
+    def draw_row(y, whole, frac, color):
+        ws = whole.rjust(max_w)
+        row = []
+        for i, ch in enumerate(ws):
+            x = 60 + i * cell
+            if ch != " ":
+                row.append(f'<text x="{x+cell/2:.1f}" y="{y}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="{color}">{ch}</text>')
+        dot_x = 60 + dot_col * cell
+        row.append(f'<text x="{dot_x+cell/2:.1f}" y="{y}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="{color}">.</text>')
+        for i, ch in enumerate(frac):
+            x = 60 + (dot_col + 1 + i) * cell
+            row.append(f'<text x="{x+cell/2:.1f}" y="{y}" text-anchor="middle" font-family="Helvetica-Bold" font-size="16" fill="{color}">{ch}</text>')
+        return "".join(row)
+    dot_x = 60 + dot_col * cell + cell / 2
+    parts.append(f'<line x1="{dot_x:.1f}" y1="30" x2="{dot_x:.1f}" y2="140" stroke="#A6362B" stroke-width="1.4" stroke-dasharray="4,3"/>')
+    parts.append(draw_row(70, w1, f1, "#1B5E8C"))
+    parts.append(draw_row(105, w2, f2, "#1E7A44"))
+    op_x = 60 + (dot_col - max(len(w1), len(w2))) * cell
+    parts.append(f'<text x="40" y="105" font-family="Helvetica-Bold" font-size="18" fill="#2C3E50">{op}</text>')
+    parts.append(f'<line x1="55" y1="118" x2="{60+n_cols*cell-10}" y2="118" stroke="#2C3E50" stroke-width="1.6"/>')
+    if not blank:
+        val = (float(num1) + float(num2)) if op == "+" else (float(num1) - float(num2))
+        dec = max(len(f1), len(f2))
+        parts.append(f'<text x="{60+n_cols*cell/2:.1f}" y="145" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#A6362B">= {val:.{dec}f}</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Line up the decimal point</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6446,6 +6639,12 @@ SVG_DIAGRAM_FUNCTIONS = {
     "decimal_expansion": decimal_expansion_svg,
     "recurring_to_fraction": recurring_to_fraction_svg,
     "rationalize_steps": rationalize_steps_svg,
+    "decimal_grid": decimal_grid_svg,
+    "decimal_numberline": decimal_numberline_svg,
+    "decimal_place_chart": decimal_place_chart_svg,
+    "decimal_shift": decimal_shift_svg,
+    "decimal_area_model": decimal_area_model_svg,
+    "decimal_align": decimal_align_svg,
 }
 
 
