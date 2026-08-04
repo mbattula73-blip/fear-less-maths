@@ -28,14 +28,42 @@ def diff_range(sheet, base_lo=2, base_hi=6, step=1):
     return (base_lo + s*step, base_hi + s*step)
 
 
+def _item_key(item):
+    """Uniqueness key for a generated question. Text alone isn't enough:
+    matching-type questions all share the same generic instruction text
+    ('Match each to its value.') regardless of their actual lefts/rights
+    content, so text-only comparison would either wrongly flag every
+    matching question as a duplicate of the first, or (worse) never
+    detect a genuine matching duplicate at all. Fold in diagram_params
+    so the real content is what's compared."""
+    return (item.get("text", ""), repr(item.get("diagram_params")))
+
+
+def _call_fresh(builder, i, sheet, used_keys, max_tries=150):
+    """Calls builder(i, sheet) and, if it produces question text already
+    used elsewhere on this sheet, retries (the builder draws fresh random
+    values on every call, so a retry is a genuinely different question,
+    not the same one asked again) up to max_tries before giving up and
+    accepting the repeat rather than looping forever on an exhausted
+    value range."""
+    item = builder(i, sheet)
+    tries = 1
+    while _item_key(item) in used_keys and tries < max_tries:
+        item = builder(i, sheet)
+        tries += 1
+    used_keys.add(_item_key(item))
+    return item
+
+
 def make_rotated_sheet(title, bullets, icon, icon_params, instruction, fmt_builders, sheet, seed_base=0):
     random.seed(seed_base + sheet * 17)
     items = [cb(title, bullets, "", icon_diagram=icon, icon_params=icon_params)]
     items.append(tb("Instructions", [instruction]))
     template = TEMPLATES[(sheet - 1) % 4]
+    used_keys = set()
     for key in template:
         for i in range(5):
-            items.append(fmt_builders[key](i, sheet))
+            items.append(_call_fresh(fmt_builders[key], i, sheet, used_keys))
     return items
 
 
@@ -50,15 +78,16 @@ def make_fun_sheet(title, bullets, icon, icon_params, instruction, fmt_builders,
     items = [cb(title, bullets, "", icon_diagram=icon, icon_params=icon_params)]
     items.append(tb("Instructions", [instruction]))
     template = TEMPLATES[(sheet - 1) % 4][:3]  # first 3 standard blocks (15 questions)
+    used_keys = set()
     for key in template:
         for i in range(5):
-            items.append(fmt_builders[key](i, sheet))
+            items.append(_call_fresh(fmt_builders[key], i, sheet, used_keys))
     # Final block: 5 fun-format questions, rotated by sheet so sheet 2
     # starts from a different point in the cycle than sheet 1, etc.
     offset = (sheet - 1) % len(fun_builders)
     for i in range(5):
         builder = fun_builders[(offset + i) % len(fun_builders)]
-        items.append(builder(i, sheet))
+        items.append(_call_fresh(builder, i, sheet, used_keys))
     return items
 
 

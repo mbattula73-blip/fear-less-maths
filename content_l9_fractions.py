@@ -279,10 +279,13 @@ def _D_s(sheet):
         return q(f"Which simplify to {tn}/{td}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}", "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(4, 8), (6, 12), (3, 9), (2, 10)]
-        chosen = random.sample(pairs, 3)
+        pool = [(4, 8), (6, 12), (3, 9), (2, 10), (5, 15), (4, 12), (3, 12), (6, 9), (4, 6), (2, 6)]
+        for _ in range(20):
+            chosen = random.sample(pool, 3)
+            rights = [f"{n//_gcd(n,d)}/{d//_gcd(n,d)}" for n, d in chosen]
+            if len(set(rights)) == 3:
+                break
         lefts = [f"{n}/{d}" for n, d in chosen]
-        rights = [f"{n//_gcd(n,d)}/{d//_gcd(n,d)}" for n, d in chosen]
         return matching_q(lefts, rights)
 
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
@@ -382,9 +385,19 @@ def _F_s(sheet):
         return q(f"Compute each sum. Which are GREATER than {bn}/{bd}? Select ALL that apply: {opts_str}", "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(1, 3, 1, 4), (1, 2, 1, 4), (1, 3, 1, 6)]
-        lefts = [f"{a}/{b}+{c}/{d}" for a, b, c, d in pairs]
-        rights = ["7/12", "3/4", "1/2"]
+        den_pool = [(3, 4), (2, 4), (3, 6), (2, 3), (4, 6), (2, 6), (3, 5)]
+        for _ in range(20):
+            chosen = random.sample(den_pool, 3)
+            lefts, rights, seen = [], [], set()
+            for db_a, db_b in chosen:
+                na, nb = random.randint(1, db_a - 1), random.randint(1, db_b - 1)
+                num = na * db_b + nb * db_a
+                den = db_a * db_b
+                g = _gcd(num, den)
+                rights.append(f"{num//g}/{den//g}")
+                lefts.append(f"{na}/{db_a}+{nb}/{db_b}")
+            if len(set(rights)) == 3:
+                break
         return matching_q(lefts, rights)
 
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
@@ -419,7 +432,7 @@ def _CUM2_s(sheet):
         return q(f"True or False: {num1}/{den1} {correct} {num2}/{den2}", "fill", "____ (True/False)")
 
     def missing(i, sheet):
-        den = random.choice([6, 8, 9, 10])
+        den = random.choice([6, 8, 9, 10, 12, 14, 16])
         return q(f"____ /{den} simplifies to 1/2", "diagram", "____", "", "fraction_bar_blank", {"den": den})
 
     def numeral(i, sheet):
@@ -435,7 +448,12 @@ def _CUM2_s(sheet):
         return q(f"Which are equivalent to {tn}/{td}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}", "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(4, 8), (6, 12), (3, 9)]
+        pool = [(1, 2), (2, 3), (1, 3), (3, 4), (1, 4), (2, 5)]
+        base = random.sample(pool, 3)
+        pairs = []
+        for n, d in base:
+            mult = random.randint(2, 4)
+            pairs.append((n * mult, d * mult))
         lefts = [f"{n}/{d}" for n, d in pairs]
         rights = [f"{n//_gcd(n,d)}/{d//_gcd(n,d)}" for n, d in pairs]
         return matching_q(lefts, rights)
@@ -540,9 +558,19 @@ def _H_s(sheet):
         return q(f"Which equal {tn}/{td}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}", "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(1, 2, 1, 2), (1, 3, 1, 2), (2, 3, 1, 2)]
-        lefts = [f"{a}/{b}x{c}/{d}" for a, b, c, d in pairs]
-        rights = ["1/4", "1/6", "1/3"]
+        den_pool = [(2, 2), (3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)]
+        for _ in range(20):
+            chosen = random.sample(den_pool, 3)
+            lefts, rights = [], []
+            for db_a, db_b in chosen:
+                na, nb = random.randint(1, db_a - 1), random.randint(1, db_b - 1)
+                num = na * nb
+                den = db_a * db_b
+                g = _gcd(num, den)
+                rights.append(f"{num//g}/{den//g}")
+                lefts.append(f"{na}/{db_a}x{nb}/{db_b}")
+            if len(set(rights)) == 3:
+                break
         return matching_q(lefts, rights)
 
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
@@ -652,9 +680,19 @@ def _CUM3_s(sheet):
                   "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(1, 2, 1, 2), (1, 3, 1, 2), (2, 3, 1, 2)]
-        lefts = [f"{a}/{b}x{c}/{d}" for a, b, c, d in pairs]
-        rights = ["1/4", "1/6", "1/3"]
+        den_pool = [(2, 2), (3, 2), (3, 3), (4, 2), (4, 3), (5, 2), (5, 3)]
+        for _ in range(20):
+            chosen = random.sample(den_pool, 3)
+            lefts, rights = [], []
+            for db_a, db_b in chosen:
+                na, nb = random.randint(1, db_a - 1), random.randint(1, db_b - 1)
+                num = na * nb
+                den = db_a * db_b
+                g = _gcd(num, den)
+                rights.append(f"{num//g}/{den//g}")
+                lefts.append(f"{na}/{db_a}x{nb}/{db_b}")
+            if len(set(rights)) == 3:
+                break
         return matching_q(lefts, rights)
 
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
@@ -776,9 +814,13 @@ def _REV_s(sheet):
         return q(f"Which are equivalent to {tn}/{td}? Select ALL that apply: A) {opts[0]} B) {opts[1]} C) {opts[2]} D) {opts[3]}", "fill", "____ (list all letters)")
 
     def matching(i, sheet):
-        pairs = [(4, 8), (6, 12), (3, 9)]
-        lefts = [f"{n}/{d}" for n, d in pairs]
-        rights = [f"{n//_gcd(n,d)}/{d//_gcd(n,d)}" for n, d in pairs]
+        pool = [(4, 8), (6, 12), (3, 9), (2, 10), (5, 15), (4, 12), (3, 12), (6, 9), (4, 6), (2, 6)]
+        for _ in range(20):
+            chosen = random.sample(pool, 3)
+            rights = [f"{n//_gcd(n,d)}/{d//_gcd(n,d)}" for n, d in chosen]
+            if len(set(rights)) == 3:
+                break
+        lefts = [f"{n}/{d}" for n, d in chosen]
         return matching_q(lefts, rights)
 
     fmt = {"comp": comp, "tf": tf, "missing": missing, "numeral": numeral, "multisel": multisel, "matching": matching}
