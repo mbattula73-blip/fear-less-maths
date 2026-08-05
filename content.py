@@ -18463,6 +18463,24 @@ try:
 except Exception as _e:
     pass
 
+# Level 14 v3 architecture (2026-08-04): every Level 14/Polynomials
+# worksheet restructured to 20 questions in four blocks, same pattern as
+# Levels 10-13 (reorganizes existing 100% SVG diagram content). All 10
+# diagram types used here already correctly built, no answer leaks
+# found. Q13-15 Quick Review toughened beyond Level 13: 4-digit x
+# 3-digit multiplication (Level 4), 5-digit / 3-digit division
+# (Level 5), a BODMAS expression harder than Level 13's tier. Q16-20
+# Speed Calculation extends BODMAS with fractions and the "Of"
+# operation per direct request ("1/2 of 20" style terms), making
+# expressions longer than Level 13's -- every fraction-of-quantity
+# term constructed to divide exactly, retried until a clean
+# non-negative integer result.
+try:
+    from content_l14_v3_redesign import LEVEL14_V3_DISPATCH
+    _DISPATCH.update(LEVEL14_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
