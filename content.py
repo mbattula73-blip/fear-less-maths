@@ -18481,6 +18481,22 @@ try:
 except Exception as _e:
     pass
 
+# Level 15 v3 architecture (2026-08-04): every Level 15/Coordinate
+# Geometry worksheet restructured to 20 questions in four blocks, same
+# pattern as Levels 10-14 (reorganizes existing SVG diagram content).
+# All 9 diagram types used here already correctly built, no answer
+# leaks found. Q13-15 Quick Review toughened beyond Level 14: 4-digit
+# x 4-digit multiplication (Level 4), 5-digit / 4-digit division
+# (Level 5), a BODMAS-with-fractions expression harder than Level 14's
+# tier. Q16-20 Speed Calculation extends Level 14's fractions-and-Of
+# BODMAS with SQUARES and CUBES per direct request, making expressions
+# even longer -- 6-7 chained operations by sheet 4.
+try:
+    from content_l15_v3_redesign import LEVEL15_V3_DISPATCH
+    _DISPATCH.update(LEVEL15_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

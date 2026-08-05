@@ -205,7 +205,10 @@ def _precise_diag_h(dtype, params):
                                   "scale_comparison", "term_label", "word_to_expression",
                                   "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
                                   "inverse_machine", "number_hierarchy", "decimal_expansion", "sqrt_side_area",
-                                  "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method")
+                                  "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method",
+                                  "plot_points_grid", "distance_segment", "midpoint_segment",
+                                  "section_segment", "triangle_coords", "quadrant_map",
+                                  "point_plot_path", "slope_intercept_anatomy")
     extra_compact = dtype in ("identity_square", "substitution_steps")
     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
     try:
@@ -290,8 +293,7 @@ def _est(item, cw=None):
         "matching_vertical_blank", "matching_vertical_example",
         "ratio_bar", "proportion_graph",
         "powers_of_ten_scale", "exponential_growth",
-        "plot_points_grid", "distance_segment",
-        "midpoint_segment", "section_segment", "triangle_coords", "points_lines_rays",
+        "points_lines_rays",
         "angle_pair", "transversal_angles", "bpt_triangle", "quadrilateral_types",
         "quadrilateral_diagonals", "polygon_angle_sum", "factor_array", "factor_rainbow",
         "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
@@ -301,7 +303,7 @@ def _est(item, cw=None):
         "cube_stack_3d", "index_law_visual", "power_ladder", "sqrt_side_area",
         "sci_notation_slider", "surd_simplify_tree",
         "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
-        "quadrant_map", "point_plot_path", "slope_intercept_anatomy", "triangle_classify",
+        "triangle_classify",
         "angle_sum_triangle", "congruence", "triangle_inequality", "isosceles_theorem",
         "similar_triangles", "midpoint_theorem", "pythagoras", "area_same_base",
         "closure_test", "recurring_to_fraction",
@@ -316,7 +318,9 @@ def _est(item, cw=None):
                       "inverse_machine", "linear_equation_graph", "two_line_graph",
                       "number_hierarchy", "decimal_expansion", "sqrt_side_area",
                       "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method", "identity_square",
-                      "substitution_steps")
+                      "substitution_steps", "plot_points_grid", "distance_segment", "midpoint_segment",
+                      "section_segment", "triangle_coords", "quadrant_map", "point_plot_path",
+                      "slope_intercept_anatomy")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -438,8 +442,6 @@ class Col:
                                           "mixed_number_area_blank", "mixed_number_area_example")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                "powers_of_ten_scale", "exponential_growth",
-                                               "plot_points_grid", "distance_segment",
-                                               "midpoint_segment", "section_segment", "triangle_coords",
                                                "points_lines_rays", "angle_pair", "transversal_angles",
                                                "bpt_triangle", "quadrilateral_types",
                                                "quadrilateral_diagonals", "polygon_angle_sum",
@@ -451,7 +453,6 @@ class Col:
                                                "index_law_visual", "power_ladder", "sqrt_side_area",
                                                "sci_notation_slider", "surd_simplify_tree",
                                                "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
-                                               "quadrant_map", "point_plot_path", "slope_intercept_anatomy",
                                                "points_lines_rays", "angle_pair", "transversal_angles",
                                                "bpt_triangle", "triangle_classify", "angle_sum_triangle",
                                                "congruence", "triangle_inequality", "isosceles_theorem",
@@ -466,7 +467,10 @@ class Col:
                                                   "scale_comparison", "term_label", "word_to_expression",
                                                   "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
                                                   "inverse_machine", "number_hierarchy", "decimal_expansion", "sqrt_side_area",
-                                                  "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method")
+                                                  "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method",
+                                  "plot_points_grid", "distance_segment", "midpoint_segment",
+                                  "section_segment", "triangle_coords", "quadrant_map",
+                                  "point_plot_path", "slope_intercept_anatomy")
                     extra_compact = dtype in ("identity_square", "substitution_steps")
                     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
                     if compact_matching:
