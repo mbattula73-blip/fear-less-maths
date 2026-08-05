@@ -18536,6 +18536,23 @@ try:
 except Exception as _e:
     pass
 
+# Level 18 v3 architecture (2026-08-05): every Level 18/Mensuration
+# worksheet restructured to 20 questions in four blocks, same pattern
+# as Levels 10-17 (reorganizes existing 100% SVG diagram content).
+# Level 18 has its own diagram-injection wrapper (same structural
+# pattern as Level 16) -- sourced from the real dispatch from the
+# start this time. Fixed a real leak: cone_3d always computed and
+# displayed the slant height, even on questions asking to find it.
+# Audited the other 13 diagram types -- all only show given dimensions,
+# never a computed answer. Q13-15 Quick Review toughened beyond Level
+# 17, Q16-20 Speed Calculation continues the BODMAS escalation
+# (fractions+Of+squares+cubes) with bigger ranges.
+try:
+    from content_l18_v3_redesign import LEVEL18_V3_DISPATCH
+    _DISPATCH.update(LEVEL18_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

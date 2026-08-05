@@ -4363,9 +4363,12 @@ def cylinder_3d_svg(r=3, h=6, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
-def cone_3d_svg(r=3, h=6, **kw):
+def cone_3d_svg(r=3, h=6, blank=True, **kw):
     """Pseudo-3D cone (apex + base ellipse) with radius, height (dashed)
-    and slant height labeled -- Level 18F/18H."""
+    and slant height labeled -- Level 18F/18H. blank=True (the default,
+    since no existing call site passed this) hides the computed slant
+    height, keeping r and h (the given dimensions) visible -- otherwise
+    the diagram would answer 'find the slant height' outright."""
     import math as _m
     w_svg, h_svg = 300, 320
     scale = min(70 / max(r, 1), 190 / max(h, 1), 24)
@@ -4383,7 +4386,8 @@ def cone_3d_svg(r=3, h=6, **kw):
     parts.append(f'<line x1="{cx:.1f}" y1="{apex[1]:.1f}" x2="{cx:.1f}" y2="{base_y:.1f}" stroke="#1E7A44" stroke-width="1.4" stroke-dasharray="4,3"/>')
     parts.append(f'<text x="{cx-10:.1f}" y="{(apex[1]+base_y)/2:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">h = {h}</text>')
     slant_mx, slant_my = apex[0] + 0.6 * (cx + R - apex[0]), apex[1] + 0.6 * (base_y - apex[1])
-    parts.append(f'<text x="{slant_mx+12:.1f}" y="{slant_my:.1f}" text-anchor="start" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">l = {slant:.1f}</text>')
+    slant_str = "l = ?" if blank else f"l = {slant:.1f}"
+    parts.append(f'<text x="{slant_mx+12:.1f}" y="{slant_my:.1f}" text-anchor="start" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{slant_str}</text>')
     parts.append(f'<line x1="{cx:.1f}" y1="{base_y:.1f}" x2="{cx+R:.1f}" y2="{base_y:.1f}" stroke="#7D3C98" stroke-width="2"/>')
     parts.append(f'<text x="{cx+R/2:.1f}" y="{base_y+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">r = {r}</text>')
     parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Cone</text>')
