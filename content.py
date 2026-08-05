@@ -18514,6 +18514,28 @@ try:
 except Exception as _e:
     pass
 
+# Level 17 v3 architecture (2026-08-05): every Level 17/Quadrilaterals-
+# Circles-Polygons worksheet restructured to 20 questions in four
+# blocks. Unlike Levels 10-16, Level 17 had thin/uneven pre-existing
+# diagram coverage (not zero, not full) -- hybrid architecture that
+# reorganizes where coverage is decent and freshly authors where it's
+# thin. FOUR SEVERE always-on answer leaks found and fixed in
+# diagram_engine.py (quadrilateral_types, polygon_angle_sum,
+# circle_central_inscribed_angle, cyclic_quadrilateral_theorem -- none
+# had a blank parameter at all before). Also fixed a genuine pre-
+# existing sizing bug: 5 circle diagram types were never added to any
+# box-size category in pdf_engine.py, silently falling through to the
+# smallest default box and rendering illegibly tiny. Added one new
+# diagram (polygon_exterior_angle) for 17CUM3 which had nothing.
+# Q13-15 Quick Review toughened beyond Level 16, Q16-20 Speed
+# Calculation continues the BODMAS escalation (fractions+Of+squares+
+# cubes) with bigger ranges.
+try:
+    from content_l17_v3_redesign import LEVEL17_V3_DISPATCH
+    _DISPATCH.update(LEVEL17_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

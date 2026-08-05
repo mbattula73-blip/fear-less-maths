@@ -213,11 +213,12 @@ def _precise_diag_h(dtype, params):
                                   "triangle_classify", "angle_sum_triangle", "congruence",
                                   "triangle_inequality", "isosceles_theorem", "similar_triangles",
                                   "midpoint_theorem", "pythagoras", "area_same_base")
+    circle_quad_box = dtype in ("quadrilateral_types", "quadrilateral_diagonals", "polygon_angle_sum", "cyclic_quadrilateral_theorem", "circle_central_inscribed_angle", "circle_basics", "circle_chord", "circle_tangent")
     extra_compact = dtype in ("identity_square", "substitution_steps")
     ultra_compact = dtype in ("area_same_base",)
     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
     try:
-        if compact_matching or graph_box or extra_compact or ultra_compact:
+        if compact_matching or graph_box or extra_compact or ultra_compact or circle_quad_box:
             from diagram_engine import generate_svg_diagram
             from svglib.svglib import svg2rlg
             from io import StringIO
@@ -234,6 +235,8 @@ def _precise_diag_h(dtype, params):
                 box_w, box_h = 55*mm, 30*mm
             elif ultra_compact:
                 box_w, box_h = 56*mm, 22*mm
+            elif circle_quad_box:
+                box_w, box_h = 58*mm, 36*mm
             else:
                 box_w, box_h = 70*mm, 40*mm
             scale = min(box_w/nw, box_h/nh)
@@ -300,8 +303,7 @@ def _est(item, cw=None):
         "matching_vertical_blank", "matching_vertical_example",
         "ratio_bar", "proportion_graph",
         "powers_of_ten_scale", "exponential_growth",
-        "quadrilateral_types",
-        "quadrilateral_diagonals", "polygon_angle_sum", "factor_array", "factor_rainbow",
+        "factor_array", "factor_rainbow",
         "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
         "substitution_steps",
         "repeated_addition", "solve_equation_ladder",
@@ -327,7 +329,7 @@ def _est(item, cw=None):
                       "points_lines_rays", "angle_pair", "transversal_angles", "bpt_triangle",
                       "triangle_classify", "angle_sum_triangle", "congruence",
                       "triangle_inequality", "isosceles_theorem", "similar_triangles",
-                      "midpoint_theorem", "pythagoras", "area_same_base")
+                      "midpoint_theorem", "pythagoras", "area_same_base", "quadrilateral_types", "quadrilateral_diagonals", "polygon_angle_sum", "cyclic_quadrilateral_theorem", "circle_central_inscribed_angle", "circle_basics", "circle_chord", "circle_tangent")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -449,8 +451,6 @@ class Col:
                                           "mixed_number_area_blank", "mixed_number_area_example")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                "powers_of_ten_scale", "exponential_growth",
-                                               "quadrilateral_types",
-                                               "quadrilateral_diagonals", "polygon_angle_sum",
                                                "factor_array", "factor_rainbow", "multiples_number_line",
                                                "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
                                                "substitution_steps", "repeated_addition",
@@ -477,6 +477,7 @@ class Col:
                                   "triangle_classify", "angle_sum_triangle", "congruence",
                                   "triangle_inequality", "isosceles_theorem", "similar_triangles",
                                   "midpoint_theorem", "pythagoras")
+                    circle_quad_box = dtype in ("quadrilateral_types", "quadrilateral_diagonals", "polygon_angle_sum", "cyclic_quadrilateral_theorem", "circle_central_inscribed_angle", "circle_basics", "circle_chord", "circle_tangent")
                     extra_compact = dtype in ("identity_square", "substitution_steps")
                     ultra_compact = dtype in ("area_same_base",)
                     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
@@ -488,6 +489,8 @@ class Col:
                         iw = min(cw-3*mm, 55*mm); ih = 30*mm
                     elif ultra_compact:
                         iw = min(cw-3*mm, 56*mm); ih = 22*mm
+                    elif circle_quad_box:
+                        iw = min(cw-3*mm, 58*mm); ih = 36*mm
                     else:
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)

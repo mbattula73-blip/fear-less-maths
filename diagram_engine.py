@@ -3894,9 +3894,12 @@ def _side_ticks(p1, p2, n):
     return "".join(out)
 
 
-def quadrilateral_types_svg(kind="parallelogram", **kw):
+def quadrilateral_types_svg(kind="parallelogram", blank=True, **kw):
     """Draws the given quadrilateral type with tick marks for equal
-    sides and right-angle marks where applicable."""
+    sides and right-angle marks where applicable. blank=True (the
+    default, since no existing call site passed this) shows a neutral
+    caption instead of the shape's name -- otherwise the title would
+    answer 'identify this quadrilateral' outright."""
     cfg = _QUAD_SHAPES.get(kind, _QUAD_SHAPES["parallelogram"])
     pts = cfg["pts"]
     w, h = 320, 280
@@ -3913,7 +3916,8 @@ def quadrilateral_types_svg(kind="parallelogram", **kw):
         parts.append(f'<circle cx="{x}" cy="{y}" r="4" fill="#A6362B"/>')
         ly = y - 12 if y < 150 else y + 18
         parts.append(f'<text x="{x}" y="{ly}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{lbl}</text>')
-    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{kind.title()}</text>')
+    cap = "Quadrilateral ABCD" if blank else kind.title()
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
@@ -3947,9 +3951,13 @@ def quadrilateral_diagonals_svg(kind="parallelogram", **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def polygon_angle_sum_svg(n=5, **kw):
+def polygon_angle_sum_svg(n=5, blank=True, **kw):
     """A regular n-gon triangulated from one vertex -- the standard
-    visual proof that interior angle sum = (n-2) x 180."""
+    visual proof that interior angle sum = (n-2) x 180. blank=True (the
+    default, since no existing call site passed this) hides the
+    computed sum, showing only the triangulation and the number of
+    triangles -- otherwise the caption would state the answer to 'find
+    the interior angle sum' outright."""
     import math as _m
     w, h = 320, 320
     cx, cy, r = 160, 168, 108
@@ -3967,7 +3975,7 @@ def polygon_angle_sum_svg(n=5, **kw):
     for x, y in pts:
         parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="#1E7A44"/>')
     n_tri = n - 2
-    cap = f"{n}-gon: {n_tri} triangles x 180 = {n_tri*180}"
+    cap = f"{n}-gon: splits into {n_tri} triangles" if blank else f"{n}-gon: {n_tri} triangles x 180 = {n_tri*180}"
     parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{cap}</text>')
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
@@ -4090,10 +4098,14 @@ def circle_tangent_svg(touch_ang=40, r=100, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def circle_central_inscribed_angle_svg(b_ang=210, c_ang=330, a_ang=90, r=100, **kw):
+def circle_central_inscribed_angle_svg(b_ang=210, c_ang=330, a_ang=90, r=100, blank=True, find="inscribed", **kw):
     """Circle showing the central angle BOC and an inscribed angle BAC
     on the same major arc -- angle at centre = 2 x angle at
-    circumference (Level 17 circle theorems)."""
+    circumference (Level 17 circle theorems). blank=True (the default,
+    since no existing call site passed this) hides the value the
+    student is asked to find (find='inscribed' or 'central'), keeping
+    the other one visible as the given -- otherwise both would always
+    be shown, answering the question outright."""
     import math as _m
     w, h = 340, 320
     cx, cy = 170, 165
@@ -4117,8 +4129,10 @@ def circle_central_inscribed_angle_svg(b_ang=210, c_ang=330, a_ang=90, r=100, **
     parts.append(_angle_wedge(ax, ay, ang_ab, ang_ac, 20, color="#1E7A44", width=2.5))
     central = _angle_between_vectors((bx - cx, by - cy), (ccx - cx, ccy - cy))
     inscribed = _angle_between_vectors((bx - ax, by - ay), (ccx - ax, ccy - ay))
-    parts.append(f'<text x="{cx:.1f}" y="{cy-34:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{central:.0f}°</text>')
-    parts.append(f'<text x="{ax:.1f}" y="{ay-24:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{inscribed:.0f}°</text>')
+    central_str = "?" if (blank and find == "central") else f"{central:.0f}°"
+    inscribed_str = "?" if (blank and find == "inscribed") else f"{inscribed:.0f}°"
+    parts.append(f'<text x="{cx:.1f}" y="{cy-34:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#A6362B">{central_str}</text>')
+    parts.append(f'<text x="{ax:.1f}" y="{ay-24:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{inscribed_str}</text>')
     for (x, y), lbl in [((bx, by), "B"), ((ccx, ccy), "C"), ((ax, ay), "A")]:
         parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="#2C3E50"/>')
         parts.append(f'<text x="{x+8:.1f}" y="{y-6:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{lbl}</text>')
@@ -4128,9 +4142,13 @@ def circle_central_inscribed_angle_svg(b_ang=210, c_ang=330, a_ang=90, r=100, **
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
-def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, **kw):
+def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, blank=True, hide_pair=1, **kw):
     """Quadrilateral ABCD inscribed in a circle with all four angles
-    marked -- shows opposite angles are supplementary (Level 17F)."""
+    marked -- shows opposite angles are supplementary (Level 17F).
+    blank=True (the default, since no existing call site passed this)
+    hides one pair of opposite angles (hide_pair=0 hides A&C, 1 hides
+    B&D), keeping the other pair visible as the given -- otherwise all
+    four would always be shown, answering the question outright."""
     import math as _m
     w, h = 360, 340
     cx, cy = 180, 175
@@ -4145,6 +4163,7 @@ def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, **kw):
     labels = ["A", "B", "C", "D"]
     n = 4
     vals = []
+    hidden_idx = (0, 2) if hide_pair == 0 else (1, 3)
     for i, (x, y) in enumerate(pts):
         prev = pts[(i - 1) % n]
         nxt = pts[(i + 1) % n]
@@ -4158,10 +4177,10 @@ def cyclic_quadrilateral_theorem_svg(angs=(100, 200, 260, 340), r=100, **kw):
         vals.append(val)
         dxn, dyn = x - cx, y - cy
         dl = _m.hypot(dxn, dyn) or 1
-        # value sits just inside the vertex (toward centre); letter sits outside the circle
         vx, vy = x - dxn / dl * 24, y - dyn / dl * 24
         lblx, lbly = x + dxn / dl * 28, y + dyn / dl * 28
-        parts.append(f'<text x="{vx:.1f}" y="{vy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="{col}">{val:.0f}°</text>')
+        val_str = "?" if (blank and i in hidden_idx) else f"{val:.0f}°"
+        parts.append(f'<text x="{vx:.1f}" y="{vy:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="{col}">{val_str}</text>')
         parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="#2C3E50"/>')
         parts.append(f'<text x="{lblx:.1f}" y="{lbly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{labels[i]}</text>')
     parts.insert(0, f'<text x="{w/2}" y="22" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">Cyclic quadrilateral: opposite angles are supplementary</text>')
@@ -6759,6 +6778,54 @@ def real_number_line_svg(value_str="\u221a2", approx=1.414, lo=0, hi=3, blank=Fa
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def polygon_exterior_angle_svg(n=6, blank=True, **kw):
+    """A regular n-gon with one side extended beyond a vertex to show
+    the exterior angle there, and the interior angle at the same
+    vertex marked too -- makes 'exterior + interior = 180' and
+    'exterior angles sum to 360' both visible at a glance (Level 17
+    CUM3). blank=True (the default) hides the computed exterior-angle
+    value, keeping the marked angle and the extended side visible."""
+    import math as _m
+    w, h = 340, 340
+    cx, cy, r = 170, 178, 108
+    pts = []
+    for i in range(n):
+        ang = -_m.pi / 2 + i * 2 * _m.pi / n
+        pts.append((cx + r * _m.cos(ang), cy + r * _m.sin(ang)))
+    parts = []
+    poly = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    parts.append(f'<polygon points="{poly}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    v_idx = 0
+    prev_idx = (v_idx - 1) % n
+    next_idx = (v_idx + 1) % n
+    vx, vy = pts[v_idx]
+    px, py = pts[prev_idx]
+    nx_, ny_ = pts[next_idx]
+    ext_x = vx + (vx - px) * 0.7
+    ext_y = vy + (vy - py) * 0.7
+    parts.append(f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{ext_x:.1f}" y2="{ext_y:.1f}" stroke="#A6362B" stroke-width="2" stroke-dasharray="5,3"/>')
+    for x, y in pts:
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.5" fill="#2C3E50"/>')
+    int_angle = 180 * (n - 2) / n
+    ext_angle = 180 - int_angle
+    ang_to_prev = _m.degrees(_m.atan2(py - vy, px - vx))
+    ang_to_next = _m.degrees(_m.atan2(ny_ - vy, nx_ - vx))
+    ang_to_ext = _m.degrees(_m.atan2(ext_y - vy, ext_x - vx))
+    parts.append(_angle_wedge(vx, vy, ang_to_next, ang_to_prev, 22, color="#1E7A44", width=2.2))
+    parts.append(_angle_wedge(vx, vy, ang_to_prev, ang_to_ext, 22, color="#A6362B", width=2.2))
+    int_str = f"{int_angle:.0f}°"
+    ext_str = "?" if blank else f"{ext_angle:.0f}°"
+    mx1 = vx + 34 * _m.cos(_m.radians((ang_to_next + ang_to_prev) / 2))
+    my1 = vy + 34 * _m.sin(_m.radians((ang_to_next + ang_to_prev) / 2))
+    mx2 = vx + 34 * _m.cos(_m.radians((ang_to_prev + ang_to_ext) / 2))
+    my2 = vy + 34 * _m.sin(_m.radians((ang_to_prev + ang_to_ext) / 2))
+    parts.append(f'<text x="{mx1:.1f}" y="{my1:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#1E7A44">{int_str}</text>')
+    parts.append(f'<text x="{mx2:.1f}" y="{my2:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">{ext_str}</text>')
+    cap = f"Regular {n}-gon: interior + exterior = 180°"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6790,6 +6857,7 @@ SVG_DIAGRAM_FUNCTIONS = {
     "circle_tangent": circle_tangent_svg,
     "circle_central_inscribed_angle": circle_central_inscribed_angle_svg,
     "cyclic_quadrilateral_theorem": cyclic_quadrilateral_theorem_svg,
+    "polygon_exterior_angle": polygon_exterior_angle_svg,
     "rectangle_dims": rectangle_dims_svg,
     "square_dims": square_dims_svg,
     "triangle_area_diagram": triangle_area_svg,
