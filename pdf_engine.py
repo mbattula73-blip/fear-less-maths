@@ -208,11 +208,16 @@ def _precise_diag_h(dtype, params):
                                   "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method",
                                   "plot_points_grid", "distance_segment", "midpoint_segment",
                                   "section_segment", "triangle_coords", "quadrant_map",
-                                  "point_plot_path", "slope_intercept_anatomy")
+                                  "point_plot_path", "slope_intercept_anatomy",
+                                  "points_lines_rays", "angle_pair", "transversal_angles", "bpt_triangle",
+                                  "triangle_classify", "angle_sum_triangle", "congruence",
+                                  "triangle_inequality", "isosceles_theorem", "similar_triangles",
+                                  "midpoint_theorem", "pythagoras", "area_same_base")
     extra_compact = dtype in ("identity_square", "substitution_steps")
+    ultra_compact = dtype in ("area_same_base",)
     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
     try:
-        if compact_matching or graph_box or extra_compact:
+        if compact_matching or graph_box or extra_compact or ultra_compact:
             from diagram_engine import generate_svg_diagram
             from svglib.svglib import svg2rlg
             from io import StringIO
@@ -227,6 +232,8 @@ def _precise_diag_h(dtype, params):
                 box_w, box_h = 40*mm, 40*mm
             elif extra_compact:
                 box_w, box_h = 55*mm, 30*mm
+            elif ultra_compact:
+                box_w, box_h = 56*mm, 22*mm
             else:
                 box_w, box_h = 70*mm, 40*mm
             scale = min(box_w/nw, box_h/nh)
@@ -293,8 +300,7 @@ def _est(item, cw=None):
         "matching_vertical_blank", "matching_vertical_example",
         "ratio_bar", "proportion_graph",
         "powers_of_ten_scale", "exponential_growth",
-        "points_lines_rays",
-        "angle_pair", "transversal_angles", "bpt_triangle", "quadrilateral_types",
+        "quadrilateral_types",
         "quadrilateral_diagonals", "polygon_angle_sum", "factor_array", "factor_rainbow",
         "multiples_number_line", "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
         "substitution_steps",
@@ -303,9 +309,6 @@ def _est(item, cw=None):
         "cube_stack_3d", "index_law_visual", "power_ladder", "sqrt_side_area",
         "sci_notation_slider", "surd_simplify_tree",
         "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
-        "triangle_classify",
-        "angle_sum_triangle", "congruence", "triangle_inequality", "isosceles_theorem",
-        "similar_triangles", "midpoint_theorem", "pythagoras", "area_same_base",
         "closure_test", "recurring_to_fraction",
         "rationalize_steps")
     precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
@@ -320,7 +323,11 @@ def _est(item, cw=None):
                       "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method", "identity_square",
                       "substitution_steps", "plot_points_grid", "distance_segment", "midpoint_segment",
                       "section_segment", "triangle_coords", "quadrant_map", "point_plot_path",
-                      "slope_intercept_anatomy")
+                      "slope_intercept_anatomy",
+                      "points_lines_rays", "angle_pair", "transversal_angles", "bpt_triangle",
+                      "triangle_classify", "angle_sum_triangle", "congruence",
+                      "triangle_inequality", "isosceles_theorem", "similar_triangles",
+                      "midpoint_theorem", "pythagoras", "area_same_base")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -442,8 +449,7 @@ class Col:
                                           "mixed_number_area_blank", "mixed_number_area_example")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                "powers_of_ten_scale", "exponential_growth",
-                                               "points_lines_rays", "angle_pair", "transversal_angles",
-                                               "bpt_triangle", "quadrilateral_types",
+                                               "quadrilateral_types",
                                                "quadrilateral_diagonals", "polygon_angle_sum",
                                                "factor_array", "factor_rainbow", "multiples_number_line",
                                                "hundred_grid_highlight", "ladder_division", "euclidean_algorithm",
@@ -453,11 +459,7 @@ class Col:
                                                "index_law_visual", "power_ladder", "sqrt_side_area",
                                                "sci_notation_slider", "surd_simplify_tree",
                                                "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
-                                               "points_lines_rays", "angle_pair", "transversal_angles",
-                                               "bpt_triangle", "triangle_classify", "angle_sum_triangle",
-                                               "congruence", "triangle_inequality", "isosceles_theorem",
-                                               "similar_triangles", "midpoint_theorem", "pythagoras",
-                                               "area_same_base", "closure_test",
+                                               "closure_test",
                                                "recurring_to_fraction", "rationalize_steps",
                                                "surd_simplify_tree", "index_law_visual")
                     compact_matching = dtype in ("euclidean_algorithm", "ladder_division",
@@ -470,8 +472,13 @@ class Col:
                                                   "poly_anatomy", "area_model", "polynomial_graph", "factor_x_method",
                                   "plot_points_grid", "distance_segment", "midpoint_segment",
                                   "section_segment", "triangle_coords", "quadrant_map",
-                                  "point_plot_path", "slope_intercept_anatomy")
+                                  "point_plot_path", "slope_intercept_anatomy",
+                                  "points_lines_rays", "angle_pair", "transversal_angles", "bpt_triangle",
+                                  "triangle_classify", "angle_sum_triangle", "congruence",
+                                  "triangle_inequality", "isosceles_theorem", "similar_triangles",
+                                  "midpoint_theorem", "pythagoras")
                     extra_compact = dtype in ("identity_square", "substitution_steps")
+                    ultra_compact = dtype in ("area_same_base",)
                     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
                     if compact_matching:
                         iw = min(cw-3*mm, 70*mm); ih = 40*mm
@@ -479,6 +486,8 @@ class Col:
                         iw = min(cw-3*mm, 40*mm); ih = 40*mm
                     elif extra_compact:
                         iw = min(cw-3*mm, 55*mm); ih = 30*mm
+                    elif ultra_compact:
+                        iw = min(cw-3*mm, 56*mm); ih = 22*mm
                     else:
                         iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else 68*mm))
                         ih=56*mm if matching_diag else (32*mm if big_diag else 18*mm)

@@ -18497,6 +18497,23 @@ try:
 except Exception as _e:
     pass
 
+# Level 16 v3 architecture (2026-08-05): every Level 16/Lines-Angles-
+# Triangles worksheet restructured to 20 questions in four blocks,
+# same pattern as Levels 10-15 (reorganizes existing 100% SVG diagram
+# content). All 13 diagram types used here already correctly built, no
+# answer leaks found. Q13-15 Quick Review toughened beyond Level 15:
+# 4-digit x 4-digit multiplication (Level 4), 5-digit / 4-digit
+# division (Level 5), a fractions+squares+cubes BODMAS expression
+# harder than Level 15's tier. Q16-20 Speed Calculation continues the
+# BODMAS escalation (fractions + "Of" + squares + cubes) with bigger
+# ranges and more chained operations (7-8 by sheet 4) per direct
+# request.
+try:
+    from content_l16_v3_redesign import LEVEL16_V3_DISPATCH
+    _DISPATCH.update(LEVEL16_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 
