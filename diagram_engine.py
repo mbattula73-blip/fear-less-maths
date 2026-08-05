@@ -6725,6 +6725,40 @@ def price_tag_svg(original=500, percent=20, kind="discount", blank=False, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
 
 
+def real_number_line_svg(value_str="\u221a2", approx=1.414, lo=0, hi=3, blank=False, **kw):
+    """A number line from lo to hi with integer ticks labeled, and the
+    given value (an irrational like sqrt(2) or a rational) placed at
+    its approximate decimal position with a bracket showing which two
+    integers it falls between -- the concrete picture for 'where does
+    an irrational sit among the rationals?' (Level 13E). blank=True
+    keeps the integer ticks and the bracket but hides the exact
+    circled position and its label."""
+    n = hi - lo
+    w_svg = 60 + n * 90
+    h_svg = 150
+    y = 80
+    parts = []
+    parts.append(f'<line x1="40" y1="{y}" x2="{w_svg-20}" y2="{y}" stroke="#2C3E50" stroke-width="2"/>')
+    for i, val in enumerate(range(lo, hi + 1)):
+        x = 40 + i * (w_svg - 60) / n
+        parts.append(f'<line x1="{x:.1f}" y1="{y-8}" x2="{x:.1f}" y2="{y+8}" stroke="#2C3E50" stroke-width="2"/>')
+        parts.append(f'<text x="{x:.1f}" y="{y+26}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#5D6D7E">{val}</text>')
+    lo_int = int(approx)
+    hi_int = lo_int + 1
+    lo_x = 40 + (lo_int - lo) * (w_svg - 60) / n
+    hi_x = 40 + (hi_int - lo) * (w_svg - 60) / n
+    parts.append(f'<line x1="{lo_x:.1f}" y1="{y-22}" x2="{hi_x:.1f}" y2="{y-22}" stroke="#B8860B" stroke-width="1.6" stroke-dasharray="3,2"/>')
+    parts.append(f'<text x="{(lo_x+hi_x)/2:.1f}" y="{y-30}" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#B8860B">between {lo_int} and {hi_int}</text>')
+    vx = 40 + (approx - lo) * (w_svg - 60) / n
+    if not blank:
+        parts.append(f'<circle cx="{vx:.1f}" cy="{y}" r="7" fill="none" stroke="#A6362B" stroke-width="2.4"/>')
+        parts.append(f'<text x="{vx:.1f}" y="{y+46}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{value_str} \u2248 {approx:g}</text>')
+    else:
+        parts.append(f'<text x="{vx:.1f}" y="{y+46}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#A6362B">{value_str} = ?</text>')
+    parts.insert(0, f'<text x="{w_svg/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Where does {value_str} sit on the real number line?</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w_svg}" height="{h_svg}" viewBox="0 0 {w_svg} {h_svg}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6796,6 +6830,7 @@ SVG_DIAGRAM_FUNCTIONS = {
     "sqrt_side_area": sqrt_side_area_svg,
     "sci_notation_slider": sci_notation_slider_svg,
     "surd_simplify_tree": surd_simplify_tree_svg,
+    "real_number_line": real_number_line_svg,
     "identity_square": identity_square_svg,
     "factor_x_method": factor_x_method_svg,
     "poly_anatomy": poly_anatomy_svg,

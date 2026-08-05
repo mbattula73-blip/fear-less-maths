@@ -18443,6 +18443,26 @@ try:
 except Exception as _e:
     pass
 
+# Level 13 v3 architecture (2026-08-04): every Level 13/Number Systems
+# worksheet restructured to 20 questions in four blocks. Unlike Levels
+# 10-12 (100% pre-existing diagram coverage), Level 13 had 7 of its 14
+# sublevels with ZERO diagrams -- fresh diagram content authored for
+# all of them, matched to each topic's existing diagram type where one
+# exists, plus one genuinely new diagram (real_number_line, for 13E
+# which had no diagram at all). All 11 pre-existing diagram types
+# audited for answer leaks -- none found, already correctly built.
+# Q13-15 Quick Review toughened beyond Level 12: 3-digit x 4-digit
+# multiplication (Level 4), 4-digit / 3-digit division (Level 5),
+# simplifying an expression harder than Level 12's tier. Q16-20 Speed
+# Calculation is BODMAS with difficulty increased FURTHER beyond Level
+# 12 per direct request -- exponents from sheet 1, nested brackets by
+# sheet 4.
+try:
+    from content_l13_v3_redesign import LEVEL13_V3_DISPATCH
+    _DISPATCH.update(LEVEL13_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

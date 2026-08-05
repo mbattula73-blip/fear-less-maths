@@ -204,7 +204,7 @@ def _precise_diag_h(dtype, params):
                                   "continued_ratio_bar", "unit_rate", "similar_figures",
                                   "scale_comparison", "term_label", "word_to_expression",
                                   "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
-                                  "inverse_machine")
+                                  "inverse_machine", "number_hierarchy", "decimal_expansion", "sqrt_side_area")
     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
     try:
         if compact_matching or graph_box:
@@ -297,7 +297,7 @@ def _est(item, cw=None):
         "quadrant_map", "point_plot_path", "slope_intercept_anatomy", "triangle_classify",
         "angle_sum_triangle", "congruence", "triangle_inequality", "isosceles_theorem",
         "similar_triangles", "midpoint_theorem", "pythagoras", "area_same_base",
-        "number_hierarchy", "closure_test", "decimal_expansion", "recurring_to_fraction",
+        "closure_test", "recurring_to_fraction",
         "rationalize_steps")
     precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
                       "factor_rectangle", "factor_tree", "euclidean_algorithm", "ladder_division",
@@ -306,7 +306,8 @@ def _est(item, cw=None):
                       "unit_rate", "similar_figures", "scale_comparison", "ratio_bar", "proportion_graph",
                       "term_label", "word_to_expression", "single_bracket_area", "algebra_tiles",
                       "balance_scale", "function_machine_svg", "like_terms_sort",
-                      "inverse_machine", "linear_equation_graph", "two_line_graph")
+                      "inverse_machine", "linear_equation_graph", "two_line_graph",
+                      "number_hierarchy", "decimal_expansion", "sqrt_side_area")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     else:
@@ -448,8 +449,8 @@ class Col:
                                                "bpt_triangle", "triangle_classify", "angle_sum_triangle",
                                                "congruence", "triangle_inequality", "isosceles_theorem",
                                                "similar_triangles", "midpoint_theorem", "pythagoras",
-                                               "area_same_base", "number_hierarchy", "closure_test",
-                                               "decimal_expansion", "recurring_to_fraction", "rationalize_steps",
+                                               "area_same_base", "closure_test",
+                                               "recurring_to_fraction", "rationalize_steps",
                                                "surd_simplify_tree", "index_law_visual")
                     compact_matching = dtype in ("euclidean_algorithm", "ladder_division",
                                                   "hundred_grid_highlight", "factor_array",
@@ -457,7 +458,7 @@ class Col:
                                                   "continued_ratio_bar", "unit_rate", "similar_figures",
                                                   "scale_comparison", "term_label", "word_to_expression",
                                                   "single_bracket_area", "algebra_tiles", "balance_scale", "function_machine_svg", "like_terms_sort",
-                                                  "inverse_machine")
+                                                  "inverse_machine", "number_hierarchy", "decimal_expansion", "sqrt_side_area")
                     graph_box = dtype in ("linear_equation_graph", "two_line_graph")
                     if compact_matching:
                         iw = min(cw-3*mm, 70*mm); ih = 40*mm
