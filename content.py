@@ -18224,6 +18224,15 @@ try:
 except Exception as _e:
     pass
 
+# Level 24 v3 (2026-08-06): consolidated from 10 core sublevels down to
+# 5 per direct request (old B/C/D/E/J all opened "Find the product" --
+# 5 of 10 duplicated).
+try:
+    from content_l24_v3_redesign import LEVEL24_V3_DISPATCH
+    _DISPATCH.update(LEVEL24_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Merge in Level 25 (new, separate level — "Pre Level 5", Division with
 # smaller step sizes for Class 1-2). Namespaced plain-letter codes
 # (__L25__A, __L25__B...), never colliding with the ORIGINAL, UNTOUCHED

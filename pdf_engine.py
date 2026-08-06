@@ -337,7 +337,8 @@ def _est(item, cw=None):
                                                     "base10_blocks", "ten_frames", "compare_blocks",
                                                     "compare_choice", "sequence_boxes",
                                                     "number_train", "even_odd_numberline", "pair_grouping",
-                                                    "array_grid", "factor_rectangle")
+                                                    "array_grid", "factor_rectangle",
+                                                    "multiply_grid", "repeated_groups")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     elif pre_level_diag:
@@ -533,7 +534,8 @@ class Col:
                                                     "base10_blocks", "ten_frames", "compare_blocks",
                                                     "compare_choice", "sequence_boxes",
                                                     "number_train", "even_odd_numberline", "pair_grouping",
-                                                    "array_grid", "factor_rectangle")
+                                                    "array_grid", "factor_rectangle",
+                                                    "multiply_grid", "repeated_groups")
                         if tree_blank:
                             iw = min(cw-3*mm, 46*mm); ih = 26*mm
                         elif array_diag:
