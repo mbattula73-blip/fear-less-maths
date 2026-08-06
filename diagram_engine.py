@@ -6830,6 +6830,93 @@ def polygon_exterior_angle_svg(n=6, blank=True, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def right_triangle_trig_svg(angle=37, opp=3, adj=4, hyp=5, find="hyp", blank=True, **kw):
+    """A right triangle with angle theta marked at one vertex, the
+    opposite/adjacent/hypotenuse sides labelled -- the foundational
+    picture for trig ratios, identities and simplification (Level
+    19A-D). blank=True (the default, since this diagram is new and
+    every call site should pass it explicitly) hides the side named by
+    `find` ('opp', 'adj', or 'hyp'), keeping the other two and the
+    angle visible as the given information."""
+    import math as _m
+    w, h = 320, 280
+    ox, oy = 60, 220
+    base_w = 200
+    ang_rad = _m.radians(angle)
+    height = base_w * _m.tan(ang_rad)
+    scale = min(1.0, 150 / max(height, 1))
+    base_w *= scale
+    height *= scale
+    A = (ox, oy)
+    B = (ox + base_w, oy)
+    C = (ox + base_w, oy - height)
+    parts = []
+    parts.append(f'<polygon points="{A[0]:.1f},{A[1]:.1f} {B[0]:.1f},{B[1]:.1f} {C[0]:.1f},{C[1]:.1f}" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2.5"/>')
+    parts.append(_right_angle_mark(B[0], B[1], 0, -1, -1, 0, size=11))
+    arc_r = 30
+    parts.append(_angle_wedge(A[0], A[1], -_m.degrees(ang_rad), 0, arc_r, color="#A6362B", width=2))
+    parts.append(f'<text x="{A[0]+arc_r*1.5:.1f}" y="{A[1]-14:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="14" fill="#A6362B">\u03b8</text>')
+    labels = {"opp": (str(opp), "#1E7A44", ((B[0]+C[0])/2+16, (B[1]+C[1])/2)),
+              "adj": (str(adj), "#7D3C98", ((A[0]+B[0])/2, B[1]+18)),
+              "hyp": (str(hyp), "#B7791F", ((A[0]+C[0])/2-18, (A[1]+C[1])/2-6))}
+    for key, (val, color, (lx, ly)) in labels.items():
+        show = "?" if (blank and key == find) else val
+        parts.append(f'<text x="{lx:.1f}" y="{ly:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="{color}">{show}</text>')
+    parts.append(f'<text x="{A[0]-8:.1f}" y="{A[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">A</text>')
+    parts.append(f'<text x="{B[0]+10:.1f}" y="{B[1]+16:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">B</text>')
+    parts.append(f'<text x="{C[0]+10:.1f}" y="{C[1]-4:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">C</text>')
+    cap = "sin\u03b8=opp/hyp  cos\u03b8=adj/hyp  tan\u03b8=opp/adj"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="11.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def height_distance_svg(height=10, distance=10, angle=45, kind="elevation", blank=True, **kw):
+    """A tower/building with an observer's line of sight to the top,
+    the angle of elevation (or depression, from a cliff) marked --
+    the standard 'heights and distances' word-problem picture (Level
+    19E/19F). blank=True (the default) hides the angle value, keeping
+    height and distance (the given measurements) visible."""
+    import math as _m
+    w, h = 340, 260
+    ground_y = 220
+    if kind == "elevation":
+        tower_x = 260
+        tower_top = (tower_x, ground_y - 140)
+        obs = (50, ground_y)
+        parts = []
+        parts.append(f'<line x1="30" y1="{ground_y}" x2="{w-20}" y2="{ground_y}" stroke="#2C3E50" stroke-width="2"/>')
+        parts.append(f'<line x1="{tower_x}" y1="{ground_y}" x2="{tower_top[0]}" y2="{tower_top[1]}" stroke="#1B5E8C" stroke-width="3"/>')
+        parts.append(f'<line x1="{obs[0]}" y1="{obs[1]}" x2="{tower_top[0]}" y2="{tower_top[1]}" stroke="#A6362B" stroke-width="1.8" stroke-dasharray="5,3"/>')
+        parts.append(f'<line x1="{obs[0]}" y1="{obs[1]}" x2="{tower_x-20}" y2="{obs[1]}" stroke="#9AA5B1" stroke-width="1.2" stroke-dasharray="3,2"/>')
+        ang_rad = _m.atan2(ground_y - tower_top[1], tower_top[0] - obs[0])
+        parts.append(_angle_wedge(obs[0], obs[1], -_m.degrees(ang_rad), 0, 26, color="#1E7A44", width=2))
+        ang_str = "?" if blank else f"{angle}\u00b0"
+        parts.append(f'<text x="{obs[0]+40:.1f}" y="{obs[1]-14:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{ang_str}</text>')
+        parts.append(f'<text x="{tower_x+10}" y="{(ground_y+tower_top[1])/2:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">h={height}</text>')
+        parts.append(f'<text x="{(obs[0]+tower_x)/2:.1f}" y="{ground_y+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">d={distance}</text>')
+        parts.append(f'<circle cx="{obs[0]}" cy="{obs[1]}" r="3.5" fill="#2C3E50"/>')
+        cap = "Angle of ELEVATION (looking up)"
+    else:
+        cliff_x = 60
+        cliff_top = (cliff_x, ground_y - 140)
+        obj = (280, ground_y)
+        parts = []
+        parts.append(f'<line x1="30" y1="{ground_y}" x2="{w-20}" y2="{ground_y}" stroke="#2C3E50" stroke-width="2"/>')
+        parts.append(f'<line x1="{cliff_x}" y1="{ground_y}" x2="{cliff_top[0]}" y2="{cliff_top[1]}" stroke="#1B5E8C" stroke-width="3"/>')
+        parts.append(f'<line x1="{cliff_top[0]}" y1="{cliff_top[1]}" x2="{obj[0]}" y2="{obj[1]}" stroke="#A6362B" stroke-width="1.8" stroke-dasharray="5,3"/>')
+        parts.append(f'<line x1="{cliff_top[0]}" y1="{cliff_top[1]}" x2="{cliff_top[0]+40}" y2="{cliff_top[1]}" stroke="#9AA5B1" stroke-width="1.2" stroke-dasharray="3,2"/>')
+        ang_rad = _m.atan2(ground_y - cliff_top[1], obj[0] - cliff_top[0])
+        parts.append(_angle_wedge(cliff_top[0], cliff_top[1], 0, _m.degrees(ang_rad), 26, color="#1E7A44", width=2))
+        ang_str = "?" if blank else f"{angle}\u00b0"
+        parts.append(f'<text x="{cliff_top[0]+46:.1f}" y="{cliff_top[1]+18:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1E7A44">{ang_str}</text>')
+        parts.append(f'<text x="{cliff_x-32}" y="{(ground_y+cliff_top[1])/2:.1f}" font-family="Helvetica-Bold" font-size="12" fill="#1B5E8C">h={height}</text>')
+        parts.append(f'<text x="{(cliff_x+obj[0])/2:.1f}" y="{ground_y+18:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#7D3C98">d={distance}</text>')
+        parts.append(f'<circle cx="{obj[0]}" cy="{obj[1]}" r="3.5" fill="#2C3E50"/>')
+        cap = "Angle of DEPRESSION (looking down)"
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="12.5" fill="#2C3E50">{cap}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6862,6 +6949,8 @@ SVG_DIAGRAM_FUNCTIONS = {
     "circle_central_inscribed_angle": circle_central_inscribed_angle_svg,
     "cyclic_quadrilateral_theorem": cyclic_quadrilateral_theorem_svg,
     "polygon_exterior_angle": polygon_exterior_angle_svg,
+    "right_triangle_trig": right_triangle_trig_svg,
+    "height_distance": height_distance_svg,
     "rectangle_dims": rectangle_dims_svg,
     "square_dims": square_dims_svg,
     "triangle_area_diagram": triangle_area_svg,

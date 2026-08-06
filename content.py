@@ -18553,6 +18553,24 @@ try:
 except Exception as _e:
     pass
 
+# Level 19 v3 architecture (2026-08-05): every Level 19/Trigonometry
+# worksheet restructured to 20 questions in four blocks. Level 19 had
+# ZERO diagrams at all -- authored two new SVG diagrams from scratch:
+# right_triangle_trig (angle theta + opp/adj/hyp labelled) and
+# height_distance (angle of elevation/depression word-problem
+# picture). Q13-15 Quick Review follows the established toughening
+# pattern. Q16-20 is now "PYQ Review" REPLACING BODMAS per direct
+# request, starting at this level: 5 genuinely good, non-trivial
+# review questions cumulatively spanning Levels 8-18 (decimals through
+# mensuration), a rotating window of 5 source levels per sheet so the
+# full range gets covered across a worksheet set rather than a fixed
+# subset appearing every time.
+try:
+    from content_l19_v3_redesign import LEVEL19_V3_DISPATCH
+    _DISPATCH.update(LEVEL19_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

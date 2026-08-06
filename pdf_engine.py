@@ -302,7 +302,7 @@ def _est(item, cw=None):
                                              "rectangle_dims", "square_dims", "triangle_area_diagram",
                                              "circle_area_diagram", "cuboid_3d", "cube_3d", "cylinder_3d",
                                              "cone_3d", "sphere_3d", "hemisphere_3d", "composite_mensuration",
-                                             "circle_sector", "circle_ring")
+                                             "circle_sector", "circle_ring", "right_triangle_trig", "height_distance")
     matching_diag = item.get("diagram_type") in (
         "matching_vertical_blank", "matching_vertical_example",
         "ratio_bar", "proportion_graph",
@@ -456,7 +456,7 @@ class Col:
                                           "rectangle_dims", "square_dims", "triangle_area_diagram",
                                           "circle_area_diagram", "cuboid_3d", "cube_3d", "cylinder_3d",
                                           "cone_3d", "sphere_3d", "hemisphere_3d", "composite_mensuration",
-                                          "circle_sector", "circle_ring")
+                                          "circle_sector", "circle_ring", "right_triangle_trig", "height_distance")
                     matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example",
                                                "powers_of_ten_scale", "exponential_growth",
                                                "factor_array", "factor_rainbow", "multiples_number_line",
