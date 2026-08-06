@@ -18204,6 +18204,16 @@ try:
 except Exception as _e:
     pass
 
+# Level 23 v3 (2026-08-06): consolidated from 10 core sublevels down to
+# 5 per direct request (old A/B/E all opened "Add the numbers", C/D/F/
+# H/J all opened "Subtract the numbers" -- just 2 question styles
+# spread across 10 sublevels).
+try:
+    from content_l23_v3_redesign import LEVEL23_V3_DISPATCH
+    _DISPATCH.update(LEVEL23_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Merge in Level 24 (new, separate level — "Pre Level 4", Multiplication
 # with smaller step sizes for Class 1-2). Namespaced plain-letter codes
 # (__L24__A, __L24__B...), never colliding with the ORIGINAL, UNTOUCHED
