@@ -18243,6 +18243,15 @@ try:
 except Exception as _e:
     pass
 
+# Level 25 v3 (2026-08-06): consolidated from 10 core sublevels down to
+# 5 per direct request (old A/H, C/J, and B/D/G each duplicated
+# framing).
+try:
+    from content_l25_v3_redesign import LEVEL25_V3_DISPATCH
+    _DISPATCH.update(LEVEL25_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Level 6 is now Factors, Multiples, HCF & LCM (swapped from Level 9 on
 # 2026-07-20, since HCF/LCM is a genuine prerequisite for simplifying
 # fractions and finding a common denominator -- it now teaches before
