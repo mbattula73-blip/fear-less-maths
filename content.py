@@ -18182,6 +18182,18 @@ try:
 except Exception as _e:
     pass
 
+# Level 22 v3 (2026-08-06): consolidated from 10 core sublevels down to
+# 5 per direct request (old A/B/D/I/J ALL opened "Is this even or odd?"
+# -- 5 of 10 duplicated). Also fixes a content-appropriateness issue:
+# old F/G/H taught "prime numbers"/"composite numbers"/"factor trees"
+# BY NAME -- Class 5-6 vocabulary, replaced with age-appropriate
+# "splitting into equal rows" framing using the same geometric visual.
+try:
+    from content_l22_v3_redesign import LEVEL22_V3_DISPATCH
+    _DISPATCH.update(LEVEL22_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Merge in Level 23 (new, separate level — "Pre Level 3", Addition &
 # Subtraction with smaller step sizes for Class 1-2). Namespaced
 # plain-letter codes (__L23__A, __L23__B...), never colliding with the

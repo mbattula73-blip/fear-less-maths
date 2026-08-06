@@ -317,8 +317,7 @@ def _est(item, cw=None):
         "degree_staircase", "hcf_factor_boxes", "division_algorithm_box",
         "closure_test", "recurring_to_fraction",
         "rationalize_steps")
-    precise_types = ("number_train", "even_odd_numberline", "pair_grouping", "array_grid",
-                      "factor_rectangle", "factor_tree", "euclidean_algorithm", "ladder_division",
+    precise_types = ("factor_tree", "euclidean_algorithm", "ladder_division",
                       "hundred_grid_highlight", "factor_array", "venn_two", "cross_multiply_bowtie",
                       "ratio_objects", "ratio_table", "double_number_line", "continued_ratio_bar",
                       "unit_rate", "similar_figures", "scale_comparison", "ratio_bar", "proportion_graph",
@@ -336,7 +335,9 @@ def _est(item, cw=None):
                       "midpoint_theorem", "pythagoras", "area_same_base", "quadrilateral_types", "quadrilateral_diagonals", "polygon_angle_sum", "cyclic_quadrilateral_theorem", "circle_central_inscribed_angle", "circle_basics", "circle_chord", "circle_tangent")
     pre_level_diag = item.get("diagram_type") in ("object_group", "visual_equation", "numline_jump",
                                                     "base10_blocks", "ten_frames", "compare_blocks",
-                                                    "compare_choice", "sequence_boxes")
+                                                    "compare_choice", "sequence_boxes",
+                                                    "number_train", "even_odd_numberline", "pair_grouping",
+                                                    "array_grid", "factor_rectangle")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
     elif pre_level_diag:
@@ -521,18 +522,18 @@ class Col:
                                               "math_maze_blank", "function_machine_blank",
                                               "number_pyramid_blank", "mixed_number_area_blank",
                                               "mixed_number_area_example", "decimal_mult_area_blank",
-                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank",
-                                              "number_train", "even_odd_numberline",
-                                              "pair_grouping")
+                                              "decimal_mult_area_example", "decimal_zoom_numberline_blank")
                         matching_diag = dtype in ("matching_vertical_blank", "matching_vertical_example"
                                                    ) or (dtype == "factor_tree" and not dparm.get("blank"))
-                        compact_diag = dtype in ("factor_rectangle",)
-                        array_diag = dtype == "array_grid"
+                        compact_diag = False
+                        array_diag = False
                         tree_blank = (dtype == "factor_tree" and dparm.get("blank"))
                         venn_compact = dtype in ("venn_two", "cross_multiply_bowtie", "ratio_bar", "proportion_graph")
                         pre_level_diag = dtype in ("object_group", "visual_equation", "numline_jump",
                                                     "base10_blocks", "ten_frames", "compare_blocks",
-                                                    "compare_choice", "sequence_boxes")
+                                                    "compare_choice", "sequence_boxes",
+                                                    "number_train", "even_odd_numberline", "pair_grouping",
+                                                    "array_grid", "factor_rectangle")
                         if tree_blank:
                             iw = min(cw-3*mm, 46*mm); ih = 26*mm
                         elif array_diag:
