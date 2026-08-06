@@ -2814,6 +2814,8 @@ def get_concept_page(sublevel_code, level_num, topic):
         return _L18.get(sublevel_code)
     if level_num == 19:
         return _L19.get(sublevel_code)
+    if level_num == 20:
+        return _L20.get(sublevel_code)
     return None
 
 
@@ -10683,5 +10685,317 @@ _L19 = {
             ],
             "answers": "1) 1/\u221a2    2) 24/25    3) 24m",
         },
+    },
+}
+
+
+_L20 = {
+    "20A": {
+        "title": "Arithmetic Progression (AP) — Concept",
+        "intro": [
+            "An AP is a sequence where each term increases by the SAME fixed amount, called the common difference (d).",
+            "General form: a, a+d, a+2d, a+3d, ...",
+            "d = any term minus the term before it.",
+            "2, 5, 8, 11, ...: here a=2, d=3.",
+        ],
+        "real_life": [
+            {"text": "1. Savings: Rs 100 in week 1, Rs 150 in week 2, Rs 200 in week 3...", "diagram": "rule_box", "pairs": [["Week 1", "100"], ["Week 2", "150"], ["Week 3", "200"]], "caption": "d = 50 each week"},
+            {"text": "2. Seats per row: row 1 has 20, row 2 has 23, row 3 has 26...", "diagram": "rule_box", "pairs": [["Row 1", "20"], ["Row 2", "23"], ["Row 3", "26"]], "caption": "d = 3 each row"},
+            {"text": "3. A stack of chairs losing height: 100cm, 92cm, 84cm...", "diagram": "rule_box", "pairs": [["Chair 1", "100"], ["Chair 2", "92"], ["Chair 3", "84"]], "caption": "d = -8 (decreasing AP)"},
+        ],
+        "solved": [{"q": "Ex: First term 5, d=4. Find the 4th term.", "steps": ["term 4 = a + 3d", "= 5 + 3(4)", "= 5 + 12 = 17"]}],
+        "tips": [
+            "d can be found from ANY two consecutive terms.",
+            "d can be negative (decreasing AP).",
+            "nth term formula: a + (n-1)d.",
+            "Check: the difference must be the SAME throughout, not just between the first two.",
+        ],
+        "try_it": {"questions": ["1. First term 3, d=5. Find term 3.", "2. Find d: 10, 7, 4, 1...", "3. Is 2,4,8,16 an AP?"], "answers": "1) 13   2) -3   3) No, differences aren't equal"},
+    },
+    "20B": {
+        "title": "AP — Finding Terms",
+        "intro": [
+            "nth term of an AP: a_n = a + (n-1)d, where a = first term, d = common difference.",
+            "To find the 7th term: a_7 = a + 6d.",
+            "You can also find a or d if you know two terms.",
+            "Always identify a and d FIRST before applying the formula.",
+        ],
+        "real_life": [
+            {"text": "1. a=5, d=3. Find the 6th term.", "diagram": "rule_box", "pairs": [["a_6 = a+5d", "5+5(3)"], ["=", "20"]], "caption": "substitute n=6"},
+            {"text": "2. a=10, d=-2. Find the 8th term.", "diagram": "rule_box", "pairs": [["a_8 = a+7d", "10+7(-2)"], ["=", "-4"]], "caption": "negative d shrinks the terms"},
+            {"text": "3. a=1, d=6. Find the 10th term.", "diagram": "rule_box", "pairs": [["a_10 = a+9d", "1+9(6)"], ["=", "55"]], "caption": "d multiplies by (n-1)"},
+        ],
+        "solved": [{"q": "Ex: a=8, d=5. Find the 5th term.", "steps": ["a_5 = a + 4d", "= 8 + 4(5)", "= 28"]}],
+        "tips": [
+            "Use (n-1), not n, as the multiplier for d.",
+            "Write out a, d clearly before substituting.",
+            "Double check by listing the first few terms.",
+            "Negative d means a decreasing sequence.",
+        ],
+        "try_it": {"questions": ["1. a=4, d=2. Find term 5.", "2. a=20, d=-3. Find term 4.", "3. a=0, d=7. Find term 6."], "answers": "1) 12   2) 11   3) 35"},
+    },
+    "20C": {
+        "title": "AP — Word Problems",
+        "intro": [
+            "Real-world AP problems: identify the starting value (a) and the constant change (d) from the story.",
+            "'Starts at' or 'day 1' usually gives you a.",
+            "'Increases by' or 'more each time' gives you d.",
+            "Then apply a_n = a + (n-1)d for the value on a given day/term.",
+        ],
+        "real_life": [
+            {"text": "1. A tree is 2m tall and grows 0.5m every year. Height after 5 years?", "diagram": "rule_box", "pairs": [["a=2, d=0.5", "n=6 (year 0 to 5)"], ["a_6=2+5(0.5)", "= 4.5m"]], "caption": "year 0 is term 1"},
+            {"text": "2. Ticket prices rise Rs 20 each week, starting at Rs 200. Price in week 6?", "diagram": "rule_box", "pairs": [["a=200, d=20", "a_6=200+5(20)"], ["=", "300"]], "caption": "identify a and d from the story"},
+            {"text": "3. A well is dug 3m on day 1, and 2m deeper each following day.", "diagram": "rule_box", "pairs": [["a=3, d=2", "Depth on day 4"], ["a_4=3+3(2)", "= 9m"]], "caption": "'deeper each day' = increasing AP"},
+        ],
+        "solved": [{"q": "Ex: Salary starts at Rs 20000, rises Rs 1000/year. Salary in year 5?", "steps": ["a=20000, d=1000", "a_5 = a + 4d = 20000+4000", "= Rs 24000"]}],
+        "tips": [
+            "Read carefully: is 'day 1' term 1, or is 'day 0' term 1?",
+            "List the first 2-3 terms to check your a and d.",
+            "Watch for decreasing APs (d negative) in word problems too.",
+            "Label your answer with the right units.",
+        ],
+        "try_it": {"questions": ["1. Starts at 5, adds 3 each step. Value at step 4?", "2. A car depreciates Rs 5000/year from Rs 500000. Value after 3 years?", "3. Plants grow 2cm/week from 10cm. Height after 4 weeks?"], "answers": "1) 14   2) Rs 485000   3) 18cm"},
+    },
+    "20CUM1": {
+        "title": "Review: AP Basics, Terms & Word Problems",
+        "intro": [
+            "AP: a, a+d, a+2d, ... -- constant difference d between consecutive terms.",
+            "nth term: a_n = a + (n-1)d.",
+            "In word problems: find a (starting value) and d (constant change) from the story first.",
+            "d can be positive (increasing) or negative (decreasing).",
+        ],
+        "real_life": [
+            {"text": "1. Find d: 4, 9, 14, 19...", "diagram": "rule_box", "pairs": [["9-4", "5"], ["14-9", "5"]], "caption": "d=5, confirmed twice"},
+            {"text": "2. a=3, d=7. Find term 5.", "diagram": "rule_box", "pairs": [["a_5=a+4d", "3+28"], ["=", "31"]], "caption": "apply the formula"},
+            {"text": "3. Savings start at 50, grow by 25/week. Week 4 total?", "diagram": "rule_box", "pairs": [["a=50, d=25", "a_4=50+75"], ["=", "125"]], "caption": "identify a,d from the story"},
+        ],
+        "solved": [{"q": "Ex: a=6, d=-2. Find term 6.", "steps": ["a_6 = a+5d", "= 6+5(-2)", "= 6-10 = -4"]}],
+        "tips": [
+            "Always verify d using at least two pairs of consecutive terms.",
+            "Use (n-1) as the multiplier, not n.",
+            "Word problems: read for the starting value and the rate of change.",
+            "Negative d is a valid, common AP.",
+        ],
+        "try_it": {"questions": ["1. Find d: 100, 90, 80...", "2. a=1, d=4. Find term 7.", "3. Starts at 8, grows by 3/day. Day 5 value?"], "answers": "1) -10   2) 25   3) 20"},
+    },
+    "20D": {
+        "title": "Mean — Concept",
+        "intro": [
+            "Mean (average) = sum of all values / number of values.",
+            "Also called the 'average' in everyday language.",
+            "Mean can be affected a lot by one very high or very low value (an outlier).",
+            "The mean doesn't have to be one of the actual data values.",
+        ],
+        "real_life": [
+            {"text": "1. Test scores: 10, 17, 2, 5, 9, 5.", "diagram": "rule_box", "pairs": [["sum", "48"], ["48/6", "8"]], "caption": "mean = 8"},
+            {"text": "2. Daily temperatures: 30, 32, 28, 34.", "diagram": "rule_box", "pairs": [["sum", "124"], ["124/4", "31"]], "caption": "mean = 31"},
+            {"text": "3. Weekly allowance: 50, 50, 50, 200 (one big gift week).", "diagram": "rule_box", "pairs": [["sum", "350"], ["350/4", "87.5"]], "caption": "the outlier (200) pulls the mean up"},
+        ],
+        "solved": [{"q": "Ex: Find the mean of 12, 14, 8, 2.", "steps": ["Sum = 12+14+8+2 = 36", "Count = 4", "Mean = 36/4 = 9"]}],
+        "tips": [
+            "Add ALL values first, then divide by the count.",
+            "Double-check your count of values -- easy to miscount.",
+            "One extreme value can distort the mean significantly.",
+            "Mean can be a decimal even if all data are whole numbers.",
+        ],
+        "try_it": {"questions": ["1. Mean of 3, 7, 8.", "2. Mean of 10, 10, 10, 10.", "3. Mean of 1, 2, 3, 4, 5."], "answers": "1) 6   2) 10   3) 3"},
+    },
+    "20E": {
+        "title": "Median — Concept",
+        "intro": [
+            "Median = the MIDDLE value when data is arranged in order (smallest to largest).",
+            "Odd count: median is the single middle value.",
+            "Even count: median is the average of the two middle values.",
+            "Median is NOT affected much by outliers -- unlike the mean.",
+        ],
+        "real_life": [
+            {"text": "1. Data: 20, 7, 12, 12, 18 (odd count, 5 values).", "diagram": "rule_box", "pairs": [["sorted", "7,12,12,18,20"], ["middle", "12"]], "caption": "3rd value out of 5"},
+            {"text": "2. Data: 3, 28, 21, 18, 5 (odd count, 5 values).", "diagram": "rule_box", "pairs": [["sorted", "3,5,18,21,28"], ["middle", "18"]], "caption": "3rd value out of 5"},
+            {"text": "3. Data: 25, 25, 14, 28 (even count, 4 values).", "diagram": "rule_box", "pairs": [["sorted", "14,25,25,28"], ["avg of middle 2", "25"]], "caption": "(25+25)/2 = 25"},
+        ],
+        "solved": [{"q": "Ex: Find the median of 12, 11, 19, 14.", "steps": ["Sort: 11, 12, 14, 19", "Even count (4) -- average the middle two", "(12+14)/2 = 13"]}],
+        "tips": [
+            "ALWAYS sort the data first -- this is the most common mistake.",
+            "Odd count -> single middle value.",
+            "Even count -> average the two middle values.",
+            "Median resists outliers better than mean.",
+        ],
+        "try_it": {"questions": ["1. Median of 5, 1, 9.", "2. Median of 4, 8, 2, 6.", "3. Median of 100, 1, 2, 3, 4."], "answers": "1) 5   2) 5   3) 3"},
+    },
+    "20F": {
+        "title": "Mode — Concept",
+        "intro": [
+            "Mode = the value that appears MOST OFTEN in the data.",
+            "A data set can have one mode, more than one mode, or no mode at all.",
+            "Mode is the only average that works for non-numeric data too (e.g. favourite colour).",
+            "Mode is not affected by extreme values at all.",
+        ],
+        "real_life": [
+            {"text": "1. Favourite number votes: 3 people chose 14, 6 chose 10.", "diagram": "rule_box", "pairs": [["14", "3 votes"], ["10", "6 votes"]], "caption": "mode = 10 (most votes)"},
+            {"text": "2. Test scores: 5 got 12, 18 got 20, 7 got 15.", "diagram": "rule_box", "pairs": [["12", "5"], ["20", "18"]], "caption": "mode = 20 (highest frequency)"},
+            {"text": "3. Shoe sizes sold: size 7 (3 pairs), size 8 (3 pairs), size 9 (1 pair).", "diagram": "rule_box", "pairs": [["size 7", "3"], ["size 8", "3"]], "caption": "bimodal: both 7 and 8 are modes"},
+        ],
+        "solved": [{"q": "Ex: Find the mode: 3,3,3,5,5,7,9", "steps": ["Count each value's frequency", "3 appears 3 times (most)", "Mode = 3"]}],
+        "tips": [
+            "Mode = highest FREQUENCY, not highest value.",
+            "Check for ties -- a data set can be bimodal (2 modes).",
+            "If every value appears once, there's no mode.",
+            "Mode works even for categories (colours, names, etc).",
+        ],
+        "try_it": {"questions": ["1. Mode of 2,2,3,4,4,4.", "2. Mode of 1,2,3,4,5.", "3. Mode of 7,7,8,8,9."], "answers": "1) 4   2) no mode   3) 7 and 8 (bimodal)"},
+    },
+    "20CUM2": {
+        "title": "Review: Mean, Median & Mode",
+        "intro": [
+            "Mean: sum / count -- affected by outliers.",
+            "Median: the middle value when sorted -- resists outliers.",
+            "Mode: the most frequent value -- can have zero, one, or several modes.",
+            "Together these are called 'measures of central tendency'.",
+        ],
+        "real_life": [
+            {"text": "1. Data: 4, 8, 4, 10, 4. Find mean, median, mode.", "diagram": "rule_box", "pairs": [["mean", "6"], ["median", "4"], ["mode", "4"]], "caption": "mode pulls attention to the repeated value"},
+            {"text": "2. Data: 2, 100, 3, 4, 3. Find mean, median, mode.", "diagram": "rule_box", "pairs": [["mean", "22.4"], ["median", "3"]], "caption": "mean distorted by the outlier 100, median is not"},
+            {"text": "3. Data: 5, 5, 6, 7, 7, 7. Find mean, median, mode.", "diagram": "rule_box", "pairs": [["mean", "6.17"], ["mode", "7"]], "caption": "all three measures can differ"},
+        ],
+        "solved": [{"q": "Ex: Data 2,4,4,6,9. Find mean, median, mode.", "steps": ["Mean = 25/5 = 5", "Median (sorted, middle) = 4", "Mode (most frequent) = 4"]}],
+        "tips": [
+            "Mean uses every value; median and mode don't.",
+            "Median is best when outliers are present.",
+            "Mode is the only option for non-numeric data.",
+            "Compute all three to get a full picture of the data.",
+        ],
+        "try_it": {"questions": ["1. Mean of 3,5,7,9,6.", "2. Median of 3,5,7,9,6.", "3. Mode of 2,2,5,7,9."], "answers": "1) 6   2) 6   3) 2"},
+    },
+    "20G": {
+        "title": "Probability — Concept",
+        "intro": [
+            "Probability = (number of favourable outcomes) / (total number of outcomes).",
+            "Probability is always between 0 (impossible) and 1 (certain).",
+            "A fair coin: P(Heads) = 1/2. A fair die: P(any number) = 1/6.",
+            "Count carefully: 'total outcomes' means ALL possibilities, not just the ones you want.",
+        ],
+        "real_life": [
+            {"text": "1. A fair coin is tossed. P(Heads)?", "diagram": "rule_box", "pairs": [["favourable", "1 (Heads)"], ["total", "2 (H,T)"]], "caption": "P = 1/2"},
+            {"text": "2. A die is rolled. P(rolling a 4)?", "diagram": "rule_box", "pairs": [["favourable", "1"], ["total", "6"]], "caption": "P = 1/6"},
+            {"text": "3. A bag has 6 red, 5 blue balls. P(red)?", "diagram": "rule_box", "pairs": [["favourable", "6 (red)"], ["total", "11 (6+5)"]], "caption": "P = 6/11"},
+        ],
+        "solved": [{"q": "Ex: A bag has 4 green, 3 yellow balls. P(yellow)?", "steps": ["Favourable = 3 (yellow)", "Total = 4+3 = 7", "P(yellow) = 3/7"]}],
+        "tips": [
+            "Total = ALL balls/outcomes, not just the ones you're counting.",
+            "Probability is always a fraction between 0 and 1.",
+            "P(event) + P(not event) = 1.",
+            "Simplify the fraction if possible.",
+        ],
+        "try_it": {"questions": ["1. Die rolled: P(rolling a 6)?", "2. Bag has 3 red, 7 blue: P(red)?", "3. Coin tossed: P(Tails)?"], "answers": "1) 1/6   2) 3/10   3) 1/2"},
+    },
+    "20H": {
+        "title": "Probability — Problems",
+        "intro": [
+            "For 'at least' or 'greater than' questions, count ALL outcomes that satisfy the condition.",
+            "For two coins/dice together, list out ALL equally likely combined outcomes first.",
+            "Two coins: 4 outcomes (HH, HT, TH, TT).",
+            "Cards: a standard deck has 52 cards, 4 suits of 13 each.",
+        ],
+        "real_life": [
+            {"text": "1. A die is rolled. P(rolling greater than 4)?", "diagram": "rule_box", "pairs": [["favourable {5,6}", "2"], ["total", "6"]], "caption": "P = 2/6 = 1/3"},
+            {"text": "2. Two coins tossed. P(both Heads)?", "diagram": "rule_box", "pairs": [["favourable", "1 (HH)"], ["total", "4 (HH,HT,TH,TT)"]], "caption": "P = 1/4"},
+            {"text": "3. Card drawn from a deck. P(drawing an Ace)?", "diagram": "rule_box", "pairs": [["favourable", "4 (one per suit)"], ["total", "52"]], "caption": "P = 4/52 = 1/13"},
+        ],
+        "solved": [{"q": "Ex: Bag has 4 red, 5 green, 3 blue. P(NOT red)?", "steps": ["Total = 12", "Not red = green+blue = 8", "P(not red) = 8/12 = 2/3"]}],
+        "tips": [
+            "List all outcomes for combined events (2 coins, 2 dice) before counting.",
+            "'At least'/'greater than' means count a RANGE of outcomes.",
+            "'Not' an event = 1 - P(event).",
+            "Always simplify your final fraction.",
+        ],
+        "try_it": {"questions": ["1. Die rolled: P(number <= 3)?", "2. Two coins: P(at least one Head)?", "3. Bag 5 red 3 blue: P(not red)?"], "answers": "1) 1/2   2) 3/4   3) 3/8"},
+    },
+    "20I": {
+        "title": "Mixed Statistics & Probability",
+        "intro": [
+            "Statistics (mean/median/mode) summarizes a data set with one representative number.",
+            "Probability predicts the chance of a future random event.",
+            "Both rely on careful COUNTING -- of data values, or of possible outcomes.",
+            "Read each question carefully to know which skill it's testing.",
+        ],
+        "real_life": [
+            {"text": "1. Data: 6,7,5,7,9. Find the mean.", "diagram": "rule_box", "pairs": [["sum", "34"], ["34/5", "6.8"]], "caption": "statistics: summarizing data"},
+            {"text": "2. Die rolled. P(even number)?", "diagram": "rule_box", "pairs": [["favourable {2,4,6}", "3"], ["total", "6"]], "caption": "probability: predicting chance"},
+            {"text": "3. Data: 3,3,8,8,8. Find the mode.", "diagram": "rule_box", "pairs": [["8 appears", "3 times"]], "caption": "mode = 8"},
+        ],
+        "solved": [{"q": "Ex: Bag has 7 red, 3 blue. Find P(blue), then compare to the mean of 3,7 (the counts).", "steps": ["P(blue) = 3/10", "Mean of counts = (7+3)/2 = 5", "Different questions, different math"]}],
+        "tips": [
+            "Statistics questions ask for ONE number that describes a data set.",
+            "Probability questions ask for a FRACTION describing chance.",
+            "Both need careful, complete counting.",
+            "Don't confuse 'mean' with 'probability' -- read the question type.",
+        ],
+        "try_it": {"questions": ["1. Mean of 2,4,6,8.", "2. Die rolled: P(odd)?", "3. Mode of 1,1,2,3,3,3."], "answers": "1) 5   2) 1/2   3) 3"},
+    },
+    "20CUM3": {
+        "title": "Review: Probability",
+        "intro": [
+            "P(event) = favourable outcomes / total outcomes.",
+            "Always between 0 and 1.",
+            "P(event) + P(not event) = 1.",
+            "For combined events (2 coins, 2 dice), list every outcome first.",
+        ],
+        "real_life": [
+            {"text": "1. Bag: 4 red, 6 blue. P(red)?", "diagram": "rule_box", "pairs": [["favourable", "4"], ["total", "10"]], "caption": "P = 4/10 = 2/5"},
+            {"text": "2. Die rolled. P(not rolling a 6)?", "diagram": "rule_box", "pairs": [["P(6)", "1/6"], ["P(not 6)", "5/6"]], "caption": "1 - P(event)"},
+            {"text": "3. Two dice rolled. P(both show 6)?", "diagram": "rule_box", "pairs": [["favourable", "1"], ["total", "36"]], "caption": "6x6=36 combined outcomes"},
+        ],
+        "solved": [{"q": "Ex: Card drawn. P(drawing a heart)?", "steps": ["13 hearts in a 52-card deck", "P = 13/52", "Simplify: 1/4"]}],
+        "tips": [
+            "Count total outcomes carefully for combined events.",
+            "Simplify your final probability fraction.",
+            "P(not event) = 1 - P(event) is a fast shortcut.",
+            "Double-check favourable outcomes match the exact question asked.",
+        ],
+        "try_it": {"questions": ["1. Bag 2 red 8 blue: P(red)?", "2. Die: P(not 1)?", "3. Two coins: P(no Heads)?"], "answers": "1) 1/5   2) 5/6   3) 1/4"},
+    },
+    "20J": {
+        "title": "Grand Challenge — AP, Statistics & Probability",
+        "intro": [
+            "This level combines three big ideas: sequences (AP), data summaries (mean/median/mode), and chance (probability).",
+            "AP: a_n = a + (n-1)d.",
+            "Mean/median/mode: three different ways to describe 'typical' data.",
+            "Probability: favourable / total outcomes.",
+        ],
+        "real_life": [
+            {"text": "1. a=1, d=3. Find term 7.", "diagram": "rule_box", "pairs": [["a_7=a+6d", "1+18"], ["=", "19"]], "caption": "AP term formula"},
+            {"text": "2. Data: 16,13,3,2,1. Find the mean.", "diagram": "rule_box", "pairs": [["sum", "35"], ["35/5", "7"]], "caption": "mean = 7"},
+            {"text": "3. Die rolled. P(number <= 2)?", "diagram": "rule_box", "pairs": [["favourable {1,2}", "2"], ["total", "6"]], "caption": "P = 2/6 = 1/3"},
+        ],
+        "solved": [{"q": "Ex: a=5, d=2, find term 6; then find P(rolling that number's units digit on a die).", "steps": ["a_6 = 5+5(2) = 15", "Units digit = 5", "P(rolling 5) = 1/6"]}],
+        "tips": [
+            "Identify which of the three skills a question needs FIRST.",
+            "AP: watch for (n-1), not n.",
+            "Statistics: sort data before finding median.",
+            "Probability: count total outcomes carefully.",
+        ],
+        "try_it": {"questions": ["1. a=2,d=4: term 5?", "2. Mean of 10,20,30?", "3. Die: P(>4)?"], "answers": "1) 18   2) 20   3) 1/3"},
+    },
+    "20REV": {
+        "title": "Level 20 Revision — Statistics, Probability & AP",
+        "intro": [
+            "AP: constant difference d between terms; a_n = a + (n-1)d.",
+            "Mean = sum/count. Median = middle value (sorted). Mode = most frequent value.",
+            "Probability = favourable outcomes / total outcomes, always between 0 and 1.",
+            "Read carefully to identify which of these three skills a question is testing.",
+        ],
+        "real_life": [
+            {"text": "1. Find d: 4, 8, 12, 16...", "diagram": "rule_box", "pairs": [["8-4", "4"], ["12-8", "4"]], "caption": "d = 4"},
+            {"text": "2. Data: 20,7,12,12,18. Find the median.", "diagram": "rule_box", "pairs": [["sorted", "7,12,12,18,20"], ["middle", "12"]], "caption": "median = 12"},
+            {"text": "3. Bag: 6 red, 5 blue. P(blue)?", "diagram": "rule_box", "pairs": [["favourable", "5"], ["total", "11"]], "caption": "P = 5/11"},
+        ],
+        "solved": [{"q": "Ex: a=3,d=5: find term 4. Then: is that value more likely than rolling it on a die?", "steps": ["a_4 = 3+3(5) = 18", "A die only shows 1-6, so 18 is impossible to roll", "P(rolling 18) = 0"]}],
+        "tips": [
+            "AP: always double-check d using two different consecutive pairs.",
+            "Sort data BEFORE finding the median.",
+            "Mode = frequency, not value size.",
+            "Probability: total outcomes must include every possibility.",
+        ],
+        "try_it": {"questions": ["1. a=6,d=-2: term 4?", "2. Mode of 3,3,3,5,5?", "3. Die: P(rolling a 1 or 2)?"], "answers": "1) 0   2) 3   3) 1/3"},
     },
 }
