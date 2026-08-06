@@ -18571,6 +18571,24 @@ try:
 except Exception as _e:
     pass
 
+# Level 20 v3 architecture (2026-08-06): every Level 20/Statistics-
+# Probability-AP worksheet restructured to 20 questions in four blocks.
+# Level 20 had ZERO diagrams at all -- authored three new SVG diagrams
+# from scratch: ap_sequence (AP terms with "+cd" arrows between them),
+# data_bar_chart (dataset visualization for mean/median/mode), and
+# probability_bag (colored balls with legend for probability
+# questions). Legibility checked BEFORE declaring done this time
+# (applying the L18/L19 lesson a third time) -- all three added to
+# big_diag immediately, verified via zoomed crop. Q13-15 Quick Review
+# toughened beyond Level 19. Q16-20 continues the standing instruction:
+# "PYQ Review" replacing BODMAS, cumulative Levels 8-18, same generator
+# pool as Level 19.
+try:
+    from content_l20_v3_redesign import LEVEL20_V3_DISPATCH
+    _DISPATCH.update(LEVEL20_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 
 PICTORIAL_LEVELS = (0, 21, 22, 23, 24, 25)
 

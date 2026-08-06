@@ -6917,6 +6917,115 @@ def height_distance_svg(height=10, distance=10, angle=45, kind="elevation", blan
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def ap_sequence_svg(first=2, cd=3, n=5, blank=True, find_idx=None, **kw):
+    """An arithmetic progression shown as dots on a line, with an arc
+    and '+cd' label between each consecutive pair -- makes the constant
+    common difference visually obvious (Level 20A-C). blank=True (the
+    default) hides the term at `find_idx` (0-based; last term if not
+    given), showing '?' there while keeping the rest and the common-
+    difference arrows visible as the given pattern."""
+    terms = [first + i * cd for i in range(n)]
+    if find_idx is None:
+        find_idx = n - 1
+    w = 60 + n * 80
+    h = 150
+    y = 90
+    parts = []
+    xs = [50 + i * 80 for i in range(n)]
+    for i in range(n - 1):
+        mx = (xs[i] + xs[i + 1]) / 2
+        parts.append(f'<path d="M {xs[i]+14} {y-10} Q {mx} {y-38} {xs[i+1]-14} {y-10}" fill="none" stroke="#A6362B" stroke-width="1.8" marker-end="url(#apArrow)"/>')
+        cd_str = f"+{cd}" if cd >= 0 else str(cd)
+        parts.append(f'<text x="{mx:.1f}" y="{y-42:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="11" fill="#A6362B">{cd_str}</text>')
+    parts.append('<defs><marker id="apArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#A6362B"/></marker></defs>')
+    for i, x in enumerate(xs):
+        parts.append(f'<circle cx="{x}" cy="{y}" r="16" fill="#EAF4FC" stroke="#1B5E8C" stroke-width="2"/>')
+        val_str = "?" if (blank and i == find_idx) else str(terms[i])
+        parts.append(f'<text x="{x:.1f}" y="{y+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">{val_str}</text>')
+        parts.append(f'<text x="{x:.1f}" y="{y+34:.1f}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#7D8A96">term {i+1}</text>')
+    parts.insert(0, f'<text x="{w/2}" y="24" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Arithmetic Progression</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def data_bar_chart_svg(data=None, blank=False, highlight=None, **kw):
+    """A simple bar chart of a small dataset -- the given values for
+    mean/median/mode questions (Level 20D-F). The data itself is always
+    shown (it's the given information, not the answer); blank=True only
+    hides a single highlighted bar's value label if `highlight` (an
+    index) is given, for questions like 'one value is missing, given
+    the mean, find it'."""
+    if not data:
+        data = [10, 17, 2, 5, 9]
+    w = 60 + len(data) * 60
+    h = 220
+    max_v = max(data) if data else 1
+    base_y = 180
+    max_bar_h = 120
+    parts = []
+    for i, v in enumerate(data):
+        x = 40 + i * 60
+        bar_h = (v / max_v) * max_bar_h if max_v else 0
+        is_hidden = blank and highlight is not None and i == highlight
+        fill = "#F0F0F0" if is_hidden else "#AFCBE3"
+        stroke = "#8B98A5" if is_hidden else "#1B5E8C"
+        parts.append(f'<rect x="{x}" y="{base_y-bar_h:.1f}" width="40" height="{bar_h:.1f}" fill="{fill}" stroke="{stroke}" stroke-width="1.6" stroke-dasharray="{"4,3" if is_hidden else "none"}"/>')
+        label = "?" if is_hidden else str(v)
+        parts.append(f'<text x="{x+20}" y="{base_y-bar_h-8:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">{label}</text>')
+        parts.append(f'<text x="{x+20}" y="{base_y+16}" text-anchor="middle" font-family="Helvetica" font-size="10" fill="#7D8A96">{i+1}</text>')
+    parts.append(f'<line x1="30" y1="{base_y}" x2="{w-20}" y2="{base_y}" stroke="#2C3E50" stroke-width="1.6"/>')
+    parts.insert(0, f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">Data set</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
+def probability_bag_svg(counts=None, blank=True, find_color=None, **kw):
+    """Colored balls in a bag -- the classic probability picture (Level
+    20G/H). counts is a dict like {'red':4,'blue':3}; every ball is
+    always drawn (that's the given setup), but blank=True hides the
+    TOTAL COUNT label -- the student has to count the balls themselves
+    rather than being handed the denominator of the probability
+    fraction directly."""
+    if not counts:
+        counts = {"red": 4, "blue": 3, "green": 2}
+    color_map = {"red": "#C0392B", "blue": "#2471A3", "green": "#1E8449", "yellow": "#D4AC0D", "black": "#2C3E50"}
+    w, h = 260, 260
+    cx, cy, r = 130, 130, 85
+    parts = []
+    parts.append(f'<path d="M {cx-r} {cy-20} Q {cx-r-10} {cy+70} {cx-40} {cy+r+15} L {cx+40} {cy+r+15} Q {cx+r+10} {cy+70} {cx+r} {cy-20} Z" fill="#FDF6E3" stroke="#7D8A96" stroke-width="2.2"/>')
+    parts.append(f'<rect x="{cx-r-6}" y="{cy-34}" width="{2*r+12}" height="16" rx="4" fill="#E8DCC0" stroke="#7D8A96" stroke-width="1.6"/>')
+    balls = []
+    for color, n in counts.items():
+        balls.extend([color] * n)
+    import random as _random
+    _random.shuffle(balls)
+    import math as _m
+    positions = []
+    rows = [(cy+10, 5), (cy+40, 6), (cy+68, 5), (cy+95, 4)]
+    idx = 0
+    for row_y, count_in_row in rows:
+        if idx >= len(balls):
+            break
+        n_here = min(count_in_row, len(balls) - idx)
+        span = n_here * 26
+        start_x = cx - span / 2 + 13
+        for j in range(n_here):
+            positions.append((start_x + j * 26, row_y))
+            idx += 1
+    for (bx, by), color in zip(positions, balls):
+        fill = color_map.get(color, "#7D8A96")
+        parts.append(f'<circle cx="{bx:.1f}" cy="{by:.1f}" r="10.5" fill="{fill}" stroke="white" stroke-width="1.4"/>')
+    total = sum(counts.values())
+    total_str = "?" if blank else str(total)
+    legend_y = 24
+    lx = 20
+    for color, n in counts.items():
+        fill = color_map.get(color, "#7D8A96")
+        parts.append(f'<circle cx="{lx}" cy="{legend_y}" r="6" fill="{fill}"/>')
+        parts.append(f'<text x="{lx+12}" y="{legend_y+4}" font-family="Helvetica-Bold" font-size="11" fill="#2C3E50">{color}: {n}</text>')
+        lx += 70
+    parts.append(f'<text x="{w/2}" y="{h-8}" text-anchor="middle" font-family="Helvetica-Bold" font-size="12" fill="#2C3E50">Total balls = {total_str}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
     "balance_scale": balance_scale_svg,
@@ -6951,6 +7060,9 @@ SVG_DIAGRAM_FUNCTIONS = {
     "polygon_exterior_angle": polygon_exterior_angle_svg,
     "right_triangle_trig": right_triangle_trig_svg,
     "height_distance": height_distance_svg,
+    "ap_sequence": ap_sequence_svg,
+    "data_bar_chart": data_bar_chart_svg,
+    "probability_bag": probability_bag_svg,
     "rectangle_dims": rectangle_dims_svg,
     "square_dims": square_dims_svg,
     "triangle_area_diagram": triangle_area_svg,
