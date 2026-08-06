@@ -18158,6 +18158,20 @@ try:
 except Exception as _e:
     pass
 
+# Level 21 v3 (2026-08-06): consolidated from 17 core sublevels down to
+# 5 per direct request (heavy repetition removed -- old A/B/C all
+# opened "Count the objects", E/F/G all opened "Find the number
+# before", etc -- merged by SKILL, sheets carry the difficulty
+# escalation instead of separate sublevels). 100% diagrammatic (see the
+# PICTORIAL_LEVELS exclusion in get_questions() above). Supersedes keys
+# A-E from the original LEVEL1_DISPATCH just loaded; F-Q/CUM/REV remain
+# harmlessly unused since SUBLEVELS[21] no longer offers them.
+try:
+    from content_l21_v3_redesign import LEVEL21_V3_DISPATCH
+    _DISPATCH.update(LEVEL21_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Merge in Level 22 (new, separate level — "Pre Level 2", Even/Odd/Primes
 # with smaller step sizes for Class 1-2). Namespaced plain-letter codes
 # (__L22__A, __L22__B...), never colliding with the ORIGINAL, UNTOUCHED
@@ -18707,7 +18721,11 @@ def get_questions(sublevel_code: str, sheet_num: str, level_num: int = None) -> 
     # CPA structure for pictorial levels: questions 16-20 of every sheet
     # become simple numeral (Abstract) questions instead of staying
     # Pictorial for all 20 -- 15 image questions, then 5 number questions.
-    if level_num in PICTORIAL_LEVELS:
+    # EXCEPTION (2026-08-06, direct request): Levels 21-25 must be
+    # entirely diagrammatic for Class 1-2 -- this abstract-fade step is
+    # skipped for them specifically. Level 0 (Pre-Primary) keeps the
+    # original CPA behavior since it wasn't part of that request.
+    if level_num in PICTORIAL_LEVELS and level_num not in (21, 22, 23, 24, 25):
         for i in range(15, 20):
             if question_items[i].get("diagram_type"):
                 question_items[i] = _diagram_to_numeral(question_items[i])

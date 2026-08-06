@@ -293,8 +293,7 @@ def _est(item, cw=None):
         for t in tips:
             n_lines+=len(_wrap(f"\u27a4 {t}","Helvetica",12,avail))
         return 6*mm+n_lines*4.5*mm+4*mm
-    big_diag = item.get("diagram_type") in ("base10_blocks", "compare_blocks",
-                                             "vertical_numberline_blank", "vertical_numberline_example",
+    big_diag = item.get("diagram_type") in ("vertical_numberline_blank", "vertical_numberline_example",
                                              "math_maze_blank", "function_machine_blank",
                                              "number_pyramid_blank", "mixed_number_area_blank",
                                              "mixed_number_area_example", "decimal_mult_area_blank",
@@ -335,8 +334,13 @@ def _est(item, cw=None):
                       "triangle_classify", "angle_sum_triangle", "congruence",
                       "triangle_inequality", "isosceles_theorem", "similar_triangles",
                       "midpoint_theorem", "pythagoras", "area_same_base", "quadrilateral_types", "quadrilateral_diagonals", "polygon_angle_sum", "cyclic_quadrilateral_theorem", "circle_central_inscribed_angle", "circle_basics", "circle_chord", "circle_tangent")
+    pre_level_diag = item.get("diagram_type") in ("object_group", "visual_equation", "numline_jump",
+                                                    "base10_blocks", "ten_frames", "compare_blocks",
+                                                    "compare_choice", "sequence_boxes")
     if item.get("diagram_type") in precise_types:
         diag_h = _precise_diag_h(item.get("diagram_type"), item.get("diagram_params") or {})
+    elif pre_level_diag:
+        diag_h = 21 * mm
     else:
         diag_h = (58*mm if matching_diag else (34*mm if big_diag else 20*mm)) if item.get("diagram_type") else 0
     text = item.get("text", "")
@@ -449,8 +453,7 @@ class Col:
             svg_drawing=_diag_svg(dtype,dparm)
             if svg_drawing is not None:
                 try:
-                    big_diag = dtype in ("base10_blocks", "compare_blocks",
-                                          "vertical_numberline_blank", "vertical_numberline_example",
+                    big_diag = dtype in ("vertical_numberline_blank", "vertical_numberline_example",
                                           "math_maze_blank", "function_machine_blank",
                                           "number_pyramid_blank", "algebra_tiles", "balance_scale",
                                           "mixed_number_area_blank", "mixed_number_area_example",
@@ -514,8 +517,7 @@ class Col:
                 path=_diag(dtype,dparm)
                 if path:
                     try:
-                        big_diag = dtype in ("base10_blocks", "compare_blocks",
-                                              "vertical_numberline_blank", "vertical_numberline_example",
+                        big_diag = dtype in ("vertical_numberline_blank", "vertical_numberline_example",
                                               "math_maze_blank", "function_machine_blank",
                                               "number_pyramid_blank", "mixed_number_area_blank",
                                               "mixed_number_area_example", "decimal_mult_area_blank",
@@ -528,12 +530,17 @@ class Col:
                         array_diag = dtype == "array_grid"
                         tree_blank = (dtype == "factor_tree" and dparm.get("blank"))
                         venn_compact = dtype in ("venn_two", "cross_multiply_bowtie", "ratio_bar", "proportion_graph")
+                        pre_level_diag = dtype in ("object_group", "visual_equation", "numline_jump",
+                                                    "base10_blocks", "ten_frames", "compare_blocks",
+                                                    "compare_choice", "sequence_boxes")
                         if tree_blank:
                             iw = min(cw-3*mm, 46*mm); ih = 26*mm
                         elif array_diag:
                             iw = min(cw-3*mm, 60*mm); ih = 24*mm
                         elif venn_compact:
                             iw = min(cw-3*mm, 70*mm); ih = 40*mm
+                        elif pre_level_diag:
+                            iw = min(cw-3*mm, 65*mm); ih = 21*mm
                         else:
                             iw=min(cw-3*mm, 86*mm if matching_diag else (78*mm if big_diag else (68*mm if compact_diag else 68*mm)))
                             ih=56*mm if matching_diag else (32*mm if big_diag else (20*mm if compact_diag else 18*mm))

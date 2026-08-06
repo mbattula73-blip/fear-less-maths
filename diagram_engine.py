@@ -358,11 +358,13 @@ def dot_array(rows=2, cols=4, **kw) -> BytesIO:
 
 
 def ten_frames(count=23, **kw) -> BytesIO:
-    """Ten frames for counting. Each frame = 10 dots."""
+    """Ten frames for counting. Each frame = 10 dots. The count is never
+    printed on the image -- counting the dots IS the skill being tested,
+    so the answer must never be shown."""
     frames = (count // 10) + (1 if count % 10 else 0)
     cell, pad, gap = 22, 6, 8
     w = frames * (10 * cell // 2 + 2 * pad + gap) + 20
-    h = 90
+    h = 80
     img, d = _blank(w, h)
     filled = count
     x_off = 10
@@ -375,7 +377,6 @@ def ten_frames(count=23, **kw) -> BytesIO:
                 fill = C_BLUE_D if idx < filled else C_GRAY
                 d.ellipse([x0+1, y0+1, x0+cell-1, y0+cell-1], fill=fill, outline=C_BORDER, width=1)
         x_off += 5 * cell + gap
-    d.text((10, h-18), f"Count = {count}", fill=C_TEXT, font=_font_reg(11))
     return _to_bytes(img)
 
 
