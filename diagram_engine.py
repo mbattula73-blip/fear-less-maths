@@ -7027,8 +7027,63 @@ def probability_bag_svg(counts=None, blank=True, find_color=None, **kw):
     return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
 
 
+def _place_parts(n):
+    """Split n into its place-value parts, e.g. 4372 -> [4000,300,70,2],
+    dropping any zero parts (e.g. 4072 -> [4000,70,2])."""
+    s = str(n)
+    parts = []
+    for i, ch in enumerate(s):
+        d = int(ch)
+        if d == 0:
+            continue
+        place = 10 ** (len(s) - 1 - i)
+        parts.append(d * place)
+    return parts or [0]
+
+
+def split_mult_area_svg(a=23, b=14, blank=True, **kw):
+    """The split (area/box) method for multi-digit multiplication --
+    splits a and b into their place-value parts (e.g. 23 -> 20+3, 314
+    -> 300+10+4) and shows every partial product in an N x M grid,
+    scaling naturally from a simple 2x1 grid (2-digit x 1-digit) up to
+    a 4x4 grid (4-digit x 4-digit) -- one consistent visual for every
+    multi-digit sublevel in Level 4. blank=True empties every partial-
+    product cell (keeping the row/column place-value headers) so the
+    student must compute and place each one; the final total is never
+    shown either way -- that's the answer being asked for."""
+    a_parts = _place_parts(a)
+    b_parts = _place_parts(b)
+    n_cols = len(a_parts)
+    n_rows = len(b_parts)
+    cell_w, cell_h = 68, 44
+    x0, y0 = 64, 50
+    w = x0 + n_cols * cell_w + 16
+    h = y0 + n_rows * cell_h + 40
+    parts = []
+    expr = f"{a} x {b}"
+    parts.append(f'<text x="{w/2}" y="20" text-anchor="middle" font-family="Helvetica-Bold" font-size="15" fill="#2C3E50">{expr}</text>')
+    for j, av in enumerate(a_parts):
+        cx = x0 + j * cell_w + cell_w / 2
+        parts.append(f'<text x="{cx:.1f}" y="{y0-12}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#1B5E8C">{av}</text>')
+    for i, bv in enumerate(b_parts):
+        cy = y0 + i * cell_h + cell_h / 2
+        parts.append(f'<text x="{x0-10:.1f}" y="{cy+5:.1f}" text-anchor="end" font-family="Helvetica-Bold" font-size="13" fill="#1E7A44">{bv}</text>')
+    for i in range(n_rows):
+        for j in range(n_cols):
+            cx, cy = x0 + j * cell_w, y0 + i * cell_h
+            product = a_parts[j] * b_parts[i]
+            label = "?" if blank else str(product)
+            bg = "#FAFBFC" if blank else "#EAF4FC"
+            parts.append(f'<rect x="{cx}" y="{cy}" width="{cell_w}" height="{cell_h}" fill="{bg}" stroke="#2C3E50" stroke-width="1.3"/>')
+            parts.append(f'<text x="{cx+cell_w/2:.1f}" y="{cy+cell_h/2+5:.1f}" text-anchor="middle" font-family="Helvetica-Bold" font-size="13" fill="#2C3E50">{label}</text>')
+    tip = "Multiply row x column for each cell, then add every cell together." if blank else "Add all the cells together for the final answer."
+    parts.append(f'<text x="{w/2}" y="{y0+n_rows*cell_h+22}" text-anchor="middle" font-family="Helvetica-Oblique" font-size="10.5" fill="#5D6D7E">{tip}</text>')
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">' + "".join(parts) + "</svg>"
+
+
 SVG_DIAGRAM_FUNCTIONS = {
     "algebra_tiles": algebra_tiles_svg,
+    "split_mult_area": split_mult_area_svg,
     "balance_scale": balance_scale_svg,
     "term_label": term_label_svg,
     "like_terms_sort": like_terms_sort_svg,

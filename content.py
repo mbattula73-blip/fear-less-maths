@@ -18364,6 +18364,21 @@ try:
 except Exception as _e:
     pass
 
+# Level 4 v3 (2026-08-19): full rebuild into the standard 14-sublevel
+# (56-worksheet) v3 architecture used for Levels 6-20, per direct
+# request. The v2 redesign above (and the original beneath it) had NO
+# genuine difficulty escalation -- even its "multi-digit" sublevel
+# never exceeded 2-digit x 1-digit multiplication. New arc: Concept ->
+# Tables 0/1/2/5/10 -> Tables 3/4/6/9 -> Tables 7/8+Squares -> 2-digit
+# x1-digit -> 2-digit x2-digit -> 3-digit x1/2-digit -> 3-digit
+# x3-digit -> 4-digit x2/3-digit -> 4-digit x4-digit + word problems,
+# reaching "at least 4 by 4 multiplication" by the final sublevel.
+try:
+    from content_l4_v3_redesign import LEVEL4_V3_DISPATCH
+    _DISPATCH.update(LEVEL4_V3_DISPATCH)
+except Exception as _e:
+    pass
+
 # Replace the original Level 5 (Division) in place with a redesign
 # following the easiest-divisor-first order (/2,/5,/10 -> /3,/4,/6,/9 ->
 # /7,/8 last), teaching the multiply-back CHECK step explicitly, giving
